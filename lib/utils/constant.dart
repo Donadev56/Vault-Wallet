@@ -13,10 +13,17 @@ final List<Map<String, dynamic>> options = [
 
 final List<Network> networks = [
   Network(
+      rpc: "https://opbnb-mainnet-rpc.bnbchain.org",
       name: "opBNB",
       icon: "assets/b1.webp",
+      binanceSymbol: "BNBUSDT",
       chainId: 204,
       color: Colors.orange),
   Network(
-      name: "BNB", icon: "assets/bnb.png", chainId: 56, color: Colors.orange),
+      rpc: "https://bsc-dataseed.binance.org",
+      name: "BNB",
+      binanceSymbol: "BNBUSDT",
+      icon: "assets/bnb.png",
+      chainId: 56,
+      color: Colors.orange),
 ];

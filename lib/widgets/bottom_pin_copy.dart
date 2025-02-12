@@ -6,11 +6,11 @@ import 'package:moonwallet/types/types.dart';
 
 typedef ResultType = Future<PinSubmitResult> Function(String numbers);
 
-Future<void> showPinModalBottomSheet(
+Future<bool> showPinModalBottomSheet(
     {required BuildContext context,
     required ResultType handleSubmit,
     required String title}) async {
-  showModalBottomSheet(
+ final result = await showModalBottomSheet<bool> (
       context: context,
       builder: (BuildContext context) {
         final width = MediaQuery.of(context).size.width;
@@ -66,7 +66,7 @@ Future<void> showPinModalBottomSheet(
               if (result.success && !result.repeat ||
                   !result.success && !result.repeat) {
                 reInit();
-                Navigator.pop(context);
+                Navigator.pop(context, true);
                 return;
               } else if (result.success && result.repeat) {
                 setModalState(() {
@@ -229,7 +229,10 @@ Future<void> showPinModalBottomSheet(
             ),
           );
         });
-      });
+      })  ;
+
+      return result ??    false;
+
 }
 
 int getIndex(int index) {

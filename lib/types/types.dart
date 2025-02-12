@@ -145,14 +145,16 @@ class Network {
   final String icon;
   final int chainId;
   final Color color;
-  final String? rpc;
+  final String rpc;
+  final String binanceSymbol;
 
   Network({
     required this.name,
     required this.icon,
     required this.chainId,
     required this.color,
-    this.rpc,
+    required this.rpc,
+    required this.binanceSymbol,
   });
 
   factory Network.fromJson(Map<String, dynamic> json) {
@@ -162,6 +164,7 @@ class Network {
       chainId: json['chainId'],
       color: Color(json['color']),
       rpc: json['rpc'],
+      binanceSymbol: json['binanceSymbol'],
     );
   }
 
@@ -172,6 +175,7 @@ class Network {
       'chainId': chainId,
       'color': color.value,
       'rpc': rpc,
+      'binanceSymbol': binanceSymbol,
     };
   }
 }
@@ -233,5 +237,35 @@ class History {
   // Convert a History instance to a JSON List
   List<Map<String, dynamic>> toJson() {
     return history.map((item) => item.toJson()).toList();
+  }
+}
+
+class UserRequestResponse {
+  final bool ok;
+  final BigInt gasPrice;
+  final BigInt gasLimit;
+
+  UserRequestResponse({
+    required this.ok,
+    required this.gasPrice,
+    required this.gasLimit,
+  });
+
+  // Convert a JSON Map to a HistoryItem instance
+  factory UserRequestResponse.fromJson(Map<String, dynamic> json) {
+    return UserRequestResponse(
+      ok: json['ok'],
+      gasPrice: BigInt.parse(json['gasPrice']),
+      gasLimit: BigInt.parse(json['gasLimit']),
+    );
+  }
+
+  // Convert a HistoryItem instance to a JSON Map
+  Map<String, dynamic> toJson() {
+    return {
+      'ok': ok,
+      'gasPrice': gasPrice.toString(),
+      'gasLimit': gasLimit.toString(),
+    };
   }
 }

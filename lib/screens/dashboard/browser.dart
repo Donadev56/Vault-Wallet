@@ -1,8 +1,9 @@
 // ignore_for_file: deprecated_member_use
 import 'package:http/http.dart' as http;
+import 'package:moonwallet/service/price_manager.dart';
 
 import 'dart:convert';
-
+import 'package:moonwallet/widgets/bottom_pin_copy.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_feather_icons/flutter_feather_icons.dart';
@@ -11,10 +12,12 @@ import 'package:google_fonts/google_fonts.dart';
 import 'package:lucide_icons_flutter/lucide_icons.dart';
 import 'package:moonwallet/logger/logger.dart';
 import 'package:moonwallet/service/web3.dart';
+import 'package:moonwallet/service/web3_interaction.dart';
 import 'package:moonwallet/types/types.dart';
 import 'package:moonwallet/utils/constant.dart';
 import 'package:moonwallet/utils/crypto.dart';
-import 'package:moonwallet/utils/prefs.dart';
+import 'package:moonwallet/widgets/askUserforconf.dart';
+import 'package:web3dart/web3dart.dart';
 
 class Web3BrowserScreen extends StatefulWidget {
   const Web3BrowserScreen({super.key});
@@ -31,15 +34,19 @@ class Web3BrowserScreenState extends State<Web3BrowserScreen> {
   Color surfaceTintColor = Color(0XFF454545);
   Color darkNavigatorColor = Color(0XFF0D0D0D);
   String _title = '';
-  String currentUrl = 'https://www.google.com';
+  String currentUrl = 'https://www.moonbnb.pro';
   bool canShowAppBarOptions = true;
   int _chainId = 204;
+  Network currentNetwork = networks[0];
   InAppWebViewController? _webViewController;
   bool _isInitialized = false;
   bool isFullScreen = false;
   List<PublicData> accounts = [];
   PublicData? currentAccount;
   final web3Manager = Web3Manager();
+  final web3IntManager = Web3InteractionManager();
+  final priceManager = PriceManager();
+
   final encryptService = EncryptService();
   final String historyName = "UserHistory";
 
@@ -72,9 +79,205 @@ class Web3BrowserScreenState extends State<Web3BrowserScreen> {
   }
 
   Future<bool> _walletSwitchEthereumChain(JsAddEthereumChain data) async {
-    _chainId =
+    log("Changing the network id");
+    int requestedChainId =
         int.parse((data.chainId)?.replaceFirst('0x', '') ?? '1', radix: 16);
-    return true;
+    log("Current chain Id $_chainId");
+
+    for (final net in networks) {
+      if (net.chainId == requestedChainId) {
+        setState(() {
+          currentNetwork = net;
+          _chainId = requestedChainId;
+          log("Switched to network: ${currentNetwork.name}");
+        });
+
+        return true;
+      } else {
+        continue;
+      }
+    }
+    return _chainId == requestedChainId;
+  }
+
+  Uint8List hexToUint8List(String hex) {
+    if (hex.startsWith("0x") || hex.startsWith("0X")) {
+      hex = hex.substring(2);
+    }
+    if (hex.length % 2 != 0) {
+      throw 'Odd number of hex digits';
+    }
+    var l = hex.length ~/ 2;
+    var result = Uint8List(l);
+    for (var i = 0; i < l; ++i) {
+      var x = int.parse(hex.substring(2 * i, 2 * (i + 1)), radix: 16);
+      if (x.isNaN) {
+        throw 'Expected hex string';
+      }
+      result[i] = x;
+    }
+    return result;
+  }
+
+  Future<String> sendEthTransaction(JsTransactionObject data) async {
+    try {
+      if (currentAccount == null) {
+        throw Exception("No account connected ");
+      }
+
+      if (data.from != null && data.from?.trim().toLowerCase() != currentAccount!.address.trim().toLowerCase()) {
+        throw Exception(
+            "Different address detected : \n  it seems like ${data.from} is different from the connected address  ${currentAccount?.address} , please check again your transaction data .");
+      }
+
+      BigInt estimatedGas = await web3IntManager.estimateGas(
+          value: data.value ?? "0x0",
+          rpcUrl: currentNetwork.rpc,
+          sender: data.from ?? "",
+          to: data.to ?? "",
+          data: data.data ?? "");
+
+      log("Estimated gas ${estimatedGas.toString()}");
+
+      BigInt valueInWei = data.value != null
+          ? BigInt.parse(data.value!.replaceFirst("0x", ""), radix: 16)
+          : BigInt.zero;
+
+      log("value wei $valueInWei");
+
+      BigInt? gasLimit = data.gas != null
+          ? BigInt.parse(data.gas!.replaceFirst("0x", ""), radix: 16)
+          : (estimatedGas * BigInt.from(30)) ~/ BigInt.from(100);
+      final gasPriceResult =
+          await web3IntManager.getGasPrice(currentNetwork.rpc);
+      BigInt gasPrice =
+          gasPriceResult != BigInt.zero ? gasPriceResult : BigInt.from(100000);
+      if (!mounted) {
+        throw Exception("Internal error");
+      }
+
+      final cryptoPrice = await priceManager
+          .getPriceUsingBinanceApi(currentNetwork.binanceSymbol);
+      if (!mounted) {
+        throw Exception("Internal error");
+      }
+      final confirmedResponse = await askUserForConfirmation(
+          secondaryColor: secondaryColor,
+          cryptoPrice: cryptoPrice,
+          estimatedGas: estimatedGas,
+          gasPrice: gasPrice,
+          gasLimit: gasLimit,
+          valueInWei: valueInWei,
+          actionsColor: actionsColor,
+          txData: data,
+          context: context,
+          primaryColor: primaryColor,
+          currentAccount: currentAccount,
+          textColor: textColor);
+
+      final confirmed = confirmedResponse.ok;
+
+      if (!confirmed) {
+        throw Exception("Transaction rejected by user");
+      }
+
+      if (data.from != null && data.to != null && data.data != null) {
+        final transaction = Transaction(
+          from: EthereumAddress.fromHex(data.from ?? ""),
+          to: EthereumAddress.fromHex(data.to ?? ""),
+          value: EtherAmount.inWei(valueInWei),
+          maxGas: confirmedResponse.gasLimit.toInt(),
+          gasPrice: EtherAmount.inWei(confirmedResponse.gasPrice),
+          data: hexToUint8List(data.data ?? ""),
+        );
+
+        String userPassword = "";
+
+        if (!mounted) {
+          throw Exception("Internal error");
+        }
+        
+        final response =  showPinModalBottomSheet(
+            context: context,
+            handleSubmit: (password) async {
+              final savedPassword = await web3Manager.getSavedPassword();
+              if (password.trim() != savedPassword) {
+                return PinSubmitResult(
+                    success: false,
+                    repeat: true,
+                    error: "Invalid password",
+                    newTitle: "Try again");
+              } else {
+                
+                userPassword = password.trim();
+                if (!mounted) return PinSubmitResult(success: true, repeat: false);
+
+                return PinSubmitResult(success: true, repeat: false);
+              }
+            },
+            title: "Enter Password");
+
+
+  
+     if ((await response))    {
+
+          if (!mounted) {
+            throw Exception("Internal error");
+          }
+        showDialog(
+                    context: context,
+                    builder: (BuildContext context) {
+                      return Center(
+                        child:Container(
+                          padding: const EdgeInsets.all(30),
+                        width: 100,
+                        height: 100,
+                        decoration: BoxDecoration(
+                          borderRadius: BorderRadius.circular(20),
+                          border: Border.all(color: secondaryColor, width: 0.5),
+                             color: primaryColor,
+
+                        ),
+                      
+                        child: SizedBox(
+                          width: 50,
+                          height: 50,
+                          child: CircularProgressIndicator(
+                            color: textColor,
+                          ),
+                        ),
+                      ) ,
+                      ) ;
+                    });
+    if (userPassword.isEmpty) {
+      log("No password");
+      throw Exception("No password provided");
+      
+    }
+        final result =   await web3IntManager.sendTransaction(
+                    transaction: transaction,
+                    chainId: currentNetwork.chainId,
+                    rpcUrl: currentNetwork.rpc,
+                    password: userPassword,
+                    address: data.from ?? "");
+
+        
+          if (!mounted) {
+            throw Exception("Internal error");
+          }
+        Navigator.pop(context);
+        return result ;
+      } else {
+        throw Exception("Invalid transaction data");
+      
+     } 
+     } else {
+       throw Exception("Invalid transaction data");
+     }
+    } catch (e) {
+      logError('Error sending Ethereum transaction: $e');
+      throw Exception(e.toString());
+    }
   }
 
   Future<void> getBgColor() async {
@@ -520,21 +723,20 @@ class Web3BrowserScreenState extends State<Web3BrowserScreen> {
                                     ),
                               SizedBox(width: 2),
                               TextButton(
-                                onPressed: () {
-                                  Clipboard.setData(
-                                      ClipboardData(text: currentUrl));
-                                },
-                                child: Container(
-                                  width: width * 0.5,
-                                  child:Text(
-                                  Uri.parse(currentUrl).host,
-                                  overflow: TextOverflow.ellipsis,
-                                  style: GoogleFonts.roboto(
-                                      color: textColor.withOpacity(0.8),
-                                      fontSize: 16),
-                                ) ,
-                                ) 
-                              )
+                                  onPressed: () {
+                                    Clipboard.setData(
+                                        ClipboardData(text: currentUrl));
+                                  },
+                                  child: Container(
+                                    width: width * 0.5,
+                                    child: Text(
+                                      Uri.parse(currentUrl).host,
+                                      overflow: TextOverflow.ellipsis,
+                                      style: GoogleFonts.roboto(
+                                          color: textColor.withOpacity(0.8),
+                                          fontSize: 16),
+                                    ),
+                                  ))
                             ],
                           ),
                         ],
@@ -555,18 +757,25 @@ class Web3BrowserScreenState extends State<Web3BrowserScreen> {
               ),
         body: SafeArea(
             child: Web3Webview(
-                onWebViewCreated: (crl) {
-                  _webViewController = crl;
-                },
-                initialUrlRequest: URLRequest(url: WebUri(currentUrl)),
-                settings: Web3Settings(
-                    eth: Web3EthSettings(
-                        chainId: _chainId, rdns: 'com.opennode.moonwallet')),
-                shouldOverrideUrlLoading: (p0, action) async =>
-                    NavigationActionPolicy.ALLOW,
-                onTitleChanged: _onTitleChanged,
-                ethAccounts: _ethAccounts,
-                ethChainId: _ethChainId,
-                walletSwitchEthereumChain: _walletSwitchEthereumChain)));
+          onWebViewCreated: (crl) {
+            _webViewController = crl;
+          },
+          onConsoleMessage: (controller, msg) {
+            log("The console message : ${(msg.message)}");
+          },
+          initialUrlRequest: URLRequest(url: WebUri(currentUrl)),
+          settings: Web3Settings(
+              eth: Web3EthSettings(
+                  chainId: _chainId, rdns: 'com.opennode.moonwallet')),
+          shouldOverrideUrlLoading: (p0, action) async =>
+              NavigationActionPolicy.ALLOW,
+          onTitleChanged: _onTitleChanged,
+          ethAccounts: _ethAccounts,
+          ethChainId: _ethChainId,
+          walletSwitchEthereumChain: _walletSwitchEthereumChain,
+          ethSendTransaction: (data) async {
+            return await sendEthTransaction(data);
+          },
+        )));
   }
 }

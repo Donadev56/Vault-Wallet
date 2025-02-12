@@ -445,70 +445,71 @@ class _DiscoverScreenState extends State<DiscoverScreen>
                             ),
                           ),
                         ),
-                   SizedBox(
-                    height: height * 0.6,
-                    child:  SingleChildScrollView(
-                        child:  Column(
-                          children: List.generate(history.length, (index) {
-                            final hist = history[index];
-                            return ListTile(
-                              leading: ClipRRect(
-                                  borderRadius: BorderRadius.circular(50),
-                                  child: Container(
-                                    decoration: BoxDecoration(
-                                        color:
-                                            surfaceTintColor.withOpacity(0.5)),
-                                    child: Image.network(
-                                      "https://www.google.com/s2/favicons?domain_url=${hist.link}",
-                                      width: 30,
-                                      height: 30,
-                                      fit: BoxFit.cover,
+                        SizedBox(
+                          height: height * 0.6,
+                          child: SingleChildScrollView(
+                            child: Column(
+                              children: List.generate(history.length, (index) {
+                                final hist = history[index];
+                                return ListTile(
+                                  leading: ClipRRect(
+                                      borderRadius: BorderRadius.circular(50),
+                                      child: Container(
+                                        decoration: BoxDecoration(
+                                            color: surfaceTintColor
+                                                .withOpacity(0.5)),
+                                        child: Image.network(
+                                          "https://www.google.com/s2/favicons?domain_url=${hist.link}",
+                                          width: 30,
+                                          height: 30,
+                                          fit: BoxFit.cover,
+                                        ),
+                                      )),
+                                  title: Text(
+                                    hist.title,
+                                    style: GoogleFonts.roboto(
+                                      fontSize: 16,
+                                      fontWeight: FontWeight.bold,
+                                      color: textColor,
                                     ),
-                                  )),
-                              title: Text(
-                                hist.title,
-                                style: GoogleFonts.roboto(
-                                  fontSize: 16,
-                                  fontWeight: FontWeight.bold,
-                                  color: textColor,
-                                ),
-                                overflow: TextOverflow.ellipsis,
-                                maxLines: 1,
-                              ),
-                              trailing: IconButton(
-                                  onPressed: () async {
-                                    final res = await deleteHistoryItem(index);
-                                    if (res) {
-                                      showCustomSnackBar(
-                                          context: context,
-                                          message: "Deleted successfully",
-                                          iconColor: Colors.greenAccent,
-                                          icon: Icons.check);
-                                    } else {
-                                      showCustomSnackBar(
-                                          context: context,
-                                          message: "Failed to delete",
-                                          iconColor: Colors.pinkAccent,
-                                          icon: Icons.error);
-                                    }
+                                    overflow: TextOverflow.ellipsis,
+                                    maxLines: 1,
+                                  ),
+                                  trailing: IconButton(
+                                      onPressed: () async {
+                                        final res =
+                                            await deleteHistoryItem(index);
+                                        if (res) {
+                                          showCustomSnackBar(
+                                              context: context,
+                                              message: "Deleted successfully",
+                                              iconColor: Colors.greenAccent,
+                                              icon: Icons.check);
+                                        } else {
+                                          showCustomSnackBar(
+                                              context: context,
+                                              message: "Failed to delete",
+                                              iconColor: Colors.pinkAccent,
+                                              icon: Icons.error);
+                                        }
+                                      },
+                                      icon: Icon(
+                                        FeatherIcons.trash,
+                                        color: textColor.withOpacity(0.7),
+                                      )),
+                                  onTap: () async {
+                                    await changeHistoryIndex(index);
+                                    Navigator.pushNamed(context, Routes.browser,
+                                        arguments: ({
+                                          "url": hist.link.trim(),
+                                          "network": "opBNB"
+                                        }));
                                   },
-                                  icon: Icon(
-                                    FeatherIcons.trash,
-                                    color: textColor.withOpacity(0.7),
-                                  )),
-                              onTap: () async {
-                                await changeHistoryIndex(index);
-                                Navigator.pushNamed(context, Routes.browser,
-                                    arguments: ({
-                                      "url": hist.link.trim(),
-                                      "network": "opBNB"
-                                    }));
-                              },
-                            );
-                          }),
-                        ),
-                       ),
-                   )    
+                                );
+                              }),
+                            ),
+                          ),
+                        )
                       ],
                     ),
                   ),

@@ -523,7 +523,6 @@ class _MainDashboardScreenState extends State<MainDashboardScreen>
                                         child: Text("${result.data}",
                                             overflow: TextOverflow.clip,
                                             maxLines: 1,
-                                            
                                             style: GoogleFonts.roboto(
                                                 color: textColor,
                                                 fontSize: 16,
