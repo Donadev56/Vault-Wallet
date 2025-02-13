@@ -12,6 +12,9 @@ import 'package:moonwallet/screens/dashboard/auth/private_key.dart';
 import 'package:moonwallet/screens/dashboard/browser.dart';
 import 'package:moonwallet/screens/dashboard/discover.dart';
 import 'package:moonwallet/screens/dashboard/main.dart';
+import 'package:moonwallet/screens/dashboard/view/wallet_overview.dart';
+import 'package:moonwallet/screens/dashboard/wallet_actions/add_WO.dart';
+import 'package:moonwallet/screens/dashboard/wallet_actions/add_mnemonic.dart';
 import 'package:moonwallet/screens/dashboard/wallet_actions/add_private_key.dart';
 import 'package:moonwallet/screens/dashboard/wallet_actions/private_key.dart';
 import 'package:moonwallet/utils/prefs.dart';
@@ -32,12 +35,15 @@ class Routes {
   static const String main = '/dashboard';
   static const String importWalletMain = '/importWalletMain';
   static const String createPrivateKeyMain = '/createPrivateKeyMain';
+  static const String createAccountFromSed = '/createAccountFromSed';
 
   static const String discover = '/discover';
   static const String browser = '/browser';
   static const String home = '/home';
   static const String addPrivateKey = '/addPrivateKey';
   static const String pinAuth = '/pinAuth';
+  static const String walletOverview = '/walletOverview';
+  static const String addObservationWallet = '/addObservationWallet';
 
   static const String privateKeyCreator = '/privatekeyCreator';
 }
@@ -92,6 +98,10 @@ class MyApp extends StatelessWidget {
                   Routes.importWalletMain: (context) => AddPrivateKeyInMain(),
                   Routes.createPrivateKeyMain: (context) =>
                       CreatePrivateKeyMain(),
+                  Routes.walletOverview: (context) => WalletViewScreen(),
+                  Routes.createAccountFromSed: (context) => AddMnemonicScreen(),
+                  Routes.addObservationWallet: (context) =>
+                      AddObservationWallet(),
                 });
           } else {
             return Container(

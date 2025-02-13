@@ -351,7 +351,7 @@ class _DiscoverScreenState extends State<DiscoverScreen>
               unselectedLabelColor: Colors.grey,
               indicatorColor: secondaryColor,
               tabs: [
-                Tab(text: 'Dapps'),
+                Tab(text: 'DApps'),
                 Tab(
                   text: 'History',
                 ),
@@ -368,7 +368,7 @@ class _DiscoverScreenState extends State<DiscoverScreen>
                         Container(
                           padding: const EdgeInsets.all(20),
                           child: Text(
-                            "Best Dapps",
+                            "Best DApps",
                             style: GoogleFonts.roboto(
                               fontSize: 20,
                               fontWeight: FontWeight.bold,

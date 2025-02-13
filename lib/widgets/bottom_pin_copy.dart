@@ -10,7 +10,7 @@ Future<bool> showPinModalBottomSheet(
     {required BuildContext context,
     required ResultType handleSubmit,
     required String title}) async {
- final result = await showModalBottomSheet<bool> (
+  final result = await showModalBottomSheet<bool>(
       context: context,
       builder: (BuildContext context) {
         final width = MediaQuery.of(context).size.width;
@@ -229,10 +229,9 @@ Future<bool> showPinModalBottomSheet(
             ),
           );
         });
-      })  ;
+      });
 
-      return result ??    false;
-
+  return result ?? false;
 }
 
 int getIndex(int index) {

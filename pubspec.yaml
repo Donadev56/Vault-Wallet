@@ -52,6 +52,7 @@ dependencies:
   encrypt: ^5.0.3
   ulid: ^2.0.1
   vibration: ^3.1.2
+  url_launcher: ^6.3.1
 
   
   

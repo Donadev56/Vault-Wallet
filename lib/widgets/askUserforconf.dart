@@ -413,6 +413,11 @@ Future<UserRequestResponse> askUserForConfirmation({
                             onTap: () {
                               setModalState(() {
                                 currentIndex = index;
+                                if (canUseCustomGas) {
+                                  setModalState(() {
+                                    canUseCustomGas = false;
+                                  });
+                                }
                               });
                             },
                             child: Container(

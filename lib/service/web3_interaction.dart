@@ -53,7 +53,7 @@ class Web3InteractionManager {
     try {
       if (rpcUrl.isEmpty) {
         log("rpc url is empty");
-       throw Exception("Internal error : rpcUrl is empty");
+        throw Exception("Internal error : rpcUrl is empty");
       }
       var ethClient = Web3Client(rpcUrl, httpClient);
       final savedPrivateKeys = await web3manager.getDecryptedData(password);
@@ -68,7 +68,7 @@ class Web3InteractionManager {
 
             final keyAddr = fromHex.address.hex;
             log("Address found $address");
-            if (keyAddr .trim().toLowerCase()== address.trim().toLowerCase()) {
+            if (keyAddr.trim().toLowerCase() == address.trim().toLowerCase()) {
               log("Key found for address $address");
 
               return await ethClient.sendTransaction(
@@ -80,21 +80,17 @@ class Web3InteractionManager {
           }
         } else {
           log("No key found for address $address");
-         throw Exception("Internal error : No key found for address $address");
-
+          throw Exception("Internal error : No key found for address $address");
         }
       } else {
         log("Invalid password or no data found");
-            throw Exception("Internal error : Invalid password or no data found");
-
+        throw Exception("Internal error : Invalid password or no data found");
       }
 
-   throw Exception("Internal error");
+      throw Exception("Internal error");
     } catch (e) {
-   
-    logError(e.toString());
-    return ("Internal error : $e");
-
+      logError(e.toString());
+      return ("Internal error : $e");
     }
   }
 

@@ -9,6 +9,7 @@ import 'package:moonwallet/logger/logger.dart';
 import 'package:moonwallet/main.dart';
 import 'package:moonwallet/service/vibration.dart';
 import 'package:moonwallet/types/types.dart';
+import 'package:moonwallet/widgets/appBar/button.dart';
 
 typedef EditWalletNameType = void Function(String newName, int index);
 typedef ActionWithIndexType = void Function(int index);
@@ -66,7 +67,6 @@ class CustomAppBar extends StatelessWidget implements PreferredSizeWidget {
             borderRadius: BorderRadius.circular(10),
             onTap: () async {
               await vibrate(duration: 10);
-
               showModalBottomSheet(
                   isScrollControlled: true,
                   context: context,
@@ -183,8 +183,14 @@ class CustomAppBar extends StatelessWidget implements PreferredSizeWidget {
                                           shape: RoundedRectangleBorder(
                                               borderRadius:
                                                   BorderRadius.circular(10)),
-                                          leading: Icon(LucideIcons.wallet,
-                                              color: textColor),
+                                          leading: currentWallet.isWatchOnly !=
+                                                      null &&
+                                                  currentWallet.isWatchOnly ==
+                                                      true
+                                              ? Icon(LucideIcons.eye,
+                                                  color: textColor)
+                                              : Icon(LucideIcons.wallet,
+                                                  color: textColor),
                                           title: Text(
                                             currentWallet.walletName,
                                             style: GoogleFonts.roboto(
@@ -342,7 +348,7 @@ class CustomAppBar extends StatelessWidget implements PreferredSizeWidget {
                                     context: context,
                                     builder: (BuildContext btnCtx) {
                                       return Container(
-                                        height: height * 0.4,
+                                        height: height * 0.9,
                                         width: width,
                                         decoration: BoxDecoration(
                                             color: primaryColor,
@@ -371,75 +377,60 @@ class CustomAppBar extends StatelessWidget implements PreferredSizeWidget {
                                               margin: const EdgeInsets.all(20),
                                               child: Column(
                                                 children: [
-                                                  Material(
-                                                    color: Colors.transparent,
-                                                    borderRadius:
-                                                        BorderRadius.circular(
-                                                            10),
-                                                    child: ListTile(
-                                                      tileColor: textColor
-                                                          .withOpacity(0.1),
+                                                  AddWalletButton(
+                                                      textColor: textColor,
+                                                      text:
+                                                          "Create a new wallet",
+                                                      icon: Icons.add,
                                                       onTap: () {
                                                         Navigator.pushNamed(
                                                             context,
                                                             Routes
                                                                 .createPrivateKeyMain);
-                                                      },
-                                                      shape:
-                                                          RoundedRectangleBorder(
-                                                              borderRadius:
-                                                                  BorderRadius
-                                                                      .circular(
-                                                                          10)),
-                                                      leading: Icon(
-                                                        Icons.add,
-                                                        color: textColor,
-                                                      ),
-                                                      title: Text(
-                                                        "Create a new wallet",
-                                                        style:
-                                                            GoogleFonts.roboto(
-                                                                color:
-                                                                    textColor),
-                                                      ),
-                                                    ),
-                                                  ),
+                                                      }),
                                                   SizedBox(
                                                     height: 20,
                                                   ),
-                                                  Material(
-                                                    color: Colors.transparent,
-                                                    borderRadius:
-                                                        BorderRadius.circular(
-                                                            10),
-                                                    child: ListTile(
-                                                      tileColor: textColor
-                                                          .withOpacity(0.1),
+                                                  AddWalletButton(
+                                                      textColor: textColor,
+                                                      text:
+                                                          "Import Mnemonic phrases",
+                                                      icon:
+                                                          LucideIcons.fileText,
+                                                      onTap: () {
+                                                        Navigator.pushNamed(
+                                                            context,
+                                                            Routes
+                                                                .createAccountFromSed);
+                                                      }),
+                                                  SizedBox(
+                                                    height: 20,
+                                                  ),
+                                                  AddWalletButton(
+                                                      textColor: textColor,
+                                                      text:
+                                                          "Import private key",
+                                                      icon: LucideIcons.key,
                                                       onTap: () {
                                                         Navigator.pushNamed(
                                                             context,
                                                             Routes
                                                                 .importWalletMain);
-                                                      },
-                                                      shape:
-                                                          RoundedRectangleBorder(
-                                                              borderRadius:
-                                                                  BorderRadius
-                                                                      .circular(
-                                                                          10)),
-                                                      leading: Icon(
-                                                        Icons.input,
-                                                        color: textColor,
-                                                      ),
-                                                      title: Text(
-                                                        "Import a new wallet",
-                                                        style:
-                                                            GoogleFonts.roboto(
-                                                                color:
-                                                                    textColor),
-                                                      ),
-                                                    ),
-                                                  )
+                                                      }),
+                                                  SizedBox(
+                                                    height: 20,
+                                                  ),
+                                                  AddWalletButton(
+                                                      textColor: textColor,
+                                                      text:
+                                                          "Observation wallet",
+                                                      icon: LucideIcons.eye,
+                                                      onTap: () {
+                                                        Navigator.pushNamed(
+                                                            context,
+                                                            Routes
+                                                                .addObservationWallet);
+                                                      })
                                                 ],
                                               ),
                                             )

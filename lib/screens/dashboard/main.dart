@@ -19,7 +19,6 @@ import 'package:moonwallet/widgets/appBar.dart';
 import 'package:moonwallet/widgets/bottom_pin.dart';
 import 'package:moonwallet/widgets/navBar.dart';
 import 'package:moonwallet/widgets/snackbar.dart';
-import 'package:vibration/vibration.dart';
 
 class MainDashboardScreen extends StatefulWidget {
   const MainDashboardScreen({super.key});
@@ -367,7 +366,7 @@ class _MainDashboardScreenState extends State<MainDashboardScreen>
           secondaryColor: secondaryColor),
       body: RefreshIndicator(
         color: primaryColor,
-        backgroundColor: textColor,
+        backgroundColor: textColor.withOpacity(0.8),
         key: _refreshIndicatorKey,
         onRefresh: () async {
           await vibrate(duration: 10);
@@ -469,7 +468,8 @@ class _MainDashboardScreenState extends State<MainDashboardScreen>
                         color: Colors.transparent,
                         child: ListTile(
                           onTap: () {
-                            log("Clicked");
+                            Navigator.pushNamed(context, Routes.walletOverview,
+                                arguments: ({"index": index}));
                           },
                           leading: ClipRRect(
                             borderRadius: BorderRadius.circular(50),

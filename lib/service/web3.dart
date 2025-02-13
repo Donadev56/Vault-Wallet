@@ -38,6 +38,22 @@ class Web3Manager {
     }
   }
 
+  Future<Map<String, dynamic>> createPrivatekeyFromSeed(String seed) async {
+    try {
+      final privateKey = deriveEthereumPrivateKey(seed);
+      if (privateKey == null) {
+        logError("Private key is null");
+        return {};
+      }
+      final data = {"key": privateKey, "seed": seed};
+
+      return data;
+    } catch (e) {
+      logError(e.toString());
+      return {};
+    }
+  }
+
   // generate a new wallet
   String generateMnemonic() {
     return bip39.generateMnemonic();
@@ -231,6 +247,48 @@ class Web3Manager {
 
     final List<Map<String, dynamic>> dataList = json.decode(decryptedData);
     return dataList;
+  }
+
+  Future<bool> saveObservationWalletInStorage(
+      String walletName, String address) async {
+    try {
+      final date = (DateTime.now().microsecondsSinceEpoch);
+      final keyId = encryptService.generateUniqueId();
+      final addr = address;
+      log("Address found : $addr");
+      // generate a new wallet
+
+      final PublicData publicWallet = PublicData(
+          address: addr,
+          keyId: keyId,
+          isWatchOnly: true,
+          walletName: walletName,
+          creationDate: date);
+
+      final publicDataJson = publicWallet.toJson();
+      List<dynamic> listPublicDataJson;
+      final publicDataResult = await getPublicData();
+      if (publicDataResult != null) {
+        listPublicDataJson = publicDataResult;
+        log("Public data found ${json.encode(listPublicDataJson).toString()}");
+      } else {
+        listPublicDataJson = [];
+      }
+
+      listPublicDataJson.add(publicDataJson);
+      final publicResult = await saveListPublicDataJson(listPublicDataJson);
+      if (!publicResult) {
+        logError("The result  is $publicResult, So error occurred");
+        return false;
+      } else {
+        saveLastAccount(address.trim());
+        log("Saved successfully");
+        return true;
+      }
+    } catch (e) {
+      logError(e.toString());
+      return false;
+    }
   }
 
   // get the savedKey if the user use fingerprint

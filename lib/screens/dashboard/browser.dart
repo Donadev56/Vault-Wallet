@@ -17,6 +17,7 @@ import 'package:moonwallet/types/types.dart';
 import 'package:moonwallet/utils/constant.dart';
 import 'package:moonwallet/utils/crypto.dart';
 import 'package:moonwallet/widgets/askUserforconf.dart';
+import 'package:moonwallet/widgets/change_network.dart';
 import 'package:web3dart/web3dart.dart';
 
 class Web3BrowserScreen extends StatefulWidget {
@@ -100,6 +101,29 @@ class Web3BrowserScreenState extends State<Web3BrowserScreen> {
     return _chainId == requestedChainId;
   }
 
+  Future<bool> changeNetwork(int data) async {
+    log("Changing the network id");
+
+    int requestedChainId = networks[data].chainId;
+
+    for (final net in networks) {
+      log("Current network : ${net.chainId} . requested chain $requestedChainId");
+
+      if (net.chainId == requestedChainId) {
+        setState(() {
+          currentNetwork = net;
+          _chainId = requestedChainId;
+          log("Switched to network: ${currentNetwork.name}");
+        });
+
+        return true;
+      } else {
+        continue;
+      }
+    }
+    return _chainId == requestedChainId;
+  }
+
   Uint8List hexToUint8List(String hex) {
     if (hex.startsWith("0x") || hex.startsWith("0X")) {
       hex = hex.substring(2);
@@ -124,8 +148,33 @@ class Web3BrowserScreenState extends State<Web3BrowserScreen> {
       if (currentAccount == null) {
         throw Exception("No account connected ");
       }
+      if (currentAccount?.isWatchOnly != null &&
+          currentAccount?.isWatchOnly == true) {
+        showDialog(
+            context: context,
+            builder: (BuildContext wOCtx) {
+              return AlertDialog(
+                title: Text("Warning"),
+                content: Text(
+                  "This transaction is for a watch-only account, you won't be able to send the transaction on the blockchain.",
+                ),
+                actions: [
+                  ElevatedButton(
+                    child: Text("Ok"),
+                    onPressed: () {
+                      Navigator.pop(wOCtx);
+                    },
+                  ),
+                ],
+              );
+            });
+        throw Exception(
+            "This account is a watch-only account, you can't send transactions.");
+      }
 
-      if (data.from != null && data.from?.trim().toLowerCase() != currentAccount!.address.trim().toLowerCase()) {
+      if (data.from != null &&
+          data.from?.trim().toLowerCase() !=
+              currentAccount!.address.trim().toLowerCase()) {
         throw Exception(
             "Different address detected : \n  it seems like ${data.from} is different from the connected address  ${currentAccount?.address} , please check again your transaction data .");
       }
@@ -196,8 +245,8 @@ class Web3BrowserScreenState extends State<Web3BrowserScreen> {
         if (!mounted) {
           throw Exception("Internal error");
         }
-        
-        final response =  showPinModalBottomSheet(
+
+        final response = showPinModalBottomSheet(
             context: context,
             handleSubmit: (password) async {
               final savedPassword = await web3Manager.getSavedPassword();
@@ -208,72 +257,62 @@ class Web3BrowserScreenState extends State<Web3BrowserScreen> {
                     error: "Invalid password",
                     newTitle: "Try again");
               } else {
-                
                 userPassword = password.trim();
-                if (!mounted) return PinSubmitResult(success: true, repeat: false);
 
                 return PinSubmitResult(success: true, repeat: false);
               }
             },
             title: "Enter Password");
 
-
-  
-     if ((await response))    {
+        if ((await response)) {
+          if (!mounted) {
+            throw Exception("Internal error");
+          }
+          showDialog(
+              context: context,
+              builder: (BuildContext context) {
+                return Center(
+                  child: Container(
+                    padding: const EdgeInsets.all(30),
+                    width: 100,
+                    height: 100,
+                    decoration: BoxDecoration(
+                      borderRadius: BorderRadius.circular(20),
+                      border: Border.all(color: secondaryColor, width: 0.5),
+                      color: primaryColor,
+                    ),
+                    child: SizedBox(
+                      width: 50,
+                      height: 50,
+                      child: CircularProgressIndicator(
+                        color: textColor,
+                      ),
+                    ),
+                  ),
+                );
+              });
+          if (userPassword.isEmpty) {
+            log("No password");
+            throw Exception("No password provided");
+          }
+          final result = await web3IntManager.sendTransaction(
+              transaction: transaction,
+              chainId: currentNetwork.chainId,
+              rpcUrl: currentNetwork.rpc,
+              password: userPassword,
+              address: data.from ?? "");
 
           if (!mounted) {
             throw Exception("Internal error");
           }
-        showDialog(
-                    context: context,
-                    builder: (BuildContext context) {
-                      return Center(
-                        child:Container(
-                          padding: const EdgeInsets.all(30),
-                        width: 100,
-                        height: 100,
-                        decoration: BoxDecoration(
-                          borderRadius: BorderRadius.circular(20),
-                          border: Border.all(color: secondaryColor, width: 0.5),
-                             color: primaryColor,
-
-                        ),
-                      
-                        child: SizedBox(
-                          width: 50,
-                          height: 50,
-                          child: CircularProgressIndicator(
-                            color: textColor,
-                          ),
-                        ),
-                      ) ,
-                      ) ;
-                    });
-    if (userPassword.isEmpty) {
-      log("No password");
-      throw Exception("No password provided");
-      
-    }
-        final result =   await web3IntManager.sendTransaction(
-                    transaction: transaction,
-                    chainId: currentNetwork.chainId,
-                    rpcUrl: currentNetwork.rpc,
-                    password: userPassword,
-                    address: data.from ?? "");
-
-        
-          if (!mounted) {
-            throw Exception("Internal error");
-          }
-        Navigator.pop(context);
-        return result ;
+          Navigator.pop(context);
+          return result;
+        } else {
+          throw Exception("Invalid transaction data");
+        }
       } else {
         throw Exception("Invalid transaction data");
-      
-     } 
-     } else {
-       throw Exception("Invalid transaction data");
-     }
+      }
     } catch (e) {
       logError('Error sending Ethereum transaction: $e');
       throw Exception(e.toString());
@@ -396,8 +435,6 @@ class Web3BrowserScreenState extends State<Web3BrowserScreen> {
 
   void openModalBottomSheet() async {
     try {
-      log("open modal bottom sheet");
-
       showModalBottomSheet(
           context: context,
           builder: (BuildContext context) {
@@ -452,10 +489,17 @@ class Web3BrowserScreenState extends State<Web3BrowserScreen> {
                                     child: InkWell(
                                       borderRadius: BorderRadius.circular(50),
                                       onTap: () {
-                                        log("onTap");
+                                        showChangeNetworkModal(
+                                            changeNetwork: changeNetwork,
+                                            height: height,
+                                            context: context,
+                                            darkNavigatorColor:
+                                                darkNavigatorColor,
+                                            textColor: textColor,
+                                            chainId: _chainId);
                                       },
                                       child: Image.asset(
-                                        "assets/b1.webp",
+                                        currentNetwork.icon,
                                         width: 30,
                                         height: 30,
                                       ),
@@ -529,103 +573,13 @@ class Web3BrowserScreenState extends State<Web3BrowserScreen> {
                               _reload();
                               Navigator.pop(context);
                             } else if (index == 1) {
-                              showDialog(
+                              showChangeNetworkModal(
+                                  changeNetwork: changeNetwork,
+                                  height: height,
                                   context: context,
-                                  builder: (BuildContext context) {
-                                    return Dialog(
-                                      shape: RoundedRectangleBorder(
-                                          borderRadius:
-                                              BorderRadius.circular(15)),
-                                      child: Container(
-                                        height: height * 0.5,
-                                        decoration: BoxDecoration(
-                                            color: darkNavigatorColor,
-                                            borderRadius:
-                                                BorderRadius.circular(10)),
-                                        child: Column(
-                                          mainAxisAlignment:
-                                              MainAxisAlignment.start,
-                                          crossAxisAlignment:
-                                              CrossAxisAlignment.start,
-                                          children: [
-                                            Container(
-                                              padding: const EdgeInsets.only(
-                                                  top: 20,
-                                                  left: 15,
-                                                  bottom: 10),
-                                              child: Text(
-                                                "Change Network :",
-                                                style: GoogleFonts.roboto(
-                                                    color: textColor,
-                                                    fontWeight:
-                                                        FontWeight.bold),
-                                              ),
-                                            ),
-                                            ConstrainedBox(
-                                              constraints: BoxConstraints(
-                                                  maxHeight: height * 0.4),
-                                              child: ListView.builder(
-                                                itemCount: networks.length,
-                                                itemBuilder:
-                                                    (BuildContext context,
-                                                        int index) {
-                                                  final network =
-                                                      networks[index];
-                                                  return Material(
-                                                    color: Colors.transparent,
-                                                    child: ListTile(
-                                                      selected: _chainId ==
-                                                          network.chainId,
-                                                      onTap: () {
-                                                        log('message');
-                                                      },
-                                                      leading: Container(
-                                                        padding:
-                                                            const EdgeInsets
-                                                                .all(4),
-                                                        decoration: BoxDecoration(
-                                                            border: Border.all(
-                                                                width: 1,
-                                                                color: network
-                                                                    .color),
-                                                            borderRadius:
-                                                                BorderRadius
-                                                                    .circular(
-                                                                        50)),
-                                                        child: ClipRRect(
-                                                          borderRadius:
-                                                              BorderRadius
-                                                                  .circular(50),
-                                                          child: Image.asset(
-                                                            network.icon,
-                                                            width: 30,
-                                                            height: 30,
-                                                          ),
-                                                        ),
-                                                      ),
-                                                      title: Text(
-                                                        network.name,
-                                                        style:
-                                                            GoogleFonts.roboto(
-                                                                color:
-                                                                    textColor),
-                                                      ),
-                                                      trailing: Icon(
-                                                        Icons
-                                                            .arrow_right_outlined,
-                                                        color: textColor
-                                                            .withOpacity(0.6),
-                                                      ),
-                                                    ),
-                                                  );
-                                                },
-                                              ),
-                                            ),
-                                          ],
-                                        ),
-                                      ),
-                                    );
-                                  });
+                                  darkNavigatorColor: darkNavigatorColor,
+                                  textColor: textColor,
+                                  chainId: _chainId);
                             } else if (index == 2) {
                               toggleShowAppBar();
                               Navigator.pop(context);
@@ -652,7 +606,7 @@ class Web3BrowserScreenState extends State<Web3BrowserScreen> {
                                       borderRadius: BorderRadius.circular(10),
                                       color: primaryColor),
                                   child: Text(
-                                    "OpBNB",
+                                    currentNetwork.name,
                                     style: GoogleFonts.roboto(
                                       color: textColor,
                                     ),
