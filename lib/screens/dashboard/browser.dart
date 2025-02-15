@@ -38,6 +38,7 @@ class Web3BrowserScreenState extends State<Web3BrowserScreen> {
   String currentUrl = 'https://www.moonbnb.pro';
   bool canShowAppBarOptions = true;
   int _chainId = 204;
+  double progress = 0;
   Network currentNetwork = networks[0];
   InAppWebViewController? _webViewController;
   bool _isInitialized = false;
@@ -710,7 +711,22 @@ class Web3BrowserScreenState extends State<Web3BrowserScreen> {
                     : null,
               ),
         body: SafeArea(
-            child: Web3Webview(
+            child: Column(
+              children: [
+
+
+              Expanded(child:  Web3Webview(
+                onLoadStop: (crl , webUrl) {
+                  setState(() {
+                    progress = 0;
+                  });
+                },
+                onProgressChanged: (controller , prog) {
+                  setState(() {
+                    progress = prog / 100;
+                  });
+
+                },
           onWebViewCreated: (crl) {
             _webViewController = crl;
           },
@@ -730,6 +746,10 @@ class Web3BrowserScreenState extends State<Web3BrowserScreen> {
           ethSendTransaction: (data) async {
             return await sendEthTransaction(data);
           },
-        )));
+        )
+              )  
+
+              ],
+            )));
   }
 }

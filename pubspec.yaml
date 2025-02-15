@@ -53,11 +53,18 @@ dependencies:
   ulid: ^2.0.1
   vibration: ^3.1.2
   url_launcher: ^6.3.1
+  fl_chart: ^0.70.2
+  candlestick_chart: ^0.4.3
+  candlesticks: ^2.1.0
+  k_chart_plus_deeping: ^1.0.2-5.2.2.3
+
 
   
   
   
-  
+dependency_overrides:
+  intl: ^0.20.1
+
 
 dev_dependencies:
   flutter_test:

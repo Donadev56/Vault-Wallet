@@ -77,14 +77,14 @@ class PublicData {
   final int creationDate;
   final String walletName;
   final String address;
-  final bool? isWatchOnly;
+  final bool isWatchOnly;
 
   PublicData({
     required this.keyId,
     required this.creationDate,
     required this.walletName,
     required this.address,
-    this.isWatchOnly,
+    required this.isWatchOnly,
   });
 
   factory PublicData.fromJson(Map<String, dynamic> json) {
@@ -93,7 +93,7 @@ class PublicData {
       creationDate: json['creationDate'] as int,
       walletName: json['walletName'] as String,
       address: json['address'] as String,
-      isWatchOnly: json['isWatchOnly'] as bool?,
+      isWatchOnly: json['isWatchOnly'] as bool,
     );
   }
 

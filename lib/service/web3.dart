@@ -94,6 +94,7 @@ class Web3Manager {
           creationDate: date);
 
       final PublicData publicWallet = PublicData(
+         isWatchOnly : false ,
           address: addr,
           keyId: keyId,
           walletName: walletName,

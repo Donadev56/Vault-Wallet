@@ -83,9 +83,29 @@ class MyApp extends StatelessWidget {
                           platform: CupertinoPageTransitionsBuilder(),
                       },
                     ),
+                    
                     colorScheme:
-                        ColorScheme.fromSeed(seedColor: Colors.greenAccent),
-                    useMaterial3: true),
+                        ColorScheme.fromSeed(seedColor: Colors.greenAccent ,     brightness: Brightness.dark,
+ ),
+
+
+                    useMaterial3: true,  textButtonTheme: TextButtonThemeData(
+    style: TextButton.styleFrom(
+      foregroundColor: Colors.white, // Couleur du texte
+    ),
+  ),
+  elevatedButtonTheme: ElevatedButtonThemeData(
+    style: ElevatedButton.styleFrom(
+      backgroundColor: Colors.white, 
+      foregroundColor: Colors.black, 
+    ),
+  ),
+  outlinedButtonTheme: OutlinedButtonThemeData(
+    style: OutlinedButton.styleFrom(
+      foregroundColor: Colors.white,
+    ),
+  ),),
+
                 initialRoute: result.data ? Routes.main : Routes.home,
                 routes: {
                   Routes.main: (context) => MainDashboardScreen(),

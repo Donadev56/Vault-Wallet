@@ -45,7 +45,7 @@ class _MainDashboardScreenState extends State<MainDashboardScreen>
 
   List<PublicData> accounts = [];
   PublicData currentAccount =
-      PublicData(keyId: "", creationDate: 0, walletName: "", address: "");
+      PublicData(keyId: "", creationDate: 0, walletName: "", address: "", isWatchOnly: false);
   late TabController _tabController;
   final web3Manager = Web3Manager();
   final encryptService = EncryptService();
@@ -145,6 +145,7 @@ class _MainDashboardScreenState extends State<MainDashboardScreen>
       }
       final wallet = accounts[index];
       final PublicData newWallet = PublicData(
+          isWatchOnly : wallet.isWatchOnly,
           address: wallet.address,
           walletName: name,
           creationDate: wallet.creationDate,

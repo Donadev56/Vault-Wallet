@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_feather_icons/flutter_feather_icons.dart';
 import 'package:lucide_icons_flutter/lucide_icons.dart';
 import 'package:moonwallet/types/types.dart';
+import 'package:fl_chart/fl_chart.dart';
 
 final List<Map<String, dynamic>> options = [
   {"name": 'Refresh', "icon": LucideIcons.refreshCcw},
@@ -50,3 +51,5 @@ String formatTimeElapsed(int timestamp) {
     return "${difference.inDays} day${difference.inDays > 1 ? 's' : ''}";
   }
 }
+
+
