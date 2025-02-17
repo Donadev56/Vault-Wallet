@@ -281,7 +281,7 @@ class _AddPrivateKeyState extends State<AddObservationWallet> {
                             bottom: 20, left: 20), // Optional padding
                         child: ElevatedButton(
                           style: ElevatedButton.styleFrom(
-                            backgroundColor: Colors.transparent,
+                            backgroundColor: primaryColor,
                             side: BorderSide(color: secondaryColor, width: 1),
                             shape: RoundedRectangleBorder(
                               borderRadius: BorderRadius.circular(30),

@@ -57,6 +57,7 @@ dependencies:
   candlestick_chart: ^0.4.3
   candlesticks: ^2.1.0
   k_chart_plus_deeping: ^1.0.2-5.2.2.3
+  qr_flutter: ^4.1.0
 
 
   

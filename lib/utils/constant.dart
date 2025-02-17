@@ -1,3 +1,5 @@
+import 'dart:typed_data';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_feather_icons/flutter_feather_icons.dart';
 import 'package:lucide_icons_flutter/lucide_icons.dart';
@@ -52,4 +54,21 @@ String formatTimeElapsed(int timestamp) {
   }
 }
 
-
+Uint8List hexToUint8List(String hex) {
+  if (hex.startsWith("0x") || hex.startsWith("0X")) {
+    hex = hex.substring(2);
+  }
+  if (hex.length % 2 != 0) {
+    throw 'Odd number of hex digits';
+  }
+  var l = hex.length ~/ 2;
+  var result = Uint8List(l);
+  for (var i = 0; i < l; ++i) {
+    var x = int.parse(hex.substring(2 * i, 2 * (i + 1)), radix: 16);
+    if (x.isNaN) {
+      throw 'Expected hex string';
+    }
+    result[i] = x;
+  }
+  return result;
+}

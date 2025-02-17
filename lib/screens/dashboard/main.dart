@@ -7,16 +7,18 @@ import 'package:google_fonts/google_fonts.dart';
 import 'package:lucide_icons_flutter/lucide_icons.dart';
 import 'package:moonwallet/logger/logger.dart';
 import 'package:moonwallet/main.dart';
+import 'package:moonwallet/screens/dashboard/private/private_key_screen.dart';
 import 'package:moonwallet/service/price_manager.dart';
 import 'package:moonwallet/service/vibration.dart';
 import 'package:moonwallet/service/web3.dart';
 import 'package:moonwallet/service/web3_interaction.dart';
 import 'package:moonwallet/types/types.dart';
+import 'package:moonwallet/utils/constant.dart';
 import 'package:moonwallet/utils/crypto.dart';
 import 'package:moonwallet/utils/prefs.dart';
 import 'package:moonwallet/widgets/actions.dart';
 import 'package:moonwallet/widgets/appBar.dart';
-import 'package:moonwallet/widgets/bottom_pin.dart';
+import 'package:moonwallet/widgets/bottom_pin_copy.dart';
 import 'package:moonwallet/widgets/navBar.dart';
 import 'package:moonwallet/widgets/snackbar.dart';
 
@@ -44,15 +46,22 @@ class _MainDashboardScreenState extends State<MainDashboardScreen>
 // Color surfaceTintColor = Color(0xFFBABABA); // Inversion of Color(0xFF454545)
 
   List<PublicData> accounts = [];
-  PublicData currentAccount =
-      PublicData(keyId: "", creationDate: 0, walletName: "", address: "", isWatchOnly: false);
+  List<PublicData> filteredAccounts = [];
+  PublicData currentAccount = PublicData(
+      keyId: "",
+      creationDate: 0,
+      walletName: "",
+      address: "",
+      isWatchOnly: false);
   late TabController _tabController;
   final web3Manager = Web3Manager();
   final encryptService = EncryptService();
   final priceManager = PriceManager();
   final web3InteractManager = Web3InteractionManager();
   final publicDataManager = PublicDataManager();
+
   double totalBalanceUsd = 0;
+  String searchQuery = "";
 
   final List<Map<String, dynamic>> actionsData = [
     {'icon': LucideIcons.moveUpRight, 'page': 'send', 'name': 'Send'},
@@ -108,7 +117,6 @@ class _MainDashboardScreenState extends State<MainDashboardScreen>
           setState(() {
             accounts.add(newAccount);
           });
-
           count++;
         }
       }
@@ -145,7 +153,7 @@ class _MainDashboardScreenState extends State<MainDashboardScreen>
       }
       final wallet = accounts[index];
       final PublicData newWallet = PublicData(
-          isWatchOnly : wallet.isWatchOnly,
+          isWatchOnly: wallet.isWatchOnly,
           address: wallet.address,
           walletName: name,
           creationDate: wallet.creationDate,
@@ -236,6 +244,83 @@ class _MainDashboardScreenState extends State<MainDashboardScreen>
           title: "Enter your password");
     } catch (e) {
       logError(e.toString());
+    }
+  }
+
+  Future<void> showPrivateData(int index) async {
+    try {
+      final wallet = accounts[index];
+      if (wallet.isWatchOnly) {
+        Navigator.pop(context);
+        showCustomSnackBar(
+            context: context,
+            message: "This is a watch-only wallet.",
+            iconColor: Colors.pinkAccent);
+        return;
+      }
+      String userPassword = "";
+      final result = await showPinModalBottomSheet(
+          context: context,
+          handleSubmit: (password) async {
+            final savedPassword = await web3Manager.getSavedPassword();
+
+            if (password.trim() == savedPassword!.trim()) {
+              userPassword = password.trim();
+
+              return PinSubmitResult(success: false, repeat: false);
+            } else {
+              if (mounted) {
+                showCustomSnackBar(
+                    context: context,
+                    message: "Incorrect password",
+                    iconColor: Colors.pinkAccent);
+                Navigator.pop(context);
+              }
+              return PinSubmitResult(success: false, repeat: false);
+            }
+          },
+          title: "Enter your password");
+      if (result) {
+        if (mounted) {
+          Navigator.pushNamed(context, Routes.privateDataScreen,
+              arguments: ({
+                "keyId": accounts[index].keyId,
+                "password": userPassword
+              }));
+        }
+      }
+    } catch (e) {
+      logError(e.toString());
+    }
+  }
+
+  Future<void> reorderList(int oldIndex, int newIndex) async {
+    try {
+      log(" old index : $oldIndex new index : $newIndex");
+      if (oldIndex < newIndex) {
+        newIndex -= 1;
+      }
+      final removedAccount = accounts.removeAt(oldIndex);
+      setState(() {
+        accounts.insert(newIndex, removedAccount);
+      });
+      final result = await web3Manager.saveListPublicDataJson(accounts);
+      if (result) {
+        log("Reordered successfully");
+      } else {
+        if (mounted) {
+          showCustomSnackBar(
+              context: context,
+              message: "List reorder failed",
+              iconColor: Colors.pinkAccent);
+          Navigator.pop(context);
+        }
+      }
+    } catch (e) {
+      logError(e.toString());
+      if (mounted) {
+        Navigator.pop(context);
+      }
     }
   }
 
@@ -344,6 +429,8 @@ class _MainDashboardScreenState extends State<MainDashboardScreen>
     return Scaffold(
       backgroundColor: primaryColor,
       appBar: CustomAppBar(
+          showPrivateData: showPrivateData,
+          reorderList: reorderList,
           secondaryColor: secondaryColor,
           changeAccount: changeWallet,
           deleteWallet: deleteWallet,
@@ -432,6 +519,106 @@ class _MainDashboardScreenState extends State<MainDashboardScreen>
                     children: List.generate(actionsData.length, (index) {
                       final action = actionsData[index];
                       return ActionsWidgets(
+                        onTap: () {
+                          if (index == 1) {
+                            showModalBottomSheet(
+                                context: context,
+                                builder: (BuildContext btmCtx) {
+                                  return Container(
+                                    width: width,
+                                    padding: const EdgeInsets.all(15),
+                                    decoration: BoxDecoration(
+                                        color: primaryColor,
+                                        borderRadius: BorderRadius.only(
+                                            topLeft: Radius.circular(15),
+                                            topRight: Radius.circular(10))),
+                                    child: Column(
+                                      children: [
+                                        TextField(
+                                          maxLines: 1,
+                                          minLines: 1,
+                                          scrollPadding:
+                                              const EdgeInsets.all(10),
+                                          decoration: InputDecoration(
+                                            label: Text("Search crypto"),
+                                            labelStyle: GoogleFonts.roboto(
+                                                color:
+                                                    textColor.withOpacity(0.7)),
+                                            filled: true,
+                                            fillColor: surfaceTintColor
+                                                .withOpacity(0.5),
+                                            prefixIcon: Icon(
+                                              Icons.search,
+                                              color: textColor,
+                                            ),
+                                            enabledBorder: OutlineInputBorder(
+                                                borderRadius:
+                                                    BorderRadius.circular(10),
+                                                borderSide: BorderSide(
+                                                    width: 0,
+                                                    color: Colors.transparent)),
+                                            focusedBorder: OutlineInputBorder(
+                                                borderRadius:
+                                                    BorderRadius.circular(10),
+                                                borderSide: BorderSide(
+                                                    width: 0,
+                                                    color: Colors.transparent)),
+                                          ),
+                                        ),
+                                        SizedBox(
+                                          height: 10,
+                                        ),
+                                        SingleChildScrollView(
+                                            child: SizedBox(
+                                          height: MediaQuery.of(btmCtx)
+                                                  .size
+                                                  .height *
+                                              0.4,
+                                          child: ListView.builder(
+                                              itemCount: networks.length,
+                                              itemBuilder:
+                                                  (BuildContext lisCryptoCtx,
+                                                      int index) {
+                                                final net = networks[index];
+                                                return Material(
+                                                  color: Colors.transparent,
+                                                  child: ListTile(
+                                                    onTap: () {
+                                                      Navigator.pushNamed(
+                                                          context,
+                                                          Routes.receiveScreen,
+                                                          arguments: ({
+                                                            "index": index
+                                                          }));
+                                                    },
+                                                    leading: ClipRRect(
+                                                      borderRadius:
+                                                          BorderRadius.circular(
+                                                              50),
+                                                      child: Image.asset(
+                                                        net.icon,
+                                                        width: 35,
+                                                        height: 35,
+                                                        fit: BoxFit.cover,
+                                                      ),
+                                                    ),
+                                                    title: Text(
+                                                      net.name,
+                                                      style: GoogleFonts.roboto(
+                                                          color: textColor,
+                                                          fontWeight:
+                                                              FontWeight.bold),
+                                                    ),
+                                                  ),
+                                                );
+                                              }),
+                                        )),
+                                      ],
+                                    ),
+                                  );
+                                });
+                          }
+                        },
                         text: action["name"],
                         actIcon: action["icon"],
                         textColor: textColor,

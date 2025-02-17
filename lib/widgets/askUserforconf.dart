@@ -2,23 +2,24 @@ import 'package:flutter/material.dart';
 import 'package:flutter_feather_icons/flutter_feather_icons.dart';
 import 'package:flutter_web3_webview/flutter_web3_webview.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:lucide_icons_flutter/lucide_icons.dart';
 import 'package:moonwallet/logger/logger.dart';
 import 'package:moonwallet/types/types.dart';
 
-Future<UserRequestResponse> askUserForConfirmation({
-  required JsTransactionObject txData,
-  required BuildContext context,
-  required Color textColor,
-  required Color primaryColor,
-  required Color actionsColor,
-  required Color secondaryColor,
-  PublicData? currentAccount,
-  required BigInt estimatedGas,
-  required BigInt gasPrice,
-  required BigInt gasLimit,
-  required BigInt valueInWei,
-  required double cryptoPrice,
-}) async {
+Future<UserRequestResponse> askUserForConfirmation(
+    {required JsTransactionObject txData,
+    required BuildContext context,
+    required Color textColor,
+    required Color primaryColor,
+    required Color actionsColor,
+    required Color secondaryColor,
+    PublicData? currentAccount,
+    required BigInt estimatedGas,
+    required BigInt gasPrice,
+    required BigInt gasLimit,
+    required BigInt valueInWei,
+    required double cryptoPrice,
+    required int operationType}) async {
   int currentIndex = 1;
   BigInt customGasPrice = BigInt.zero;
   BigInt customGasLimit = BigInt.zero;
@@ -91,13 +92,34 @@ Future<UserRequestResponse> askUserForConfirmation({
                     children: [
                       Padding(
                         padding: const EdgeInsets.all(10),
-                        child: Text(
-                          "Sign Message",
-                          style: GoogleFonts.roboto(
-                              color: textColor,
-                              fontWeight: FontWeight.bold,
-                              fontSize: 22),
-                        ),
+                        child: operationType == 0
+                            ? Row(
+                                spacing: 10,
+                                children: [
+                                  Icon(
+                                    LucideIcons.fileText,
+                                    color: textColor,
+                                  ),
+                                  SizedBox(
+                                    width: width * 0.6,
+                                    child: Text(
+                                      "Smart Contract Call",
+                                      overflow: TextOverflow.ellipsis,
+                                      style: GoogleFonts.roboto(
+                                          color: textColor,
+                                          fontWeight: FontWeight.bold,
+                                          fontSize: 22),
+                                    ),
+                                  )
+                                ],
+                              )
+                            : Text(
+                                "Transfer",
+                                style: GoogleFonts.roboto(
+                                    color: textColor,
+                                    fontWeight: FontWeight.bold,
+                                    fontSize: 22),
+                              ),
                       ),
                       IconButton(
                         onPressed: () {
@@ -144,11 +166,13 @@ Future<UserRequestResponse> askUserForConfirmation({
                 ),
                 Align(
                   alignment: Alignment.center,
-                  child: Text(
-                    "This is a third-party app. Please check the info.",
-                    style:
-                        GoogleFonts.roboto(color: Colors.orange, fontSize: 12),
-                  ),
+                  child: operationType == 0
+                      ? Text(
+                          "This is a third-party app. Please check the info.",
+                          style: GoogleFonts.roboto(
+                              color: Colors.orange, fontSize: 12),
+                        )
+                      : null,
                 ),
                 SizedBox(height: 10),
                 Container(
@@ -162,11 +186,17 @@ Future<UserRequestResponse> askUserForConfirmation({
                       Row(
                         mainAxisAlignment: MainAxisAlignment.spaceBetween,
                         children: [
-                          Text(
-                            "My Wallet",
-                            style: GoogleFonts.roboto(
-                                color: textColor, fontSize: 14),
-                          ),
+                          operationType == 0
+                              ? Text(
+                                  "My Wallet",
+                                  style: GoogleFonts.roboto(
+                                      color: textColor, fontSize: 14),
+                                )
+                              : Text(
+                                  "From ",
+                                  style: GoogleFonts.roboto(
+                                      color: textColor, fontSize: 14),
+                                ),
                           Text(
                             currentAccount?.address != null
                                 ? "${currentAccount!.address.substring(0, 6)}...${currentAccount.address.substring(currentAccount.address.length - 6)}"
@@ -180,11 +210,17 @@ Future<UserRequestResponse> askUserForConfirmation({
                       Row(
                         mainAxisAlignment: MainAxisAlignment.spaceBetween,
                         children: [
-                          Text(
-                            "Interact with",
-                            style: GoogleFonts.roboto(
-                                color: textColor, fontSize: 14),
-                          ),
+                          operationType == 0
+                              ? Text(
+                                  "Interact with",
+                                  style: GoogleFonts.roboto(
+                                      color: textColor, fontSize: 14),
+                                )
+                              : Text(
+                                  "To",
+                                  style: GoogleFonts.roboto(
+                                      color: textColor, fontSize: 14),
+                                ),
                           Text(
                             txData.to != null
                                 ? "${txData.to!.substring(0, 6)}...${txData.to!.substring(txData.to!.length - 6)}"
@@ -229,6 +265,7 @@ Future<UserRequestResponse> askUserForConfirmation({
                 Container(
                   margin: const EdgeInsets.all(10),
                   child: Row(
+                    spacing: 6,
                     mainAxisAlignment: MainAxisAlignment.center,
                     children: List.generate(gasData.length, (index) {
                       final selected = currentIndex == index;
@@ -375,8 +412,6 @@ Future<UserRequestResponse> askUserForConfirmation({
                             );
                           },
                           child: Container(
-                            padding: const EdgeInsets.all(5),
-                            margin: const EdgeInsets.all(5),
                             decoration: BoxDecoration(
                               borderRadius: BorderRadius.circular(10),
                               border: Border.all(
@@ -386,7 +421,7 @@ Future<UserRequestResponse> askUserForConfirmation({
                                     : Colors.grey.withOpacity(0.3),
                               ),
                             ),
-                            width: width / 5,
+                            width: width / 4.5,
                             height: 70,
                             child: Column(
                               mainAxisAlignment: MainAxisAlignment.center,
@@ -405,7 +440,6 @@ Future<UserRequestResponse> askUserForConfirmation({
                         );
                       }
                       return Container(
-                        margin: const EdgeInsets.all(5),
                         child: Material(
                           color: Colors.transparent,
                           child: InkWell(
@@ -421,7 +455,6 @@ Future<UserRequestResponse> askUserForConfirmation({
                               });
                             },
                             child: Container(
-                              padding: const EdgeInsets.all(5),
                               decoration: BoxDecoration(
                                 borderRadius: BorderRadius.circular(10),
                                 border: Border.all(
@@ -430,7 +463,7 @@ Future<UserRequestResponse> askUserForConfirmation({
                                         ? Colors.greenAccent
                                         : Colors.grey.withOpacity(0.3)),
                               ),
-                              width: width / 5.2,
+                              width: width / 4.5,
                               height: 70,
                               child: Column(
                                 mainAxisAlignment: MainAxisAlignment.center,
@@ -467,13 +500,13 @@ Future<UserRequestResponse> askUserForConfirmation({
                   margin:
                       const EdgeInsets.only(bottom: 20, left: 10, right: 10),
                   decoration: BoxDecoration(
-                    borderRadius: BorderRadius.circular(10),
+                    borderRadius: BorderRadius.circular(30),
                     color: textColor,
                   ),
                   child: Material(
                     color: Colors.transparent,
                     child: InkWell(
-                      borderRadius: BorderRadius.circular(10),
+                      borderRadius: BorderRadius.circular(30),
                       onTap: () {
                         if (canUseCustomGas) {
                           Navigator.pop(

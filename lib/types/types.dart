@@ -144,6 +144,42 @@ class DApp {
   }
 }
 
+class EthTransaction {
+  final String from;
+  final String to;
+  final String data;
+  final String? gas;
+  final String value;
+
+  EthTransaction({
+    required this.from,
+    required this.to,
+    required this.data,
+    this.gas,
+    required this.value,
+  });
+
+  factory EthTransaction.fromJson(Map<String, dynamic> json) {
+    return EthTransaction(
+      from: json['from'],
+      to: json['to'],
+      data: json['data'],
+      gas: json['gas'],
+      value: json['value'],
+    );
+  }
+
+  Map<String, dynamic> toJson() {
+    return {
+      'from': from,
+      'to': to,
+      'data': data,
+      'gas': gas,
+      'value': value,
+    };
+  }
+}
+
 class Network {
   final String name;
   final String icon;

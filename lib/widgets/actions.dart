@@ -3,16 +3,20 @@ import 'package:google_fonts/google_fonts.dart';
 import 'package:lucide_icons_flutter/lucide_icons.dart';
 import 'package:moonwallet/logger/logger.dart';
 
+typedef OnTap = void Function(int index);
+
 class ActionsWidgets extends StatelessWidget {
   final Color actionsColor;
   final Color textColor;
   final String text;
   final IconData? actIcon;
+  final VoidCallback onTap;
   const ActionsWidgets(
       {super.key,
       required this.actionsColor,
       required this.textColor,
       required this.text,
+      required this.onTap,
       this.actIcon});
 
   @override
@@ -31,9 +35,7 @@ class ActionsWidgets extends StatelessWidget {
                   color: Colors.transparent,
                   child: InkWell(
                     borderRadius: BorderRadius.circular(50),
-                    onTap: () {
-                      log("taped");
-                    },
+                    onTap: onTap,
                     child: Align(
                       alignment: Alignment.center,
                       child: Icon(

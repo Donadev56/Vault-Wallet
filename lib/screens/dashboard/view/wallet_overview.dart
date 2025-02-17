@@ -8,6 +8,7 @@ import 'package:http/http.dart' as http;
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:moonwallet/logger/logger.dart';
+import 'package:moonwallet/main.dart';
 import 'package:moonwallet/service/price_manager.dart';
 import 'package:moonwallet/service/web3.dart';
 import 'package:moonwallet/service/web3_interaction.dart';
@@ -30,18 +31,23 @@ class _WalletViewScreenState extends State<WalletViewScreen>
     with SingleTickerProviderStateMixin {
   late TabController _tabController;
   List<BscScanTransaction> transactions = [];
-  PublicData currentAccount =
-      PublicData(keyId: "", creationDate: 0, walletName: "", address: "", isWatchOnly: false);
+  PublicData currentAccount = PublicData(
+      keyId: "",
+      creationDate: 0,
+      walletName: "",
+      address: "",
+      isWatchOnly: false);
   List<PublicData> accounts = [];
   final web3Manager = Web3Manager();
   final encryptService = EncryptService();
   final priceManager = PriceManager();
   final web3InteractManager = Web3InteractionManager();
   final publicDataManager = PublicDataManager();
-  
+  int currentNetworkIndex = 0;
+
   List<Candle> cryptoData = [];
   int currentIndex = 0;
-   final intervals = [
+  final intervals = [
     '1m',
     '15m',
     '30m',
@@ -103,22 +109,22 @@ class _WalletViewScreenState extends State<WalletViewScreen>
     }
   }
 
-Future<void> getCryptoData ({int index = 0}) async {
-  try {
-    final result = await priceManager.getChartPriceDataUsingBinanceApi(currentNetwork.binanceSymbol, intervals[index]);
-    if (result.isNotEmpty) {
-      setState(() {
+  Future<void> getCryptoData({int index = 0}) async {
+    try {
+      final result = await priceManager.getChartPriceDataUsingBinanceApi(
+          currentNetwork.binanceSymbol, intervals[index]);
+      if (result.isNotEmpty) {
+        setState(() {
           cryptoData = result;
-      });
-    } else {
-      logError("Crypto data is not available");
+        });
+      } else {
+        logError("Crypto data is not available");
+      }
+    } catch (e) {
+      logError(e.toString());
     }
-    
-  } catch (e) {
-    logError(e.toString());
-    
   }
-}
+
   Future<void> getTransactions() async {
     try {
       if (currentNetwork.chainId != 56 && currentNetwork.chainId != 204) return;
@@ -175,6 +181,9 @@ Future<void> getCryptoData ({int index = 0}) async {
           allTransactions.addAll(fTransactions);
         } else {
           logError("No transactions found");
+          setState(() {
+            transactions = [];
+          });
         }
       }
 
@@ -204,6 +213,9 @@ Future<void> getCryptoData ({int index = 0}) async {
           allTransactions.addAll(fTransactions);
         } else {
           logError("No transactions found");
+          setState(() {
+            transactions = [];
+          });
         }
       } else {
         logError("Error getting internal transactions");
@@ -280,6 +292,9 @@ Future<void> getCryptoData ({int index = 0}) async {
       if (data != null && (data as Map<String, dynamic>)["index"] != null) {
         final index = data["index"];
         currentNetwork = networks[index];
+        setState(() {
+          currentNetworkIndex = index;
+        });
         log("Network sets to ${currentNetwork.binanceSymbol}");
       }
       _isInitialized = true;
@@ -320,124 +335,138 @@ Future<void> getCryptoData ({int index = 0}) async {
         actions: [
           IconButton(
             onPressed: () {
-             showModalBottomSheet(
-  isScrollControlled: false,
-  context: context,
-  builder: (BuildContext chartCtx) {
-    return StatefulBuilder(
-      builder: (BuildContext context, StateSetter setModalState) {
-        return Container(
-          decoration: BoxDecoration(
-            color: binanceColor,
-            borderRadius: BorderRadius.only(
-              topLeft: Radius.circular(15),
-              topRight: Radius.circular(15),
-            ),
-          ),
-          child: Column(
-            children: [
-              Padding(
-                padding: const EdgeInsets.all(10),
-                child: Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  crossAxisAlignment: CrossAxisAlignment.center,
-                  children: [
-                    FutureBuilder(
-                      future: priceManager.checkCryptoTrend(currentNetwork.binanceSymbol),
-                      builder: (BuildContext trendCtx, AsyncSnapshot result) {
-                        if (result.hasData) {
-                          final isPositive = result.data["percent"] > 0;
-                          return Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              Text(
-                                "\$ ${result.data["price"]}",
-                                style: GoogleFonts.roboto(
-                                  color: isPositive ? Colors.greenAccent : Colors.pinkAccent,
-                                  fontSize: 22,
-                                  fontWeight: FontWeight.bold,
-                                ),
-                              ),
-                              Text(
-                                " ${(result.data["percent"] as double).toStringAsFixed(5)}%",
-                                style: GoogleFonts.roboto(
-                                  color: isPositive ? Colors.greenAccent : Colors.pinkAccent,
-                                  fontSize: 14,
-                                ),
-                              ),
-                            ],
-                          );
-                        } else if (result.hasError) {
-                          return Text("Error fetching data");
-                        } else {
-                          return Text("Loading...");
-                        }
-                      },
-                    ),
-                    IconButton(
-                      onPressed: () {
-                        Navigator.pop(context);
-                      },
-                      icon: Icon(FeatherIcons.xCircle, color: Colors.pinkAccent),
-                    )
-                  ],
-                ),
-              ),
-              cryptoData.isNotEmpty
-                  ? SizedBox(
-                      height: height * 0.3,
-                      child: Candlesticks(
-                        candles: cryptoData,
-                      ),
-                    )
-                  : Center(child: SizedBox(height: height * 0.3, child: Text("Loading..."))),
-              SizedBox(height: 15),
-              Wrap(
-                children: List.generate(intervals.length, (index) {
-                  return Padding(
-                    padding: const EdgeInsets.all(5),
-                    child: Material(
-                      color: Colors.transparent,
-                      child: InkWell(
-                        borderRadius: BorderRadius.circular(15),
-                        onTap: () async {
-                          setModalState(() {
-                            currentIndex = index;
-                            log("currentIndex: $currentIndex ");
-                          });
-                          await getCryptoData(index: index);
-                        },
-                        child: Container(
-                          width: 35,
-                          height: 35,
-                          padding: const EdgeInsets.all(5),
-                          decoration: BoxDecoration(
-                            color: currentIndex == index
-                                ? secondaryColor.withOpacity(0.3)
-                                : binanceColorButton,
-                            borderRadius: BorderRadius.circular(15),
-                          ),
-                          child: Center(
-                            child: Text(
-                              intervals[index],
-                              style: GoogleFonts.roboto(color: textColor, fontSize: 10),
-                            ),
+              showModalBottomSheet(
+                isScrollControlled: false,
+                context: context,
+                builder: (BuildContext chartCtx) {
+                  return StatefulBuilder(
+                    builder: (BuildContext context, StateSetter setModalState) {
+                      return Container(
+                        decoration: BoxDecoration(
+                          color: binanceColor,
+                          borderRadius: BorderRadius.only(
+                            topLeft: Radius.circular(15),
+                            topRight: Radius.circular(15),
                           ),
                         ),
-                      ),
-                    ),
+                        child: Column(
+                          children: [
+                            Padding(
+                              padding: const EdgeInsets.all(10),
+                              child: Row(
+                                mainAxisAlignment:
+                                    MainAxisAlignment.spaceBetween,
+                                crossAxisAlignment: CrossAxisAlignment.center,
+                                children: [
+                                  FutureBuilder(
+                                    future: priceManager.checkCryptoTrend(
+                                        currentNetwork.binanceSymbol),
+                                    builder: (BuildContext trendCtx,
+                                        AsyncSnapshot result) {
+                                      if (result.hasData) {
+                                        final isPositive =
+                                            result.data["percent"] > 0;
+                                        return Column(
+                                          crossAxisAlignment:
+                                              CrossAxisAlignment.start,
+                                          children: [
+                                            Text(
+                                              "\$ ${result.data["price"]}",
+                                              style: GoogleFonts.roboto(
+                                                color: isPositive
+                                                    ? Colors.greenAccent
+                                                    : Colors.pinkAccent,
+                                                fontSize: 22,
+                                                fontWeight: FontWeight.bold,
+                                              ),
+                                            ),
+                                            Text(
+                                              " ${(result.data["percent"] as double).toStringAsFixed(5)}%",
+                                              style: GoogleFonts.roboto(
+                                                color: isPositive
+                                                    ? Colors.greenAccent
+                                                    : Colors.pinkAccent,
+                                                fontSize: 14,
+                                              ),
+                                            ),
+                                          ],
+                                        );
+                                      } else if (result.hasError) {
+                                        return Text("Error fetching data");
+                                      } else {
+                                        return Text("Loading...");
+                                      }
+                                    },
+                                  ),
+                                  IconButton(
+                                    onPressed: () {
+                                      Navigator.pop(context);
+                                    },
+                                    icon: Icon(FeatherIcons.xCircle,
+                                        color: Colors.pinkAccent),
+                                  )
+                                ],
+                              ),
+                            ),
+                            cryptoData.isNotEmpty
+                                ? SizedBox(
+                                    height: height * 0.3,
+                                    child: Candlesticks(
+                                      candles: cryptoData,
+                                    ),
+                                  )
+                                : Center(
+                                    child: SizedBox(
+                                        height: height * 0.3,
+                                        child: Text("Loading..."))),
+                            SizedBox(height: 15),
+                            Wrap(
+                              children:
+                                  List.generate(intervals.length, (index) {
+                                return Padding(
+                                  padding: const EdgeInsets.all(5),
+                                  child: Material(
+                                    color: Colors.transparent,
+                                    child: InkWell(
+                                      borderRadius: BorderRadius.circular(15),
+                                      onTap: () async {
+                                        setModalState(() {
+                                          currentIndex = index;
+                                          log("currentIndex: $currentIndex ");
+                                        });
+                                        await getCryptoData(index: index);
+                                      },
+                                      child: Container(
+                                        width: 35,
+                                        height: 35,
+                                        padding: const EdgeInsets.all(5),
+                                        decoration: BoxDecoration(
+                                          color: currentIndex == index
+                                              ? secondaryColor.withOpacity(0.3)
+                                              : binanceColorButton,
+                                          borderRadius:
+                                              BorderRadius.circular(15),
+                                        ),
+                                        child: Center(
+                                          child: Text(
+                                            intervals[index],
+                                            style: GoogleFonts.roboto(
+                                                color: textColor, fontSize: 10),
+                                          ),
+                                        ),
+                                      ),
+                                    ),
+                                  ),
+                                );
+                              }),
+                            ),
+                          ],
+                        ),
+                      );
+                    },
                   );
-                }),
-              ),
-           
-            ],
-          ),
-        );
-      },
-    );
-  },
-);
-
+                },
+              );
             },
             icon: Icon(
               Icons.candlestick_chart_rounded,
@@ -548,14 +577,16 @@ Future<void> getCryptoData ({int index = 0}) async {
                   WalletViewButtonAction(
                       textColor: textColor,
                       onTap: () {
-                        log("clicked");
+                        Navigator.pushNamed(context, Routes.sendScreen,
+                            arguments: ({"index": currentNetworkIndex}));
                       },
                       bottomText: "Send",
                       icon: Icons.arrow_upward),
                   WalletViewButtonAction(
                       textColor: textColor,
                       onTap: () {
-                        log("clicked");
+                        Navigator.pushNamed(context, Routes.receiveScreen,
+                            arguments: ({"index": currentNetworkIndex}));
                       },
                       bottomText: "Receive",
                       icon: Icons.arrow_downward),

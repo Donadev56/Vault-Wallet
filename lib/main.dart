@@ -12,6 +12,9 @@ import 'package:moonwallet/screens/dashboard/auth/private_key.dart';
 import 'package:moonwallet/screens/dashboard/browser.dart';
 import 'package:moonwallet/screens/dashboard/discover.dart';
 import 'package:moonwallet/screens/dashboard/main.dart';
+import 'package:moonwallet/screens/dashboard/private/private_key_screen.dart';
+import 'package:moonwallet/screens/dashboard/view/recieve.dart';
+import 'package:moonwallet/screens/dashboard/view/send.dart';
 import 'package:moonwallet/screens/dashboard/view/wallet_overview.dart';
 import 'package:moonwallet/screens/dashboard/wallet_actions/add_WO.dart';
 import 'package:moonwallet/screens/dashboard/wallet_actions/add_mnemonic.dart';
@@ -44,6 +47,9 @@ class Routes {
   static const String pinAuth = '/pinAuth';
   static const String walletOverview = '/walletOverview';
   static const String addObservationWallet = '/addObservationWallet';
+  static const String privateDataScreen = '/privateDataScreen';
+  static const String receiveScreen = '/receiveScreen';
+  static const String sendScreen = '/sendScreen';
 
   static const String privateKeyCreator = '/privatekeyCreator';
 }
@@ -77,35 +83,34 @@ class MyApp extends StatelessWidget {
                 debugShowCheckedModeBanner: false,
                 title: 'Moon Wallet',
                 theme: ThemeData(
-                    pageTransitionsTheme: PageTransitionsTheme(
-                      builders: {
-                        for (var platform in TargetPlatform.values)
-                          platform: CupertinoPageTransitionsBuilder(),
-                      },
+                  pageTransitionsTheme: PageTransitionsTheme(
+                    builders: {
+                      for (var platform in TargetPlatform.values)
+                        platform: CupertinoPageTransitionsBuilder(),
+                    },
+                  ),
+                  colorScheme: ColorScheme.fromSeed(
+                    seedColor: Colors.greenAccent,
+                    brightness: Brightness.dark,
+                  ),
+                  useMaterial3: true,
+                  textButtonTheme: TextButtonThemeData(
+                    style: TextButton.styleFrom(
+                      foregroundColor: Colors.white, // Couleur du texte
                     ),
-                    
-                    colorScheme:
-                        ColorScheme.fromSeed(seedColor: Colors.greenAccent ,     brightness: Brightness.dark,
- ),
-
-
-                    useMaterial3: true,  textButtonTheme: TextButtonThemeData(
-    style: TextButton.styleFrom(
-      foregroundColor: Colors.white, // Couleur du texte
-    ),
-  ),
-  elevatedButtonTheme: ElevatedButtonThemeData(
-    style: ElevatedButton.styleFrom(
-      backgroundColor: Colors.white, 
-      foregroundColor: Colors.black, 
-    ),
-  ),
-  outlinedButtonTheme: OutlinedButtonThemeData(
-    style: OutlinedButton.styleFrom(
-      foregroundColor: Colors.white,
-    ),
-  ),),
-
+                  ),
+                  elevatedButtonTheme: ElevatedButtonThemeData(
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: Colors.white,
+                      foregroundColor: Colors.black,
+                    ),
+                  ),
+                  outlinedButtonTheme: OutlinedButtonThemeData(
+                    style: OutlinedButton.styleFrom(
+                      foregroundColor: Colors.white,
+                    ),
+                  ),
+                ),
                 initialRoute: result.data ? Routes.main : Routes.home,
                 routes: {
                   Routes.main: (context) => MainDashboardScreen(),
@@ -122,6 +127,9 @@ class MyApp extends StatelessWidget {
                   Routes.createAccountFromSed: (context) => AddMnemonicScreen(),
                   Routes.addObservationWallet: (context) =>
                       AddObservationWallet(),
+                  Routes.privateDataScreen: (context) => PrivateKeyScreen(),
+                  Routes.receiveScreen: (context) => ReceiveScreen(),
+                  Routes.sendScreen: (context) => SendTransactionScreen(),
                 });
           } else {
             return Container(

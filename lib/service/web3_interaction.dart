@@ -1,13 +1,20 @@
 import 'dart:typed_data';
 
+import 'package:flutter/material.dart';
+import 'package:flutter_web3_webview/flutter_web3_webview.dart';
 import 'package:moonwallet/logger/logger.dart';
+import 'package:moonwallet/service/price_manager.dart';
 import 'package:moonwallet/service/web3.dart';
+import 'package:moonwallet/types/types.dart';
+import 'package:moonwallet/widgets/askUserforconf.dart';
+import 'package:moonwallet/widgets/bottom_pin_copy.dart';
 import 'package:web3dart/web3dart.dart';
 import 'package:http/http.dart';
 
 class Web3InteractionManager {
   var httpClient = Client();
   final web3manager = Web3Manager();
+  final priceManager = PriceManager();
 
   Uint8List hexToUint8List(String hex) {
     if (hex.startsWith("0x") || hex.startsWith("0X")) {
@@ -146,5 +153,187 @@ class Web3InteractionManager {
       return hexParsed;
     }
     return BigInt.parse(hex, radix: 16);
+  }
+
+  Future<String> sendEthContractTransaction(
+      {required JsTransactionObject data,
+      required bool mounted,
+      required BuildContext context,
+      required PublicData currentAccount,
+      required Network currentNetwork,
+      required Color primaryColor,
+      required Color textColor,
+      required Color secondaryColor,
+      required Color actionsColor,
+      required int operationType}) async {
+    try {
+      if (currentAccount.isWatchOnly) {
+        showDialog(
+            context: context,
+            builder: (BuildContext wOCtx) {
+              return AlertDialog(
+                title: Text("Warning"),
+                content: Text(
+                  "This a watch-only account, you won't be able to send the transaction on the blockchain.",
+                ),
+                actions: [
+                  ElevatedButton(
+                    child: Text("Ok"),
+                    onPressed: () {
+                      Navigator.pop(wOCtx);
+                    },
+                  ),
+                ],
+              );
+            });
+        throw Exception(
+            "This account is a watch-only account, you can't send transactions.");
+      }
+
+      if (data.from != null &&
+          data.from?.trim().toLowerCase() !=
+              currentAccount.address.trim().toLowerCase()) {
+        throw Exception(
+            "Different address detected : \n  it seems like ${data.from} is different from the connected address  ${currentAccount.address} , please check again your transaction data .");
+      }
+
+      BigInt estimatedGas = await estimateGas(
+          value: data.value ?? "0x0",
+          rpcUrl: currentNetwork.rpc,
+          sender: data.from ?? "",
+          to: data.to ?? "",
+          data: data.data ?? "");
+
+      log("Estimated gas ${estimatedGas.toString()}");
+
+      BigInt valueInWei = data.value != null
+          ? BigInt.parse(data.value!.replaceFirst("0x", ""), radix: 16)
+          : BigInt.zero;
+
+      log("value wei $valueInWei");
+
+      BigInt? gasLimit = data.gas != null
+          ? BigInt.parse(data.gas!.replaceFirst("0x", ""), radix: 16)
+          : (estimatedGas * BigInt.from(30)) ~/ BigInt.from(100);
+      final gasPriceResult = await getGasPrice(currentNetwork.rpc);
+      BigInt gasPrice =
+          gasPriceResult != BigInt.zero ? gasPriceResult : BigInt.from(100000);
+      if (!mounted) {
+        throw Exception("Internal error");
+      }
+
+      final cryptoPrice = await priceManager
+          .getPriceUsingBinanceApi(currentNetwork.binanceSymbol);
+      if (!mounted) {
+        throw Exception("Internal error");
+      }
+      final confirmedResponse = await askUserForConfirmation(
+          operationType: operationType,
+          secondaryColor: secondaryColor,
+          cryptoPrice: cryptoPrice,
+          estimatedGas: estimatedGas,
+          gasPrice: gasPrice,
+          gasLimit: gasLimit,
+          valueInWei: valueInWei,
+          actionsColor: actionsColor,
+          txData: data,
+          context: context,
+          primaryColor: primaryColor,
+          currentAccount: currentAccount,
+          textColor: textColor);
+
+      final confirmed = confirmedResponse.ok;
+
+      if (!confirmed) {
+        throw Exception("Transaction rejected by user");
+      }
+
+      if (data.from != null && data.to != null && data.data != null) {
+        final transaction = Transaction(
+          from: EthereumAddress.fromHex(data.from ?? ""),
+          to: EthereumAddress.fromHex(data.to ?? ""),
+          value: EtherAmount.inWei(valueInWei),
+          maxGas: confirmedResponse.gasLimit.toInt(),
+          gasPrice: EtherAmount.inWei(confirmedResponse.gasPrice),
+          data: hexToUint8List(data.data ?? ""),
+        );
+
+        String userPassword = "";
+
+        if (!mounted) {
+          throw Exception("Internal error");
+        }
+
+        final response = showPinModalBottomSheet(
+            context: context,
+            handleSubmit: (password) async {
+              final savedPassword = await web3manager.getSavedPassword();
+              if (password.trim() != savedPassword) {
+                return PinSubmitResult(
+                    success: false,
+                    repeat: true,
+                    error: "Invalid password",
+                    newTitle: "Try again");
+              } else {
+                userPassword = password.trim();
+
+                return PinSubmitResult(success: true, repeat: false);
+              }
+            },
+            title: "Enter Password");
+
+        if ((await response)) {
+          if (!mounted) {
+            throw Exception("Internal error");
+          }
+          showDialog(
+              context: context,
+              builder: (BuildContext context) {
+                return Center(
+                  child: Container(
+                    padding: const EdgeInsets.all(30),
+                    width: 100,
+                    height: 100,
+                    decoration: BoxDecoration(
+                      borderRadius: BorderRadius.circular(20),
+                      border: Border.all(color: secondaryColor, width: 0.5),
+                      color: primaryColor,
+                    ),
+                    child: SizedBox(
+                      width: 50,
+                      height: 50,
+                      child: CircularProgressIndicator(
+                        color: textColor,
+                      ),
+                    ),
+                  ),
+                );
+              });
+          if (userPassword.isEmpty) {
+            log("No password");
+            throw Exception("No password provided");
+          }
+          final result = await sendTransaction(
+              transaction: transaction,
+              chainId: currentNetwork.chainId,
+              rpcUrl: currentNetwork.rpc,
+              password: userPassword,
+              address: data.from ?? "");
+
+          if (!mounted) {
+            throw Exception("Internal error");
+          }
+          Navigator.pop(context);
+          return result;
+        } else {
+          throw Exception("Invalid transaction data");
+        }
+      } else {
+        throw Exception("Invalid transaction data");
+      }
+    } catch (e) {
+      logError('Error sending Ethereum transaction: $e');
+      throw Exception(e.toString());
+    }
   }
 }
