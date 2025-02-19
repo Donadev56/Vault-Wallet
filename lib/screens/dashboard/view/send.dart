@@ -12,6 +12,7 @@ import 'package:flutter_web3_webview/flutter_web3_webview.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:intl/intl.dart';
 import 'package:lucide_icons_flutter/lucide_icons.dart';
+import 'package:mobile_scanner/mobile_scanner.dart';
 import 'package:moonwallet/logger/logger.dart';
 import 'package:moonwallet/main.dart';
 import 'package:moonwallet/service/price_manager.dart';
@@ -22,6 +23,7 @@ import 'package:moonwallet/types/types.dart';
 import 'package:moonwallet/utils/constant.dart';
 import 'package:moonwallet/utils/crypto.dart';
 import 'package:moonwallet/utils/prefs.dart';
+import 'package:permission_handler/permission_handler.dart';
 import 'package:qr_code_scanner_plus/qr_code_scanner_plus.dart';
 
 class SendTransactionScreen extends StatefulWidget {
@@ -34,9 +36,9 @@ class SendTransactionScreen extends StatefulWidget {
 class _SendTransactionScreenState extends State<SendTransactionScreen> {
   final _formKey = GlobalKey<FormState>();
   final GlobalKey qrKey = GlobalKey(debugLabel: 'QR');
-  Barcode? result;
   QRViewController? controller;
   final formatter = NumberFormat("0.##############", "en_US");
+  final MobileScannerController _mobileScannerController = MobileScannerController();
 
   Color primaryColor = Color(0XFF1B1B1B);
   Color textColor = Color.fromARGB(255, 255, 255, 255);
@@ -75,6 +77,7 @@ class _SendTransactionScreenState extends State<SendTransactionScreen> {
     super.initState();
     getSavedWallets();
     getThemeMode();
+    askCamera();
   }
 
   @override
@@ -121,7 +124,10 @@ class _SendTransactionScreenState extends State<SendTransactionScreen> {
     try {
       final savedMode =
           await publicDataManager.getDataFromPrefs(key: "isDarkMode");
-      if (savedMode != null && savedMode == "true") {
+      if (savedMode == null) {
+        return;
+      }
+      if (savedMode == "true") {
         setDarkMode();
       } else {
         setLightMode();
@@ -147,21 +153,21 @@ class _SendTransactionScreenState extends State<SendTransactionScreen> {
       logError(e.toString());
     }
   }
+ Future<void> askCamera () async {
+  try {
 
-  void _onQRViewCreated(QRViewController controller, BuildContext ctx) {
-    this.controller = controller;
-    controller.scannedDataStream.listen((scanData) {
-      setState(() {
-        result = scanData;
-        log("result :${result!.code.toString()}");
-        if (result?.code != null) {
-          _addressController.text = result!.code.toString();
-          controller.stopCamera();
-          Navigator.pop(ctx);
-        }
-      });
-    });
+      final status = await Permission.camera.status;
+
+      if (!status.isGranted) {
+    await Permission.camera.request();
   }
+
+  } catch (e) {
+    logError(e.toString());
+    
+  }
+ }
+
 
   Future<void> sendTransaction() async {
     try {
@@ -402,6 +408,7 @@ class _SendTransactionScreenState extends State<SendTransactionScreen> {
   @override
   Widget build(BuildContext context) {
     final width = MediaQuery.of(context).size.width;
+     
     return Scaffold(
       backgroundColor: primaryColor,
       appBar: AppBar(
@@ -670,16 +677,19 @@ class _SendTransactionScreenState extends State<SendTransactionScreen> {
                                   return StatefulBuilder(builder:
                                       (BuildContext stateFScanCtx,
                                           setModalState) {
-                                    return Expanded(
-                                        child: QRView(
-                                      key: qrKey,
-                                      onQRViewCreated: (c) {
-                                        _onQRViewCreated(c, stateFScanCtx);
+                                    return MobileScanner(
+
+                                     
+                                      controller: _mobileScannerController,
+                                      onDetect: (barcode) {
+                                        final String code = barcode.barcodes.firstOrNull!.displayValue ??   "";
+                                        log("The code $code");
+                                        _addressController.text = code;
+                                        Navigator.pop(stateFScanCtx);
+
                                       },
-                                      overlay: QrScannerOverlayShape(
-                                          borderWidth: 1,
-                                          borderColor: secondaryColor),
-                                    ));
+                                   
+                                    );
                                   });
                                 });
                           },

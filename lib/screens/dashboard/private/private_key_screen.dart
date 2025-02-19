@@ -72,11 +72,14 @@ class _PrivateKeyScreenState extends State<PrivateKeyScreen> {
     });
   }
 
-  Future<void> getThemeMode() async {
+ Future<void> getThemeMode() async {
     try {
       final savedMode =
           await publicDataManager.getDataFromPrefs(key: "isDarkMode");
-      if (savedMode != null && savedMode == "true") {
+      if (savedMode == null) {
+        return;
+      }
+      if (savedMode == "true") {
         setDarkMode();
       } else {
         setLightMode();

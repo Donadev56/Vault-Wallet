@@ -71,7 +71,10 @@ class _AddPrivateKeyState extends State<AddMnemonicScreen> {
     try {
       final savedMode =
           await publicDataManager.getDataFromPrefs(key: "isDarkMode");
-      if (savedMode != null && savedMode == "true") {
+      if (savedMode == null) {
+        return;
+      }
+      if (savedMode == "true") {
         setDarkMode();
       } else {
         setLightMode();

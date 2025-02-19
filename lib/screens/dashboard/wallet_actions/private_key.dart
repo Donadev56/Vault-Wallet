@@ -68,7 +68,10 @@ class _CreatePrivateKeyState extends State<CreatePrivateKeyMain> {
     try {
       final savedMode =
           await publicDataManager.getDataFromPrefs(key: "isDarkMode");
-      if (savedMode != null && savedMode == "true") {
+      if (savedMode == null) {
+        return;
+      }
+      if (savedMode == "true") {
         setDarkMode();
       } else {
         setLightMode();
@@ -77,7 +80,6 @@ class _CreatePrivateKeyState extends State<CreatePrivateKeyMain> {
       logError(e.toString());
     }
   }
-
   Future<void> toggleMode() async {
     try {
       if (isDarkMode) {

@@ -231,7 +231,10 @@ class Web3BrowserScreenState extends State<Web3BrowserScreen> {
     try {
       final savedMode =
           await publicDataManager.getDataFromPrefs(key: "isDarkMode");
-      if (savedMode != null && savedMode == "true") {
+      if (savedMode == null) {
+        return;
+      }
+      if (savedMode == "true") {
         setDarkMode();
       } else {
         setLightMode();

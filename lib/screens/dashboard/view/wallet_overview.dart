@@ -4,6 +4,7 @@ import 'dart:convert';
 import 'dart:ui';
 import 'package:candlesticks/candlesticks.dart';
 import 'package:flutter_feather_icons/flutter_feather_icons.dart';
+// ignore: depend_on_referenced_packages
 import 'package:http/http.dart' as http;
 
 import 'package:flutter/material.dart';
@@ -87,11 +88,14 @@ class _WalletViewScreenState extends State<WalletViewScreen>
     });
   }
 
-  Future<void> getThemeMode() async {
+ Future<void> getThemeMode() async {
     try {
       final savedMode =
           await publicDataManager.getDataFromPrefs(key: "isDarkMode");
-      if (savedMode != null && savedMode == "true") {
+      if (savedMode == null) {
+        return;
+      }
+      if (savedMode == "true") {
         setDarkMode();
       } else {
         setLightMode();
@@ -147,9 +151,11 @@ class _WalletViewScreenState extends State<WalletViewScreen>
         } else {
           log("Not account found");
           currentAccount = accounts[0];
-          getTransactions();
         }
       }
+
+      getTransactions();
+
     } catch (e) {
       logError('Error getting saved wallets: $e');
     }
