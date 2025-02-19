@@ -6,6 +6,7 @@ import 'package:moonwallet/logger/logger.dart';
 import 'package:moonwallet/main.dart';
 import 'package:moonwallet/service/web3.dart';
 import 'package:moonwallet/types/types.dart';
+import 'package:moonwallet/utils/prefs.dart';
 import 'package:moonwallet/widgets/bottom_pin.dart';
 import 'package:moonwallet/widgets/snackbar.dart';
 
@@ -26,7 +27,8 @@ class _CreatePrivateKeyState extends State<CreatePrivateKeyMain> {
   Color secondaryColor = Colors.greenAccent;
   Color actionsColor = Color(0XFF353535);
   Color surfaceTintColor = Color(0XFF454545);
-
+  final publicDataManager = PublicDataManager();
+  bool isDarkMode = false;
   @override
   void initState() {
     _textController = TextEditingController();
@@ -38,6 +40,59 @@ class _CreatePrivateKeyState extends State<CreatePrivateKeyMain> {
     );
     createKey();
     super.initState();
+  }
+
+  void setLightMode() {
+    setState(() {
+      isDarkMode = !isDarkMode;
+      primaryColor = Color(0xFFE4E4E4);
+      textColor = Color(0xFF0A0A0A);
+      actionsColor = Color(0xFFCACACA);
+      surfaceTintColor = Color(0xFFBABABA);
+      secondaryColor = Color(0xFF960F51);
+    });
+  }
+
+  void setDarkMode() {
+    setState(() {
+      isDarkMode = !isDarkMode;
+      primaryColor = Color(0XFF1B1B1B);
+      textColor = Color.fromARGB(255, 255, 255, 255);
+      secondaryColor = Colors.greenAccent;
+      actionsColor = Color(0XFF353535);
+      surfaceTintColor = Color(0XFF454545);
+    });
+  }
+
+  Future<void> getThemeMode() async {
+    try {
+      final savedMode =
+          await publicDataManager.getDataFromPrefs(key: "isDarkMode");
+      if (savedMode != null && savedMode == "true") {
+        setDarkMode();
+      } else {
+        setLightMode();
+      }
+    } catch (e) {
+      logError(e.toString());
+    }
+  }
+
+  Future<void> toggleMode() async {
+    try {
+      if (isDarkMode) {
+        setLightMode();
+
+        await publicDataManager.saveDataInPrefs(
+            data: "false", key: "isDarkMode");
+      } else {
+        setDarkMode();
+        await publicDataManager.saveDataInPrefs(
+            data: "true", key: "isDarkMode");
+      }
+    } catch (e) {
+      logError(e.toString());
+    }
   }
 
   Future<void> createKey() async {

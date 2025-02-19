@@ -1,12 +1,14 @@
 // ignore_for_file: deprecated_member_use
 
 import 'dart:convert';
+import 'dart:ui';
 import 'package:candlesticks/candlesticks.dart';
 import 'package:flutter_feather_icons/flutter_feather_icons.dart';
 import 'package:http/http.dart' as http;
 
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:intl/intl.dart';
 import 'package:moonwallet/logger/logger.dart';
 import 'package:moonwallet/main.dart';
 import 'package:moonwallet/service/price_manager.dart';
@@ -44,6 +46,8 @@ class _WalletViewScreenState extends State<WalletViewScreen>
   final web3InteractManager = Web3InteractionManager();
   final publicDataManager = PublicDataManager();
   int currentNetworkIndex = 0;
+  final formatter = NumberFormat("0.##############", "en_US");
+  bool isDarkMode = false;
 
   List<Candle> cryptoData = [];
   int currentIndex = 0;
@@ -60,6 +64,59 @@ class _WalletViewScreenState extends State<WalletViewScreen>
   double totalBalanceUsd = 0;
   bool _isInitialized = false;
   Network currentNetwork = networks[0];
+  double userLastBalance = 0;
+  void setLightMode() {
+    setState(() {
+      isDarkMode = !isDarkMode;
+      primaryColor = Color(0xFFE4E4E4);
+      textColor = Color(0xFF0A0A0A);
+      actionsColor = Color(0xFFCACACA);
+      surfaceTintColor = Color(0xFFBABABA);
+      secondaryColor = Color(0xFF960F51);
+    });
+  }
+
+  void setDarkMode() {
+    setState(() {
+      isDarkMode = !isDarkMode;
+      primaryColor = Color(0XFF1B1B1B);
+      textColor = Color.fromARGB(255, 255, 255, 255);
+      secondaryColor = Colors.greenAccent;
+      actionsColor = Color(0XFF353535);
+      surfaceTintColor = Color(0XFF454545);
+    });
+  }
+
+  Future<void> getThemeMode() async {
+    try {
+      final savedMode =
+          await publicDataManager.getDataFromPrefs(key: "isDarkMode");
+      if (savedMode != null && savedMode == "true") {
+        setDarkMode();
+      } else {
+        setLightMode();
+      }
+    } catch (e) {
+      logError(e.toString());
+    }
+  }
+
+  Future<void> toggleMode() async {
+    try {
+      if (isDarkMode) {
+        setLightMode();
+
+        await publicDataManager.saveDataInPrefs(
+            data: "false", key: "isDarkMode");
+      } else {
+        setDarkMode();
+        await publicDataManager.saveDataInPrefs(
+            data: "true", key: "isDarkMode");
+      }
+    } catch (e) {
+      logError(e.toString());
+    }
+  }
 
   Future<void> getSavedWallets() async {
     try {
@@ -248,6 +305,7 @@ class _WalletViewScreenState extends State<WalletViewScreen>
       if (rpcUrl.isEmpty || symbol.isEmpty) {
         return 0;
       }
+
       final price = await getPrice(symbol);
       final balanceEth =
           await web3InteractManager.getBalance(currentAccount.address, rpcUrl);
@@ -266,6 +324,7 @@ class _WalletViewScreenState extends State<WalletViewScreen>
   @override
   void initState() {
     super.initState();
+    getThemeMode();
     getSavedWallets();
     getCryptoData();
     _tabController = TabController(length: 3, vsync: this);
@@ -341,127 +400,133 @@ class _WalletViewScreenState extends State<WalletViewScreen>
                 builder: (BuildContext chartCtx) {
                   return StatefulBuilder(
                     builder: (BuildContext context, StateSetter setModalState) {
-                      return Container(
-                        decoration: BoxDecoration(
-                          color: binanceColor,
-                          borderRadius: BorderRadius.only(
-                            topLeft: Radius.circular(15),
-                            topRight: Radius.circular(15),
-                          ),
-                        ),
-                        child: Column(
-                          children: [
-                            Padding(
-                              padding: const EdgeInsets.all(10),
-                              child: Row(
-                                mainAxisAlignment:
-                                    MainAxisAlignment.spaceBetween,
-                                crossAxisAlignment: CrossAxisAlignment.center,
-                                children: [
-                                  FutureBuilder(
-                                    future: priceManager.checkCryptoTrend(
-                                        currentNetwork.binanceSymbol),
-                                    builder: (BuildContext trendCtx,
-                                        AsyncSnapshot result) {
-                                      if (result.hasData) {
-                                        final isPositive =
-                                            result.data["percent"] > 0;
-                                        return Column(
-                                          crossAxisAlignment:
-                                              CrossAxisAlignment.start,
-                                          children: [
-                                            Text(
-                                              "\$ ${result.data["price"]}",
-                                              style: GoogleFonts.roboto(
-                                                color: isPositive
-                                                    ? Colors.greenAccent
-                                                    : Colors.pinkAccent,
-                                                fontSize: 22,
-                                                fontWeight: FontWeight.bold,
-                                              ),
-                                            ),
-                                            Text(
-                                              " ${(result.data["percent"] as double).toStringAsFixed(5)}%",
-                                              style: GoogleFonts.roboto(
-                                                color: isPositive
-                                                    ? Colors.greenAccent
-                                                    : Colors.pinkAccent,
-                                                fontSize: 14,
-                                              ),
-                                            ),
-                                          ],
-                                        );
-                                      } else if (result.hasError) {
-                                        return Text("Error fetching data");
-                                      } else {
-                                        return Text("Loading...");
-                                      }
-                                    },
-                                  ),
-                                  IconButton(
-                                    onPressed: () {
-                                      Navigator.pop(context);
-                                    },
-                                    icon: Icon(FeatherIcons.xCircle,
-                                        color: Colors.pinkAccent),
-                                  )
-                                ],
+                      return BackdropFilter(
+                        filter: ImageFilter.blur(sigmaX: 10, sigmaY: 10),
+                        child: Container(
+                            decoration: BoxDecoration(
+                              color: binanceColor,
+                              borderRadius: BorderRadius.only(
+                                topLeft: Radius.circular(15),
+                                topRight: Radius.circular(15),
                               ),
                             ),
-                            cryptoData.isNotEmpty
-                                ? SizedBox(
-                                    height: height * 0.3,
-                                    child: Candlesticks(
-                                      candles: cryptoData,
-                                    ),
-                                  )
-                                : Center(
-                                    child: SizedBox(
+                            child: Column(
+                              children: [
+                                Padding(
+                                  padding: const EdgeInsets.all(10),
+                                  child: Row(
+                                    mainAxisAlignment:
+                                        MainAxisAlignment.spaceBetween,
+                                    crossAxisAlignment:
+                                        CrossAxisAlignment.center,
+                                    children: [
+                                      FutureBuilder(
+                                        future: priceManager.checkCryptoTrend(
+                                            currentNetwork.binanceSymbol),
+                                        builder: (BuildContext trendCtx,
+                                            AsyncSnapshot result) {
+                                          if (result.hasData) {
+                                            final isPositive =
+                                                result.data["percent"] > 0;
+                                            return Column(
+                                              crossAxisAlignment:
+                                                  CrossAxisAlignment.start,
+                                              children: [
+                                                Text(
+                                                  "\$ ${result.data["price"]}",
+                                                  style: GoogleFonts.roboto(
+                                                    color: isPositive
+                                                        ? Colors.greenAccent
+                                                        : Colors.pinkAccent,
+                                                    fontSize: 22,
+                                                    fontWeight: FontWeight.bold,
+                                                  ),
+                                                ),
+                                                Text(
+                                                  " ${(result.data["percent"] as double).toStringAsFixed(5)}%",
+                                                  style: GoogleFonts.roboto(
+                                                    color: isPositive
+                                                        ? Colors.greenAccent
+                                                        : Colors.pinkAccent,
+                                                    fontSize: 14,
+                                                  ),
+                                                ),
+                                              ],
+                                            );
+                                          } else if (result.hasError) {
+                                            return Text("Error fetching data");
+                                          } else {
+                                            return Text("Loading...");
+                                          }
+                                        },
+                                      ),
+                                      IconButton(
+                                        onPressed: () {
+                                          Navigator.pop(context);
+                                        },
+                                        icon: Icon(FeatherIcons.xCircle,
+                                            color: Colors.pinkAccent),
+                                      )
+                                    ],
+                                  ),
+                                ),
+                                cryptoData.isNotEmpty
+                                    ? SizedBox(
                                         height: height * 0.3,
-                                        child: Text("Loading..."))),
-                            SizedBox(height: 15),
-                            Wrap(
-                              children:
-                                  List.generate(intervals.length, (index) {
-                                return Padding(
-                                  padding: const EdgeInsets.all(5),
-                                  child: Material(
-                                    color: Colors.transparent,
-                                    child: InkWell(
-                                      borderRadius: BorderRadius.circular(15),
-                                      onTap: () async {
-                                        setModalState(() {
-                                          currentIndex = index;
-                                          log("currentIndex: $currentIndex ");
-                                        });
-                                        await getCryptoData(index: index);
-                                      },
-                                      child: Container(
-                                        width: 35,
-                                        height: 35,
-                                        padding: const EdgeInsets.all(5),
-                                        decoration: BoxDecoration(
-                                          color: currentIndex == index
-                                              ? secondaryColor.withOpacity(0.3)
-                                              : binanceColorButton,
+                                        child: Candlesticks(
+                                          candles: cryptoData,
+                                        ),
+                                      )
+                                    : Center(
+                                        child: SizedBox(
+                                            height: height * 0.3,
+                                            child: Text("Loading..."))),
+                                SizedBox(height: 15),
+                                Wrap(
+                                  children:
+                                      List.generate(intervals.length, (index) {
+                                    return Padding(
+                                      padding: const EdgeInsets.all(5),
+                                      child: Material(
+                                        color: Colors.transparent,
+                                        child: InkWell(
                                           borderRadius:
                                               BorderRadius.circular(15),
-                                        ),
-                                        child: Center(
-                                          child: Text(
-                                            intervals[index],
-                                            style: GoogleFonts.roboto(
-                                                color: textColor, fontSize: 10),
+                                          onTap: () async {
+                                            setModalState(() {
+                                              currentIndex = index;
+                                              log("currentIndex: $currentIndex ");
+                                            });
+                                            await getCryptoData(index: index);
+                                          },
+                                          child: Container(
+                                            width: 35,
+                                            height: 35,
+                                            padding: const EdgeInsets.all(5),
+                                            decoration: BoxDecoration(
+                                              color: currentIndex == index
+                                                  ? secondaryColor
+                                                      .withOpacity(0.3)
+                                                  : binanceColorButton,
+                                              borderRadius:
+                                                  BorderRadius.circular(15),
+                                            ),
+                                            child: Center(
+                                              child: Text(
+                                                intervals[index],
+                                                style: GoogleFonts.roboto(
+                                                    color: textColor,
+                                                    fontSize: 10),
+                                              ),
+                                            ),
                                           ),
                                         ),
                                       ),
-                                    ),
-                                  ),
-                                );
-                              }),
-                            ),
-                          ],
-                        ),
+                                    );
+                                  }),
+                                ),
+                              ],
+                            )),
                       );
                     },
                   );
@@ -473,12 +538,6 @@ class _WalletViewScreenState extends State<WalletViewScreen>
               color: textColor,
             ),
           ),
-          IconButton(
-              icon: Icon(
-                Icons.more_vert,
-                color: textColor,
-              ),
-              onPressed: () {}),
         ],
       ),
       body: RefreshIndicator(
@@ -520,7 +579,7 @@ class _WalletViewScreenState extends State<WalletViewScreen>
                                   AsyncSnapshot result) {
                                 if (result.hasData) {
                                   return Text(
-                                    "${result.data} ${currentNetwork.name}",
+                                    "${formatter.format(result.data).split('0').length - 1 > 6 ? 0 : formatter.format(result.data)} ${currentNetwork.name}",
                                     overflow: TextOverflow.clip,
                                     maxLines: 1,
                                     style: GoogleFonts.roboto(
@@ -530,7 +589,7 @@ class _WalletViewScreenState extends State<WalletViewScreen>
                                   );
                                 } else {
                                   return Text(
-                                    "0 BNB",
+                                    "$userLastBalance BNB",
                                     overflow: TextOverflow.clip,
                                     maxLines: 1,
                                     style: GoogleFonts.roboto(

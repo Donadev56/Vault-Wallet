@@ -155,7 +155,7 @@ class Web3InteractionManager {
     return BigInt.parse(hex, radix: 16);
   }
 
-  Future<String> sendEthContractTransaction(
+  Future<String> sendEthTransaction(
       {required JsTransactionObject data,
       required bool mounted,
       required BuildContext context,
@@ -248,14 +248,15 @@ class Web3InteractionManager {
         throw Exception("Transaction rejected by user");
       }
 
-      if (data.from != null && data.to != null && data.data != null) {
+      if (data.from != null && data.to != null) {
+        final transData = data.data ?? "";
         final transaction = Transaction(
           from: EthereumAddress.fromHex(data.from ?? ""),
           to: EthereumAddress.fromHex(data.to ?? ""),
           value: EtherAmount.inWei(valueInWei),
           maxGas: confirmedResponse.gasLimit.toInt(),
           gasPrice: EtherAmount.inWei(confirmedResponse.gasPrice),
-          data: hexToUint8List(data.data ?? ""),
+          data: transData.isEmpty ? null : hexToUint8List(transData),
         );
 
         String userPassword = "";
@@ -264,7 +265,8 @@ class Web3InteractionManager {
           throw Exception("Internal error");
         }
 
-        final response = showPinModalBottomSheet(
+        final response = await showPinModalBottomSheet(
+            // ignore: use_build_context_synchronously
             context: context,
             handleSubmit: (password) async {
               final savedPassword = await web3manager.getSavedPassword();
@@ -282,7 +284,7 @@ class Web3InteractionManager {
             },
             title: "Enter Password");
 
-        if ((await response)) {
+        if (response) {
           if (!mounted) {
             throw Exception("Internal error");
           }
@@ -326,9 +328,14 @@ class Web3InteractionManager {
           Navigator.pop(context);
           return result;
         } else {
-          throw Exception("Invalid transaction data");
+          Navigator.pop(context);
+
+          throw Exception(
+              "An error occurred while trying to enter the password");
         }
       } else {
+        Navigator.pop(context);
+
         throw Exception("Invalid transaction data");
       }
     } catch (e) {

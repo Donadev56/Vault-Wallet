@@ -58,6 +58,11 @@ dependencies:
   candlesticks: ^2.1.0
   k_chart_plus_deeping: ^1.0.2-5.2.2.3
   qr_flutter: ^4.1.0
+  awesome_snackbar_content: ^0.1.5
+  intl: ^0.20.2
+  qr_code_scanner_plus: ^2.0.10+1
+  image_picker: ^1.1.2
+  path_provider: ^2.1.5
 
 
   
@@ -103,6 +108,13 @@ flutter:
   - assets/b2.png
   - assets/bnb.png
   - assets/bnb.webp
+  - assets/bg/i1.png
+  - assets/bg/i2.png
+  - assets/bg/i3.png
+  - assets/bg/i4.png
+  - assets/bg/i5.png
+  - assets/pro/image.png
+
 
 
   - assets/home/36.png

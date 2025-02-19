@@ -1,14 +1,19 @@
 // ignore_for_file: deprecated_member_use
 
 import 'dart:convert';
+import 'dart:io';
+import 'dart:ui';
+import 'package:awesome_snackbar_content/awesome_snackbar_content.dart';
 
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_feather_icons/flutter_feather_icons.dart';
 import 'package:flutter_web3_webview/flutter_web3_webview.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:intl/intl.dart';
 import 'package:lucide_icons_flutter/lucide_icons.dart';
 import 'package:moonwallet/logger/logger.dart';
+import 'package:moonwallet/main.dart';
 import 'package:moonwallet/service/price_manager.dart';
 import 'package:moonwallet/service/vibration.dart';
 import 'package:moonwallet/service/web3.dart';
@@ -17,9 +22,7 @@ import 'package:moonwallet/types/types.dart';
 import 'package:moonwallet/utils/constant.dart';
 import 'package:moonwallet/utils/crypto.dart';
 import 'package:moonwallet/utils/prefs.dart';
-import 'package:moonwallet/widgets/askUserforconf.dart';
-import 'package:moonwallet/widgets/bottom_pin_copy.dart';
-import 'package:web3dart/web3dart.dart';
+import 'package:qr_code_scanner_plus/qr_code_scanner_plus.dart';
 
 class SendTransactionScreen extends StatefulWidget {
   const SendTransactionScreen({super.key});
@@ -30,6 +33,10 @@ class SendTransactionScreen extends StatefulWidget {
 
 class _SendTransactionScreenState extends State<SendTransactionScreen> {
   final _formKey = GlobalKey<FormState>();
+  final GlobalKey qrKey = GlobalKey(debugLabel: 'QR');
+  Barcode? result;
+  QRViewController? controller;
+  final formatter = NumberFormat("0.##############", "en_US");
 
   Color primaryColor = Color(0XFF1B1B1B);
   Color textColor = Color.fromARGB(255, 255, 255, 255);
@@ -38,10 +45,15 @@ class _SendTransactionScreenState extends State<SendTransactionScreen> {
   Color surfaceTintColor = Color(0XFF454545);
   double userBalance = 0;
   double cryptoPrice = 0;
+  double transactionFee = 0;
+  bool isAndroid = false;
+  bool isDarkMode = false;
   Color darkNavigatorColor = Color(0XFF0D0D0D);
   bool _isInitialized = false;
   List<PublicData> accounts = [];
   List<PublicData> filteredAccounts = [];
+  List<dynamic> lastEthUsedAddresses = [];
+  List<String> lastAddresses = [];
   PublicData currentAccount = PublicData(
       keyId: "",
       creationDate: 0,
@@ -62,6 +74,17 @@ class _SendTransactionScreenState extends State<SendTransactionScreen> {
   void initState() {
     super.initState();
     getSavedWallets();
+    getThemeMode();
+  }
+
+  @override
+  void reassemble() {
+    super.reassemble();
+    if (Platform.isAndroid) {
+      controller!.pauseCamera();
+    } else if (Platform.isIOS) {
+      controller!.resumeCamera();
+    }
   }
 
   @override
@@ -70,6 +93,190 @@ class _SendTransactionScreenState extends State<SendTransactionScreen> {
     _amountController.dispose();
     _amountUsdController.dispose();
     super.dispose();
+  }
+
+  void setLightMode() {
+    setState(() {
+      isDarkMode = !isDarkMode;
+      primaryColor = Color(0xFFE4E4E4);
+      textColor = Color(0xFF0A0A0A);
+      actionsColor = Color(0xFFCACACA);
+      surfaceTintColor = Color(0xFFBABABA);
+      secondaryColor = Color(0xFF960F51);
+    });
+  }
+
+  void setDarkMode() {
+    setState(() {
+      isDarkMode = !isDarkMode;
+      primaryColor = Color(0XFF1B1B1B);
+      textColor = Color.fromARGB(255, 255, 255, 255);
+      secondaryColor = Colors.greenAccent;
+      actionsColor = Color(0XFF353535);
+      surfaceTintColor = Color(0XFF454545);
+    });
+  }
+
+  Future<void> getThemeMode() async {
+    try {
+      final savedMode =
+          await publicDataManager.getDataFromPrefs(key: "isDarkMode");
+      if (savedMode != null && savedMode == "true") {
+        setDarkMode();
+      } else {
+        setLightMode();
+      }
+    } catch (e) {
+      logError(e.toString());
+    }
+  }
+
+  Future<void> toggleMode() async {
+    try {
+      if (isDarkMode) {
+        setLightMode();
+
+        await publicDataManager.saveDataInPrefs(
+            data: "false", key: "isDarkMode");
+      } else {
+        setDarkMode();
+        await publicDataManager.saveDataInPrefs(
+            data: "true", key: "isDarkMode");
+      }
+    } catch (e) {
+      logError(e.toString());
+    }
+  }
+
+  void _onQRViewCreated(QRViewController controller, BuildContext ctx) {
+    this.controller = controller;
+    controller.scannedDataStream.listen((scanData) {
+      setState(() {
+        result = scanData;
+        log("result :${result!.code.toString()}");
+        if (result?.code != null) {
+          _addressController.text = result!.code.toString();
+          controller.stopCamera();
+          Navigator.pop(ctx);
+        }
+      });
+    });
+  }
+
+  Future<void> sendTransaction() async {
+    try {
+      showDialog(
+          context: context,
+          builder: (BuildContext context) {
+            return Center(
+              child: Container(
+                padding: const EdgeInsets.all(30),
+                width: 100,
+                height: 100,
+                decoration: BoxDecoration(
+                  borderRadius: BorderRadius.circular(20),
+                  border: Border.all(color: secondaryColor, width: 0.5),
+                  color: primaryColor,
+                ),
+                child: SizedBox(
+                  width: 50,
+                  height: 50,
+                  child: CircularProgressIndicator(
+                    color: textColor,
+                  ),
+                ),
+              ),
+            );
+          });
+      BigInt numerator = BigInt.from(100); // pour 1.2, 12/10
+      BigInt denominator = BigInt.from(10);
+
+      final to = _addressController.text;
+      final from = currentAccount.address;
+      final gasPrice =
+          await web3InteractManager.getGasPrice(currentNetwork.rpc);
+      final valueWei =
+          ((double.parse(_amountController.text)) * 1e18).toStringAsFixed(0);
+      final valueHex = (int.parse(valueWei)).toRadixString(16);
+      log("Value : $valueHex and value wei $valueWei");
+      final estimatedGas = await web3InteractManager.estimateGas(
+          rpcUrl: currentNetwork.rpc,
+          sender: currentAccount.address,
+          to: _addressController.text,
+          value: valueHex,
+          data: "");
+      log("Gas : ${estimatedGas.toString()}");
+
+      final gas = (estimatedGas * gasPrice * numerator) ~/ denominator;
+      final valueToSend = BigInt.parse(valueWei) - gas;
+      log("Value to send ${valueToSend.toString()} and gas $gas \n Value wei $valueWei and ${BigInt.parse(valueWei) - valueToSend}");
+      final transaction = JsTransactionObject(
+        gas: "0x${(estimatedGas.toInt()).toRadixString(16)}",
+        value: "0x${(valueToSend.toInt()).toRadixString(16)}",
+        from: from,
+        to: to,
+      );
+      if (mounted) {
+        Navigator.pop(context);
+        final tx = await web3InteractManager.sendEthTransaction(
+            data: transaction,
+            mounted: mounted,
+            context: context,
+            currentAccount: currentAccount,
+            currentNetwork: currentNetwork,
+            primaryColor: primaryColor,
+            textColor: textColor,
+            secondaryColor: secondaryColor,
+            actionsColor: actionsColor,
+            operationType: 1);
+        saveLastUsedAddresses(address: to);
+
+        if (tx.isNotEmpty) {
+          log("Transaction tx : $tx");
+          if (mounted) {
+            Navigator.pushNamed(context, Routes.main);
+          }
+        } else {
+          log("Transaction failed");
+          final snackBar = SnackBar(
+            /// need to set following properties for best effect of awesome_snackbar_content
+            elevation: 0,
+            behavior: SnackBarBehavior.floating,
+            backgroundColor: Colors.transparent,
+            content: AwesomeSnackbarContent(
+              title: 'Ho Ho!',
+              message: 'Transaction failed!',
+
+              /// change contentType to ContentType.success, ContentType.warning or ContentType.help for variants
+              contentType: ContentType.failure,
+            ),
+          );
+
+          ScaffoldMessenger.of(context)
+            ..hideCurrentSnackBar()
+            ..showSnackBar(snackBar);
+        }
+      }
+    } catch (e) {
+      logError(e.toString());
+      final snackBar = SnackBar(
+        /// need to set following properties for best effect of awesome_snackbar_content
+        elevation: 0,
+        behavior: SnackBarBehavior.floating,
+        backgroundColor: Colors.transparent,
+        content: AwesomeSnackbarContent(
+          title: 'Ho Ho!',
+          message: '${e.toString()}!',
+
+          /// change contentType to ContentType.success, ContentType.warning or ContentType.help for variants
+          contentType: ContentType.failure,
+        ),
+      );
+
+      ScaffoldMessenger.of(context)
+        ..hideCurrentSnackBar()
+        ..showSnackBar(snackBar);
+    }
   }
 
   Future<void> getSavedWallets() async {
@@ -108,15 +315,70 @@ class _SendTransactionScreenState extends State<SendTransactionScreen> {
     }
   }
 
+  Future<void> saveLastUsedAddresses({required String address}) async {
+    try {
+      final lastUsedAddresses = await publicDataManager.getDataFromPrefs(
+          key: "${currentAccount.address}/lastUsedAddresses");
+      log("last address $lastUsedAddresses");
+      if (lastUsedAddresses == null) {
+        List<String> lastAddr = [address];
+        await publicDataManager.saveDataInPrefs(
+            data: json.encode(lastAddr),
+            key: "${currentAccount.address}/lastUsedAddresses");
+      } else {
+        int index = 0;
+        List<dynamic> addresses = json.decode(lastUsedAddresses);
+        for (String addr in addresses) {
+          if (addr.toLowerCase().trim() == address.toLowerCase().trim()) {
+            final element = addresses.removeAt(index);
+            addresses.insert(0, element);
+            await publicDataManager.saveDataInPrefs(
+                data: json.encode(addresses),
+                key: "${currentAccount.address}/lastUsedAddresses");
+          }
+          index++;
+        }
+
+        List<dynamic> newList = [...json.decode(lastUsedAddresses)];
+        newList.insert(0, address);
+        await publicDataManager.saveDataInPrefs(
+            data: json.encode(newList),
+            key: "${currentAccount.address}/lastUsedAddresses");
+      }
+    } catch (e) {
+      logError(e.toString());
+    }
+  }
+
   Future<void> getInitialData() async {
     try {
+      final lastBalance = await publicDataManager.getDataFromPrefs(
+          key: "${currentAccount.address}/lastBalanceEth");
+      if (lastBalance != null) {
+        setState(() {
+          userBalance = double.parse(lastBalance);
+        });
+      }
       final price = await priceManager
           .getPriceUsingBinanceApi(currentNetwork.binanceSymbol);
       final balance = await web3InteractManager.getBalance(
           currentAccount.address, currentNetwork.rpc);
+      final gasPrice =
+          await web3InteractManager.getGasPrice(currentNetwork.rpc);
+      final lastUsedAddresses = await publicDataManager.getDataFromPrefs(
+          key: "${currentAccount.address}/lastUsedAddresses");
+      log("last address $lastUsedAddresses");
+      if (lastUsedAddresses != null) {
+        setState(() {
+          lastEthUsedAddresses = json.decode(lastUsedAddresses);
+        });
+      }
+
       setState(() {
         cryptoPrice = price;
         userBalance = balance;
+        transactionFee = ((21000 * gasPrice.toDouble()) / 1e18);
+        log("Fees $transactionFee");
       });
     } catch (e) {
       logError(e.toString());
@@ -262,9 +524,166 @@ class _SendTransactionScreenState extends State<SendTransactionScreen> {
                     spacing: 5,
                     children: [
                       IconButton(
-                          onPressed: () {},
+                          onPressed: () {
+                            showModalBottomSheet(
+                                context: context,
+                                builder: (BuildContext btmCtx) {
+                                  return StatefulBuilder(builder:
+                                      (BuildContext stateFCtx, setModalState) {
+                                    Future<List<dynamic>> getAddress() async {
+                                      try {
+                                        final lastUsedAddresses =
+                                            await publicDataManager
+                                                .getDataFromPrefs(
+                                                    key:
+                                                        "${currentAccount.address}/lastUsedAddresses");
+                                        log("last address $lastUsedAddresses");
+                                        if (lastUsedAddresses != null) {
+                                          return json.decode(lastUsedAddresses);
+                                        } else {
+                                          return [];
+                                        }
+                                      } catch (e) {
+                                        logError(e.toString());
+                                        return [];
+                                      }
+                                    }
+
+                                    return BackdropFilter(
+                                      filter: ImageFilter.blur(
+                                          sigmaX: 10, sigmaY: 10),
+                                      child: Container(
+                                          color: primaryColor,
+                                          child: Column(
+                                            children: [
+                                              Align(
+                                                alignment: Alignment.topLeft,
+                                                child: Container(
+                                                  padding:
+                                                      const EdgeInsets.all(15),
+                                                  child: Text(
+                                                    "Last Addresses :",
+                                                    style: GoogleFonts.roboto(
+                                                        color: textColor,
+                                                        fontWeight:
+                                                            FontWeight.bold),
+                                                  ),
+                                                ),
+                                              ),
+                                              SingleChildScrollView(
+                                                child: SizedBox(
+                                                  height: MediaQuery.of(btmCtx)
+                                                          .size
+                                                          .height *
+                                                      0.5,
+                                                  child: FutureBuilder(
+                                                      future: getAddress(),
+                                                      builder:
+                                                          (BuildContext ftrCtx,
+                                                              AsyncSnapshot
+                                                                  result) {
+                                                        if (result.hasData) {
+                                                          return ListView
+                                                              .builder(
+                                                                  itemCount:
+                                                                      result
+                                                                          .data
+                                                                          .length,
+                                                                  itemBuilder:
+                                                                      (BuildContext
+                                                                              listCtx,
+                                                                          index) {
+                                                                    final addr =
+                                                                        result.data[
+                                                                            index];
+                                                                    return Material(
+                                                                      color: Colors
+                                                                          .transparent,
+                                                                      child:
+                                                                          ListTile(
+                                                                        onTap:
+                                                                            () {
+                                                                          _addressController.text =
+                                                                              addr;
+                                                                          Navigator.pop(
+                                                                              context);
+                                                                        },
+                                                                        leading:
+                                                                            ClipRRect(
+                                                                          borderRadius:
+                                                                              BorderRadius.circular(50),
+                                                                          child:
+                                                                              Image.asset(
+                                                                            currentNetwork.icon,
+                                                                            width:
+                                                                                25,
+                                                                            height:
+                                                                                25,
+                                                                            fit:
+                                                                                BoxFit.cover,
+                                                                          ),
+                                                                        ),
+                                                                        title:
+                                                                            Text(
+                                                                          "${(addr as String).substring(0, 10)}...${(addr).substring(addr.length - 10, addr.length)}",
+                                                                          style:
+                                                                              GoogleFonts.roboto(color: textColor.withOpacity(0.7)),
+                                                                        ),
+                                                                        trailing: IconButton(
+                                                                            onPressed: () {
+                                                                              Clipboard.setData(ClipboardData(text: addr));
+                                                                            },
+                                                                            icon: Icon(
+                                                                              LucideIcons.clipboard,
+                                                                              color: textColor,
+                                                                            )),
+                                                                      ),
+                                                                    );
+                                                                  });
+                                                        } else {
+                                                          return Center(
+                                                            child: Text(
+                                                              "No addresses found",
+                                                              style: GoogleFonts
+                                                                  .roboto(
+                                                                      color:
+                                                                          textColor),
+                                                            ),
+                                                          );
+                                                        }
+                                                      }),
+                                                ),
+                                              )
+                                            ],
+                                          )),
+                                    );
+                                  });
+                                });
+                          },
                           icon: Icon(Icons.contact_page_outlined)),
-                      IconButton(onPressed: () {}, icon: Icon(LucideIcons.scan))
+                      IconButton(
+                          onPressed: () {
+                            showModalBottomSheet(
+                                isScrollControlled: true,
+                                context: context,
+                                builder: (BuildContext scanCtx) {
+                                  return StatefulBuilder(builder:
+                                      (BuildContext stateFScanCtx,
+                                          setModalState) {
+                                    return Expanded(
+                                        child: QRView(
+                                      key: qrKey,
+                                      onQRViewCreated: (c) {
+                                        _onQRViewCreated(c, stateFScanCtx);
+                                      },
+                                      overlay: QrScannerOverlayShape(
+                                          borderWidth: 1,
+                                          borderColor: secondaryColor),
+                                    ));
+                                  });
+                                });
+                          },
+                          icon: Icon(LucideIcons.scan))
                     ],
                   )
                 ],
@@ -337,12 +756,15 @@ class _SendTransactionScreenState extends State<SendTransactionScreen> {
               TextField(
                 keyboardType: TextInputType.number,
                 onChanged: (value) {
+                  if (value.isEmpty) {
+                    setState(() {
+                      _amountUsdController.text = "";
+                    });
+                  }
+                  final double cryptoAmount = double.parse(value);
                   setState(() {
-                    filteredAccounts = accounts
-                        .where((account) => account.address
-                            .toLowerCase()
-                            .contains(value.toLowerCase()))
-                        .toList();
+                    _amountUsdController.text =
+                        (cryptoAmount * cryptoPrice).toString();
                   });
                 },
                 controller: _amountController,
@@ -358,9 +780,12 @@ class _SendTransactionScreenState extends State<SendTransactionScreen> {
                     child: InkWell(
                       borderRadius: BorderRadius.circular(10),
                       onTap: () {
-                        _amountController.text = (userBalance).toString();
-                        _amountUsdController.text =
-                            ((userBalance) * cryptoPrice).toString();
+                        setState(() {
+                          _amountController.text =
+                              formatter.format(userBalance - transactionFee);
+                          _amountUsdController.text =
+                              ((userBalance) * cryptoPrice).toString();
+                        });
                       },
                       child: Container(
                         width: 50,
@@ -393,12 +818,15 @@ class _SendTransactionScreenState extends State<SendTransactionScreen> {
               TextField(
                 keyboardType: TextInputType.number,
                 onChanged: (value) {
+                  if (value.isEmpty) {
+                    setState(() {
+                      _amountController.text = "";
+                    });
+                  }
+                  final double usdAmount = double.parse(value);
                   setState(() {
-                    filteredAccounts = accounts
-                        .where((account) => account.address
-                            .toLowerCase()
-                            .contains(value.toLowerCase()))
-                        .toList();
+                    _amountController.text =
+                        (usdAmount / cryptoPrice).toString();
                   });
                 },
                 controller: _amountUsdController,
@@ -435,7 +863,7 @@ class _SendTransactionScreenState extends State<SendTransactionScreen> {
               Align(
                 alignment: Alignment.topLeft,
                 child: Text(
-                  "Balance : $userBalance ${currentNetwork.name}",
+                  "Balance : ${formatter.format(userBalance)} ${currentNetwork.name}",
                   style: GoogleFonts.roboto(color: textColor.withOpacity(0.7)),
                 ),
               ),
@@ -446,11 +874,12 @@ class _SendTransactionScreenState extends State<SendTransactionScreen> {
                         backgroundColor: _amountController.text.isEmpty
                             ? textColor.withOpacity(0.2)
                             : textColor),
-                    onPressed: () {
+                    onPressed: () async {
                       if (_amountController.text.isEmpty) return;
 
                       if (_formKey.currentState!.validate()) {
                         log("Validation success !");
+                        await sendTransaction();
                       }
                     },
                     child: Text(

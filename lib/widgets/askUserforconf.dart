@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_feather_icons/flutter_feather_icons.dart';
 import 'package:flutter_web3_webview/flutter_web3_webview.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:intl/intl.dart';
 import 'package:lucide_icons_flutter/lucide_icons.dart';
 import 'package:moonwallet/logger/logger.dart';
 import 'package:moonwallet/types/types.dart';
@@ -24,6 +25,7 @@ Future<UserRequestResponse> askUserForConfirmation(
   BigInt customGasPrice = BigInt.zero;
   BigInt customGasLimit = BigInt.zero;
   bool canUseCustomGas = false;
+  final formatter = NumberFormat("0.##############", "en_US");
 
   double calculatePrice(BigInt wei) {
     final double tokenAmount = double.parse(wei.toString()) / 1e18;
@@ -152,7 +154,7 @@ Future<UserRequestResponse> askUserForConfirmation(
                       alignment: Alignment.center,
                       child: Text(
                         txData.value != null
-                            ? "${(int.parse(txData.value ?? "0") / 1e18)} BNB"
+                            ? "${(formatter.format(int.parse(txData.value ?? "0") / 1e18))} BNB"
                             : "0 BNB",
                         overflow: TextOverflow.clip,
                         maxLines: 1,

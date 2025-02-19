@@ -27,6 +27,7 @@ class _PrivateKeyScreenState extends State<PrivateKeyScreen> {
   Color actionsColor = Color(0XFF353535);
   Color surfaceTintColor = Color(0XFF454545);
   Color darkNavigatorColor = Color(0XFF0D0D0D);
+  bool isDarkMode = false;
 
   final TextEditingController _mnemonicController = TextEditingController();
   final TextEditingController _privateKeyController = TextEditingController();
@@ -42,10 +43,64 @@ class _PrivateKeyScreenState extends State<PrivateKeyScreen> {
 
   @override
   void initState() {
+    getThemeMode();
     super.initState();
     WidgetsBinding.instance.addPostFrameCallback((_) {
       showWarn();
     });
+  }
+
+  void setLightMode() {
+    setState(() {
+      isDarkMode = !isDarkMode;
+      primaryColor = Color(0xFFE4E4E4);
+      textColor = Color(0xFF0A0A0A);
+      actionsColor = Color(0xFFCACACA);
+      surfaceTintColor = Color(0xFFBABABA);
+      secondaryColor = Color(0xFF960F51);
+    });
+  }
+
+  void setDarkMode() {
+    setState(() {
+      isDarkMode = !isDarkMode;
+      primaryColor = Color(0XFF1B1B1B);
+      textColor = Color.fromARGB(255, 255, 255, 255);
+      secondaryColor = Colors.greenAccent;
+      actionsColor = Color(0XFF353535);
+      surfaceTintColor = Color(0XFF454545);
+    });
+  }
+
+  Future<void> getThemeMode() async {
+    try {
+      final savedMode =
+          await publicDataManager.getDataFromPrefs(key: "isDarkMode");
+      if (savedMode != null && savedMode == "true") {
+        setDarkMode();
+      } else {
+        setLightMode();
+      }
+    } catch (e) {
+      logError(e.toString());
+    }
+  }
+
+  Future<void> toggleMode() async {
+    try {
+      if (isDarkMode) {
+        setLightMode();
+
+        await publicDataManager.saveDataInPrefs(
+            data: "false", key: "isDarkMode");
+      } else {
+        setDarkMode();
+        await publicDataManager.saveDataInPrefs(
+            data: "true", key: "isDarkMode");
+      }
+    } catch (e) {
+      logError(e.toString());
+    }
   }
 
   @override

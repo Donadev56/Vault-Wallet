@@ -1,5 +1,7 @@
 // ignore_for_file: deprecated_member_use
 
+import 'dart:io';
+
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_feather_icons/flutter_feather_icons.dart';
@@ -10,6 +12,7 @@ import 'package:moonwallet/main.dart';
 import 'package:moonwallet/service/vibration.dart';
 import 'package:moonwallet/types/types.dart';
 import 'package:moonwallet/widgets/appBar/button.dart';
+import 'package:url_launcher/url_launcher.dart';
 
 typedef EditWalletNameType = void Function(String newName, int index);
 typedef ActionWithIndexType = void Function(int index);
@@ -28,6 +31,8 @@ class CustomAppBar extends StatelessWidget implements PreferredSizeWidget {
   final ActionWithIndexType showPrivateData;
   final ReorderList reorderList;
   final Color secondaryColor;
+  final GlobalKey<ScaffoldState> scaffoldKey;
+  final File? profileImage;
 
   const CustomAppBar(
       {super.key,
@@ -41,7 +46,9 @@ class CustomAppBar extends StatelessWidget implements PreferredSizeWidget {
       required this.changeAccount,
       required this.secondaryColor,
       required this.reorderList,
-      required this.showPrivateData});
+      required this.showPrivateData,
+      required this.scaffoldKey,
+      this.profileImage});
 
   @override
   Widget build(BuildContext context) {
@@ -79,12 +86,22 @@ class CustomAppBar extends StatelessWidget implements PreferredSizeWidget {
       surfaceTintColor: surfaceTintColor,
       leading: IconButton(
           onPressed: () {
-            log("taped");
+            scaffoldKey.currentState?.openDrawer();
           },
-          icon: Icon(
-            Icons.person,
-            color: textColor,
-          )),
+          icon: profileImage != null
+              ? ClipRRect(
+                  borderRadius: BorderRadius.circular(50),
+                  child: Image.file(
+                    profileImage!,
+                    width: 30,
+                    height: 30,
+                    fit: BoxFit.cover,
+                  ),
+                )
+              : Icon(
+                  Icons.person,
+                  color: textColor,
+                )),
       title: Material(
         color: Colors.transparent,
         child: InkWell(
@@ -545,10 +562,11 @@ class CustomAppBar extends StatelessWidget implements PreferredSizeWidget {
       actions: <Widget>[
         IconButton(
             onPressed: () {
-              log("taped");
+              launchUrl(Uri.parse(
+                  "https://x.com/eternalprotcl?t=m1cADuEKb9tTlngYCrlB3Q&s=09"));
             },
             icon: Icon(
-              LucideIcons.maximize,
+              LucideIcons.twitter,
               color: textColor,
             )),
       ],

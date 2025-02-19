@@ -1,4 +1,5 @@
 // ignore_for_file: deprecated_member_use
+import 'package:awesome_snackbar_content/awesome_snackbar_content.dart';
 import 'package:http/http.dart' as http;
 import 'package:moonwallet/service/price_manager.dart';
 
@@ -15,6 +16,7 @@ import 'package:moonwallet/service/web3_interaction.dart';
 import 'package:moonwallet/types/types.dart';
 import 'package:moonwallet/utils/constant.dart';
 import 'package:moonwallet/utils/crypto.dart';
+import 'package:moonwallet/utils/prefs.dart';
 import 'package:moonwallet/widgets/change_network.dart';
 
 class Web3BrowserScreen extends StatefulWidget {
@@ -31,6 +33,9 @@ class Web3BrowserScreenState extends State<Web3BrowserScreen> {
   Color actionsColor = Color(0XFF353535);
   Color surfaceTintColor = Color(0XFF454545);
   Color darkNavigatorColor = Color(0XFF0D0D0D);
+  final publicDataManager = PublicDataManager();
+  bool isDarkMode = false;
+
   String _title = '';
   String currentUrl = 'https://www.moonbnb.pro';
   bool canShowAppBarOptions = true;
@@ -194,7 +199,63 @@ class Web3BrowserScreenState extends State<Web3BrowserScreen> {
         statusBarIconBrightness: Brightness.light,
       ),
     );
+    getThemeMode();
     getSavedWallets();
+  }
+
+  void setLightMode() {
+    setState(() {
+      isDarkMode = !isDarkMode;
+      primaryColor = Color(0xFFE4E4E4);
+      textColor = Color(0xFF0A0A0A);
+      actionsColor = Color(0xFFCACACA);
+      surfaceTintColor = Color(0xFFBABABA);
+      secondaryColor = Color(0xFF960F51);
+      darkNavigatorColor = Colors.white;
+    });
+  }
+
+  void setDarkMode() {
+    setState(() {
+      isDarkMode = !isDarkMode;
+      primaryColor = Color(0XFF1B1B1B);
+      textColor = Color.fromARGB(255, 255, 255, 255);
+      secondaryColor = Colors.greenAccent;
+      actionsColor = Color(0XFF353535);
+      surfaceTintColor = Color(0XFF454545);
+      darkNavigatorColor = Color(0xFF0D0D0D);
+    });
+  }
+
+  Future<void> getThemeMode() async {
+    try {
+      final savedMode =
+          await publicDataManager.getDataFromPrefs(key: "isDarkMode");
+      if (savedMode != null && savedMode == "true") {
+        setDarkMode();
+      } else {
+        setLightMode();
+      }
+    } catch (e) {
+      logError(e.toString());
+    }
+  }
+
+  Future<void> toggleMode() async {
+    try {
+      if (isDarkMode) {
+        setLightMode();
+
+        await publicDataManager.saveDataInPrefs(
+            data: "false", key: "isDarkMode");
+      } else {
+        setDarkMode();
+        await publicDataManager.saveDataInPrefs(
+            data: "true", key: "isDarkMode");
+      }
+    } catch (e) {
+      logError(e.toString());
+    }
   }
 
   @override
@@ -541,10 +602,32 @@ class Web3BrowserScreenState extends State<Web3BrowserScreen> {
           children: [
             Expanded(
                 child: Web3Webview(
+              onCreateWindow: (controller, createWindowRequest) async {
+                log("Received create window request");
+                try {
+                  log("request ${createWindowRequest.request.mainDocumentURL}");
+                  if (createWindowRequest.request.url != null) {
+                    final newUrl = createWindowRequest.request.url;
+                    controller.loadUrl(urlRequest: URLRequest(url: newUrl));
+                    return true;
+                  } else {
+                    logError("The url is NULL");
+                    return false;
+                  }
+                } catch (e) {
+                  logError(e.toString());
+                  return false;
+                }
+              },
               onLoadStop: (crl, webUrl) {
                 setState(() {
                   progress = 0;
                 });
+                crl.evaluateJavascript(source: """
+     window.open = function(url, name, features) {
+     window.flutter_inappwebview.callHandler('handleWindowOpen', url);
+  };
+""");
               },
               onProgressChanged: (controller, prog) {
                 setState(() {
@@ -553,6 +636,15 @@ class Web3BrowserScreenState extends State<Web3BrowserScreen> {
               },
               onWebViewCreated: (crl) {
                 _webViewController = crl;
+                crl.addJavaScriptHandler(
+                    handlerName: "handleWindowOpen",
+                    callback: (args) {
+                      final url = args[0].toString();
+                      setState(() {
+                        currentUrl = url;
+                      });
+                      crl.loadUrl(urlRequest: URLRequest(url: WebUri(url)));
+                    });
               },
               onConsoleMessage: (controller, msg) {
                 log("The console message : ${(msg.message)}");
@@ -568,7 +660,28 @@ class Web3BrowserScreenState extends State<Web3BrowserScreen> {
               ethChainId: _ethChainId,
               walletSwitchEthereumChain: _walletSwitchEthereumChain,
               ethSendTransaction: (data) async {
-                return await web3IntManager.sendEthContractTransaction(
+                try {} catch (e) {
+                  logError(e.toString());
+                  Navigator.pop(context);
+                  final snackBar = SnackBar(
+                    /// need to set following properties for best effect of awesome_snackbar_content
+                    elevation: 0,
+                    behavior: SnackBarBehavior.floating,
+                    backgroundColor: Colors.transparent,
+                    content: AwesomeSnackbarContent(
+                      title: 'Ho Ho!',
+                      message: '${e.toString()}!',
+
+                      /// change contentType to ContentType.success, ContentType.warning or ContentType.help for variants
+                      contentType: ContentType.failure,
+                    ),
+                  );
+
+                  ScaffoldMessenger.of(context)
+                    ..hideCurrentSnackBar()
+                    ..showSnackBar(snackBar);
+                }
+                return await web3IntManager.sendEthTransaction(
                     data: data,
                     mounted: mounted,
                     context: context,

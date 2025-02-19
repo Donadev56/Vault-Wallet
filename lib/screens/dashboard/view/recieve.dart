@@ -30,6 +30,7 @@ class _ReceiveScreenState extends State<ReceiveScreen> {
   Color surfaceTintColor = Color(0XFF454545);
   Color warningColor = Colors.orange;
   bool _isInitialized = false;
+  bool isDarkMode = false;
 
   List<PublicData> accounts = [];
   List<PublicData> filteredAccounts = [];
@@ -49,6 +50,7 @@ class _ReceiveScreenState extends State<ReceiveScreen> {
   void initState() {
     super.initState();
     getSavedWallets();
+    getThemeMode();
   }
 
   Future<void> getSavedWallets() async {
@@ -86,6 +88,59 @@ class _ReceiveScreenState extends State<ReceiveScreen> {
     }
   }
 
+  void setLightMode() {
+    setState(() {
+      isDarkMode = !isDarkMode;
+      primaryColor = Color(0xFFE4E4E4);
+      textColor = Color(0xFF0A0A0A);
+      actionsColor = Color(0xFFCACACA);
+      surfaceTintColor = Color(0xFFBABABA);
+      secondaryColor = Color(0xFF960F51);
+    });
+  }
+
+  void setDarkMode() {
+    setState(() {
+      isDarkMode = !isDarkMode;
+      primaryColor = Color(0XFF1B1B1B);
+      textColor = Color.fromARGB(255, 255, 255, 255);
+      secondaryColor = Colors.greenAccent;
+      actionsColor = Color(0XFF353535);
+      surfaceTintColor = Color(0XFF454545);
+    });
+  }
+
+  Future<void> getThemeMode() async {
+    try {
+      final savedMode =
+          await publicDataManager.getDataFromPrefs(key: "isDarkMode");
+      if (savedMode != null && savedMode == "true") {
+        setDarkMode();
+      } else {
+        setLightMode();
+      }
+    } catch (e) {
+      logError(e.toString());
+    }
+  }
+
+  Future<void> toggleMode() async {
+    try {
+      if (isDarkMode) {
+        setLightMode();
+
+        await publicDataManager.saveDataInPrefs(
+            data: "false", key: "isDarkMode");
+      } else {
+        setDarkMode();
+        await publicDataManager.saveDataInPrefs(
+            data: "true", key: "isDarkMode");
+      }
+    } catch (e) {
+      logError(e.toString());
+    }
+  }
+
   @override
   void didChangeDependencies() {
     super.didChangeDependencies();
@@ -103,6 +158,8 @@ class _ReceiveScreenState extends State<ReceiveScreen> {
   @override
   Widget build(BuildContext context) {
     final width = MediaQuery.of(context).size.width;
+    final height = MediaQuery.of(context).size.height;
+
     return Scaffold(
       backgroundColor: primaryColor,
       appBar: AppBar(
@@ -120,14 +177,6 @@ class _ReceiveScreenState extends State<ReceiveScreen> {
           "Receive",
           style: GoogleFonts.roboto(color: textColor, fontSize: 20),
         ),
-        actions: [
-          IconButton(
-              onPressed: () {},
-              icon: Icon(
-                Icons.candlestick_chart,
-                color: textColor,
-              ))
-        ],
       ),
       body: Column(
         children: [
@@ -205,27 +254,33 @@ class _ReceiveScreenState extends State<ReceiveScreen> {
                 SizedBox(
                   height: 10,
                 ),
-                Container(
-                  width: width * 0.85,
-                  padding: const EdgeInsets.all(10),
-                  margin: const EdgeInsets.all(10),
-                  decoration: BoxDecoration(
-                    borderRadius: BorderRadius.circular(10),
-                    color: textColor,
-                  ),
-                  child: Center(
-                    child: QrImageView(
-                      data: currentAccount.address,
-                      version: 3,
-                      size: width * 0.8,
-                      gapless: false,
-                      embeddedImage: AssetImage(currentNetwork.icon),
-                      embeddedImageStyle: QrEmbeddedImageStyle(
-                        size: Size(40, 40),
-                      ),
+                ConstrainedBox(
+                    constraints: BoxConstraints(
+                      maxWidth: 300,
                     ),
-                  ),
-                )
+                    child: Container(
+                        width: width * 0.85,
+                        padding: const EdgeInsets.all(10),
+                        margin: const EdgeInsets.all(10),
+                        decoration: BoxDecoration(
+                          borderRadius: BorderRadius.circular(10),
+                          color: Colors.white,
+                        ),
+                        child: Center(
+                            child: ConstrainedBox(
+                          constraints:
+                              BoxConstraints(maxWidth: 300, maxHeight: 270),
+                          child: QrImageView(
+                            data: currentAccount.address,
+                            version: 3,
+                            size: width * 0.8,
+                            gapless: false,
+                            embeddedImage: AssetImage(currentNetwork.icon),
+                            embeddedImageStyle: QrEmbeddedImageStyle(
+                              size: Size(40, 40),
+                            ),
+                          ),
+                        ))))
               ],
             ),
           ),
@@ -233,36 +288,45 @@ class _ReceiveScreenState extends State<ReceiveScreen> {
             height: 10,
           ),
           Center(
-            child: Container(
-                width: width * 0.85,
-                padding: const EdgeInsets.all(10),
-                decoration: BoxDecoration(
-                    borderRadius: BorderRadius.circular(30),
-                    color: surfaceTintColor.withOpacity(0.2)),
-                child: Center(
-                  child: Text(
-                    currentAccount.address,
-                    style: GoogleFonts.roboto(color: textColor, fontSize: 11),
-                  ),
-                )),
+            child: ConstrainedBox(
+                constraints: BoxConstraints(
+                  maxWidth: 300,
+                ),
+                child: Container(
+                    width: width * 0.85,
+                    padding: const EdgeInsets.all(10),
+                    decoration: BoxDecoration(
+                        borderRadius: BorderRadius.circular(30),
+                        color: surfaceTintColor.withOpacity(0.2)),
+                    child: Center(
+                      child: Text(
+                        currentAccount.address,
+                        style:
+                            GoogleFonts.roboto(color: textColor, fontSize: 11),
+                      ),
+                    ))),
           ),
           SizedBox(
             height: 10,
           ),
           ConstrainedBox(
-            constraints: BoxConstraints(minWidth: width * 0.85),
-            child: ElevatedButton.icon(
-              onPressed: () {
-                Clipboard.setData(
-                    ClipboardData(text: currentAccount.address.trim()));
-              },
-              icon: Icon(
-                Icons.copy,
-                color: primaryColor,
+              constraints: BoxConstraints(
+                maxWidth: 300,
               ),
-              label: Text("Copy the address"),
-            ),
-          )
+              child: Container(
+                width: width * 0.85,
+                child: ElevatedButton.icon(
+                  onPressed: () {
+                    Clipboard.setData(
+                        ClipboardData(text: currentAccount.address.trim()));
+                  },
+                  icon: Icon(
+                    Icons.copy,
+                    color: primaryColor,
+                  ),
+                  label: Text("Copy the address"),
+                ),
+              ))
         ],
       ),
     );

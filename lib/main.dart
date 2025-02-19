@@ -13,6 +13,7 @@ import 'package:moonwallet/screens/dashboard/browser.dart';
 import 'package:moonwallet/screens/dashboard/discover.dart';
 import 'package:moonwallet/screens/dashboard/main.dart';
 import 'package:moonwallet/screens/dashboard/private/private_key_screen.dart';
+import 'package:moonwallet/screens/dashboard/settings/settings.dart';
 import 'package:moonwallet/screens/dashboard/view/recieve.dart';
 import 'package:moonwallet/screens/dashboard/view/send.dart';
 import 'package:moonwallet/screens/dashboard/view/wallet_overview.dart';
@@ -50,6 +51,7 @@ class Routes {
   static const String privateDataScreen = '/privateDataScreen';
   static const String receiveScreen = '/receiveScreen';
   static const String sendScreen = '/sendScreen';
+  static const String settings = '/settings';
 
   static const String privateKeyCreator = '/privatekeyCreator';
 }
@@ -130,6 +132,7 @@ class MyApp extends StatelessWidget {
                   Routes.privateDataScreen: (context) => PrivateKeyScreen(),
                   Routes.receiveScreen: (context) => ReceiveScreen(),
                   Routes.sendScreen: (context) => SendTransactionScreen(),
+                  Routes.settings: (context) => SettingsPage(),
                 });
           } else {
             return Container(

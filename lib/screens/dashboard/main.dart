@@ -1,13 +1,15 @@
 // ignore_for_file: deprecated_member_use
 
 import 'dart:convert';
+import 'dart:io';
+import 'package:path/path.dart' as path;
 
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:intl/intl.dart';
 import 'package:lucide_icons_flutter/lucide_icons.dart';
 import 'package:moonwallet/logger/logger.dart';
 import 'package:moonwallet/main.dart';
-import 'package:moonwallet/screens/dashboard/private/private_key_screen.dart';
 import 'package:moonwallet/service/price_manager.dart';
 import 'package:moonwallet/service/vibration.dart';
 import 'package:moonwallet/service/web3.dart';
@@ -19,8 +21,11 @@ import 'package:moonwallet/utils/prefs.dart';
 import 'package:moonwallet/widgets/actions.dart';
 import 'package:moonwallet/widgets/appBar.dart';
 import 'package:moonwallet/widgets/bottom_pin_copy.dart';
+import 'package:moonwallet/widgets/drawer.dart';
 import 'package:moonwallet/widgets/navBar.dart';
 import 'package:moonwallet/widgets/snackbar.dart';
+import 'package:path_provider/path_provider.dart';
+import 'package:url_launcher/url_launcher.dart';
 
 class MainDashboardScreen extends StatefulWidget {
   const MainDashboardScreen({super.key});
@@ -38,7 +43,10 @@ class _MainDashboardScreenState extends State<MainDashboardScreen>
   Color surfaceTintColor = Color(0XFF454545);
   final GlobalKey<RefreshIndicatorState> _refreshIndicatorKey =
       GlobalKey<RefreshIndicatorState>();
-
+  final GlobalKey<ScaffoldState> _scaffoldKey = GlobalKey<ScaffoldState>();
+  File? _profileImage;
+  File? _backgroundImage;
+  String userName = "Moon User";
 // Color primaryColor = Color(0xFFE4E4E4);    // Inversion of Color(0xFF1B1B1B)
 //Color textColor = Color(0xFF0A0A0A);       // Inversion of Color(0xFFF5F5F5)
 // Color secondaryColor = Color(0xFF960F51);  // Inversion of Colors.greenAccent (assumed as Color(0xFF69F0AE))
@@ -47,6 +55,8 @@ class _MainDashboardScreenState extends State<MainDashboardScreen>
 
   List<PublicData> accounts = [];
   List<PublicData> filteredAccounts = [];
+  final formatter = NumberFormat("0.########", "en_US");
+
   PublicData currentAccount = PublicData(
       keyId: "",
       creationDate: 0,
@@ -59,6 +69,8 @@ class _MainDashboardScreenState extends State<MainDashboardScreen>
   final priceManager = PriceManager();
   final web3InteractManager = Web3InteractionManager();
   final publicDataManager = PublicDataManager();
+  bool isDarkMode = true;
+  bool isHidden = false;
 
   double totalBalanceUsd = 0;
   String searchQuery = "";
@@ -68,6 +80,12 @@ class _MainDashboardScreenState extends State<MainDashboardScreen>
     {'icon': LucideIcons.moveDownLeft, 'page': 'receive', 'name': 'Receive'},
     {'icon': LucideIcons.scan, 'page': 'scan', 'name': 'Scan'},
     {'icon': LucideIcons.ellipsis, 'page': 'more', 'name': 'More'},
+  ];
+  final List<Map<String, dynamic>> options = [
+    {'icon': LucideIcons.eye, 'name': 'Hide Balance'},
+    {'icon': LucideIcons.send, 'name': 'Join Telegram'},
+    {'icon': LucideIcons.messageCircle, 'name': 'Join Whatsapp'},
+    {'icon': LucideIcons.settings, 'name': 'Settings'},
   ];
   final List<Map<String, dynamic>> cryptos = [
     {
@@ -98,10 +116,38 @@ class _MainDashboardScreenState extends State<MainDashboardScreen>
 
   @override
   void initState() {
+    getIsHidden();
+
+    getThemeMode();
+
     getSavedWallets();
+    loadData();
     super.initState();
 
     _tabController = TabController(length: 2, vsync: this);
+  }
+
+  Future<void> getIsHidden() async {
+    try {
+      final savedData =
+          await publicDataManager.getDataFromPrefs(key: "isHidden");
+      if (savedData != null) {
+        if (savedData == "true") {
+          isHidden = true;
+        } else {
+          isHidden = false;
+        }
+      }
+    } catch (e) {
+      log("Error getting isHidden: $e");
+    }
+  }
+
+  Future<void> toggleHidden() async {
+    setState(() {
+      isHidden = !isHidden;
+    });
+    await publicDataManager.saveDataInPrefs(data: "$isHidden", key: "isHidden");
   }
 
   Future<void> getSavedWallets() async {
@@ -138,6 +184,51 @@ class _MainDashboardScreenState extends State<MainDashboardScreen>
       }
     } catch (e) {
       logError('Error getting saved wallets: $e');
+    }
+  }
+
+  Future<bool> loadData() async {
+    try {
+      final PublicDataManager prefs = PublicDataManager();
+
+      final String? storedName = await prefs.getDataFromPrefs(key: "userName");
+      log(storedName.toString());
+      if (storedName != null) {
+        setState(() {
+          userName = storedName;
+        });
+      }
+
+      // Retrieve the app's documents directory.
+      final Directory appDocDir = await getApplicationDocumentsDirectory();
+      final String moonImagesPath = path.join(appDocDir.path, "moon", "images");
+
+      // Define file paths for the profile and background images.
+      final String profileFilePath =
+          path.join(moonImagesPath, "profileName.png");
+      final String backgroundFilePath =
+          path.join(moonImagesPath, "backgroundName.png");
+
+      // Check if the profile image exists and update the state.
+      final File profileImageFile = File(profileFilePath);
+      if (await profileImageFile.exists()) {
+        setState(() {
+          _profileImage = profileImageFile;
+        });
+      }
+
+      // Check if the background image exists and update the state.
+      final File backgroundImageFile = File(backgroundFilePath);
+      if (await backgroundImageFile.exists()) {
+        setState(() {
+          _backgroundImage = backgroundImageFile;
+        });
+      }
+
+      return true;
+    } catch (e) {
+      log("Error loading data: $e");
+      return false;
     }
   }
 
@@ -407,9 +498,13 @@ class _MainDashboardScreenState extends State<MainDashboardScreen>
       if (rpcUrl.isEmpty || symbol.isEmpty) {
         return 0;
       }
+
       final price = await getPrice(symbol);
       final balanceEth =
           await web3InteractManager.getBalance(currentAccount.address, rpcUrl);
+      publicDataManager.saveDataInPrefs(
+          data: balanceEth.toString(),
+          key: "${currentAccount.address}/lastBalanceEth");
       final balanceUsd = balanceEth * price;
       if (balanceUsd > 0) {
         return price * balanceEth;
@@ -421,14 +516,303 @@ class _MainDashboardScreenState extends State<MainDashboardScreen>
     }
   }
 
+  void setLightMode() {
+    setState(() {
+      isDarkMode = !isDarkMode;
+      primaryColor = Color(0xFFE4E4E4);
+      textColor = Color(0xFF0A0A0A);
+      actionsColor = Color(0xFFCACACA);
+      surfaceTintColor = Color(0xFFBABABA);
+      secondaryColor = Color(0xFF960F51);
+    });
+  }
+
+  void setDarkMode() {
+    setState(() {
+      isDarkMode = !isDarkMode;
+      primaryColor = Color(0XFF1B1B1B);
+      textColor = Color.fromARGB(255, 255, 255, 255);
+      secondaryColor = Colors.greenAccent;
+      actionsColor = Color(0XFF353535);
+      surfaceTintColor = Color(0XFF454545);
+    });
+  }
+
+  Future<void> getThemeMode() async {
+    try {
+      final savedMode =
+          await publicDataManager.getDataFromPrefs(key: "isDarkMode");
+      if (savedMode == null) {
+        return;
+      }
+      if (savedMode == "true") {
+        setDarkMode();
+      } else {
+        setLightMode();
+      }
+    } catch (e) {
+      logError(e.toString());
+    }
+  }
+
+  Future<void> toggleMode() async {
+    try {
+      if (isDarkMode) {
+        setLightMode();
+
+        await publicDataManager.saveDataInPrefs(
+            data: "false", key: "isDarkMode");
+      } else {
+        setDarkMode();
+        await publicDataManager.saveDataInPrefs(
+            data: "true", key: "isDarkMode");
+      }
+    } catch (e) {
+      logError(e.toString());
+    }
+  }
+
+  void showReceiveModal() {
+    showModalBottomSheet(
+        context: context,
+        builder: (BuildContext btmCtx) {
+          return Container(
+            width: MediaQuery.of(context).size.width,
+            padding: const EdgeInsets.all(15),
+            decoration: BoxDecoration(
+                color: primaryColor,
+                borderRadius: BorderRadius.only(
+                    topLeft: Radius.circular(15),
+                    topRight: Radius.circular(10))),
+            child: Column(
+              children: [
+                TextField(
+                  maxLines: 1,
+                  minLines: 1,
+                  scrollPadding: const EdgeInsets.all(10),
+                  decoration: InputDecoration(
+                    label: Text("Search crypto"),
+                    labelStyle:
+                        GoogleFonts.roboto(color: textColor.withOpacity(0.7)),
+                    filled: true,
+                    fillColor: surfaceTintColor.withOpacity(0.5),
+                    prefixIcon: Icon(
+                      Icons.search,
+                      color: textColor,
+                    ),
+                    enabledBorder: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(10),
+                        borderSide:
+                            BorderSide(width: 0, color: Colors.transparent)),
+                    focusedBorder: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(10),
+                        borderSide:
+                            BorderSide(width: 0, color: Colors.transparent)),
+                  ),
+                ),
+                SizedBox(
+                  height: 10,
+                ),
+                SingleChildScrollView(
+                    child: SizedBox(
+                  height: MediaQuery.of(btmCtx).size.height * 0.4,
+                  child: ListView.builder(
+                      itemCount: networks.length,
+                      itemBuilder: (BuildContext lisCryptoCtx, int index) {
+                        final net = networks[index];
+                        return Material(
+                          color: Colors.transparent,
+                          child: ListTile(
+                            onTap: () {
+                              Navigator.pushNamed(context, Routes.receiveScreen,
+                                  arguments: ({"index": index}));
+                            },
+                            leading: ClipRRect(
+                              borderRadius: BorderRadius.circular(50),
+                              child: Image.asset(
+                                net.icon,
+                                width: 35,
+                                height: 35,
+                                fit: BoxFit.cover,
+                              ),
+                            ),
+                            title: Text(
+                              net.name,
+                              style: GoogleFonts.roboto(
+                                  color: textColor,
+                                  fontWeight: FontWeight.bold),
+                            ),
+                          ),
+                        );
+                      }),
+                )),
+              ],
+            ),
+          );
+        });
+  }
+
+  void showSendModal() {
+    showModalBottomSheet(
+        context: context,
+        builder: (BuildContext btmCtx) {
+          return Container(
+            width: MediaQuery.of(context).size.width,
+            padding: const EdgeInsets.all(15),
+            decoration: BoxDecoration(
+                color: primaryColor,
+                borderRadius: BorderRadius.only(
+                    topLeft: Radius.circular(15),
+                    topRight: Radius.circular(10))),
+            child: Column(
+              children: [
+                TextField(
+                  maxLines: 1,
+                  minLines: 1,
+                  scrollPadding: const EdgeInsets.all(10),
+                  decoration: InputDecoration(
+                    label: Text("Search crypto"),
+                    labelStyle:
+                        GoogleFonts.roboto(color: textColor.withOpacity(0.7)),
+                    filled: true,
+                    fillColor: surfaceTintColor.withOpacity(0.5),
+                    prefixIcon: Icon(
+                      Icons.search,
+                      color: textColor,
+                    ),
+                    enabledBorder: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(10),
+                        borderSide:
+                            BorderSide(width: 0, color: Colors.transparent)),
+                    focusedBorder: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(10),
+                        borderSide:
+                            BorderSide(width: 0, color: Colors.transparent)),
+                  ),
+                ),
+                SizedBox(
+                  height: 10,
+                ),
+                SingleChildScrollView(
+                    child: SizedBox(
+                  height: MediaQuery.of(btmCtx).size.height * 0.4,
+                  child: ListView.builder(
+                      itemCount: networks.length,
+                      itemBuilder: (BuildContext lisCryptoCtx, int index) {
+                        final net = networks[index];
+                        return Material(
+                          color: Colors.transparent,
+                          child: ListTile(
+                            onTap: () {
+                              Navigator.pushNamed(context, Routes.sendScreen,
+                                  arguments: ({"index": index}));
+                            },
+                            leading: ClipRRect(
+                              borderRadius: BorderRadius.circular(50),
+                              child: Image.asset(
+                                net.icon,
+                                width: 35,
+                                height: 35,
+                                fit: BoxFit.cover,
+                              ),
+                            ),
+                            title: Text(
+                              net.name,
+                              style: GoogleFonts.roboto(
+                                  color: textColor,
+                                  fontWeight: FontWeight.bold),
+                            ),
+                          ),
+                        );
+                      }),
+                )),
+              ],
+            ),
+          );
+        });
+  }
+
+  void showOptionsModal() {
+    showModalBottomSheet(
+        isScrollControlled: true,
+        context: context,
+        builder: (BuildContext btmCtx) {
+          return Container(
+            height: MediaQuery.of(context).size.height * 0.32,
+            width: MediaQuery.of(context).size.width,
+            padding: const EdgeInsets.all(15),
+            decoration: BoxDecoration(
+                color: primaryColor,
+                borderRadius: BorderRadius.only(
+                    topLeft: Radius.circular(15),
+                    topRight: Radius.circular(10))),
+            child: Column(
+              children: [
+                SizedBox(
+                  height: MediaQuery.of(btmCtx).size.height * 0.26,
+                  child: ListView.builder(
+                      itemCount: options.length,
+                      itemBuilder: (BuildContext lisCryptoCtx, int index) {
+                        final opt = options[index];
+                        return Material(
+                          color: Colors.transparent,
+                          child: ListTile(
+                            onTap: () {
+                              if (index == options.length - 1) {
+                                Navigator.pushNamed(context, Routes.settings);
+                              } else if (index == 1) {
+                                launchUrl(
+                                    Uri.parse("https://t.me/eternalprotocol"));
+                              } else if (index == 2) {
+                                launchUrl(Uri.parse(
+                                    "https://www.whatsapp.com/channel/0029Vb2TpR9HrDZWVEkhWz21"));
+                              } else if (index == 0) {
+                                toggleHidden();
+                              }
+                            },
+                            leading: Icon(
+                              opt["icon"],
+                              color: textColor,
+                            ),
+                            title: Text(
+                              opt["name"],
+                              style: GoogleFonts.roboto(
+                                  color: textColor,
+                                  fontWeight: FontWeight.bold),
+                            ),
+                          ),
+                        );
+                      }),
+                ),
+              ],
+            ),
+          );
+        });
+  }
+
   @override
   Widget build(BuildContext context) {
     double width = MediaQuery.of(context).size.width;
     double height = MediaQuery.of(context).size.height;
 
     return Scaffold(
+      key: _scaffoldKey,
       backgroundColor: primaryColor,
+      drawer: MainDrawer(
+          isDarkMode: isDarkMode,
+          toggleMode: toggleMode,
+          showSendModal: showSendModal,
+          showReceiveModal: showReceiveModal,
+          profileImage: _profileImage,
+          backgroundImage: _backgroundImage,
+          userName: userName,
+          scaffoldKey: _scaffoldKey,
+          primaryColor: primaryColor,
+          textColor: textColor,
+          surfaceTintColor: surfaceTintColor),
       appBar: CustomAppBar(
+          profileImage: _profileImage,
+          scaffoldKey: _scaffoldKey,
           showPrivateData: showPrivateData,
           reorderList: reorderList,
           secondaryColor: secondaryColor,
@@ -457,6 +841,8 @@ class _MainDashboardScreenState extends State<MainDashboardScreen>
         backgroundColor: textColor.withOpacity(0.8),
         key: _refreshIndicatorKey,
         onRefresh: () async {
+          await loadData();
+
           await vibrate(duration: 10);
           await getTotalBalance();
         },
@@ -476,14 +862,15 @@ class _MainDashboardScreenState extends State<MainDashboardScreen>
                           "Balance",
                           style: GoogleFonts.roboto(color: textColor),
                         ),
-                        SizedBox(
-                          width: 10,
-                        ),
-                        Icon(
-                          Icons.remove_red_eye_outlined,
-                          color: textColor,
-                          size: 22,
-                        )
+                        IconButton(
+                            onPressed: toggleHidden,
+                            icon: Icon(
+                              isHidden
+                                  ? LucideIcons.eyeClosed
+                                  : Icons.remove_red_eye_outlined,
+                              color: textColor,
+                              size: 22,
+                            ))
                       ],
                     ),
                     SizedBox(
@@ -495,7 +882,9 @@ class _MainDashboardScreenState extends State<MainDashboardScreen>
                       children: [
                         RichText(
                           text: TextSpan(
-                            text: "\$ ${totalBalanceUsd.toStringAsFixed(2)}",
+                            text: isHidden
+                                ? "***"
+                                : "\$ ${totalBalanceUsd.toStringAsFixed(2)}",
                             style: GoogleFonts.roboto(
                                 color: textColor,
                                 fontSize: 30,
@@ -521,103 +910,12 @@ class _MainDashboardScreenState extends State<MainDashboardScreen>
                       return ActionsWidgets(
                         onTap: () {
                           if (index == 1) {
-                            showModalBottomSheet(
-                                context: context,
-                                builder: (BuildContext btmCtx) {
-                                  return Container(
-                                    width: width,
-                                    padding: const EdgeInsets.all(15),
-                                    decoration: BoxDecoration(
-                                        color: primaryColor,
-                                        borderRadius: BorderRadius.only(
-                                            topLeft: Radius.circular(15),
-                                            topRight: Radius.circular(10))),
-                                    child: Column(
-                                      children: [
-                                        TextField(
-                                          maxLines: 1,
-                                          minLines: 1,
-                                          scrollPadding:
-                                              const EdgeInsets.all(10),
-                                          decoration: InputDecoration(
-                                            label: Text("Search crypto"),
-                                            labelStyle: GoogleFonts.roboto(
-                                                color:
-                                                    textColor.withOpacity(0.7)),
-                                            filled: true,
-                                            fillColor: surfaceTintColor
-                                                .withOpacity(0.5),
-                                            prefixIcon: Icon(
-                                              Icons.search,
-                                              color: textColor,
-                                            ),
-                                            enabledBorder: OutlineInputBorder(
-                                                borderRadius:
-                                                    BorderRadius.circular(10),
-                                                borderSide: BorderSide(
-                                                    width: 0,
-                                                    color: Colors.transparent)),
-                                            focusedBorder: OutlineInputBorder(
-                                                borderRadius:
-                                                    BorderRadius.circular(10),
-                                                borderSide: BorderSide(
-                                                    width: 0,
-                                                    color: Colors.transparent)),
-                                          ),
-                                        ),
-                                        SizedBox(
-                                          height: 10,
-                                        ),
-                                        SingleChildScrollView(
-                                            child: SizedBox(
-                                          height: MediaQuery.of(btmCtx)
-                                                  .size
-                                                  .height *
-                                              0.4,
-                                          child: ListView.builder(
-                                              itemCount: networks.length,
-                                              itemBuilder:
-                                                  (BuildContext lisCryptoCtx,
-                                                      int index) {
-                                                final net = networks[index];
-                                                return Material(
-                                                  color: Colors.transparent,
-                                                  child: ListTile(
-                                                    onTap: () {
-                                                      Navigator.pushNamed(
-                                                          context,
-                                                          Routes.receiveScreen,
-                                                          arguments: ({
-                                                            "index": index
-                                                          }));
-                                                    },
-                                                    leading: ClipRRect(
-                                                      borderRadius:
-                                                          BorderRadius.circular(
-                                                              50),
-                                                      child: Image.asset(
-                                                        net.icon,
-                                                        width: 35,
-                                                        height: 35,
-                                                        fit: BoxFit.cover,
-                                                      ),
-                                                    ),
-                                                    title: Text(
-                                                      net.name,
-                                                      style: GoogleFonts.roboto(
-                                                          color: textColor,
-                                                          fontWeight:
-                                                              FontWeight.bold),
-                                                    ),
-                                                  ),
-                                                );
-                                              }),
-                                        )),
-                                      ],
-                                    ),
-                                  );
-                                });
-                          }
+                            showReceiveModal();
+                          } else if (index == 0) {
+                            showSendModal();
+                          } else if (index == 3) {
+                            showOptionsModal();
+                          } else if (index == 2) {}
                         },
                         text: action["name"],
                         actIcon: action["icon"],
@@ -695,9 +993,6 @@ class _MainDashboardScreenState extends State<MainDashboardScreen>
                             mainAxisAlignment: MainAxisAlignment.center,
                             crossAxisAlignment: CrossAxisAlignment.end,
                             children: [
-                              SizedBox(
-                                width: 5,
-                              ),
                               FutureBuilder(
                                   future: web3InteractManager.getBalance(
                                       currentAccount.address,
@@ -708,7 +1003,10 @@ class _MainDashboardScreenState extends State<MainDashboardScreen>
                                       return ConstrainedBox(
                                         constraints: BoxConstraints(
                                             maxWidth: width * 0.3),
-                                        child: Text("${result.data}",
+                                        child: Text(
+                                            isHidden
+                                                ? "***"
+                                                : "${formatter.format(result.data).split('0').length - 1 > 6 ? 0 : formatter.format(result.data)}",
                                             overflow: TextOverflow.clip,
                                             maxLines: 1,
                                             style: GoogleFonts.roboto(
@@ -723,9 +1021,6 @@ class _MainDashboardScreenState extends State<MainDashboardScreen>
                                               fontSize: 14));
                                     }
                                   }),
-                              SizedBox(
-                                height: 10,
-                              ),
                               FutureBuilder(
                                   future: getBalanceUsd(crypto["binanceSymbol"],
                                       crypto["rpcUrl"]),
@@ -733,7 +1028,9 @@ class _MainDashboardScreenState extends State<MainDashboardScreen>
                                       AsyncSnapshot result) {
                                     if (result.hasData) {
                                       return Text(
-                                          "\$ ${result.data.toStringAsFixed(3)}",
+                                          isHidden
+                                              ? "***"
+                                              : "\$ ${result.data.toStringAsFixed(3)}",
                                           style: GoogleFonts.roboto(
                                               color: textColor.withOpacity(0.6),
                                               fontSize: 14));
