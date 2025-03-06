@@ -1,6 +1,7 @@
 // ignore_for_file: deprecated_member_use
 
 import 'dart:io';
+import 'dart:ui';
 
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
@@ -60,16 +61,17 @@ class CustomAppBar extends StatelessWidget implements PreferredSizeWidget {
 
     final List<Map<String, dynamic>> options = [
       {'icon': LucideIcons.pencil, 'name': 'Edit name', 'color': textColor},
-      {
-        'icon': LucideIcons.trash,
-        'name': 'Delete wallet',
-        'color': Colors.pinkAccent
-      },
+    
       {'icon': LucideIcons.copy, 'name': 'Copy address', 'color': textColor},
       {
         'icon': LucideIcons.key,
         'name': 'View private data',
         'color': textColor
+      },
+        {
+        'icon': LucideIcons.trash,
+        'name': 'Delete wallet',
+        'color': Colors.pinkAccent
       },
     ];
     String searchQuery = "";
@@ -116,13 +118,13 @@ class CustomAppBar extends StatelessWidget implements PreferredSizeWidget {
                     return StatefulBuilder(
                         builder: (BuildContext mainCtx, setModalState) {
                       return Container(
-                        height: height * 0.9,
+                        height: height * 0.9 ,
                         alignment: Alignment.center,
                         decoration: BoxDecoration(
                             borderRadius: BorderRadius.only(
                                 topLeft: Radius.circular(15),
                                 topRight: Radius.circular(15)),
-                            color: surfaceTintColor),
+                            color: primaryColor),
                         child: Column(
                           children: [
                             // top
@@ -153,10 +155,10 @@ class CustomAppBar extends StatelessWidget implements PreferredSizeWidget {
                                       onPressed: () {
                                         Navigator.pop(context);
                                       },
-                                      icon: Icon(
+                                      icon: Text("")/* Icon(
                                         FeatherIcons.layers,
                                         color: textColor,
-                                      )),
+                                      ) */),
                                 ],
                               ),
                             ),
@@ -177,7 +179,7 @@ class CustomAppBar extends StatelessWidget implements PreferredSizeWidget {
                                   cursorColor: textColor.withOpacity(0.4),
                                   decoration: InputDecoration(
                                     filled: true,
-                                    fillColor: textColor.withOpacity(0.125),
+                                    fillColor: textColor.withOpacity(0.05),
                                     enabledBorder: OutlineInputBorder(
                                         borderSide: BorderSide(
                                             color: Colors.transparent,
@@ -211,15 +213,17 @@ class CustomAppBar extends StatelessWidget implements PreferredSizeWidget {
                                         for (int index = 0;
                                             index <
                                                 filteredList(query: searchQuery)
+                                              
                                                     .length;
                                             index += 1)
+
                                           Material(
                                             key: Key("$index"),
                                             color: Colors.transparent,
                                             child: Container(
                                               margin: const EdgeInsets.only(
-                                                  top: 5,
-                                                  bottom: 5,
+                                                  top: 3,
+                                                  bottom: 3,
                                                   left: 15,
                                                   right: 15),
                                               decoration: BoxDecoration(
@@ -232,11 +236,12 @@ class CustomAppBar extends StatelessWidget implements PreferredSizeWidget {
                                                           ? secondaryColor
                                                               .withOpacity(0.2)
                                                           : textColor
-                                                              .withOpacity(0.1),
+                                                              .withOpacity(0.05),
                                                   borderRadius:
                                                       BorderRadius.circular(
-                                                          10)),
+                                                          5)),
                                               child: ListTile(
+                                                
                                                 onTap: () async {
                                                   await vibrate();
 
@@ -245,7 +250,7 @@ class CustomAppBar extends StatelessWidget implements PreferredSizeWidget {
                                                 shape: RoundedRectangleBorder(
                                                     borderRadius:
                                                         BorderRadius.circular(
-                                                            10)),
+                                                            5)),
                                                 leading:
                                                     filteredList(query: searchQuery)[
                                                                     index]
@@ -266,6 +271,7 @@ class CustomAppBar extends StatelessWidget implements PreferredSizeWidget {
                                                       color: textColor),
                                                 ),
                                                 trailing: PopupMenuButton(
+                                                  
                                                     color: surfaceTintColor,
                                                     iconColor: textColor,
                                                     itemBuilder:
@@ -298,14 +304,19 @@ class CustomAppBar extends StatelessWidget implements PreferredSizeWidget {
                                                             vibrate();
 
                                                             if (i == 0) {
+                                                              _textController.text = accounts[index].walletName ;
                                                               showDialog(
                                                                   context: ctx,
                                                                   builder:
                                                                       (BuildContext
                                                                           alertCtx) {
-                                                                    return AlertDialog(
+                                                                    return BackdropFilter(filter: ImageFilter.blur(
+                                                                      sigmaX:  2, 
+                                                                      sigmaY: 2
+                                                                    ) , 
+                                                                    child: AlertDialog.adaptive(
                                                                       backgroundColor:
-                                                                          surfaceTintColor,
+                                                                          primaryColor,
                                                                       title:
                                                                           Text(
                                                                         "Edit your wallet name",
@@ -376,25 +387,29 @@ class CustomAppBar extends StatelessWidget implements PreferredSizeWidget {
                                                                           ),
                                                                         ),
                                                                       ],
+                                                                    ) ,
                                                                     );
                                                                   });
-                                                            } else if (i == 1) {
+                                                            } else if (i == 3) {
                                                               deleteWallet(
                                                                   index);
-                                                            } else if (i == 2) {
+                                                            } else if (i == 1) {
                                                               Clipboard.setData(
                                                                   ClipboardData(
                                                                       text: accounts[
                                                                               index]
                                                                           .address));
-                                                            } else if (i == 3) {
+                                                            } else if (i == 2) {
                                                               showPrivateData(
                                                                   index);
                                                             }
                                                           },
                                                         );
                                                       });
-                                                    }),
+                                                    } , 
+                                                    child: Icon(Icons.more_vert, color: textColor,) ,
+
+                                                    ),
                                               ),
                                             ),
                                           )
@@ -408,7 +423,7 @@ class CustomAppBar extends StatelessWidget implements PreferredSizeWidget {
                             ),
                             // bottom
                             SizedBox(
-                              height: 5,
+                              height: 15,
                             ),
                             Padding(
                               padding:

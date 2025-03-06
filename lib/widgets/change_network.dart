@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
-import 'package:moonwallet/logger/logger.dart';
+import 'package:moonwallet/types/types.dart';
 import 'package:moonwallet/utils/constant.dart';
 import 'package:moonwallet/widgets/snackbar.dart';
 
@@ -38,9 +38,9 @@ void showChangeNetworkModal(
                 ConstrainedBox(
                   constraints: BoxConstraints(maxHeight: height * 0.4),
                   child: ListView.builder(
-                    itemCount: networks.length,
+                    itemCount: networks.where((crypto)=> crypto.type != CryptoType.token).toList().length,
                     itemBuilder: (BuildContext context, int index) {
-                      final network = networks[index];
+                      final network = networks.where((crypto)=> crypto.type != CryptoType.token).toList()[index];
                       return Material(
                         color: Colors.transparent,
                         child: ListTile(
@@ -59,7 +59,7 @@ void showChangeNetworkModal(
                             padding: const EdgeInsets.all(4),
                             decoration: BoxDecoration(
                                 border:
-                                    Border.all(width: 1, color: network.color),
+                                    Border.all(width: 1, color: network.color ?? Colors.white),
                                 borderRadius: BorderRadius.circular(50)),
                             child: ClipRRect(
                               borderRadius: BorderRadius.circular(50),

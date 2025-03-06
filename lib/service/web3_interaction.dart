@@ -161,7 +161,7 @@ class Web3InteractionManager {
       required bool mounted,
       required BuildContext context,
       required PublicData currentAccount,
-      required Network currentNetwork,
+      required Crypto currentNetwork,
       required Color primaryColor,
       required Color textColor,
       required Color secondaryColor,
@@ -200,7 +200,7 @@ class Web3InteractionManager {
 
       BigInt estimatedGas = await estimateGas(
           value: data.value ?? "0x0",
-          rpcUrl: currentNetwork.rpc,
+          rpcUrl: currentNetwork.rpc ?? "https://opbnb-mainnet-rpc.bnbchain.org",
           sender: data.from ?? "",
           to: data.to ?? "",
           data: data.data ?? "");
@@ -216,7 +216,7 @@ class Web3InteractionManager {
       BigInt? gasLimit = data.gas != null
           ? BigInt.parse(data.gas!.replaceFirst("0x", ""), radix: 16)
           : (estimatedGas * BigInt.from(30)) ~/ BigInt.from(100);
-      final gasPriceResult = await getGasPrice(currentNetwork.rpc);
+      final gasPriceResult = await getGasPrice(currentNetwork.rpc ?? "https://opbnb-mainnet-rpc.bnbchain.org");
       BigInt gasPrice =
           gasPriceResult != BigInt.zero ? gasPriceResult : BigInt.from(100000);
       if (!mounted) {
@@ -224,7 +224,7 @@ class Web3InteractionManager {
       }
 
       final cryptoPrice = await priceManager
-          .getPriceUsingBinanceApi(currentNetwork.binanceSymbol);
+          .getPriceUsingBinanceApi(currentNetwork.binanceSymbol ?? "");
       if (!mounted) {
         throw Exception("Internal error");
       }
@@ -318,8 +318,8 @@ class Web3InteractionManager {
           }
           final result = await sendTransaction(
               transaction: transaction,
-              chainId: currentNetwork.chainId,
-              rpcUrl: currentNetwork.rpc,
+              chainId: currentNetwork.chainId ?? 204,
+              rpcUrl: currentNetwork.rpc ?? "https://opbnb-mainnet-rpc.bnbchain.org",
               password: userPassword,
               address: data.from ?? "");
 

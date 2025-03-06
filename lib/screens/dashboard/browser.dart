@@ -41,7 +41,8 @@ class Web3BrowserScreenState extends State<Web3BrowserScreen> {
   bool canShowAppBarOptions = true;
   int _chainId = 204;
   double progress = 0;
-  Network currentNetwork = networks[0];
+  bool isPageLoading = false;
+  Crypto currentNetwork = networks[0];
   InAppWebViewController? _webViewController;
   bool _isInitialized = false;
   bool isFullScreen = false;
@@ -95,6 +96,7 @@ class Web3BrowserScreenState extends State<Web3BrowserScreen> {
 
     for (final net in networks) {
       if (net.chainId == requestedChainId) {
+        if (net.type == CryptoType.token) return false ;
         setState(() {
           currentNetwork = net;
           _chainId = requestedChainId;
@@ -112,7 +114,7 @@ class Web3BrowserScreenState extends State<Web3BrowserScreen> {
   Future<bool> changeNetwork(int data) async {
     log("Changing the network id");
 
-    int requestedChainId = networks[data].chainId;
+    int requestedChainId = networks[data].chainId ?? 204;
 
     for (final net in networks) {
       log("Current network : ${net.chainId} . requested chain $requestedChainId");
@@ -528,19 +530,18 @@ class Web3BrowserScreenState extends State<Web3BrowserScreen> {
     return Scaffold(
         backgroundColor: darkNavigatorColor,
         floatingActionButton: !canShowAppBarOptions
-            ? IconButton(
-                onPressed: toggleShowAppBar,
-                icon: Icon(
+            ? FloatingActionButton(
+              backgroundColor: surfaceTintColor,
+              onPressed:toggleShowAppBar, child: Icon(
                   LucideIcons.minimize,
                   color: textColor.withOpacity(0.6),
-                ))
+                ) ,) 
             : null,
         appBar: !canShowAppBarOptions
             ? null
             : AppBar(
                 automaticallyImplyLeading: false,
-                title: canShowAppBarOptions
-                    ? Row(
+                title: Row(
                         children: [
                           IconButton(
                               onPressed: () {
@@ -573,7 +574,7 @@ class Web3BrowserScreenState extends State<Web3BrowserScreen> {
                                         ClipboardData(text: currentUrl));
                                   },
                                   child: Container(
-                                    width: width * 0.5,
+                                    width: width * 0.4,
                                     child: Text(
                                       Uri.parse(currentUrl).host,
                                       overflow: TextOverflow.ellipsis,
@@ -586,10 +587,18 @@ class Web3BrowserScreenState extends State<Web3BrowserScreen> {
                           ),
                         ],
                       )
-                    : null,
+                    ,
                 backgroundColor: darkNavigatorColor,
-                actions: canShowAppBarOptions
-                    ? [
+                actions: [
+                    /*  if (isPageLoading) SizedBox(
+                        height: 18,
+                        width: 18,
+                        child: CircularProgressIndicator(
+                          strokeWidth: 2,
+                        value: progress,
+                        color: secondaryColor,
+                      ),
+                      )  */ 
                         IconButton(
                           icon: Icon(
                             Icons.more_vert,
@@ -598,11 +607,15 @@ class Web3BrowserScreenState extends State<Web3BrowserScreen> {
                           onPressed: openModalBottomSheet,
                         )
                       ]
-                    : null,
+                    ,
               ),
         body: SafeArea(
             child: Column(
           children: [
+        if (isPageLoading)    LinearProgressIndicator(
+          minHeight: 2,
+                        value: progress,
+                        color: secondaryColor,),
             Expanded(
                 child: Web3Webview(
               onCreateWindow: (controller, createWindowRequest) async {
@@ -622,8 +635,15 @@ class Web3BrowserScreenState extends State<Web3BrowserScreen> {
                   return false;
                 }
               },
-              onLoadStop: (crl, webUrl) {
+              onLoadStart: (InAppWebViewController controller, Uri? url) {
                 setState(() {
+                  isPageLoading = true;
+                });
+              },
+              onLoadStop: (crl, webUrl) {
+                
+                setState(() {
+                  isPageLoading = false ;
                   progress = 0;
                 });
                 crl.evaluateJavascript(source: """

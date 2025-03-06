@@ -14,16 +14,18 @@ final List<Map<String, dynamic>> options = [
   {"name": 'Share', "icon": LucideIcons.share},
 ];
 
-final List<Network> networks = [
-  Network(
+final List<Crypto> networks = [
+  Crypto(
       explorer: "https://opbnb.bscscan.com",
       rpc: "https://opbnb-mainnet-rpc.bnbchain.org",
       name: "opBNB",
       icon: "assets/b1.webp",
       binanceSymbol: "BNBUSDT",
       chainId: 204,
+      type: CryptoType.network,
       color: Colors.orange),
-  Network(
+  Crypto(
+     type: CryptoType.network,
       explorer: "https://bscscan.com",
       rpc: "https://bsc-dataseed.binance.org",
       name: "BNB",
@@ -31,7 +33,8 @@ final List<Network> networks = [
       icon: "assets/bnb.png",
       chainId: 56,
       color: Colors.orange),
-  Network(
+  Crypto(
+    type: CryptoType.token,
       explorer: "https://bscscan.com",
       rpc: "https://bsc-dataseed.binance.org",
       name: "Moon Token",

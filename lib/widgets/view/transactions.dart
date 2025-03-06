@@ -19,7 +19,7 @@ class TransactionsListElement extends StatelessWidget {
   final Color secondaryColor;
   final Color primaryColor;
   final Color darkColor;
-  final Network currentNetwork;
+  final Crypto currentNetwork;
   const TransactionsListElement({
     super.key,
     required this.surfaceTintColor,

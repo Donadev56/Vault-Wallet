@@ -102,9 +102,7 @@ Future<bool> showPinModalBottomSheet(
             constraints: BoxConstraints(maxWidth: 700),
             child: Container(
               decoration: BoxDecoration(
-                borderRadius: BorderRadius.only(
-                    topLeft: Radius.circular(20),
-                    topRight: Radius.circular(20)),
+               
                 color: Color(0XFF212121),
               ),
               child: Column(
@@ -113,7 +111,7 @@ Future<bool> showPinModalBottomSheet(
                     padding: const EdgeInsets.only(top: 20),
                     child: Text(
                       newTitle.isEmpty ? title : newTitle,
-                      style: GoogleFonts.exo(color: Colors.white, fontSize: 20),
+                      style: GoogleFonts.exo(color: Colors.white, fontSize: 18),
                     ),
                   ),
                   SizedBox(
@@ -132,7 +130,7 @@ Future<bool> showPinModalBottomSheet(
                             child: Container(
                               decoration: BoxDecoration(
                                   border:
-                                      Border.all(width: 1, color: Colors.white),
+                                      Border.all(width: 3, color: numberOfNumbers > index ? Colors.white : Colors.white.withOpacity(0.3)),
                                   borderRadius: BorderRadius.circular(10)),
                               alignment: Alignment.center,
                               width: width * 0.1,

@@ -823,7 +823,7 @@ class _MainDashboardScreenState extends State<MainDashboardScreen>
           accounts: accounts,
           primaryColor: primaryColor,
           textColor: textColor,
-          surfaceTintColor: primaryColor),
+          surfaceTintColor: surfaceTintColor),
       bottomNavigationBar: BottomNav(
           onTap: (index) async {
             await vibrate();

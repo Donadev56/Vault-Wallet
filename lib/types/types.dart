@@ -1,5 +1,8 @@
 import 'package:flutter/material.dart';
-
+enum CryptoType {
+  network,
+  token 
+}
 class SecureData {
   final String privateKey;
   final String keyId;
@@ -180,26 +183,36 @@ class EthTransaction {
   }
 }
 
-class Network {
+class Crypto {
   final String name;
   final String icon;
-  final int chainId;
-  final Color color;
-  final String rpc;
-  final String binanceSymbol;
-  final String explorer;
+  final int? chainId;
+  final Crypto? network ;
+  final Color? color;
+  final String ? rpc;
+  final String ? binanceSymbol;
+  final String ? explorer;
+  final CryptoType type;
+  final String ? contractAddress  ;
+  final int ? decimals ;
 
-  Network(
+
+  Crypto(
       {required this.name,
       required this.icon,
-      required this.chainId,
+      this.chainId,
       required this.color,
-      required this.rpc,
-      required this.binanceSymbol,
-      required this.explorer});
+      this.rpc,
+      this.binanceSymbol,
+      required this.type,
+      this.explorer ,
+      this.network  ,
+      this.contractAddress,
+      this.decimals
+      });
 
-  factory Network.fromJson(Map<String, dynamic> json) {
-    return Network(
+  factory Crypto.fromJson(Map<String, dynamic> json) {
+    return Crypto(
       name: json['name'],
       icon: json['icon'],
       chainId: json['chainId'],
@@ -207,6 +220,10 @@ class Network {
       rpc: json['rpc'],
       binanceSymbol: json['binanceSymbol'],
       explorer: json['explorer'],
+      type: CryptoType.values[json['type']],
+      network: Crypto.fromJson(json['network']),
+      contractAddress: json['contractAddress'],
+      decimals: json['decimals'],
     );
   }
 
@@ -215,22 +232,26 @@ class Network {
       'name': name,
       'icon': icon,
       'chainId': chainId,
-      'color': color.value,
+      'color': color?.value,
       'rpc': rpc,
       'binanceSymbol': binanceSymbol,
       'explorer': explorer,
+      'type': type.index,
+      'network': network?.toJson(),
+      'contractAddress': contractAddress,
+      'decimals': decimals,
     };
   }
 }
 
-class Networks {
-  final List<Network> networks;
+class Cryptos {
+  final List<Crypto> networks;
 
-  Networks({required this.networks});
+  Cryptos({required this.networks});
 
-  factory Networks.fromJson(List<dynamic> jsonList) {
-    return Networks(
-      networks: jsonList.map((json) => Network.fromJson(json)).toList(),
+  factory Cryptos.fromJson(List<dynamic> jsonList) {
+    return Cryptos(
+      networks: jsonList.map((json) => Crypto.fromJson(json)).toList(),
     );
   }
 

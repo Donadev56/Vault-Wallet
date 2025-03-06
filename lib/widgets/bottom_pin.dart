@@ -6,11 +6,11 @@ import 'package:moonwallet/types/types.dart';
 
 typedef ResultType = Future<PinSubmitResult> Function(String numbers);
 
-Future<void> showPinModalBottomSheet(
+Future<bool> showPinModalBottomSheet(
     {required BuildContext context,
     required ResultType handleSubmit,
     required String title}) async {
-  showModalBottomSheet(
+  final result = await showModalBottomSheet<bool>(
       context: context,
       builder: (BuildContext context) {
         final width = MediaQuery.of(context).size.width;
@@ -66,7 +66,7 @@ Future<void> showPinModalBottomSheet(
               if (result.success && !result.repeat ||
                   !result.success && !result.repeat) {
                 reInit();
-                Navigator.pop(context);
+                Navigator.pop(context, true);
                 return;
               } else if (result.success && result.repeat) {
                 setModalState(() {
@@ -99,42 +99,38 @@ Future<void> showPinModalBottomSheet(
           }
 
           return ConstrainedBox(
-              constraints: BoxConstraints(maxWidth: 700),
-              child: Container(
-                width: width,
-                decoration: BoxDecoration(
-                  borderRadius: BorderRadius.only(
-                      topLeft: Radius.circular(20),
-                      topRight: Radius.circular(20)),
-                  color: Color(0XFF212121),
-                ),
-                child: Column(
-                  children: [
-                    Padding(
-                      padding: const EdgeInsets.only(top: 20),
-                      child: Text(
-                        newTitle.isEmpty ? title : newTitle,
-                        style:
-                            GoogleFonts.exo(color: Colors.white, fontSize: 20),
-                      ),
+            constraints: BoxConstraints(maxWidth: 700),
+            child: Container(
+              decoration: BoxDecoration(
+               
+                color: Color(0XFF212121),
+              ),
+              child: Column(
+                children: [
+                  Padding(
+                    padding: const EdgeInsets.only(top: 20),
+                    child: Text(
+                      newTitle.isEmpty ? title : newTitle,
+                      style: GoogleFonts.exo(color: Colors.white, fontSize: 18),
                     ),
-                    SizedBox(
-                      height: 20,
-                    ),
-                    Align(
-                      alignment: Alignment.center,
-                      child: Row(
-                        mainAxisAlignment: MainAxisAlignment.center,
-                        crossAxisAlignment: CrossAxisAlignment.center,
-                        children: List.generate(6, (index) {
-                          final isFull = numberOfNumbers > index;
+                  ),
+                  SizedBox(
+                    height: 20,
+                  ),
+                  Align(
+                    alignment: Alignment.center,
+                    child: Row(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      crossAxisAlignment: CrossAxisAlignment.center,
+                      children: List.generate(6, (index) {
+                        final isFull = numberOfNumbers > index;
 
-                          return ConstrainedBox(
+                        return ConstrainedBox(
                             constraints: BoxConstraints(maxWidth: 90),
                             child: Container(
                               decoration: BoxDecoration(
                                   border:
-                                      Border.all(width: 1, color: Colors.white),
+                                      Border.all(width: 3, color: numberOfNumbers > index ? Colors.white : Colors.white.withOpacity(0.3)),
                                   borderRadius: BorderRadius.circular(10)),
                               alignment: Alignment.center,
                               width: width * 0.1,
@@ -155,92 +151,94 @@ Future<void> showPinModalBottomSheet(
                                       ),
                                     )
                                   : Container(),
-                            ),
-                          );
-                        }),
-                      ),
+                            ));
+                      }),
                     ),
-                    if (error.isNotEmpty)
-                      Align(
-                        alignment: Alignment.center,
-                        child: Column(
-                          mainAxisAlignment: MainAxisAlignment.center,
-                          crossAxisAlignment: CrossAxisAlignment.center,
-                          children: [
-                            SizedBox(
-                              height: 10,
-                            ),
-                            Row(
-                              mainAxisAlignment: MainAxisAlignment.center,
-                              crossAxisAlignment: CrossAxisAlignment.center,
-                              children: [
-                                Icon(
-                                  FeatherIcons.alertCircle,
-                                  color: Colors.pinkAccent,
-                                ),
-                                SizedBox(
-                                  width: 5,
-                                ),
-                                Text(error,
-                                    style: GoogleFonts.roboto(
-                                        color: Colors.pinkAccent)),
-                              ],
-                            )
-                          ],
-                        ),
-                      ),
-                    SizedBox(
-                      height: 30,
-                    ),
+                  ),
+                  if (error.isNotEmpty)
                     Align(
                       alignment: Alignment.center,
-                      child: Wrap(
-                        alignment: WrapAlignment.end,
-                        crossAxisAlignment: WrapCrossAlignment.end,
-                        children: List.generate(11, (index) {
-                          return ConstrainedBox(
-                              constraints: BoxConstraints(maxWidth: 200),
-                              child: Container(
-                                width: width * 0.26,
-                                height: height * 0.055,
-                                decoration: BoxDecoration(
-                                    color: Color(0XFF454545),
-                                    borderRadius: BorderRadius.circular(5)),
-                                margin: const EdgeInsets.all(5),
-                                child: Material(
-                                  elevation: 5,
-                                  color: Colors.transparent,
-                                  child: InkWell(
-                                    borderRadius: BorderRadius.circular(5),
-                                    onTap: () {
-                                      handleType(index);
-                                    },
-                                    child: Center(
-                                      child: index > 9
-                                          ? Icon(
-                                              Icons.backspace,
+                      child: Column(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        crossAxisAlignment: CrossAxisAlignment.center,
+                        children: [
+                          SizedBox(
+                            height: 10,
+                          ),
+                          Row(
+                            mainAxisAlignment: MainAxisAlignment.center,
+                            crossAxisAlignment: CrossAxisAlignment.center,
+                            children: [
+                              Icon(
+                                FeatherIcons.alertCircle,
+                                color: Colors.pinkAccent,
+                              ),
+                              SizedBox(
+                                width: 5,
+                              ),
+                              Text(error,
+                                  style: GoogleFonts.roboto(
+                                      color: Colors.pinkAccent)),
+                            ],
+                          )
+                        ],
+                      ),
+                    ),
+                  SizedBox(
+                    height: 30,
+                  ),
+                  Align(
+                    alignment: Alignment.center,
+                    child: Wrap(
+                      alignment: WrapAlignment.end,
+                      crossAxisAlignment: WrapCrossAlignment.end,
+                      children: List.generate(11, (index) {
+                        return ConstrainedBox(
+                            constraints: BoxConstraints(maxWidth: 200),
+                            child: Container(
+                              width: width * 0.26,
+                              height: height * 0.055,
+                              decoration: BoxDecoration(
+                                  color: Color(0XFF454545),
+                                  borderRadius: BorderRadius.circular(5)),
+                              margin: const EdgeInsets.all(5),
+                              child: Material(
+                                elevation: 5,
+                                color: Colors.transparent,
+                                child: InkWell(
+                                  borderRadius: BorderRadius.circular(5),
+                                  onTap: () {
+                                    handleType(index);
+                                  },
+                                  child: Center(
+                                    child: index > 9
+                                        ? Icon(
+                                            Icons.backspace,
+                                            color: Colors.white,
+                                          )
+                                        : Text(
+                                            "${getIndex(index)}",
+                                            style: GoogleFonts.roboto(
                                               color: Colors.white,
-                                            )
-                                          : Text(
-                                              "${getIndex(index)}",
-                                              style: GoogleFonts.roboto(
-                                                color: Colors.white,
-                                                fontWeight: FontWeight.bold,
-                                                fontSize: 20,
-                                              ),
+                                              fontWeight: FontWeight.bold,
+                                              fontSize: 20,
                                             ),
-                                    ),
+                                          ),
                                   ),
                                 ),
-                              ));
-                        }),
-                      ),
-                    )
-                  ],
-                ),
-              ));
+                              ),
+                            ));
+                      }),
+                    ),
+                  )
+                ],
+              ),
+            ),
+          );
         });
       });
+
+  return result ?? false;
 }
 
 int getIndex(int index) {

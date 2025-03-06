@@ -66,7 +66,7 @@ class _SendTransactionScreenState extends State<SendTransactionScreen> {
   final encryptService = EncryptService();
   final priceManager = PriceManager();
   final publicDataManager = PublicDataManager();
-  Network currentNetwork = networks[0];
+  Crypto currentNetwork = networks[0];
   final web3InteractManager = Web3InteractionManager();
   final TextEditingController _addressController = TextEditingController();
   final TextEditingController _amountController = TextEditingController();
@@ -200,13 +200,13 @@ class _SendTransactionScreenState extends State<SendTransactionScreen> {
       final to = _addressController.text;
       final from = currentAccount.address;
       final gasPrice =
-          await web3InteractManager.getGasPrice(currentNetwork.rpc);
+          await web3InteractManager.getGasPrice(currentNetwork.rpc ?? "https://opbnb-mainnet-rpc.bnbchain.org");
       final valueWei =
           ((double.parse(_amountController.text)) * 1e18).toStringAsFixed(0);
       final valueHex = (int.parse(valueWei)).toRadixString(16);
       log("Value : $valueHex and value wei $valueWei");
       final estimatedGas = await web3InteractManager.estimateGas(
-          rpcUrl: currentNetwork.rpc,
+          rpcUrl: currentNetwork.rpc ?? "https://opbnb-mainnet-rpc.bnbchain.org",
           sender: currentAccount.address,
           to: _addressController.text,
           value: valueHex,
@@ -366,11 +366,11 @@ class _SendTransactionScreenState extends State<SendTransactionScreen> {
         });
       }
       final price = await priceManager
-          .getPriceUsingBinanceApi(currentNetwork.binanceSymbol);
+          .getPriceUsingBinanceApi(currentNetwork.binanceSymbol ?? "");
       final balance = await web3InteractManager.getBalance(
-          currentAccount.address, currentNetwork.rpc);
+          currentAccount.address, currentNetwork.rpc ?? "https://opbnb-mainnet-rpc.bnbchain.org");
       final gasPrice =
-          await web3InteractManager.getGasPrice(currentNetwork.rpc);
+          await web3InteractManager.getGasPrice(currentNetwork.rpc ?? "https://opbnb-mainnet-rpc.bnbchain.org");
       final lastUsedAddresses = await publicDataManager.getDataFromPrefs(
           key: "${currentAccount.address}/lastUsedAddresses");
       log("last address $lastUsedAddresses");

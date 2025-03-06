@@ -44,7 +44,7 @@ class _ReceiveScreenState extends State<ReceiveScreen> {
   final encryptService = EncryptService();
   final priceManager = PriceManager();
   final publicDataManager = PublicDataManager();
-  Network currentNetwork = networks[0];
+  Crypto currentNetwork = networks[0];
 
   @override
   void initState() {
