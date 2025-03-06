@@ -33,6 +33,8 @@ class Web3BrowserScreenState extends State<Web3BrowserScreen> {
   Color actionsColor = Color(0XFF353535);
   Color surfaceTintColor = Color(0XFF454545);
   Color darkNavigatorColor = Color(0XFF0D0D0D);
+  Color darkNavigatorColorMainValue = Color(0XFF0D0D0D);
+
   final publicDataManager = PublicDataManager();
   bool isDarkMode = false;
 
@@ -42,7 +44,7 @@ class Web3BrowserScreenState extends State<Web3BrowserScreen> {
   int _chainId = 204;
   double progress = 0;
   bool isPageLoading = false;
-  Crypto currentNetwork = networks[0];
+  Crypto currentNetwork = cryptos[0];
   InAppWebViewController? _webViewController;
   bool _isInitialized = false;
   bool isFullScreen = false;
@@ -61,7 +63,14 @@ class Web3BrowserScreenState extends State<Web3BrowserScreen> {
   final String historyName = "UserHistory";
 
   void toggleShowAppBar() {
-    getBgColor();
+    if (!canShowAppBarOptions) {
+      setState(() {
+        darkNavigatorColor = darkNavigatorColorMainValue;
+      });
+    } else {
+      getBgColor();
+    }
+
     setState(() {
       canShowAppBarOptions = !canShowAppBarOptions;
     });
@@ -94,9 +103,9 @@ class Web3BrowserScreenState extends State<Web3BrowserScreen> {
         int.parse((data.chainId)?.replaceFirst('0x', '') ?? '1', radix: 16);
     log("Current chain Id $_chainId");
 
-    for (final net in networks) {
+    for (final net in cryptos) {
       if (net.chainId == requestedChainId) {
-        if (net.type == CryptoType.token) return false ;
+        if (net.type == CryptoType.token) return false;
         setState(() {
           currentNetwork = net;
           _chainId = requestedChainId;
@@ -114,9 +123,9 @@ class Web3BrowserScreenState extends State<Web3BrowserScreen> {
   Future<bool> changeNetwork(int data) async {
     log("Changing the network id");
 
-    int requestedChainId = networks[data].chainId ?? 204;
+    int requestedChainId = cryptos[data].chainId ?? 204;
 
-    for (final net in networks) {
+    for (final net in cryptos) {
       log("Current network : ${net.chainId} . requested chain $requestedChainId");
 
       if (net.chainId == requestedChainId) {
@@ -214,6 +223,7 @@ class Web3BrowserScreenState extends State<Web3BrowserScreen> {
       surfaceTintColor = Color(0xFFBABABA);
       secondaryColor = Color(0xFF960F51);
       darkNavigatorColor = Colors.white;
+      darkNavigatorColorMainValue = Colors.white;
     });
   }
 
@@ -226,6 +236,7 @@ class Web3BrowserScreenState extends State<Web3BrowserScreen> {
       actionsColor = Color(0XFF353535);
       surfaceTintColor = Color(0XFF454545);
       darkNavigatorColor = Color(0xFF0D0D0D);
+      darkNavigatorColorMainValue = Color(0xFF0D0D0D);
     });
   }
 
@@ -391,11 +402,33 @@ class Web3BrowserScreenState extends State<Web3BrowserScreen> {
                                             textColor: textColor,
                                             chainId: _chainId);
                                       },
-                                      child: Image.asset(
-                                        currentNetwork.icon,
-                                        width: 30,
-                                        height: 30,
-                                      ),
+                                      child: currentNetwork.icon == null
+                                          ? Container(
+                                              width: 25,
+                                              height: 25,
+                                              decoration: BoxDecoration(
+                                                  color: textColor
+                                                      .withOpacity(0.6),
+                                                  borderRadius:
+                                                      BorderRadius.circular(
+                                                          50)),
+                                              child: Center(
+                                                child: Text(
+                                                  currentNetwork.name
+                                                      .substring(0, 2),
+                                                  style: GoogleFonts.roboto(
+                                                      color: primaryColor,
+                                                      fontWeight:
+                                                          FontWeight.bold,
+                                                      fontSize: 18),
+                                                ),
+                                              ),
+                                            )
+                                          : Image.asset(
+                                              currentNetwork.icon ?? "",
+                                              width: 30,
+                                              height: 30,
+                                            ),
                                     ),
                                   ),
                                 ),
@@ -531,66 +564,66 @@ class Web3BrowserScreenState extends State<Web3BrowserScreen> {
         backgroundColor: darkNavigatorColor,
         floatingActionButton: !canShowAppBarOptions
             ? FloatingActionButton(
-              backgroundColor: surfaceTintColor,
-              onPressed:toggleShowAppBar, child: Icon(
+                backgroundColor: surfaceTintColor,
+                onPressed: toggleShowAppBar,
+                child: Icon(
                   LucideIcons.minimize,
                   color: textColor.withOpacity(0.6),
-                ) ,) 
+                ),
+              )
             : null,
         appBar: !canShowAppBarOptions
             ? null
             : AppBar(
                 automaticallyImplyLeading: false,
                 title: Row(
-                        children: [
-                          IconButton(
-                              onPressed: () {
-                                Navigator.pop(context);
-                              },
-                              icon: Icon(
-                                Icons.arrow_back,
-                                color: textColor.withOpacity(0.7),
+                  children: [
+                    IconButton(
+                        onPressed: () {
+                          Navigator.pop(context);
+                        },
+                        icon: Icon(
+                          Icons.arrow_back,
+                          color: textColor.withOpacity(0.7),
+                          size: 20,
+                        )),
+                    SizedBox(width: 5),
+                    Row(
+                      children: [
+                        currentUrl.startsWith("https")
+                            ? Icon(
+                                Icons.lock,
                                 size: 20,
-                              )),
-                          SizedBox(width: 5),
-                          Row(
-                            children: [
-                              currentUrl.startsWith("https")
-                                  ? Icon(
-                                      Icons.lock,
-                                      size: 20,
-                                      color: const Color.fromARGB(
-                                          255, 0, 255, 132),
-                                    )
-                                  : Icon(
-                                      Icons.lock_open,
-                                      color: Colors.pinkAccent,
-                                      size: 20,
-                                    ),
-                              SizedBox(width: 2),
-                              TextButton(
-                                  onPressed: () {
-                                    Clipboard.setData(
-                                        ClipboardData(text: currentUrl));
-                                  },
-                                  child: Container(
-                                    width: width * 0.4,
-                                    child: Text(
-                                      Uri.parse(currentUrl).host,
-                                      overflow: TextOverflow.ellipsis,
-                                      style: GoogleFonts.roboto(
-                                          color: textColor.withOpacity(0.8),
-                                          fontSize: 16),
-                                    ),
-                                  ))
-                            ],
-                          ),
-                        ],
-                      )
-                    ,
+                                color: const Color.fromARGB(255, 0, 255, 132),
+                              )
+                            : Icon(
+                                Icons.lock_open,
+                                color: Colors.pinkAccent,
+                                size: 20,
+                              ),
+                        SizedBox(width: 2),
+                        TextButton(
+                            onPressed: () {
+                              Clipboard.setData(
+                                  ClipboardData(text: currentUrl));
+                            },
+                            child: Container(
+                              width: width * 0.4,
+                              child: Text(
+                                Uri.parse(currentUrl).host,
+                                overflow: TextOverflow.ellipsis,
+                                style: GoogleFonts.roboto(
+                                    color: textColor.withOpacity(0.8),
+                                    fontSize: 16),
+                              ),
+                            ))
+                      ],
+                    ),
+                  ],
+                ),
                 backgroundColor: darkNavigatorColor,
                 actions: [
-                    /*  if (isPageLoading) SizedBox(
+                  /*  if (isPageLoading) SizedBox(
                         height: 18,
                         width: 18,
                         child: CircularProgressIndicator(
@@ -598,24 +631,25 @@ class Web3BrowserScreenState extends State<Web3BrowserScreen> {
                         value: progress,
                         color: secondaryColor,
                       ),
-                      )  */ 
-                        IconButton(
-                          icon: Icon(
-                            Icons.more_vert,
-                            color: textColor.withOpacity(0.8),
-                          ),
-                          onPressed: openModalBottomSheet,
-                        )
-                      ]
-                    ,
+                      )  */
+                  IconButton(
+                    icon: Icon(
+                      Icons.more_vert,
+                      color: textColor.withOpacity(0.8),
+                    ),
+                    onPressed: openModalBottomSheet,
+                  )
+                ],
               ),
         body: SafeArea(
             child: Column(
           children: [
-        if (isPageLoading)    LinearProgressIndicator(
-          minHeight: 2,
-                        value: progress,
-                        color: secondaryColor,),
+            if (isPageLoading)
+              LinearProgressIndicator(
+                minHeight: 2,
+                value: progress,
+                color: secondaryColor,
+              ),
             Expanded(
                 child: Web3Webview(
               onCreateWindow: (controller, createWindowRequest) async {
@@ -641,9 +675,8 @@ class Web3BrowserScreenState extends State<Web3BrowserScreen> {
                 });
               },
               onLoadStop: (crl, webUrl) {
-                
                 setState(() {
-                  isPageLoading = false ;
+                  isPageLoading = false;
                   progress = 0;
                 });
                 crl.evaluateJavascript(source: """

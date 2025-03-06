@@ -44,7 +44,7 @@ class _ReceiveScreenState extends State<ReceiveScreen> {
   final encryptService = EncryptService();
   final priceManager = PriceManager();
   final publicDataManager = PublicDataManager();
-  Crypto currentNetwork = networks[0];
+  Crypto currentNetwork = cryptos[0];
 
   @override
   void initState() {
@@ -110,7 +110,7 @@ class _ReceiveScreenState extends State<ReceiveScreen> {
     });
   }
 
- Future<void> getThemeMode() async {
+  Future<void> getThemeMode() async {
     try {
       final savedMode =
           await publicDataManager.getDataFromPrefs(key: "isDarkMode");
@@ -126,6 +126,7 @@ class _ReceiveScreenState extends State<ReceiveScreen> {
       logError(e.toString());
     }
   }
+
   Future<void> toggleMode() async {
     try {
       if (isDarkMode) {
@@ -150,7 +151,7 @@ class _ReceiveScreenState extends State<ReceiveScreen> {
       final data = ModalRoute.of(context)?.settings.arguments;
       if (data != null && (data as Map<String, dynamic>)["index"] != null) {
         final index = data["index"];
-        currentNetwork = networks[index];
+        currentNetwork = cryptos[index];
         log("Network sets to ${currentNetwork.binanceSymbol}");
       }
       _isInitialized = true;
@@ -233,13 +234,46 @@ class _ReceiveScreenState extends State<ReceiveScreen> {
                   mainAxisAlignment: MainAxisAlignment.center,
                   crossAxisAlignment: CrossAxisAlignment.center,
                   children: [
-                    ClipRRect(
-                      borderRadius: BorderRadius.circular(50),
-                      child: Image.asset(
-                        currentNetwork.icon,
-                        width: 25,
-                        height: 25,
-                      ),
+                    Stack(
+                      children: [
+                        ClipRRect(
+                          borderRadius: BorderRadius.circular(50),
+                          child: currentNetwork.icon == null
+                              ? Container(
+                                  width: 30,
+                                  height: 30,
+                                  decoration: BoxDecoration(
+                                      color: textColor.withOpacity(0.6),
+                                      borderRadius: BorderRadius.circular(50)),
+                                  child: Center(
+                                    child: Text(
+                                      currentNetwork.name.substring(0, 2),
+                                      style: GoogleFonts.roboto(
+                                          color: primaryColor,
+                                          fontWeight: FontWeight.bold,
+                                          fontSize: 18),
+                                    ),
+                                  ),
+                                )
+                              : Image.asset(
+                                  currentNetwork.icon ?? "",
+                                  width: 30,
+                                  height: 30,
+                                ),
+                        ),
+                        if (currentNetwork.type == CryptoType.token)
+                          Positioned(
+                              top: 20,
+                              left: 20,
+                              child: ClipRRect(
+                                borderRadius: BorderRadius.circular(50),
+                                child: Image.asset(
+                                  currentNetwork.network?.icon ?? "",
+                                  width: 8,
+                                  height: 8,
+                                ),
+                              ))
+                      ],
                     ),
                     SizedBox(
                       width: 10,
@@ -277,7 +311,8 @@ class _ReceiveScreenState extends State<ReceiveScreen> {
                             version: 3,
                             size: width * 0.8,
                             gapless: false,
-                            embeddedImage: AssetImage(currentNetwork.icon),
+                            embeddedImage:
+                                AssetImage(currentNetwork.icon ?? ""),
                             embeddedImageStyle: QrEmbeddedImageStyle(
                               size: Size(40, 40),
                             ),

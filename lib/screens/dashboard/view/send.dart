@@ -38,7 +38,8 @@ class _SendTransactionScreenState extends State<SendTransactionScreen> {
   final GlobalKey qrKey = GlobalKey(debugLabel: 'QR');
   QRViewController? controller;
   final formatter = NumberFormat("0.##############", "en_US");
-  final MobileScannerController _mobileScannerController = MobileScannerController();
+  final MobileScannerController _mobileScannerController =
+      MobileScannerController();
 
   Color primaryColor = Color(0XFF1B1B1B);
   Color textColor = Color.fromARGB(255, 255, 255, 255);
@@ -66,7 +67,7 @@ class _SendTransactionScreenState extends State<SendTransactionScreen> {
   final encryptService = EncryptService();
   final priceManager = PriceManager();
   final publicDataManager = PublicDataManager();
-  Crypto currentNetwork = networks[0];
+  Crypto currentNetwork = cryptos[0];
   final web3InteractManager = Web3InteractionManager();
   final TextEditingController _addressController = TextEditingController();
   final TextEditingController _amountController = TextEditingController();
@@ -153,21 +154,18 @@ class _SendTransactionScreenState extends State<SendTransactionScreen> {
       logError(e.toString());
     }
   }
- Future<void> askCamera () async {
-  try {
 
+  Future<void> askCamera() async {
+    try {
       final status = await Permission.camera.status;
 
       if (!status.isGranted) {
-    await Permission.camera.request();
+        await Permission.camera.request();
+      }
+    } catch (e) {
+      logError(e.toString());
+    }
   }
-
-  } catch (e) {
-    logError(e.toString());
-    
-  }
- }
-
 
   Future<void> sendTransaction() async {
     try {
@@ -199,14 +197,15 @@ class _SendTransactionScreenState extends State<SendTransactionScreen> {
 
       final to = _addressController.text;
       final from = currentAccount.address;
-      final gasPrice =
-          await web3InteractManager.getGasPrice(currentNetwork.rpc ?? "https://opbnb-mainnet-rpc.bnbchain.org");
+      final gasPrice = await web3InteractManager.getGasPrice(
+          currentNetwork.rpc ?? "https://opbnb-mainnet-rpc.bnbchain.org");
       final valueWei =
           ((double.parse(_amountController.text)) * 1e18).toStringAsFixed(0);
       final valueHex = (int.parse(valueWei)).toRadixString(16);
       log("Value : $valueHex and value wei $valueWei");
       final estimatedGas = await web3InteractManager.estimateGas(
-          rpcUrl: currentNetwork.rpc ?? "https://opbnb-mainnet-rpc.bnbchain.org",
+          rpcUrl:
+              currentNetwork.rpc ?? "https://opbnb-mainnet-rpc.bnbchain.org",
           sender: currentAccount.address,
           to: _addressController.text,
           value: valueHex,
@@ -367,10 +366,10 @@ class _SendTransactionScreenState extends State<SendTransactionScreen> {
       }
       final price = await priceManager
           .getPriceUsingBinanceApi(currentNetwork.binanceSymbol ?? "");
-      final balance = await web3InteractManager.getBalance(
-          currentAccount.address, currentNetwork.rpc ?? "https://opbnb-mainnet-rpc.bnbchain.org");
-      final gasPrice =
-          await web3InteractManager.getGasPrice(currentNetwork.rpc ?? "https://opbnb-mainnet-rpc.bnbchain.org");
+      final balance =
+          await web3InteractManager.getBalance(currentAccount, currentNetwork);
+      final gasPrice = await web3InteractManager.getGasPrice(
+          currentNetwork.rpc ?? "https://opbnb-mainnet-rpc.bnbchain.org");
       final lastUsedAddresses = await publicDataManager.getDataFromPrefs(
           key: "${currentAccount.address}/lastUsedAddresses");
       log("last address $lastUsedAddresses");
@@ -398,7 +397,7 @@ class _SendTransactionScreenState extends State<SendTransactionScreen> {
       final data = ModalRoute.of(context)?.settings.arguments;
       if (data != null && (data as Map<String, dynamic>)["index"] != null) {
         final index = data["index"];
-        currentNetwork = networks[index];
+        currentNetwork = cryptos[index];
         log("Network sets to ${currentNetwork.binanceSymbol}");
       }
       _isInitialized = true;
@@ -408,7 +407,7 @@ class _SendTransactionScreenState extends State<SendTransactionScreen> {
   @override
   Widget build(BuildContext context) {
     final width = MediaQuery.of(context).size.width;
-     
+
     return Scaffold(
       backgroundColor: primaryColor,
       appBar: AppBar(
@@ -455,12 +454,30 @@ class _SendTransactionScreenState extends State<SendTransactionScreen> {
                         children: [
                           ClipRRect(
                             borderRadius: BorderRadius.circular(50),
-                            child: Image.asset(
-                              currentNetwork.icon,
-                              width: 20,
-                              height: 20,
-                              fit: BoxFit.cover,
-                            ),
+                            child: currentNetwork.icon == null
+                                ? Container(
+                                    width: 20,
+                                    height: 20,
+                                    decoration: BoxDecoration(
+                                        color: textColor.withOpacity(0.6),
+                                        borderRadius:
+                                            BorderRadius.circular(50)),
+                                    child: Center(
+                                      child: Text(
+                                        currentNetwork.name.substring(0, 2),
+                                        style: GoogleFonts.roboto(
+                                            color: primaryColor,
+                                            fontWeight: FontWeight.bold,
+                                            fontSize: 18),
+                                      ),
+                                    ),
+                                  )
+                                : Image.asset(
+                                    currentNetwork.icon ?? "",
+                                    width: 20,
+                                    height: 20,
+                                    fit: BoxFit.cover,
+                                  ),
                           ),
                           Text(
                             currentAccount.address.isNotEmpty
@@ -498,14 +515,46 @@ class _SendTransactionScreenState extends State<SendTransactionScreen> {
                 child: Row(
                   spacing: 10,
                   children: [
-                    ClipRRect(
-                      borderRadius: BorderRadius.circular(10),
-                      child: Image.asset(
-                        currentNetwork.icon,
-                        width: 40,
-                        height: 40,
-                        fit: BoxFit.cover,
-                      ),
+                    Stack(
+                      children: [
+                        ClipRRect(
+                          borderRadius: BorderRadius.circular(50),
+                          child: currentNetwork.icon == null
+                              ? Container(
+                                  width: 30,
+                                  height: 30,
+                                  decoration: BoxDecoration(
+                                      color: textColor.withOpacity(0.6),
+                                      borderRadius: BorderRadius.circular(50)),
+                                  child: Center(
+                                    child: Text(
+                                      currentNetwork.name.substring(0, 2),
+                                      style: GoogleFonts.roboto(
+                                          color: primaryColor,
+                                          fontWeight: FontWeight.bold,
+                                          fontSize: 18),
+                                    ),
+                                  ),
+                                )
+                              : Image.asset(
+                                  currentNetwork.icon ?? "",
+                                  width: 30,
+                                  height: 30,
+                                ),
+                        ),
+                        if (currentNetwork.type == CryptoType.token)
+                          Positioned(
+                              top: 20,
+                              left: 20,
+                              child: ClipRRect(
+                                borderRadius: BorderRadius.circular(50),
+                                child: Image.asset(
+                                  currentNetwork.network?.icon ?? "",
+                                  width: 8,
+                                  height: 8,
+                                ),
+                              ))
+                      ],
                     ),
                     Column(
                       spacing: 10,
@@ -619,16 +668,24 @@ class _SendTransactionScreenState extends State<SendTransactionScreen> {
                                                                             ClipRRect(
                                                                           borderRadius:
                                                                               BorderRadius.circular(50),
-                                                                          child:
-                                                                              Image.asset(
-                                                                            currentNetwork.icon,
-                                                                            width:
-                                                                                25,
-                                                                            height:
-                                                                                25,
-                                                                            fit:
-                                                                                BoxFit.cover,
-                                                                          ),
+                                                                          child: currentNetwork.icon == null
+                                                                              ? Container(
+                                                                                  width: 25,
+                                                                                  height: 25,
+                                                                                  decoration: BoxDecoration(color: textColor.withOpacity(0.6), borderRadius: BorderRadius.circular(50)),
+                                                                                  child: Center(
+                                                                                    child: Text(
+                                                                                      currentNetwork.name.substring(0, 2),
+                                                                                      style: GoogleFonts.roboto(color: primaryColor, fontWeight: FontWeight.bold, fontSize: 18),
+                                                                                    ),
+                                                                                  ),
+                                                                                )
+                                                                              : Image.asset(
+                                                                                  currentNetwork.icon ?? "",
+                                                                                  width: 25,
+                                                                                  height: 25,
+                                                                                  fit: BoxFit.cover,
+                                                                                ),
                                                                         ),
                                                                         title:
                                                                             Text(
@@ -678,17 +735,15 @@ class _SendTransactionScreenState extends State<SendTransactionScreen> {
                                       (BuildContext stateFScanCtx,
                                           setModalState) {
                                     return MobileScanner(
-
-                                     
                                       controller: _mobileScannerController,
                                       onDetect: (barcode) {
-                                        final String code = barcode.barcodes.firstOrNull!.displayValue ??   "";
+                                        final String code = barcode.barcodes
+                                                .firstOrNull!.displayValue ??
+                                            "";
                                         log("The code $code");
                                         _addressController.text = code;
                                         Navigator.pop(stateFScanCtx);
-
                                       },
-                                   
                                     );
                                   });
                                 });

@@ -38,7 +38,6 @@ class _CreatePrivateKeyState extends State<CreatePrivateKey> {
 
   Future<void> createKey() async {
     try {
-
       final key = await manager.createPrivatekey();
       if (key.isNotEmpty) {
         setState(() {

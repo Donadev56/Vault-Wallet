@@ -1,4 +1,3 @@
-
 import 'dart:convert';
 
 import 'package:bip39/bip39.dart' as bip39;
@@ -233,7 +232,6 @@ class Web3Manager {
   }
 
   // decrypt saved data using password
- 
 
   Future<bool> saveObservationWalletInStorage(
       String walletName, String address) async {

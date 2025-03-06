@@ -61,14 +61,13 @@ class CustomAppBar extends StatelessWidget implements PreferredSizeWidget {
 
     final List<Map<String, dynamic>> options = [
       {'icon': LucideIcons.pencil, 'name': 'Edit name', 'color': textColor},
-    
       {'icon': LucideIcons.copy, 'name': 'Copy address', 'color': textColor},
       {
         'icon': LucideIcons.key,
         'name': 'View private data',
         'color': textColor
       },
-        {
+      {
         'icon': LucideIcons.trash,
         'name': 'Delete wallet',
         'color': Colors.pinkAccent
@@ -118,7 +117,7 @@ class CustomAppBar extends StatelessWidget implements PreferredSizeWidget {
                     return StatefulBuilder(
                         builder: (BuildContext mainCtx, setModalState) {
                       return Container(
-                        height: height * 0.9 ,
+                        height: height * 0.9,
                         alignment: Alignment.center,
                         decoration: BoxDecoration(
                             borderRadius: BorderRadius.only(
@@ -155,10 +154,12 @@ class CustomAppBar extends StatelessWidget implements PreferredSizeWidget {
                                       onPressed: () {
                                         Navigator.pop(context);
                                       },
-                                      icon: Text("")/* Icon(
+                                      icon: Text(
+                                          "") /* Icon(
                                         FeatherIcons.layers,
                                         color: textColor,
-                                      ) */),
+                                      ) */
+                                      ),
                                 ],
                               ),
                             ),
@@ -213,10 +214,8 @@ class CustomAppBar extends StatelessWidget implements PreferredSizeWidget {
                                         for (int index = 0;
                                             index <
                                                 filteredList(query: searchQuery)
-                                              
                                                     .length;
                                             index += 1)
-
                                           Material(
                                             key: Key("$index"),
                                             color: Colors.transparent,
@@ -227,21 +226,19 @@ class CustomAppBar extends StatelessWidget implements PreferredSizeWidget {
                                                   left: 15,
                                                   right: 15),
                                               decoration: BoxDecoration(
-                                                  color:
-                                                      filteredList(query: searchQuery)[
-                                                                      index]
-                                                                  .keyId ==
-                                                              currentAccount
-                                                                  .keyId
-                                                          ? secondaryColor
-                                                              .withOpacity(0.2)
-                                                          : textColor
-                                                              .withOpacity(0.05),
+                                                  color: filteredList(
+                                                                      query:
+                                                                          searchQuery)[
+                                                                  index]
+                                                              .keyId ==
+                                                          currentAccount.keyId
+                                                      ? secondaryColor
+                                                          .withOpacity(0.2)
+                                                      : textColor
+                                                          .withOpacity(0.05),
                                                   borderRadius:
-                                                      BorderRadius.circular(
-                                                          5)),
+                                                      BorderRadius.circular(5)),
                                               child: ListTile(
-                                                
                                                 onTap: () async {
                                                   await vibrate();
 
@@ -271,50 +268,54 @@ class CustomAppBar extends StatelessWidget implements PreferredSizeWidget {
                                                       color: textColor),
                                                 ),
                                                 trailing: PopupMenuButton(
-                                                  
-                                                    color: surfaceTintColor,
-                                                    iconColor: textColor,
-                                                    itemBuilder:
-                                                        (BuildContext ctx) {
-                                                      return List.generate(
-                                                          options.length, (i) {
-                                                        final option =
-                                                            options[i];
-                                                        return PopupMenuItem(
-                                                          child: Row(
-                                                            children: [
-                                                              Icon(
-                                                                option["icon"],
-                                                                size: 20,
-                                                                color: option[
-                                                                    "color"],
-                                                              ),
-                                                              SizedBox(
-                                                                width: 10,
-                                                              ),
-                                                              Text(
-                                                                option["name"],
-                                                                style: GoogleFonts.roboto(
-                                                                    color: option[
-                                                                        "color"]),
-                                                              )
-                                                            ],
-                                                          ),
-                                                          onTap: () {
-                                                            vibrate();
+                                                  color: surfaceTintColor,
+                                                  iconColor: textColor,
+                                                  itemBuilder:
+                                                      (BuildContext ctx) {
+                                                    return List.generate(
+                                                        options.length, (i) {
+                                                      final option = options[i];
+                                                      return PopupMenuItem(
+                                                        child: Row(
+                                                          children: [
+                                                            Icon(
+                                                              option["icon"],
+                                                              size: 20,
+                                                              color: option[
+                                                                  "color"],
+                                                            ),
+                                                            SizedBox(
+                                                              width: 10,
+                                                            ),
+                                                            Text(
+                                                              option["name"],
+                                                              style: GoogleFonts.roboto(
+                                                                  color: option[
+                                                                      "color"]),
+                                                            )
+                                                          ],
+                                                        ),
+                                                        onTap: () {
+                                                          vibrate();
 
-                                                            if (i == 0) {
-                                                              _textController.text = accounts[index].walletName ;
-                                                              showDialog(
-                                                                  context: ctx,
-                                                                  builder:
-                                                                      (BuildContext
-                                                                          alertCtx) {
-                                                                    return BackdropFilter(filter: ImageFilter.blur(
-                                                                      sigmaX:  2, 
-                                                                      sigmaY: 2
-                                                                    ) , 
-                                                                    child: AlertDialog.adaptive(
+                                                          if (i == 0) {
+                                                            _textController
+                                                                    .text =
+                                                                accounts[index]
+                                                                    .walletName;
+                                                            showDialog(
+                                                                context: ctx,
+                                                                builder:
+                                                                    (BuildContext
+                                                                        alertCtx) {
+                                                                  return BackdropFilter(
+                                                                    filter: ImageFilter.blur(
+                                                                        sigmaX:
+                                                                            2,
+                                                                        sigmaY:
+                                                                            2),
+                                                                    child: AlertDialog
+                                                                        .adaptive(
                                                                       backgroundColor:
                                                                           primaryColor,
                                                                       title:
@@ -387,29 +388,30 @@ class CustomAppBar extends StatelessWidget implements PreferredSizeWidget {
                                                                           ),
                                                                         ),
                                                                       ],
-                                                                    ) ,
-                                                                    );
-                                                                  });
-                                                            } else if (i == 3) {
-                                                              deleteWallet(
-                                                                  index);
-                                                            } else if (i == 1) {
-                                                              Clipboard.setData(
-                                                                  ClipboardData(
-                                                                      text: accounts[
-                                                                              index]
-                                                                          .address));
-                                                            } else if (i == 2) {
-                                                              showPrivateData(
-                                                                  index);
-                                                            }
-                                                          },
-                                                        );
-                                                      });
-                                                    } , 
-                                                    child: Icon(Icons.more_vert, color: textColor,) ,
-
-                                                    ),
+                                                                    ),
+                                                                  );
+                                                                });
+                                                          } else if (i == 3) {
+                                                            deleteWallet(index);
+                                                          } else if (i == 1) {
+                                                            Clipboard.setData(
+                                                                ClipboardData(
+                                                                    text: accounts[
+                                                                            index]
+                                                                        .address));
+                                                          } else if (i == 2) {
+                                                            showPrivateData(
+                                                                index);
+                                                          }
+                                                        },
+                                                      );
+                                                    });
+                                                  },
+                                                  child: Icon(
+                                                    Icons.more_vert,
+                                                    color: textColor,
+                                                  ),
+                                                ),
                                               ),
                                             ),
                                           )

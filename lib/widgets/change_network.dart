@@ -38,9 +38,14 @@ void showChangeNetworkModal(
                 ConstrainedBox(
                   constraints: BoxConstraints(maxHeight: height * 0.4),
                   child: ListView.builder(
-                    itemCount: networks.where((crypto)=> crypto.type != CryptoType.token).toList().length,
+                    itemCount: cryptos
+                        .where((crypto) => crypto.type != CryptoType.token)
+                        .toList()
+                        .length,
                     itemBuilder: (BuildContext context, int index) {
-                      final network = networks.where((crypto)=> crypto.type != CryptoType.token).toList()[index];
+                      final network = cryptos
+                          .where((crypto) => crypto.type != CryptoType.token)
+                          .toList()[index];
                       return Material(
                         color: Colors.transparent,
                         child: ListTile(
@@ -58,16 +63,35 @@ void showChangeNetworkModal(
                           leading: Container(
                             padding: const EdgeInsets.all(4),
                             decoration: BoxDecoration(
-                                border:
-                                    Border.all(width: 1, color: network.color ?? Colors.white),
+                                border: Border.all(
+                                    width: 1,
+                                    color: network.color ?? Colors.white),
                                 borderRadius: BorderRadius.circular(50)),
                             child: ClipRRect(
                               borderRadius: BorderRadius.circular(50),
-                              child: Image.asset(
-                                network.icon,
-                                width: 30,
-                                height: 30,
-                              ),
+                              child: network.icon == null
+                                  ? Container(
+                                      width: 30,
+                                      height: 30,
+                                      decoration: BoxDecoration(
+                                          color: textColor.withOpacity(0.6),
+                                          borderRadius:
+                                              BorderRadius.circular(50)),
+                                      child: Center(
+                                        child: Text(
+                                          network.name.substring(0, 2),
+                                          style: GoogleFonts.roboto(
+                                              color: darkNavigatorColor,
+                                              fontWeight: FontWeight.bold,
+                                              fontSize: 18),
+                                        ),
+                                      ),
+                                    )
+                                  : Image.asset(
+                                      network.icon ?? "",
+                                      width: 30,
+                                      height: 30,
+                                    ),
                             ),
                           ),
                           title: Text(

@@ -262,7 +262,8 @@ class _DiscoverScreenState extends State<DiscoverScreen>
       surfaceTintColor = Color(0XFF454545);
     });
   }
- Future<void> getThemeMode() async {
+
+  Future<void> getThemeMode() async {
     try {
       final savedMode =
           await publicDataManager.getDataFromPrefs(key: "isDarkMode");

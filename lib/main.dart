@@ -65,10 +65,11 @@ class MyApp extends StatelessWidget {
   Future<bool> hasAtLastOneAccount() async {
     try {
       final prefs = PublicDataManager();
-      
-      final hasAlreadyUpgraded = await prefs.getDataFromPrefs(key: "hasAlreadyUpgraded");
+
+      final hasAlreadyUpgraded =
+          await prefs.getDataFromPrefs(key: "hasAlreadyUpgraded");
       if (hasAlreadyUpgraded == null) {
-          await upgradeDatabase();
+        await upgradeDatabase();
       }
       final lastConnected = await prefs.getLastConnectedAddress();
       if (lastConnected != null) {
@@ -82,20 +83,18 @@ class MyApp extends StatelessWidget {
     }
   }
 
-
-  Future<void> upgradeDatabase () async {
+  Future<void> upgradeDatabase() async {
     try {
       final lastDbManager = Web3Manager();
       final newDbManager = WalletSaver();
-     final prefs = PublicDataManager();
+      final prefs = PublicDataManager();
 
       final savedPassword = await lastDbManager.getSavedPassword();
       if (savedPassword != null) {
-
-     
-      final savedData = await lastDbManager.getPublicData();
-      final decryptedData = await lastDbManager.getDecryptedData(savedPassword);
-      /* List< PublicData > publicAccounts = [] ;
+        final savedData = await lastDbManager.getPublicData();
+        final decryptedData =
+            await lastDbManager.getDecryptedData(savedPassword);
+        /* List< PublicData > publicAccounts = [] ;
        List< SecureData > privateAccounts = [] ;
 
 
@@ -120,34 +119,28 @@ class MyApp extends StatelessWidget {
           privateAccounts.add(newData);
         }
         } */
-        int savedTimes = 0 ;
+        int savedTimes = 0;
         if (savedData != null) {
-          final saved =   await newDbManager.saveListPublicDataJson(savedData);
+          final saved = await newDbManager.saveListPublicDataJson(savedData);
           if (saved) {
             savedTimes++;
           }
         }
         if (decryptedData != null) {
-         final saved=  await newDbManager.saveListPrivateKeyData(decryptedData, savedPassword);
-         if (saved) {
-           savedTimes++;
-         }
+          final saved = await newDbManager.saveListPrivateKeyData(
+              decryptedData, savedPassword);
+          if (saved) {
+            savedTimes++;
+          }
         }
         if (savedTimes > 0) {
-         final saved = await prefs.saveDataInPrefs(data: "true", key: "hasAlreadyUpgraded");
-         log("Data saved $saved");
+          final saved = await prefs.saveDataInPrefs(
+              data: "true", key: "hasAlreadyUpgraded");
+          log("Data saved $saved");
         }
-
-         
       }
-
-    
-
-      
-      
     } catch (e) {
       logError(e.toString());
-      
     }
   }
 

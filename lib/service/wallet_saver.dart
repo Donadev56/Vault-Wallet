@@ -158,7 +158,8 @@ class WalletSaver {
           await encryptService.encryptJson(jsonDataArray, password);
 
       if (encryptedData != null) {
-        await documentStorage.saveFile(data: encryptedData , filePath: privateDataPath);
+        await documentStorage.saveFile(
+            data: encryptedData, filePath: privateDataPath);
         await secureService.saveDataInFSS(password, passwordName);
         return true;
       } else {
@@ -192,7 +193,8 @@ class WalletSaver {
   Future<bool> saveListPublicDataJson(List<dynamic> publicDataJson) async {
     try {
       final String jsonDataArray = json.encode(publicDataJson);
-      final res = await documentStorage.saveFile(data: jsonDataArray, filePath: publicDataPath);
+      final res = await documentStorage.saveFile(
+          data: jsonDataArray, filePath: publicDataPath);
       if (res != null) {
         return true;
       } else {
@@ -207,7 +209,8 @@ class WalletSaver {
   Future<List<dynamic>?> getDecryptedData(String password) async {
     try {
       List<dynamic> dataToSave;
-      final savedData = await documentStorage.readData(filePath: privateDataPath);
+      final savedData =
+          await documentStorage.readData(filePath: privateDataPath);
       log("Saved Data : ${savedData.toString()}");
 
       if (savedData == null) {
@@ -235,7 +238,7 @@ class WalletSaver {
   }
 
   // decrypt saved data using password
- /* Future<List<Map<String, dynamic>>> loadPrivatekeysFromStorage(
+  /* Future<List<Map<String, dynamic>>> loadPrivatekeysFromStorage(
       String password) async {
     final encryptedData = await secureService.loadDataFromFSS(encName);
 
@@ -295,6 +298,7 @@ class WalletSaver {
       return false;
     }
   }
+
   // get the savedKey if the user use fingerprint
   Future<String?> getSavedPassword() async {
     try {

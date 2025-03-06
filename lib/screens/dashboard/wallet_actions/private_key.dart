@@ -29,7 +29,7 @@ class _CreatePrivateKeyState extends State<CreatePrivateKeyMain> {
   Color surfaceTintColor = Color(0XFF454545);
   final publicDataManager = PublicDataManager();
   bool isDarkMode = false;
-    final manager = WalletSaver();
+  final manager = WalletSaver();
 
   @override
   void initState() {
@@ -82,6 +82,7 @@ class _CreatePrivateKeyState extends State<CreatePrivateKeyMain> {
       logError(e.toString());
     }
   }
+
   Future<void> toggleMode() async {
     try {
       if (isDarkMode) {
@@ -101,7 +102,6 @@ class _CreatePrivateKeyState extends State<CreatePrivateKeyMain> {
 
   Future<void> createKey() async {
     try {
-
       final key = await manager.createPrivatekey();
       if (key.isNotEmpty) {
         setState(() {

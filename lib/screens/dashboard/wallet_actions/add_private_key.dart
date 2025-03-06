@@ -68,7 +68,7 @@ class _AddPrivateKeyState extends State<AddPrivateKeyInMain> {
     });
   }
 
- Future<void> getThemeMode() async {
+  Future<void> getThemeMode() async {
     try {
       final savedMode =
           await publicDataManager.getDataFromPrefs(key: "isDarkMode");

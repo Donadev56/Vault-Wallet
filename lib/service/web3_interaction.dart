@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_web3_webview/flutter_web3_webview.dart';
 import 'package:moonwallet/logger/logger.dart';
 import 'package:moonwallet/service/price_manager.dart';
+import 'package:moonwallet/service/token_manager.dart';
 import 'package:moonwallet/service/wallet_saver.dart';
 import 'package:moonwallet/service/web3.dart';
 import 'package:moonwallet/types/types.dart';
@@ -16,6 +17,7 @@ class Web3InteractionManager {
   var httpClient = Client();
   final web3Manager = WalletSaver();
   final priceManager = PriceManager();
+  final tokenManager = TokenManager();
 
   Uint8List hexToUint8List(String hex) {
     if (hex.startsWith("0x") || hex.startsWith("0X")) {
@@ -36,8 +38,14 @@ class Web3InteractionManager {
     return result;
   }
 
-  Future<double> getBalance(String address, String rpcUrl) async {
+  Future<double> getBalance(PublicData account, Crypto crypto) async {
     try {
+      final address = account.address;
+      final rpcUrl = crypto.rpc ?? "";
+      if (crypto.type == CryptoType.token) {
+        return await tokenManager.getTokenBalance(crypto, address);
+      }
+
       if (address.isEmpty || rpcUrl.isEmpty) {
         log("address or rpc is empty");
         return 0;
@@ -200,7 +208,8 @@ class Web3InteractionManager {
 
       BigInt estimatedGas = await estimateGas(
           value: data.value ?? "0x0",
-          rpcUrl: currentNetwork.rpc ?? "https://opbnb-mainnet-rpc.bnbchain.org",
+          rpcUrl:
+              currentNetwork.rpc ?? "https://opbnb-mainnet-rpc.bnbchain.org",
           sender: data.from ?? "",
           to: data.to ?? "",
           data: data.data ?? "");
@@ -216,7 +225,8 @@ class Web3InteractionManager {
       BigInt? gasLimit = data.gas != null
           ? BigInt.parse(data.gas!.replaceFirst("0x", ""), radix: 16)
           : (estimatedGas * BigInt.from(30)) ~/ BigInt.from(100);
-      final gasPriceResult = await getGasPrice(currentNetwork.rpc ?? "https://opbnb-mainnet-rpc.bnbchain.org");
+      final gasPriceResult = await getGasPrice(
+          currentNetwork.rpc ?? "https://opbnb-mainnet-rpc.bnbchain.org");
       BigInt gasPrice =
           gasPriceResult != BigInt.zero ? gasPriceResult : BigInt.from(100000);
       if (!mounted) {
@@ -319,7 +329,8 @@ class Web3InteractionManager {
           final result = await sendTransaction(
               transaction: transaction,
               chainId: currentNetwork.chainId ?? 204,
-              rpcUrl: currentNetwork.rpc ?? "https://opbnb-mainnet-rpc.bnbchain.org",
+              rpcUrl: currentNetwork.rpc ??
+                  "https://opbnb-mainnet-rpc.bnbchain.org",
               password: userPassword,
               address: data.from ?? "");
 

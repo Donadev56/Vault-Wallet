@@ -90,12 +90,30 @@ class TransactionsListElement extends StatelessWidget {
                             height: 50,
                             child: ClipRRect(
                               borderRadius: BorderRadius.circular(50),
-                              child: Image.asset(
-                                currentNetwork.icon,
-                                width: 50,
-                                height: 50,
-                                fit: BoxFit.cover,
-                              ),
+                              child: currentNetwork.icon == null
+                                  ? Container(
+                                      width: 50,
+                                      height: 50,
+                                      decoration: BoxDecoration(
+                                          color: textColor.withOpacity(0.6),
+                                          borderRadius:
+                                              BorderRadius.circular(50)),
+                                      child: Center(
+                                        child: Text(
+                                          currentNetwork.name.substring(0, 2),
+                                          style: GoogleFonts.roboto(
+                                              color: primaryColor,
+                                              fontWeight: FontWeight.bold,
+                                              fontSize: 18),
+                                        ),
+                                      ),
+                                    )
+                                  : Image.asset(
+                                      currentNetwork.icon ?? "",
+                                      width: 50,
+                                      height: 50,
+                                      fit: BoxFit.cover,
+                                    ),
                             ),
                           ),
                           title: Text(

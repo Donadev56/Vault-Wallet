@@ -71,7 +71,7 @@ class _AddPrivateKeyState extends State<AddPrivateKey> {
       if (_textController.text.isEmpty) {
         throw Exception("No key generated yet.");
       }
-  final web3Manager = WalletSaver();
+      final web3Manager = WalletSaver();
       final key = _textController.text.trim();
       if (firstPassword.isEmpty || firstPassword != secondPassword) {
         throw Exception("passwords must not be empty or not equal ");

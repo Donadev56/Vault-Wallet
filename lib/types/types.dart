@@ -1,8 +1,7 @@
 import 'package:flutter/material.dart';
-enum CryptoType {
-  network,
-  token 
-}
+
+enum CryptoType { network, token }
+
 class SecureData {
   final String privateKey;
   final String keyId;
@@ -185,31 +184,36 @@ class EthTransaction {
 
 class Crypto {
   final String name;
-  final String icon;
+  final String? icon;
   final int? chainId;
-  final Crypto? network ;
+  final Crypto? network;
   final Color? color;
-  final String ? rpc;
-  final String ? binanceSymbol;
-  final String ? explorer;
+  final String? rpc;
+  final String? binanceSymbol;
+  final String? explorer;
   final CryptoType type;
-  final String ? contractAddress  ;
-  final int ? decimals ;
+  final String? contractAddress;
+  final int? decimals;
+  final double valueUsd;
+  final String cryptoId;
+  final bool canDisplay;
 
-
-  Crypto(
-      {required this.name,
-      required this.icon,
-      this.chainId,
-      required this.color,
-      this.rpc,
-      this.binanceSymbol,
-      required this.type,
-      this.explorer ,
-      this.network  ,
-      this.contractAddress,
-      this.decimals
-      });
+  Crypto({
+    required this.name,
+    this.icon,
+    this.chainId,
+    required this.color,
+    this.rpc,
+    this.binanceSymbol,
+    required this.type,
+    this.explorer,
+    this.network,
+    this.contractAddress,
+    this.decimals,
+    required this.valueUsd,
+    required this.cryptoId,
+    required this.canDisplay,
+  });
 
   factory Crypto.fromJson(Map<String, dynamic> json) {
     return Crypto(
@@ -224,6 +228,9 @@ class Crypto {
       network: Crypto.fromJson(json['network']),
       contractAddress: json['contractAddress'],
       decimals: json['decimals'],
+      valueUsd: json['valueUsd'],
+      cryptoId: json['cryptoId'],
+      canDisplay: json['canDisplay'],
     );
   }
 
@@ -240,6 +247,9 @@ class Crypto {
       'network': network?.toJson(),
       'contractAddress': contractAddress,
       'decimals': decimals,
+      'valueUsd': valueUsd,
+      'cryptoId': cryptoId,
+      'canDisplay': canDisplay,
     };
   }
 }

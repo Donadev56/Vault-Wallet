@@ -55,6 +55,7 @@ class _MainDashboardScreenState extends State<MainDashboardScreen>
 
   List<PublicData> accounts = [];
   List<PublicData> filteredAccounts = [];
+  List<Crypto> reorganizedCrypto = [];
   final formatter = NumberFormat("0.########", "en_US");
 
   PublicData currentAccount = PublicData(
@@ -63,6 +64,7 @@ class _MainDashboardScreenState extends State<MainDashboardScreen>
       walletName: "",
       address: "",
       isWatchOnly: false);
+
   late TabController _tabController;
   final web3Manager = WalletSaver();
   final encryptService = EncryptService();
@@ -78,7 +80,7 @@ class _MainDashboardScreenState extends State<MainDashboardScreen>
   final List<Map<String, dynamic>> actionsData = [
     {'icon': LucideIcons.moveUpRight, 'page': 'send', 'name': 'Send'},
     {'icon': LucideIcons.moveDownLeft, 'page': 'receive', 'name': 'Receive'},
-    {'icon': LucideIcons.scan, 'page': 'scan', 'name': 'Scan'},
+    {'icon': LucideIcons.plus, 'page': 'add_token', 'name': 'Add crypto'},
     {'icon': LucideIcons.ellipsis, 'page': 'more', 'name': 'More'},
   ];
   final List<Map<String, dynamic>> options = [
@@ -87,38 +89,14 @@ class _MainDashboardScreenState extends State<MainDashboardScreen>
     {'icon': LucideIcons.messageCircle, 'name': 'Join Whatsapp'},
     {'icon': LucideIcons.settings, 'name': 'Settings'},
   ];
-  final List<Map<String, dynamic>> cryptos = [
-    {
-      'image': "assets/b1.webp",
-      'name': 'OpBNB',
-      "price": 580,
-      "symbol": 'BNB',
-      "binanceSymbol": "BNBUSDT",
-      "rpcUrl": "https://opbnb-mainnet-rpc.bnbchain.org"
-    },
-    {
-      'image': "assets/bnb.png",
-      'name': 'BNB',
-      "price": 580,
-      "symbol": 'BNB',
-      "binanceSymbol": "BNBUSDT",
-      "rpcUrl": "https://bsc-dataseed.binance.org"
-    },
-    {
-      'image': "assets/image.png",
-      'name': 'Moon Token',
-      "price": 0,
-      "symbol": 'MT',
-      "binanceSymbol": "",
-      "rpcUrl": ""
-    },
-  ];
 
   @override
   void initState() {
     getIsHidden();
 
     getThemeMode();
+
+    reorganizeCrypto();
 
     getSavedWallets();
     loadData();
@@ -397,7 +375,6 @@ class _MainDashboardScreenState extends State<MainDashboardScreen>
       });
       final result = await web3Manager.saveListPublicDataJson(accounts);
       if (result) {
-        log("Reordered successfully");
       } else {
         if (mounted) {
           showCustomSnackBar(
@@ -442,6 +419,8 @@ class _MainDashboardScreenState extends State<MainDashboardScreen>
           Navigator.pop(context);
         }
       }
+
+      await reorganizeCrypto();
     } catch (e) {
       logError(e.toString());
     }
@@ -464,7 +443,6 @@ class _MainDashboardScreenState extends State<MainDashboardScreen>
       double balance = 0;
       final savedData = await publicDataManager.getDataFromPrefs(
           key: "$dataName/${currentAccount.keyId}");
-      log("Saved data $savedData");
       if (savedData != null) {
         setState(() {
           totalBalanceUsd = double.parse(savedData);
@@ -472,15 +450,16 @@ class _MainDashboardScreenState extends State<MainDashboardScreen>
       }
 
       for (final crypto in cryptos) {
-        if (crypto["binanceSymbol"] is String &&
-                crypto["binanceSymbol"].isEmpty ||
-            crypto['rpcUrl'] is String && crypto['rpcUrl'].isEmpty) {
+        if (crypto.binanceSymbol is String &&
+                crypto.binanceSymbol != null &&
+                (crypto.binanceSymbol as String).isEmpty ||
+            crypto.rpc is String &&
+                crypto.rpc != null &&
+                (crypto.rpc as String).isEmpty) {
           continue;
         }
-        final balanceUsd =
-            await getBalanceUsd(crypto['binanceSymbol'], crypto['rpcUrl']);
+        final balanceUsd = await getBalanceUsd(crypto);
         balance += balanceUsd;
-        log("Balance $balance");
       }
       setState(() {
         totalBalanceUsd = balance;
@@ -493,15 +472,13 @@ class _MainDashboardScreenState extends State<MainDashboardScreen>
     }
   }
 
-  Future<double> getBalanceUsd(String symbol, String rpcUrl) async {
+  Future<double> getBalanceUsd(Crypto crypto) async {
     try {
-      if (rpcUrl.isEmpty || symbol.isEmpty) {
-        return 0;
-      }
+      final symbol = crypto.binanceSymbol ?? "";
 
       final price = await getPrice(symbol);
       final balanceEth =
-          await web3InteractManager.getBalance(currentAccount.address, rpcUrl);
+          await web3InteractManager.getBalance(currentAccount, crypto);
       publicDataManager.saveDataInPrefs(
           data: balanceEth.toString(),
           key: "${currentAccount.address}/lastBalanceEth");
@@ -572,6 +549,63 @@ class _MainDashboardScreenState extends State<MainDashboardScreen>
     }
   }
 
+  Future<void> reorganizeCrypto() async {
+    log("Reorganizing Crypto");
+    log("----------------------------------------------------------------");
+    final List<Crypto> newCryptos = [];
+    for (final crypto in cryptos) {
+      
+      if (crypto.contractAddress == null ||
+
+          (crypto.contractAddress as String).isEmpty) {
+        Crypto newCrypto = Crypto(
+            canDisplay: crypto.canDisplay,
+            cryptoId: crypto.cryptoId,
+            name: crypto.name,
+            color: crypto.color,
+            type: crypto.type,
+            icon: crypto.icon,
+            rpc: crypto.rpc,
+            decimals: crypto.decimals,
+            chainId: crypto.chainId,
+            binanceSymbol: crypto.binanceSymbol,
+            network: crypto.network,
+            contractAddress: crypto.contractAddress,
+            explorer: crypto.explorer,
+            valueUsd: 0);
+        newCryptos.add(newCrypto);
+
+        continue;
+      }
+      final balanceUsd = await getBalanceUsd(crypto);
+      Crypto newCrypto = Crypto(
+          canDisplay: crypto.canDisplay,
+          cryptoId: crypto.cryptoId,
+          name: crypto.name,
+          color: crypto.color,
+          type: crypto.type,
+          icon: crypto.icon,
+          rpc: crypto.rpc,
+          decimals: crypto.decimals,
+          chainId: crypto.chainId,
+          binanceSymbol: crypto.binanceSymbol,
+          network: crypto.network,
+          contractAddress: crypto.contractAddress,
+          explorer: crypto.explorer,
+          valueUsd: balanceUsd);
+
+      newCryptos.add(newCrypto);
+    }
+    newCryptos.sort((a, b) => (b.valueUsd).compareTo(a.valueUsd));
+    for (final c in newCryptos) {
+      log("${c.name} has new index ${newCryptos.indexOf(c)}");
+    }
+    log("Reorganized crypto end");
+    setState(() {
+      reorganizedCrypto = newCryptos;
+    });
+  }
+
   void showReceiveModal() {
     showModalBottomSheet(
         context: context,
@@ -615,36 +649,53 @@ class _MainDashboardScreenState extends State<MainDashboardScreen>
                 ),
                 SingleChildScrollView(
                     child: SizedBox(
-                  height: MediaQuery.of(btmCtx).size.height * 0.4,
-                  child: ListView.builder(
-                      itemCount: networks.length,
-                      itemBuilder: (BuildContext lisCryptoCtx, int index) {
-                        final net = networks[index];
-                        return Material(
-                          color: Colors.transparent,
-                          child: ListTile(
-                            onTap: () {
-                              Navigator.pushNamed(context, Routes.receiveScreen,
-                                  arguments: ({"index": index}));
-                            },
-                            leading: ClipRRect(
-                              borderRadius: BorderRadius.circular(50),
-                              child: Image.asset(
-                                net.icon,
-                                width: 35,
-                                height: 35,
-                                fit: BoxFit.cover,
-                              ),
-                            ),
-                            title: Text(
-                              net.name,
-                              style: GoogleFonts.roboto(
-                                  color: textColor,
-                                  fontWeight: FontWeight.bold),
-                            ),
+                  child: Column(
+                    children: List.generate(reorganizedCrypto.length, (index) {
+                      final net = reorganizedCrypto[index];
+
+                      return Material(
+                        color: Colors.transparent,
+                        child: ListTile(
+                          onTap: () {
+                            Navigator.pushNamed(context, Routes.receiveScreen,
+                                arguments: ({"index": index}));
+                          },
+                          leading: ClipRRect(
+                            borderRadius: BorderRadius.circular(50),
+                            child: net.icon == null
+                                ? Container(
+                                    width: 35,
+                                    height: 35,
+                                    decoration: BoxDecoration(
+                                        color: textColor.withOpacity(0.6),
+                                        borderRadius:
+                                            BorderRadius.circular(50)),
+                                    child: Center(
+                                      child: Text(
+                                        net.name.substring(0, 2),
+                                        style: GoogleFonts.roboto(
+                                            color: primaryColor,
+                                            fontWeight: FontWeight.bold,
+                                            fontSize: 18),
+                                      ),
+                                    ),
+                                  )
+                                : Image.asset(
+                                    net.icon ?? "",
+                                    width: 35,
+                                    height: 35,
+                                    fit: BoxFit.cover,
+                                  ),
                           ),
-                        );
-                      }),
+                          title: Text(
+                            net.name,
+                            style: GoogleFonts.roboto(
+                                color: textColor, fontWeight: FontWeight.bold),
+                          ),
+                        ),
+                      );
+                    }),
+                  ),
                 )),
               ],
             ),
@@ -697,9 +748,9 @@ class _MainDashboardScreenState extends State<MainDashboardScreen>
                     child: SizedBox(
                   height: MediaQuery.of(btmCtx).size.height * 0.4,
                   child: ListView.builder(
-                      itemCount: networks.length,
+                      itemCount: cryptos.length,
                       itemBuilder: (BuildContext lisCryptoCtx, int index) {
-                        final net = networks[index];
+                        final net = cryptos[index];
                         return Material(
                           color: Colors.transparent,
                           child: ListTile(
@@ -709,12 +760,30 @@ class _MainDashboardScreenState extends State<MainDashboardScreen>
                             },
                             leading: ClipRRect(
                               borderRadius: BorderRadius.circular(50),
-                              child: Image.asset(
-                                net.icon,
-                                width: 35,
-                                height: 35,
-                                fit: BoxFit.cover,
-                              ),
+                              child: net.icon == null
+                                  ? Container(
+                                      width: 35,
+                                      height: 35,
+                                      decoration: BoxDecoration(
+                                          color: textColor.withOpacity(0.6),
+                                          borderRadius:
+                                              BorderRadius.circular(50)),
+                                      child: Center(
+                                        child: Text(
+                                          net.name.substring(0, 2),
+                                          style: GoogleFonts.roboto(
+                                              color: primaryColor,
+                                              fontWeight: FontWeight.bold,
+                                              fontSize: 18),
+                                        ),
+                                      ),
+                                    )
+                                  : Image.asset(
+                                      net.icon ?? "",
+                                      width: 35,
+                                      height: 35,
+                                      fit: BoxFit.cover,
+                                    ),
                             ),
                             title: Text(
                               net.name,
@@ -944,108 +1013,179 @@ class _MainDashboardScreenState extends State<MainDashboardScreen>
                 height: 20,
               ),
               SizedBox(
-                height: height * 0.5,
+                height: height * 0.72,
                 width: width,
                 child: TabBarView(controller: _tabController, children: [
-                  Column(
-                    children: List.generate(cryptos.length, (index) {
-                      final crypto = cryptos[index];
-                      return Material(
-                        color: Colors.transparent,
-                        child: ListTile(
-                          onTap: () {
-                            Navigator.pushNamed(context, Routes.walletOverview,
-                                arguments: ({"index": index}));
-                          },
-                          leading: ClipRRect(
-                            borderRadius: BorderRadius.circular(50),
-                            child: Image.asset(
-                              crypto['image'],
-                              width: 40,
-                              height: 40,
+                  SingleChildScrollView(
+                    child: Column(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      crossAxisAlignment: CrossAxisAlignment.center,
+                      children:
+                          List.generate(reorganizedCrypto.length + 1, (index) {
+                        if (index == reorganizedCrypto.length) {
+                          return Padding(
+                            padding: const EdgeInsets.all(10),
+                            child: Align(
+                                alignment: Alignment.center,
+                                child: InkWell(
+                                  borderRadius: BorderRadius.circular(40),
+                                  splashColor: Colors.transparent,
+                                  onTap: () {},
+                                  child: Row(
+                                    spacing: 15,
+                                    mainAxisAlignment: MainAxisAlignment.center,
+                                    children: [
+                                      Icon(
+                                        LucideIcons.slidersVertical,
+                                        color: textColor.withOpacity(0.7),
+                                      ),
+                                      Text(
+                                        "Manage cryptos",
+                                        style: GoogleFonts.roboto(
+                                            color: textColor.withOpacity(0.7)),
+                                      )
+                                    ],
+                                  ),
+                                )),
+                          );
+                        }
+                        final crypto = reorganizedCrypto[index];
+
+                        return Material(
+                          color: Colors.transparent,
+                          child: ListTile(
+                            onTap: () {
+                              Navigator.pushNamed(
+                                  context, Routes.walletOverview,
+                                  arguments: ({"index": index}));
+                            },
+                            leading: Stack(
+                              children: [
+                                ClipRRect(
+                                  borderRadius: BorderRadius.circular(50),
+                                  child: crypto.icon == null
+                                      ? Container(
+                                          width: 40,
+                                          height: 40,
+                                          decoration: BoxDecoration(
+                                              color: textColor.withOpacity(0.6),
+                                              borderRadius:
+                                                  BorderRadius.circular(50)),
+                                          child: Center(
+                                            child: Text(
+                                              crypto.name.substring(0, 2),
+                                              style: GoogleFonts.roboto(
+                                                  color: primaryColor,
+                                                  fontWeight: FontWeight.bold,
+                                                  fontSize: 18),
+                                            ),
+                                          ),
+                                        )
+                                      : Image.asset(
+                                          crypto.icon ?? "",
+                                          width: 40,
+                                          height: 40,
+                                        ),
+                                ),
+                                if (crypto.type == CryptoType.token)
+                                  Positioned(
+                                      top: 30,
+                                      left: 30,
+                                      child: ClipRRect(
+                                        borderRadius: BorderRadius.circular(50),
+                                        child: Image.asset(
+                                          crypto.network?.icon ?? "",
+                                          width: 10,
+                                          height: 10,
+                                        ),
+                                      ))
+                              ],
                             ),
-                          ),
-                          title: Text(
-                            crypto['name'],
-                            style: GoogleFonts.roboto(
-                                color: textColor,
-                                fontSize: 16,
-                                fontWeight: FontWeight.bold),
-                          ),
-                          subtitle: FutureBuilder(
-                              future: getPrice(crypto["binanceSymbol"] ?? ""),
-                              builder: (BuildContext priceCtx,
-                                  AsyncSnapshot result) {
-                                if (result.hasData) {
-                                  return Text("${result.data}",
-                                      style: GoogleFonts.roboto(
-                                          color: textColor.withOpacity(0.6),
-                                          fontSize: 16,
-                                          fontWeight: FontWeight.bold));
-                                } else {
-                                  return Text("...",
-                                      style: GoogleFonts.roboto(
-                                          color: textColor.withOpacity(0.6),
-                                          fontSize: 14));
-                                }
-                              }),
-                          trailing: Column(
-                            mainAxisAlignment: MainAxisAlignment.center,
-                            crossAxisAlignment: CrossAxisAlignment.end,
-                            children: [
-                              FutureBuilder(
-                                  future: web3InteractManager.getBalance(
-                                      currentAccount.address,
-                                      crypto["rpcUrl"] ?? ""),
-                                  builder: (BuildContext balanceCtx,
-                                      AsyncSnapshot result) {
-                                    if (result.hasData) {
-                                      return ConstrainedBox(
-                                        constraints: BoxConstraints(
-                                            maxWidth: width * 0.3),
-                                        child: Text(
+                            title: Text(
+                              crypto.name,
+                              style: GoogleFonts.roboto(
+                                  color: textColor,
+                                  fontSize: 16,
+                                  fontWeight: FontWeight.bold),
+                            ),
+                            subtitle: FutureBuilder(
+                                future: getPrice(crypto.binanceSymbol ?? ""),
+                                builder: (BuildContext priceCtx,
+                                    AsyncSnapshot result) {
+                                  if (result.hasData) {
+                                    return Text("${result.data}",
+                                        style: GoogleFonts.roboto(
+                                            color: textColor.withOpacity(0.6),
+                                            fontSize: 16,
+                                            fontWeight: FontWeight.bold));
+                                  } else {
+                                    return Text("...",
+                                        style: GoogleFonts.roboto(
+                                            color: textColor.withOpacity(0.6),
+                                            fontSize: 14));
+                                  }
+                                }),
+                            trailing: Column(
+                              mainAxisAlignment: MainAxisAlignment.center,
+                              crossAxisAlignment: CrossAxisAlignment.end,
+                              children: [
+                                FutureBuilder(
+                                    future: web3InteractManager.getBalance(
+                                        currentAccount, crypto),
+                                    builder: (BuildContext balanceCtx,
+                                        AsyncSnapshot result) {
+                                      if (result.hasData) {
+                                        return ConstrainedBox(
+                                          constraints: BoxConstraints(
+                                              maxWidth: width * 0.3),
+                                          child: Text(
+                                              isHidden
+                                                  ? "***"
+                                                  : "${formatter.format(result.data).split('0').length - 1 > 6 ? 0 : formatter.format(result.data)}",
+                                              overflow: TextOverflow.clip,
+                                              maxLines: 1,
+                                              style: GoogleFonts.roboto(
+                                                  color: textColor,
+                                                  fontSize: 16,
+                                                  fontWeight: FontWeight.bold)),
+                                        );
+                                      } else {
+                                        return Text("...",
+                                            style: GoogleFonts.roboto(
+                                                color:
+                                                    textColor.withOpacity(0.6),
+                                                fontSize: 14));
+                                      }
+                                    }),
+                                FutureBuilder(
+                                    future: getBalanceUsd(
+                                      crypto,
+                                    ),
+                                    builder: (BuildContext balanceCtx,
+                                        AsyncSnapshot result) {
+                                      if (result.hasData) {
+                                        return Text(
                                             isHidden
                                                 ? "***"
-                                                : "${formatter.format(result.data).split('0').length - 1 > 6 ? 0 : formatter.format(result.data)}",
-                                            overflow: TextOverflow.clip,
-                                            maxLines: 1,
+                                                : "\$ ${result.data.toStringAsFixed(3)}",
                                             style: GoogleFonts.roboto(
-                                                color: textColor,
-                                                fontSize: 16,
-                                                fontWeight: FontWeight.bold)),
-                                      );
-                                    } else {
-                                      return Text("...",
-                                          style: GoogleFonts.roboto(
-                                              color: textColor.withOpacity(0.6),
-                                              fontSize: 14));
-                                    }
-                                  }),
-                              FutureBuilder(
-                                  future: getBalanceUsd(crypto["binanceSymbol"],
-                                      crypto["rpcUrl"]),
-                                  builder: (BuildContext balanceCtx,
-                                      AsyncSnapshot result) {
-                                    if (result.hasData) {
-                                      return Text(
-                                          isHidden
-                                              ? "***"
-                                              : "\$ ${result.data.toStringAsFixed(3)}",
-                                          style: GoogleFonts.roboto(
-                                              color: textColor.withOpacity(0.6),
-                                              fontSize: 14));
-                                    } else {
-                                      return Text("...",
-                                          style: GoogleFonts.roboto(
-                                              color: textColor.withOpacity(0.6),
-                                              fontSize: 14));
-                                    }
-                                  })
-                            ],
+                                                color:
+                                                    textColor.withOpacity(0.6),
+                                                fontSize: 14));
+                                      } else {
+                                        return Text("...",
+                                            style: GoogleFonts.roboto(
+                                                color:
+                                                    textColor.withOpacity(0.6),
+                                                fontSize: 14));
+                                      }
+                                    })
+                              ],
+                            ),
                           ),
-                        ),
-                      );
-                    }),
+                        );
+                      }),
+                    ),
                   ),
                   Container(
                     color: Colors.transparent,

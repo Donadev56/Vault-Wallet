@@ -64,7 +64,7 @@ class _WalletViewScreenState extends State<WalletViewScreen>
   ];
   double totalBalanceUsd = 0;
   bool _isInitialized = false;
-  Crypto currentNetwork = networks[0];
+  Crypto currentNetwork = cryptos[0];
   double userLastBalance = 0;
   void setLightMode() {
     setState(() {
@@ -88,7 +88,7 @@ class _WalletViewScreenState extends State<WalletViewScreen>
     });
   }
 
- Future<void> getThemeMode() async {
+  Future<void> getThemeMode() async {
     try {
       final savedMode =
           await publicDataManager.getDataFromPrefs(key: "isDarkMode");
@@ -155,7 +155,6 @@ class _WalletViewScreenState extends State<WalletViewScreen>
       }
 
       getTransactions();
-
     } catch (e) {
       logError('Error getting saved wallets: $e');
     }
@@ -305,16 +304,11 @@ class _WalletViewScreenState extends State<WalletViewScreen>
     }
   }
 
-  Future<double> getBalanceUsd(String symbol, String rpcUrl) async {
+  Future<double> getBalanceUsd(String symbol, Crypto crypto) async {
     try {
-      log(rpcUrl);
-      if (rpcUrl.isEmpty || symbol.isEmpty) {
-        return 0;
-      }
-
       final price = await getPrice(symbol);
       final balanceEth =
-          await web3InteractManager.getBalance(currentAccount.address, rpcUrl);
+          await web3InteractManager.getBalance(currentAccount, crypto);
       log("Balance eth $balanceEth");
       final balanceUsd = balanceEth * price;
       if (balanceUsd > 0) {
@@ -356,7 +350,7 @@ class _WalletViewScreenState extends State<WalletViewScreen>
       final data = ModalRoute.of(context)?.settings.arguments;
       if (data != null && (data as Map<String, dynamic>)["index"] != null) {
         final index = data["index"];
-        currentNetwork = networks[index];
+        currentNetwork = cryptos[index];
         setState(() {
           currentNetworkIndex = index;
         });
@@ -428,7 +422,8 @@ class _WalletViewScreenState extends State<WalletViewScreen>
                                     children: [
                                       FutureBuilder(
                                         future: priceManager.checkCryptoTrend(
-                                            currentNetwork.binanceSymbol ?? "https://opbnb-mainnet-rpc.bnbchain.org"),
+                                            currentNetwork.binanceSymbol ??
+                                                "https://opbnb-mainnet-rpc.bnbchain.org"),
                                         builder: (BuildContext trendCtx,
                                             AsyncSnapshot result) {
                                           if (result.hasData) {
@@ -562,14 +557,47 @@ class _WalletViewScreenState extends State<WalletViewScreen>
                         decoration: BoxDecoration(
                           borderRadius: BorderRadius.circular(50),
                         ),
-                        child: ClipRRect(
-                          borderRadius: BorderRadius.circular(50),
-                          child: Image.asset(
-                            currentNetwork.icon,
-                            width: 65,
-                            height: 65,
-                            fit: BoxFit.cover,
-                          ),
+                        child: Stack(
+                          children: [
+                            ClipRRect(
+                              borderRadius: BorderRadius.circular(50),
+                              child: currentNetwork.icon == null
+                                  ? Container(
+                                      width: 65,
+                                      height: 65,
+                                      decoration: BoxDecoration(
+                                          color: textColor.withOpacity(0.6),
+                                          borderRadius:
+                                              BorderRadius.circular(50)),
+                                      child: Center(
+                                        child: Text(
+                                          currentNetwork.name.substring(0, 2),
+                                          style: GoogleFonts.roboto(
+                                              color: primaryColor,
+                                              fontWeight: FontWeight.bold,
+                                              fontSize: 18),
+                                        ),
+                                      ),
+                                    )
+                                  : Image.asset(
+                                      currentNetwork.icon ?? "",
+                                      width: 65,
+                                      height: 65,
+                                    ),
+                            ),
+                            if (currentNetwork.type == CryptoType.token)
+                              Positioned(
+                                  top: 45,
+                                  left: 45,
+                                  child: ClipRRect(
+                                    borderRadius: BorderRadius.circular(50),
+                                    child: Image.asset(
+                                      currentNetwork.network?.icon ?? "",
+                                      width: 20,
+                                      height: 20,
+                                    ),
+                                  ))
+                          ],
                         ),
                       ),
                       SizedBox(
@@ -580,7 +608,7 @@ class _WalletViewScreenState extends State<WalletViewScreen>
                         child: Center(
                           child: FutureBuilder(
                               future: web3InteractManager.getBalance(
-                                  currentAccount.address, currentNetwork.rpc ?? "https://opbnb-mainnet-rpc.bnbchain.org"),
+                                  currentAccount, currentNetwork),
                               builder: (BuildContext balanceCtx,
                                   AsyncSnapshot result) {
                                 if (result.hasData) {
@@ -612,7 +640,8 @@ class _WalletViewScreenState extends State<WalletViewScreen>
                       ),
                       FutureBuilder(
                           future: getBalanceUsd(
-                              currentNetwork.binanceSymbol ?? "", currentNetwork.rpc ?? "https://opbnb-mainnet-rpc.bnbchain.org"),
+                              currentNetwork.binanceSymbol ?? "",
+                              currentNetwork),
                           builder: (BuildContext ctx, AsyncSnapshot result) {
                             if (result.hasData) {
                               return Text(

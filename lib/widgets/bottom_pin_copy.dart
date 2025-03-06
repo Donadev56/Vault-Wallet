@@ -102,7 +102,6 @@ Future<bool> showPinModalBottomSheet(
             constraints: BoxConstraints(maxWidth: 700),
             child: Container(
               decoration: BoxDecoration(
-               
                 color: Color(0XFF212121),
               ),
               child: Column(
@@ -129,8 +128,11 @@ Future<bool> showPinModalBottomSheet(
                             constraints: BoxConstraints(maxWidth: 90),
                             child: Container(
                               decoration: BoxDecoration(
-                                  border:
-                                      Border.all(width: 3, color: numberOfNumbers > index ? Colors.white : Colors.white.withOpacity(0.3)),
+                                  border: Border.all(
+                                      width: 3,
+                                      color: numberOfNumbers > index
+                                          ? Colors.white
+                                          : Colors.white.withOpacity(0.3)),
                                   borderRadius: BorderRadius.circular(10)),
                               alignment: Alignment.center,
                               width: width * 0.1,
