@@ -4,7 +4,7 @@ import 'package:google_fonts/google_fonts.dart';
 import 'package:lucide_icons_flutter/lucide_icons.dart';
 import 'package:moonwallet/logger/logger.dart';
 import 'package:moonwallet/main.dart';
-import 'package:moonwallet/service/web3.dart';
+import 'package:moonwallet/service/wallet_saver.dart';
 import 'package:moonwallet/types/types.dart';
 import 'package:moonwallet/widgets/bottom_pin.dart';
 import 'package:moonwallet/widgets/snackbar.dart';
@@ -21,6 +21,7 @@ class _CreatePrivateKeyState extends State<CreatePrivateKey> {
   Map<String, dynamic>? data;
   String firstPassword = "";
   String secondPassword = "";
+  final manager = WalletSaver();
 
   @override
   void initState() {
@@ -37,7 +38,6 @@ class _CreatePrivateKeyState extends State<CreatePrivateKey> {
 
   Future<void> createKey() async {
     try {
-      final manager = Web3Manager();
 
       final key = await manager.createPrivatekey();
       if (key.isNotEmpty) {
@@ -87,13 +87,12 @@ class _CreatePrivateKeyState extends State<CreatePrivateKey> {
       if (data == null) {
         throw Exception("No key generated yet.");
       }
-      final web3Manager = Web3Manager();
       final key = data!["key"];
       final mnemonic = data!["seed"];
       if (firstPassword.isEmpty || firstPassword != secondPassword) {
         throw Exception("passwords must not be empty or not equal ");
       }
-      final result = await web3Manager.savePrivatekeyInStorage(
+      final result = await manager.savePrivatekeyInStorage(
           key, firstPassword, "MoonWallet-1", mnemonic);
       if (result) {
         if (!mounted) return;

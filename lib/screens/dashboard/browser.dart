@@ -11,7 +11,7 @@ import 'package:flutter_web3_webview/flutter_web3_webview.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:lucide_icons_flutter/lucide_icons.dart';
 import 'package:moonwallet/logger/logger.dart';
-import 'package:moonwallet/service/web3.dart';
+import 'package:moonwallet/service/wallet_saver.dart';
 import 'package:moonwallet/service/web3_interaction.dart';
 import 'package:moonwallet/types/types.dart';
 import 'package:moonwallet/utils/constant.dart';
@@ -52,7 +52,7 @@ class Web3BrowserScreenState extends State<Web3BrowserScreen> {
       walletName: "",
       address: "",
       isWatchOnly: false);
-  final web3Manager = Web3Manager();
+  final web3Manager = WalletSaver();
   final web3IntManager = Web3InteractionManager();
   final priceManager = PriceManager();
 

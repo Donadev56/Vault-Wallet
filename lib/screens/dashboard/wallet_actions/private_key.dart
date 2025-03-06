@@ -4,7 +4,7 @@ import 'package:google_fonts/google_fonts.dart';
 import 'package:lucide_icons_flutter/lucide_icons.dart';
 import 'package:moonwallet/logger/logger.dart';
 import 'package:moonwallet/main.dart';
-import 'package:moonwallet/service/web3.dart';
+import 'package:moonwallet/service/wallet_saver.dart';
 import 'package:moonwallet/types/types.dart';
 import 'package:moonwallet/utils/prefs.dart';
 import 'package:moonwallet/widgets/bottom_pin.dart';
@@ -29,6 +29,8 @@ class _CreatePrivateKeyState extends State<CreatePrivateKeyMain> {
   Color surfaceTintColor = Color(0XFF454545);
   final publicDataManager = PublicDataManager();
   bool isDarkMode = false;
+    final manager = WalletSaver();
+
   @override
   void initState() {
     _textController = TextEditingController();
@@ -99,7 +101,6 @@ class _CreatePrivateKeyState extends State<CreatePrivateKeyMain> {
 
   Future<void> createKey() async {
     try {
-      final manager = Web3Manager();
 
       final key = await manager.createPrivatekey();
       if (key.isNotEmpty) {
@@ -119,7 +120,6 @@ class _CreatePrivateKeyState extends State<CreatePrivateKeyMain> {
   Future<PinSubmitResult> handleSubmit(String numbers) async {
     attempt++;
 
-    final manager = Web3Manager();
     final password = await manager.getSavedPassword();
     if (password != null && numbers.trim() == password.trim()) {
       setState(() {
@@ -163,13 +163,12 @@ class _CreatePrivateKeyState extends State<CreatePrivateKeyMain> {
       if (data == null) {
         throw Exception("No key generated yet.");
       }
-      final web3Manager = Web3Manager();
       final key = data!["key"];
       final mnemonic = data!["seed"];
       if (userPassword.isEmpty) {
         throw Exception("passwords must not be empty or not equal ");
       }
-      final result = await web3Manager.savePrivatekeyInStorage(
+      final result = await manager.savePrivatekeyInStorage(
           key, userPassword, "MoonWallet-1", mnemonic);
       if (result) {
         if (!mounted) return;

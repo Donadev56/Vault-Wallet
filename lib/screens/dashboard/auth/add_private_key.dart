@@ -4,7 +4,7 @@ import 'package:google_fonts/google_fonts.dart';
 import 'package:lucide_icons_flutter/lucide_icons.dart';
 import 'package:moonwallet/logger/logger.dart';
 import 'package:moonwallet/main.dart';
-import 'package:moonwallet/service/web3.dart';
+import 'package:moonwallet/service/wallet_saver.dart';
 import 'package:moonwallet/types/types.dart';
 import 'package:moonwallet/widgets/bottom_pin.dart';
 import 'package:moonwallet/widgets/snackbar.dart';
@@ -71,7 +71,7 @@ class _AddPrivateKeyState extends State<AddPrivateKey> {
       if (_textController.text.isEmpty) {
         throw Exception("No key generated yet.");
       }
-      final web3Manager = Web3Manager();
+  final web3Manager = WalletSaver();
       final key = _textController.text.trim();
       if (firstPassword.isEmpty || firstPassword != secondPassword) {
         throw Exception("passwords must not be empty or not equal ");

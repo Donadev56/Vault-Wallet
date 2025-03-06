@@ -4,7 +4,7 @@ import 'package:google_fonts/google_fonts.dart';
 import 'package:lucide_icons_flutter/lucide_icons.dart';
 import 'package:moonwallet/logger/logger.dart';
 import 'package:moonwallet/main.dart';
-import 'package:moonwallet/service/web3.dart';
+import 'package:moonwallet/service/wallet_saver.dart';
 import 'package:moonwallet/types/types.dart';
 import 'package:moonwallet/utils/prefs.dart';
 import 'package:moonwallet/widgets/bottom_pin.dart';
@@ -29,7 +29,7 @@ class _AddPrivateKeyState extends State<AddObservationWallet> {
   Color secondaryColor = Colors.greenAccent;
   Color actionsColor = Color(0XFF353535);
   Color surfaceTintColor = Color(0XFF454545);
-  final web3Manager = Web3Manager();
+  final web3Manager = WalletSaver();
   final publicDataManager = PublicDataManager();
   bool isDarkMode = false;
   @override
@@ -104,8 +104,7 @@ class _AddPrivateKeyState extends State<AddObservationWallet> {
   Future<PinSubmitResult> handleSubmit(String numbers) async {
     attempt++;
     secAttempt++;
-    final manager = Web3Manager();
-    final password = await manager.getSavedPassword();
+    final password = await web3Manager.getSavedPassword();
     if (password != null && numbers.trim() == password.trim()) {
       setState(() {
         userPassword = numbers.trim();

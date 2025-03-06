@@ -8,7 +8,7 @@ import 'package:google_fonts/google_fonts.dart';
 import 'package:lucide_icons_flutter/lucide_icons.dart';
 import 'package:moonwallet/logger/logger.dart';
 import 'package:moonwallet/service/price_manager.dart';
-import 'package:moonwallet/service/web3.dart';
+import 'package:moonwallet/service/wallet_saver.dart';
 import 'package:moonwallet/types/types.dart';
 import 'package:moonwallet/utils/constant.dart';
 import 'package:moonwallet/utils/crypto.dart';
@@ -40,7 +40,7 @@ class _ReceiveScreenState extends State<ReceiveScreen> {
       walletName: "",
       address: "",
       isWatchOnly: false);
-  final web3Manager = Web3Manager();
+  final web3Manager = WalletSaver();
   final encryptService = EncryptService();
   final priceManager = PriceManager();
   final publicDataManager = PublicDataManager();
@@ -160,7 +160,7 @@ class _ReceiveScreenState extends State<ReceiveScreen> {
   @override
   Widget build(BuildContext context) {
     final width = MediaQuery.of(context).size.width;
-    final height = MediaQuery.of(context).size.height;
+    //final height = MediaQuery.of(context).size.height;
 
     return Scaffold(
       backgroundColor: primaryColor,

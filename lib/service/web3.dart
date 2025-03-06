@@ -1,3 +1,4 @@
+
 import 'dart:convert';
 
 import 'package:bip39/bip39.dart' as bip39;
@@ -232,23 +233,7 @@ class Web3Manager {
   }
 
   // decrypt saved data using password
-  Future<List<Map<String, dynamic>>> loadPrivatekeysFromStorage(
-      String password) async {
-    final encryptedData = await secureService.loadDataFromFSS(encName);
-
-    if (encryptedData == null) {
-      return [];
-    }
-
-    final decryptedData =
-        await encryptService.decryptJson(encryptedData, password);
-    if (decryptedData == null) {
-      return [];
-    }
-
-    final List<Map<String, dynamic>> dataList = json.decode(decryptedData);
-    return dataList;
-  }
+ 
 
   Future<bool> saveObservationWalletInStorage(
       String walletName, String address) async {

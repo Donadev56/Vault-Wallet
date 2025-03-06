@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_web3_webview/flutter_web3_webview.dart';
 import 'package:moonwallet/logger/logger.dart';
 import 'package:moonwallet/service/price_manager.dart';
+import 'package:moonwallet/service/wallet_saver.dart';
 import 'package:moonwallet/service/web3.dart';
 import 'package:moonwallet/types/types.dart';
 import 'package:moonwallet/widgets/askUserforconf.dart';
@@ -13,7 +14,7 @@ import 'package:http/http.dart';
 
 class Web3InteractionManager {
   var httpClient = Client();
-  final web3manager = Web3Manager();
+  final web3Manager = WalletSaver();
   final priceManager = PriceManager();
 
   Uint8List hexToUint8List(String hex) {
@@ -63,7 +64,7 @@ class Web3InteractionManager {
         throw Exception("Internal error : rpcUrl is empty");
       }
       var ethClient = Web3Client(rpcUrl, httpClient);
-      final savedPrivateKeys = await web3manager.getDecryptedData(password);
+      final savedPrivateKeys = await web3Manager.getDecryptedData(password);
       if (savedPrivateKeys != null) {
         log("Retrieved private key list");
 
@@ -269,7 +270,7 @@ class Web3InteractionManager {
             // ignore: use_build_context_synchronously
             context: context,
             handleSubmit: (password) async {
-              final savedPassword = await web3manager.getSavedPassword();
+              final savedPassword = await web3Manager.getSavedPassword();
               if (password.trim() != savedPassword) {
                 return PinSubmitResult(
                     success: false,

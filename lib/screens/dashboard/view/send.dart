@@ -17,7 +17,7 @@ import 'package:moonwallet/logger/logger.dart';
 import 'package:moonwallet/main.dart';
 import 'package:moonwallet/service/price_manager.dart';
 import 'package:moonwallet/service/vibration.dart';
-import 'package:moonwallet/service/web3.dart';
+import 'package:moonwallet/service/wallet_saver.dart';
 import 'package:moonwallet/service/web3_interaction.dart';
 import 'package:moonwallet/types/types.dart';
 import 'package:moonwallet/utils/constant.dart';
@@ -62,7 +62,7 @@ class _SendTransactionScreenState extends State<SendTransactionScreen> {
       walletName: "",
       address: "",
       isWatchOnly: false);
-  final web3Manager = Web3Manager();
+  final web3Manager = WalletSaver();
   final encryptService = EncryptService();
   final priceManager = PriceManager();
   final publicDataManager = PublicDataManager();

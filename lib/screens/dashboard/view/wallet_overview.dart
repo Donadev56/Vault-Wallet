@@ -13,7 +13,7 @@ import 'package:intl/intl.dart';
 import 'package:moonwallet/logger/logger.dart';
 import 'package:moonwallet/main.dart';
 import 'package:moonwallet/service/price_manager.dart';
-import 'package:moonwallet/service/web3.dart';
+import 'package:moonwallet/service/wallet_saver.dart';
 import 'package:moonwallet/service/web3_interaction.dart';
 import 'package:moonwallet/types/types.dart';
 import 'package:moonwallet/utils/constant.dart';
@@ -41,7 +41,7 @@ class _WalletViewScreenState extends State<WalletViewScreen>
       address: "",
       isWatchOnly: false);
   List<PublicData> accounts = [];
-  final web3Manager = Web3Manager();
+  final web3Manager = WalletSaver();
   final encryptService = EncryptService();
   final priceManager = PriceManager();
   final web3InteractManager = Web3InteractionManager();
