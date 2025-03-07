@@ -153,7 +153,8 @@ class _ReceiveScreenState extends State<ReceiveScreen> {
       final data = ModalRoute.of(context)?.settings.arguments;
       if (data != null && (data as Map<String, dynamic>)["id"] != null) {
         final id = data["id"];
-        final savedCrypto = await cryptoStorageManager.getSavedCryptos();
+        final savedCrypto =
+            await cryptoStorageManager.getSavedCryptos(wallet: currentAccount);
         if (savedCrypto != null) {
           for (final crypto in savedCrypto) {
             if (crypto.cryptoId == id) {

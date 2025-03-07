@@ -96,31 +96,7 @@ class MyApp extends StatelessWidget {
         final savedData = await lastDbManager.getPublicData();
         final decryptedData =
             await lastDbManager.getDecryptedData(savedPassword);
-        /* List< PublicData > publicAccounts = [] ;
-       List< SecureData > privateAccounts = [] ;
 
-
-      if (savedData != null ) {
-        for (final account in savedData) {
-          final newAccount = PublicData.fromJson(account);
-            publicAccounts.add(newAccount);
-        }
-
-        }
-
-        if (decryptedData != null) {
-          for (final data in decryptedData) {
-          final SecureData newData = SecureData(
-            address: data["address"],
-            privateKey: data["privatekey"],
-            keyId: data["keyId"],
-            creationDate: data["creationDate"],
-            walletName: data["walletName"],
-            mnemonic: data["mnemonic"] ?? "No Mnemonic",
-          );
-          privateAccounts.add(newData);
-        }
-        } */
         int savedTimes = 0;
         if (savedData != null) {
           final saved = await newDbManager.saveListPublicDataJson(savedData);
@@ -187,7 +163,7 @@ class MyApp extends StatelessWidget {
                 ),
                 initialRoute: result.data ? Routes.main : Routes.home,
                 routes: {
-                  Routes.main: (context) => MainDashboardScreen(),
+                  Routes.main: (context) => MainDashboardScreen(key: key),
                   Routes.discover: (context) => DiscoverScreen(),
                   Routes.browser: (context) => Web3BrowserScreen(),
                   Routes.home: (context) => HomeScreen(),
@@ -212,15 +188,16 @@ class MyApp extends StatelessWidget {
               decoration: BoxDecoration(color: Color(0XFF0D0D0D)),
               child: Center(
                 child: Container(
-                    width: 160,
-                    height: 160,
+                    padding: const EdgeInsets.all(10),
+                    width: 100,
+                    height: 100,
                     decoration: BoxDecoration(
                         color: Color(0XFF212121),
                         borderRadius: BorderRadius.circular(10)),
                     child: Center(
                       child: SizedBox(
-                        width: 100,
-                        height: 100,
+                        width: 70,
+                        height: 70,
                         child: CircularProgressIndicator(
                           color: Colors.white,
                         ),

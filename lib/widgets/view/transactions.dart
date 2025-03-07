@@ -117,11 +117,11 @@ class TransactionsListElement extends StatelessWidget {
                             ),
                           ),
                           title: Text(
-                            "${isFrom ? "-" : "+"} ${int.parse(tr.value) / 1e18}",
+                            isFrom
+                                ? "- ${BigInt.parse(tr.value).toDouble() / 1e18}"
+                                : "+ ${BigInt.parse(tr.value).toDouble() / 1e18}",
                             style: GoogleFonts.roboto(
-                                color: textColor,
-                                fontSize: 15,
-                                fontWeight: FontWeight.bold),
+                                color: textColor, fontWeight: FontWeight.bold),
                           ),
                           subtitle: Text(
                             currentNetwork.name,
@@ -151,7 +151,9 @@ class TransactionsListElement extends StatelessWidget {
                                 Row(
                                   children: [
                                     Text(
-                                      "${tr.from.substring(0, 6)}...${tr.from.substring(tr.from.length - 6)}",
+                                      tr.from.length > 6
+                                          ? "${tr.from.substring(0, 6)}...${tr.from.substring(tr.from.length - 6)}"
+                                          : "...",
                                       style: GoogleFonts.roboto(
                                           color: textColor, fontSize: 14),
                                     ),
@@ -185,7 +187,9 @@ class TransactionsListElement extends StatelessWidget {
                                 Row(
                                   children: [
                                     Text(
-                                      "${tr.to.substring(0, 6)}...${tr.to.substring(tr.to.length - 6)}",
+                                      tr.to.length > 6
+                                          ? "${tr.to.substring(0, 6)}...${tr.to.substring(tr.to.length - 6)}"
+                                          : "...",
                                       style: GoogleFonts.roboto(
                                           color: textColor, fontSize: 14),
                                     ),
@@ -230,7 +234,9 @@ class TransactionsListElement extends StatelessWidget {
                                 Row(
                                   children: [
                                     Text(
-                                      "${tr.hash.substring(0, 6)}...${tr.hash.substring(tr.hash.length - 6)}",
+                                      tr.hash.length > 6
+                                          ? "${tr.hash.substring(0, 6)}...${tr.hash.substring(tr.hash.length - 6)}"
+                                          : "...",
                                       style: GoogleFonts.roboto(
                                           color: textColor, fontSize: 14),
                                     ),
@@ -342,8 +348,12 @@ class TransactionsListElement extends StatelessWidget {
         ),
         subtitle: Text(
             isFrom
-                ? "To : ${tr.to.substring(0, 6)}...${tr.to.substring(tr.to.length - 6, tr.to.length)}"
-                : "From : ${tr.from.substring(0, 6)}... ${tr.from.substring(tr.from.length - 6, tr.from.length)}",
+                ? tr.to.length > 6
+                    ? "To : ${tr.to.substring(0, 6)}...${tr.to.substring(tr.to.length - 6, tr.to.length)}"
+                    : "To : ...."
+                : tr.from.length > 6
+                    ? "From : ${tr.from.substring(0, 6)}... ${tr.from.substring(tr.from.length - 6, tr.from.length)}"
+                    : "From : ...",
             style: GoogleFonts.roboto(
                 color: textColor.withOpacity(0.4), fontSize: 12)),
         trailing: Column(
@@ -351,8 +361,8 @@ class TransactionsListElement extends StatelessWidget {
           children: [
             Text(
               isFrom
-                  ? "- ${int.parse(tr.value) / 1e18}"
-                  : "+ ${int.parse(tr.value) / 1e18}",
+                  ? "- ${BigInt.parse(tr.value).toDouble() / 1e18}"
+                  : "+ ${BigInt.parse(tr.value).toDouble() / 1e18}",
               style: GoogleFonts.roboto(
                   color: textColor, fontWeight: FontWeight.bold),
             ),

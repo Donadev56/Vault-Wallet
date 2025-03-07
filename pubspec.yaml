@@ -65,6 +65,7 @@ dependencies:
   path_provider: ^2.1.5
   permission_handler: ^11.0.1
   mobile_scanner: ^6.0.6
+  pull_to_refresh: ^2.0.0
 
 
   
@@ -114,6 +115,9 @@ flutter:
   - assets/logos/usdt.png
   - assets/logos/usdt2.png
   - assets/logos/bitcoin.png
+  - assets/logos/eth.png
+  - assets/logos/pol.webp
+
 
 
 

@@ -328,7 +328,6 @@ class _WalletViewScreenState extends State<WalletViewScreen>
   void initState() {
     super.initState();
     getThemeMode();
-    getSavedWallets();
     getCryptoData();
     reorganizeCrypto();
     _tabController = TabController(length: 3, vsync: this);
@@ -349,7 +348,8 @@ class _WalletViewScreenState extends State<WalletViewScreen>
 
   Future<void> reorganizeCrypto() async {
     final List<Crypto> standardCrypto = cryptos;
-    final savedCrypto = await cryptoStorageManager.getSavedCryptos();
+    final savedCrypto =
+        await cryptoStorageManager.getSavedCryptos(wallet: currentAccount);
     if (savedCrypto == null || savedCrypto.isEmpty) {
       setState(() {
         reorganizedCrypto = standardCrypto;
@@ -368,7 +368,9 @@ class _WalletViewScreenState extends State<WalletViewScreen>
       final data = ModalRoute.of(context)?.settings.arguments;
       if (data != null && (data as Map<String, dynamic>)["id"] != null) {
         final id = data["id"];
-        final savedCrypto = await cryptoStorageManager.getSavedCryptos();
+        await getSavedWallets();
+        final savedCrypto =
+            await cryptoStorageManager.getSavedCryptos(wallet: currentAccount);
         if (savedCrypto != null) {
           for (final crypto in savedCrypto) {
             if (crypto.cryptoId == id) {
@@ -378,6 +380,7 @@ class _WalletViewScreenState extends State<WalletViewScreen>
             }
           }
         }
+
         await getTransactions();
 
         log("Network sets to ${currentCrypto.binanceSymbol}");

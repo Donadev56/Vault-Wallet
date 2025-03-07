@@ -42,9 +42,41 @@ final binanceNetwork = Crypto(
     color: Colors.orange,
     cryptoId: "a2e6b128-616b-4702-af5f-453c9231cea8");
 
+final polygonNetwork = Crypto(
+    apiBaseUrl: "api.polygonscan.com",
+    apiKey: "BUVQC2CWQXGZTPARK1215KQ7Y6CQ6A47QJ",
+    canDisplay: false,
+    valueUsd: 0,
+    type: CryptoType.network,
+    explorer: "https://polygonscan.com/",
+    rpc: "https://polygon-rpc.com",
+    name: "POL",
+    binanceSymbol: "POLUSDT",
+    icon: "assets/logos/pol.webp",
+    chainId: 137,
+    color: Colors.blueAccent,
+    cryptoId: "a2e6b376-7263-4502-af5f-453c92316262");
+
+final ethereumNetwork = Crypto(
+    apiBaseUrl: "api.etherscan.io",
+    apiKey: "5IABWY62PY3RMGR9WT6547X7VW6CQIG1CN",
+    canDisplay: false,
+    valueUsd: 0,
+    type: CryptoType.network,
+    explorer: "https://etherscan.io/",
+    rpc: "https://rpc.ankr.com/eth",
+    name: "ETH",
+    binanceSymbol: "ETHUSDT",
+    icon: "assets/logos/eth.png",
+    chainId: 1,
+    color: Colors.grey,
+    cryptoId: "42e6b336-616b-4502-af5f-453c9231ce09");
+
 final List<Crypto> cryptos = [
   opBNbNetwork,
   binanceNetwork,
+  polygonNetwork,
+  ethereumNetwork,
   Crypto(
       canDisplay: true,
       network: opBNbNetwork,
@@ -84,8 +116,38 @@ final List<Crypto> cryptos = [
     binanceSymbol: "",
     icon: "assets/image.png",
     chainId: 0,
-    cryptoId: "01991504-566f-41d8-8372-186244f6363e",
+    cryptoId: "08881504-566f-41d8-8372-186244f6363e",
     color: Colors.orange,
+  ),
+  Crypto(
+    contractAddress: "0xc2132D05D31c914a87C6611C10748AEb04B58e8F",
+    canDisplay: false,
+    network: polygonNetwork,
+    valueUsd: 0,
+    type: CryptoType.token,
+    explorer: polygonNetwork.explorer,
+    rpc: polygonNetwork.rpc,
+    name: "USDT",
+    binanceSymbol: "USDCUSDT",
+    icon: "assets/logos/usdt2.png",
+    chainId: 0,
+    cryptoId: "01991504-000f-41d8-8372-186244f6363e",
+    color: Colors.greenAccent,
+  ),
+  Crypto(
+    contractAddress: "0xdAC17F958D2ee523a2206206994597C13D831ec7",
+    canDisplay: false,
+    network: ethereumNetwork,
+    valueUsd: 0,
+    type: CryptoType.token,
+    explorer: ethereumNetwork.explorer,
+    rpc: ethereumNetwork.rpc,
+    name: "USDT",
+    binanceSymbol: "USDCUSDT",
+    icon: "assets/logos/usdt2.png",
+    chainId: 0,
+    cryptoId: "00996664-566f-41d8-8372-186244f6363e",
+    color: Colors.greenAccent,
   ),
 ];
 
