@@ -5,6 +5,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_web3_webview/flutter_web3_webview.dart';
 import 'package:moonwallet/logger/logger.dart';
+import 'package:moonwallet/screens/dashboard/add_crypto.dart';
 import 'package:moonwallet/screens/dashboard/auth/add_private_key.dart';
 import 'package:moonwallet/screens/dashboard/auth/home.dart';
 import 'package:moonwallet/screens/dashboard/auth/pinManager.dart';
@@ -55,6 +56,7 @@ class Routes {
   static const String receiveScreen = '/receiveScreen';
   static const String sendScreen = '/sendScreen';
   static const String settings = '/settings';
+  static const String addCrypto = '/main/addCrypto';
 
   static const String privateKeyCreator = '/privatekeyCreator';
 }
@@ -203,6 +205,7 @@ class MyApp extends StatelessWidget {
                   Routes.receiveScreen: (context) => ReceiveScreen(),
                   Routes.sendScreen: (context) => SendTransactionScreen(),
                   Routes.settings: (context) => SettingsPage(),
+                  Routes.addCrypto: (context) => AddCryptoView(),
                 });
           } else {
             return Container(

@@ -15,6 +15,7 @@ import 'package:lucide_icons_flutter/lucide_icons.dart';
 import 'package:mobile_scanner/mobile_scanner.dart';
 import 'package:moonwallet/logger/logger.dart';
 import 'package:moonwallet/main.dart';
+import 'package:moonwallet/service/crypto_storage_manager.dart';
 import 'package:moonwallet/service/price_manager.dart';
 import 'package:moonwallet/service/vibration.dart';
 import 'package:moonwallet/service/wallet_saver.dart';
@@ -72,6 +73,7 @@ class _SendTransactionScreenState extends State<SendTransactionScreen> {
   final TextEditingController _addressController = TextEditingController();
   final TextEditingController _amountController = TextEditingController();
   final TextEditingController _amountUsdController = TextEditingController();
+  final cryptoStorageManager = CryptoStorageManager();
 
   @override
   void initState() {
@@ -391,13 +393,23 @@ class _SendTransactionScreenState extends State<SendTransactionScreen> {
   }
 
   @override
-  void didChangeDependencies() {
+  void didChangeDependencies() async {
     super.didChangeDependencies();
     if (!_isInitialized) {
       final data = ModalRoute.of(context)?.settings.arguments;
-      if (data != null && (data as Map<String, dynamic>)["index"] != null) {
-        final index = data["index"];
-        currentNetwork = cryptos[index];
+      if (data != null && (data as Map<String, dynamic>)["id"] != null) {
+        final id = data["id"];
+        final savedCrypto = await cryptoStorageManager.getSavedCryptos();
+        if (savedCrypto != null) {
+          for (final crypto in savedCrypto) {
+            if (crypto.cryptoId == id) {
+              setState(() {
+                currentNetwork = crypto;
+              });
+            }
+          }
+        }
+
         log("Network sets to ${currentNetwork.binanceSymbol}");
       }
       _isInitialized = true;

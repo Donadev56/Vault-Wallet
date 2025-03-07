@@ -32,6 +32,95 @@ class TokenManager {
       return 0;
     }
   }
+
+  Future<String?> getTokenName(
+      {required Crypto network, required String contractAddress}) async {
+    try {
+      if (network.rpc == null) {
+        throw Exception('RPC URL  is not provided');
+      }
+
+      final client = Web3Client(network.rpc ?? "", httpClient);
+      final EthereumAddress contractAddr =
+          EthereumAddress.fromHex(contractAddress);
+      final contract = DeployedContract(
+          ContractAbi.fromJson(standardTokenAbi, ""), contractAddr);
+      final balanceFunction = contract.function("name");
+      final result = await client
+          .call(contract: contract, function: balanceFunction, params: []);
+      return (result.first as String);
+    } catch (e) {
+      logError(e.toString());
+      return null;
+    }
+  }
+
+  Future<BigInt?> getTokenDecimals(
+      {required Crypto network, required String contractAddress}) async {
+    try {
+      if (network.rpc == null) {
+        throw Exception('RPC URL  is not provided');
+      }
+
+      final client = Web3Client(network.rpc ?? "", httpClient);
+      final EthereumAddress contractAddr =
+          EthereumAddress.fromHex(contractAddress);
+      final contract = DeployedContract(
+          ContractAbi.fromJson(standardTokenAbi, ""), contractAddr);
+      final balanceFunction = contract.function("decimals");
+      final result = await client
+          .call(contract: contract, function: balanceFunction, params: []);
+      return (result.first as BigInt);
+    } catch (e) {
+      logError(e.toString());
+      return null;
+    }
+  }
+
+  Future<String?> getTokenSymbol(
+      {required Crypto network, required String contractAddress}) async {
+    try {
+      if (network.rpc == null) {
+        throw Exception('RPC URL  is not provided');
+      }
+
+      final client = Web3Client(network.rpc ?? "", httpClient);
+      final EthereumAddress contractAddr =
+          EthereumAddress.fromHex(contractAddress);
+      final contract = DeployedContract(
+          ContractAbi.fromJson(standardTokenAbi, ""), contractAddr);
+      final balanceFunction = contract.function("symbol");
+      final result = await client
+          .call(contract: contract, function: balanceFunction, params: []);
+      return (result.first as String);
+    } catch (e) {
+      logError(e.toString());
+      return null;
+    }
+  }
+
+  Future<SearchingContractInfo?> getCryptoInfo(
+      {required String address, required Crypto network}) async {
+    try {
+      SearchingContractInfo? info;
+      final name =
+          await getTokenName(network: network, contractAddress: address);
+      final decimals =
+          await getTokenDecimals(network: network, contractAddress: address);
+      final symbol =
+          await getTokenSymbol(network: network, contractAddress: address);
+      if (symbol != null || decimals != null || name != null) {
+        info = SearchingContractInfo(
+            name: name ?? "Unknown",
+            symbol: symbol ?? "Unknown",
+            decimals: BigInt.from(18));
+      }
+      return info;
+    } catch (e) {
+      logError(e.toString());
+      return null;
+    }
+  }
 }
 
 String standardTokenAbi = """

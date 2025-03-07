@@ -12,6 +12,7 @@ import 'package:google_fonts/google_fonts.dart';
 import 'package:intl/intl.dart';
 import 'package:moonwallet/logger/logger.dart';
 import 'package:moonwallet/main.dart';
+import 'package:moonwallet/service/crypto_storage_manager.dart';
 import 'package:moonwallet/service/price_manager.dart';
 import 'package:moonwallet/service/wallet_saver.dart';
 import 'package:moonwallet/service/web3_interaction.dart';
@@ -41,14 +42,17 @@ class _WalletViewScreenState extends State<WalletViewScreen>
       address: "",
       isWatchOnly: false);
   List<PublicData> accounts = [];
+  List<Crypto> reorganizedCrypto = [];
+  String cryptoId = "";
+
   final web3Manager = WalletSaver();
   final encryptService = EncryptService();
   final priceManager = PriceManager();
   final web3InteractManager = Web3InteractionManager();
   final publicDataManager = PublicDataManager();
-  int currentNetworkIndex = 0;
   final formatter = NumberFormat("0.##############", "en_US");
   bool isDarkMode = false;
+  final cryptoStorageManager = CryptoStorageManager();
 
   List<Candle> cryptoData = [];
   int currentIndex = 0;
@@ -64,7 +68,7 @@ class _WalletViewScreenState extends State<WalletViewScreen>
   ];
   double totalBalanceUsd = 0;
   bool _isInitialized = false;
-  Crypto currentNetwork = cryptos[0];
+  Crypto currentCrypto = cryptos[0];
   double userLastBalance = 0;
   void setLightMode() {
     setState(() {
@@ -153,8 +157,6 @@ class _WalletViewScreenState extends State<WalletViewScreen>
           currentAccount = accounts[0];
         }
       }
-
-      getTransactions();
     } catch (e) {
       logError('Error getting saved wallets: $e');
     }
@@ -174,7 +176,7 @@ class _WalletViewScreenState extends State<WalletViewScreen>
   Future<void> getCryptoData({int index = 0}) async {
     try {
       final result = await priceManager.getChartPriceDataUsingBinanceApi(
-          currentNetwork.binanceSymbol ?? "", intervals[index]);
+          currentCrypto.binanceSymbol ?? "", intervals[index]);
       if (result.isNotEmpty) {
         setState(() {
           cryptoData = result;
@@ -189,98 +191,99 @@ class _WalletViewScreenState extends State<WalletViewScreen>
 
   Future<void> getTransactions() async {
     try {
-      if (currentNetwork.chainId != 56 && currentNetwork.chainId != 204) return;
       List<BscScanTransaction> allTransactions = [];
-      final savedTransactions = await publicDataManager.getDataFromPrefs(
-          key: "${currentAccount.address}/lastTransactions");
-      if (savedTransactions != null) {
-        final List<dynamic> jsonData = json.decode(savedTransactions);
-        final List<BscScanTransaction> tempList = [];
-        for (final data in jsonData) {
-          final tr = BscScanTransaction.fromJson(data);
-          if (mounted) {
+      String key = "";
+      String baseUrl = "";
+      if (currentCrypto.type == CryptoType.token) {
+        key = currentCrypto.network?.apiKey ?? "";
+        baseUrl = currentCrypto.network?.apiBaseUrl ?? "";
+      } else {
+        key = currentCrypto.apiKey ?? "";
+        baseUrl = currentCrypto.apiBaseUrl ?? "";
+      }
+      String internalUrl = "";
+      String trUrl = "";
+      if (currentCrypto.type == CryptoType.token) {
+        trUrl =
+            "https://$baseUrl/api?module=account&action=tokentx&contractaddress=${currentCrypto.contractAddress}&address=${currentAccount.address.trim()}&startblock=0&endblock=latest&page=1&offset=200&sort=desc&apikey=$key";
+      } else {
+        internalUrl =
+            "https://$baseUrl/api?module=account&action=txlistinternal&address=${currentAccount.address.trim()}&startblock=0&endblock=latest&page=1&offset=200&sort=desc&apikey=$key";
+        trUrl =
+            "https://$baseUrl/api?module=account&action=txlist&address=${currentAccount.address.trim()}&startblock=0&endblock=latest&page=1&offset=200&sort=desc&apikey=$key";
+      }
+
+      final trRequest = await http.get(Uri.parse(trUrl));
+      if (internalUrl.isNotEmpty && currentCrypto.type != CryptoType.token) {
+        final internalTrResult = await http.get(Uri.parse(internalUrl));
+        log("tr request status : ${trRequest.statusCode}");
+
+        if (internalTrResult.statusCode == 200) {
+          final List<dynamic> dataJson =
+              (json.decode(internalTrResult.body))["result"];
+          log((json.decode(internalTrResult.body))["result"]
+              .runtimeType
+              .toString());
+          List<BscScanTransaction> fTransactions = [];
+          if (dataJson.isNotEmpty) {
+            for (final data in dataJson) {
+              final from = data["from"];
+              final to = data["to"];
+              final value = data["value"];
+              final timeStamp = data["timeStamp"];
+              final transactionHash = data["hash"];
+              final blockNumber = data["blockNumber"];
+              fTransactions.add(BscScanTransaction(
+                  from: from,
+                  to: to,
+                  value: value,
+                  timeStamp: timeStamp,
+                  hash: transactionHash,
+                  blockNumber: blockNumber));
+            }
+            allTransactions.addAll(fTransactions);
+          } else {
+            logError("No transactions found");
             setState(() {
-              tempList.add(tr);
+              transactions = [];
+            });
+          }
+        } else {
+          logError("Error getting internal transactions");
+        }
+      }
+      if (trUrl.isNotEmpty) {
+        if (trRequest.statusCode == 200) {
+          final List<dynamic> dataJson =
+              (json.decode(trRequest.body))["result"];
+          log("DataJson $dataJson");
+
+          List<BscScanTransaction> fTransactions = [];
+
+          if (dataJson.isNotEmpty) {
+            for (final data in dataJson) {
+              final from = data["from"];
+              final to = data["to"];
+              final value = data["value"];
+              final timeStamp = data["timeStamp"];
+              final transactionHash = data["hash"];
+              final blockNumber = data["blockNumber"];
+              fTransactions.add(BscScanTransaction(
+                  from: from,
+                  to: to,
+                  value: value,
+                  timeStamp: timeStamp,
+                  hash: transactionHash,
+                  blockNumber: blockNumber));
+            }
+            allTransactions.addAll(fTransactions);
+          } else {
+            logError("No transactions found");
+            setState(() {
+              transactions = [];
             });
           }
         }
-        transactions = tempList;
-      }
-      final key = currentNetwork.chainId == 56
-          ? "UKDSYXSDA8BJFT6QWP1IH161UQICTTJHHX"
-          : "6VUMQRRIHQEFKSEU1GH4WWNU1Q9ZYG2KRZ";
-      final baseUrl =
-          "https://${currentNetwork.chainId == 56 ? "api.bscscan.com" : "api-opbnb.bscscan.com"}";
-      final internalUrl =
-          "$baseUrl/api?module=account&action=txlistinternal&address=${currentAccount.address.trim()}&startblock=0&endblock=latest&page=1&offset=200&sort=desc&apikey=$key";
-      final trUrl =
-          "$baseUrl/api?module=account&action=txlist&address=${currentAccount.address.trim()}&startblock=0&endblock=latest&page=1&offset=200&sort=desc&apikey=$key";
-      log(trUrl);
-      final trRequest = await http.get(Uri.parse(trUrl));
-      final internalTrResult = await http.get(Uri.parse(internalUrl));
-
-      if (trRequest.statusCode == 200) {
-        final List<dynamic> dataJson = (json.decode(trRequest.body))["result"];
-
-        List<BscScanTransaction> fTransactions = [];
-
-        if (dataJson.isNotEmpty) {
-          for (final data in dataJson) {
-            final from = data["from"];
-            final to = data["to"];
-            final value = data["value"];
-            final timeStamp = data["timeStamp"];
-            final transactionHash = data["hash"];
-            final blockNumber = data["blockNumber"];
-            fTransactions.add(BscScanTransaction(
-                from: from,
-                to: to,
-                value: value,
-                timeStamp: timeStamp,
-                hash: transactionHash,
-                blockNumber: blockNumber));
-          }
-          allTransactions.addAll(fTransactions);
-        } else {
-          logError("No transactions found");
-          setState(() {
-            transactions = [];
-          });
-        }
-      }
-
-      if (internalTrResult.statusCode == 200) {
-        final List<dynamic> dataJson =
-            (json.decode(internalTrResult.body))["result"];
-        log((json.decode(internalTrResult.body))["result"]
-            .runtimeType
-            .toString());
-        List<BscScanTransaction> fTransactions = [];
-        if (dataJson.isNotEmpty) {
-          for (final data in dataJson) {
-            final from = data["from"];
-            final to = data["to"];
-            final value = data["value"];
-            final timeStamp = data["timeStamp"];
-            final transactionHash = data["hash"];
-            final blockNumber = data["blockNumber"];
-            fTransactions.add(BscScanTransaction(
-                from: from,
-                to: to,
-                value: value,
-                timeStamp: timeStamp,
-                hash: transactionHash,
-                blockNumber: blockNumber));
-          }
-          allTransactions.addAll(fTransactions);
-        } else {
-          logError("No transactions found");
-          setState(() {
-            transactions = [];
-          });
-        }
-      } else {
-        logError("Error getting internal transactions");
       }
 
       if (allTransactions.isNotEmpty) {
@@ -304,9 +307,9 @@ class _WalletViewScreenState extends State<WalletViewScreen>
     }
   }
 
-  Future<double> getBalanceUsd(String symbol, Crypto crypto) async {
+  Future<double> getBalanceUsd(Crypto crypto) async {
     try {
-      final price = await getPrice(symbol);
+      final price = await getPrice(crypto.binanceSymbol ?? "");
       final balanceEth =
           await web3InteractManager.getBalance(currentAccount, crypto);
       log("Balance eth $balanceEth");
@@ -327,6 +330,7 @@ class _WalletViewScreenState extends State<WalletViewScreen>
     getThemeMode();
     getSavedWallets();
     getCryptoData();
+    reorganizeCrypto();
     _tabController = TabController(length: 3, vsync: this);
   }
 
@@ -343,18 +347,40 @@ class _WalletViewScreenState extends State<WalletViewScreen>
     return filteredTransactions;
   }
 
+  Future<void> reorganizeCrypto() async {
+    final List<Crypto> standardCrypto = cryptos;
+    final savedCrypto = await cryptoStorageManager.getSavedCryptos();
+    if (savedCrypto == null || savedCrypto.isEmpty) {
+      setState(() {
+        reorganizedCrypto = standardCrypto;
+      });
+    } else {
+      setState(() {
+        reorganizedCrypto = savedCrypto;
+      });
+    }
+  }
+
   @override
-  void didChangeDependencies() {
+  void didChangeDependencies() async {
     super.didChangeDependencies();
     if (!_isInitialized) {
       final data = ModalRoute.of(context)?.settings.arguments;
-      if (data != null && (data as Map<String, dynamic>)["index"] != null) {
-        final index = data["index"];
-        currentNetwork = cryptos[index];
-        setState(() {
-          currentNetworkIndex = index;
-        });
-        log("Network sets to ${currentNetwork.binanceSymbol}");
+      if (data != null && (data as Map<String, dynamic>)["id"] != null) {
+        final id = data["id"];
+        final savedCrypto = await cryptoStorageManager.getSavedCryptos();
+        if (savedCrypto != null) {
+          for (final crypto in savedCrypto) {
+            if (crypto.cryptoId == id) {
+              setState(() {
+                currentCrypto = crypto;
+              });
+            }
+          }
+        }
+        await getTransactions();
+
+        log("Network sets to ${currentCrypto.binanceSymbol}");
       }
       _isInitialized = true;
     }
@@ -387,7 +413,7 @@ class _WalletViewScreenState extends State<WalletViewScreen>
               color: textColor,
             )),
         title: Text(
-          currentNetwork.name,
+          currentCrypto.name,
           style: GoogleFonts.roboto(
               color: textColor, fontWeight: FontWeight.bold, fontSize: 22),
         ),
@@ -422,7 +448,7 @@ class _WalletViewScreenState extends State<WalletViewScreen>
                                     children: [
                                       FutureBuilder(
                                         future: priceManager.checkCryptoTrend(
-                                            currentNetwork.binanceSymbol ??
+                                            currentCrypto.binanceSymbol ??
                                                 "https://opbnb-mainnet-rpc.bnbchain.org"),
                                         builder: (BuildContext trendCtx,
                                             AsyncSnapshot result) {
@@ -561,7 +587,7 @@ class _WalletViewScreenState extends State<WalletViewScreen>
                           children: [
                             ClipRRect(
                               borderRadius: BorderRadius.circular(50),
-                              child: currentNetwork.icon == null
+                              child: currentCrypto.icon == null
                                   ? Container(
                                       width: 65,
                                       height: 65,
@@ -571,7 +597,7 @@ class _WalletViewScreenState extends State<WalletViewScreen>
                                               BorderRadius.circular(50)),
                                       child: Center(
                                         child: Text(
-                                          currentNetwork.name.substring(0, 2),
+                                          currentCrypto.name.substring(0, 2),
                                           style: GoogleFonts.roboto(
                                               color: primaryColor,
                                               fontWeight: FontWeight.bold,
@@ -580,19 +606,19 @@ class _WalletViewScreenState extends State<WalletViewScreen>
                                       ),
                                     )
                                   : Image.asset(
-                                      currentNetwork.icon ?? "",
+                                      currentCrypto.icon ?? "",
                                       width: 65,
                                       height: 65,
                                     ),
                             ),
-                            if (currentNetwork.type == CryptoType.token)
+                            if (currentCrypto.type == CryptoType.token)
                               Positioned(
                                   top: 45,
                                   left: 45,
                                   child: ClipRRect(
                                     borderRadius: BorderRadius.circular(50),
                                     child: Image.asset(
-                                      currentNetwork.network?.icon ?? "",
+                                      currentCrypto.network?.icon ?? "",
                                       width: 20,
                                       height: 20,
                                     ),
@@ -608,12 +634,12 @@ class _WalletViewScreenState extends State<WalletViewScreen>
                         child: Center(
                           child: FutureBuilder(
                               future: web3InteractManager.getBalance(
-                                  currentAccount, currentNetwork),
+                                  currentAccount, currentCrypto),
                               builder: (BuildContext balanceCtx,
                                   AsyncSnapshot result) {
                                 if (result.hasData) {
                                   return Text(
-                                    "${formatter.format(result.data).split('0').length - 1 > 6 ? 0 : formatter.format(result.data)} ${currentNetwork.name}",
+                                    "${formatter.format(result.data).split('0').length - 1 > 6 ? 0 : formatter.format(result.data)} ${currentCrypto.name}",
                                     overflow: TextOverflow.clip,
                                     maxLines: 1,
                                     style: GoogleFonts.roboto(
@@ -639,9 +665,7 @@ class _WalletViewScreenState extends State<WalletViewScreen>
                         height: 5,
                       ),
                       FutureBuilder(
-                          future: getBalanceUsd(
-                              currentNetwork.binanceSymbol ?? "",
-                              currentNetwork),
+                          future: getBalanceUsd(currentCrypto),
                           builder: (BuildContext ctx, AsyncSnapshot result) {
                             if (result.hasData) {
                               return Text(
@@ -672,7 +696,7 @@ class _WalletViewScreenState extends State<WalletViewScreen>
                       textColor: textColor,
                       onTap: () {
                         Navigator.pushNamed(context, Routes.sendScreen,
-                            arguments: ({"index": currentNetworkIndex}));
+                            arguments: ({"id": currentCrypto.cryptoId}));
                       },
                       bottomText: "Send",
                       icon: Icons.arrow_upward),
@@ -680,7 +704,7 @@ class _WalletViewScreenState extends State<WalletViewScreen>
                       textColor: textColor,
                       onTap: () {
                         Navigator.pushNamed(context, Routes.receiveScreen,
-                            arguments: ({"index": currentNetworkIndex}));
+                            arguments: ({"id": currentCrypto.cryptoId}));
                       },
                       bottomText: "Receive",
                       icon: Icons.arrow_downward),
@@ -736,8 +760,14 @@ class _WalletViewScreenState extends State<WalletViewScreen>
                                       ),
                                       InkWell(
                                         onTap: () async {
-                                          await launchUrl(Uri.parse(
-                                              "${currentNetwork.explorer}/address/${currentAccount.address}"));
+                                          if (currentCrypto.type ==
+                                              CryptoType.network) {
+                                            await launchUrl(Uri.parse(
+                                                "${currentCrypto.explorer}/address/${currentAccount.address}"));
+                                          } else {
+                                            await launchUrl(Uri.parse(
+                                                "${currentCrypto.network?.explorer}/address/${currentAccount.address}"));
+                                          }
                                         },
                                         child: Text(
                                           "Check explorer",
@@ -766,7 +796,7 @@ class _WalletViewScreenState extends State<WalletViewScreen>
                                 secondaryColor: secondaryColor,
                                 darkColor: darkNavigatorColor,
                                 primaryColor: primaryColor,
-                                currentNetwork: currentNetwork,
+                                currentNetwork: currentCrypto,
                               );
                             }),
                   )),
@@ -798,7 +828,7 @@ class _WalletViewScreenState extends State<WalletViewScreen>
                             secondaryColor: secondaryColor,
                             primaryColor: primaryColor,
                             darkColor: darkNavigatorColor,
-                            currentNetwork: currentNetwork,
+                            currentNetwork: currentCrypto,
                           );
                         }),
                   )),
@@ -830,7 +860,7 @@ class _WalletViewScreenState extends State<WalletViewScreen>
                             secondaryColor: secondaryColor,
                             darkColor: darkNavigatorColor,
                             primaryColor: primaryColor,
-                            currentNetwork: currentNetwork,
+                            currentNetwork: currentCrypto,
                           );
                         }),
                   )),

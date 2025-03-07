@@ -42,6 +42,34 @@ class SecureData {
   }
 }
 
+class SearchingContractInfo {
+  final String name;
+  final BigInt decimals;
+  final String symbol;
+
+  SearchingContractInfo({
+    required this.name,
+    required this.decimals,
+    required this.symbol,
+  });
+
+  factory SearchingContractInfo.fromMap(Map<String, dynamic> map) {
+    return SearchingContractInfo(
+      name: map['name'] as String,
+      decimals: BigInt.parse(map['decimals'] as String),
+      symbol: map['symbol'] as String,
+    );
+  }
+
+  Map<String, dynamic> toJson() {
+    return {
+      'name': name,
+      'decimals': decimals.toString(),
+      'symbol': symbol,
+    };
+  }
+}
+
 class PinSubmitResult {
   final bool success;
   final bool repeat;
@@ -197,59 +225,67 @@ class Crypto {
   final double valueUsd;
   final String cryptoId;
   final bool canDisplay;
+  final String? apiKey;
+  final String? apiBaseUrl;
 
-  Crypto({
-    required this.name,
-    this.icon,
-    this.chainId,
-    required this.color,
-    this.rpc,
-    this.binanceSymbol,
-    required this.type,
-    this.explorer,
-    this.network,
-    this.contractAddress,
-    this.decimals,
-    required this.valueUsd,
-    required this.cryptoId,
-    required this.canDisplay,
-  });
+  Crypto(
+      {required this.name,
+      this.icon,
+      this.chainId,
+      required this.color,
+      this.rpc,
+      this.binanceSymbol,
+      required this.type,
+      this.explorer,
+      this.network,
+      this.contractAddress,
+      this.decimals,
+      required this.valueUsd,
+      required this.cryptoId,
+      required this.canDisplay,
+      this.apiKey,
+      this.apiBaseUrl});
 
-  factory Crypto.fromJson(Map<String, dynamic> json) {
+  factory Crypto.fromJson(Map<String, dynamic> cryptoJson) {
     return Crypto(
-      name: json['name'],
-      icon: json['icon'],
-      chainId: json['chainId'],
-      color: Color(json['color']),
-      rpc: json['rpc'],
-      binanceSymbol: json['binanceSymbol'],
-      explorer: json['explorer'],
-      type: CryptoType.values[json['type']],
-      network: Crypto.fromJson(json['network']),
-      contractAddress: json['contractAddress'],
-      decimals: json['decimals'],
-      valueUsd: json['valueUsd'],
-      cryptoId: json['cryptoId'],
-      canDisplay: json['canDisplay'],
-    );
+        apiKey: cryptoJson["apiKey"],
+        apiBaseUrl: cryptoJson["apiBaseUrl"],
+        canDisplay: cryptoJson["canDisplay"],
+        cryptoId: cryptoJson["cryptoId"],
+        name: cryptoJson["name"],
+        color: Color(cryptoJson["color"]),
+        type: CryptoType.values[cryptoJson["type"]],
+        icon: cryptoJson["icon"],
+        rpc: cryptoJson["rpc"],
+        decimals: cryptoJson["decimals"],
+        chainId: cryptoJson["chainId"],
+        binanceSymbol: cryptoJson["binanceSymbol"],
+        network: cryptoJson["network"] != null
+            ? Crypto.fromJson(cryptoJson["network"])
+            : null,
+        contractAddress: cryptoJson["contractAddress"],
+        explorer: cryptoJson["explorer"],
+        valueUsd: cryptoJson["valueUsd"]);
   }
 
   Map<String, dynamic> toJson() {
     return {
-      'name': name,
-      'icon': icon,
-      'chainId': chainId,
-      'color': color?.value,
-      'rpc': rpc,
-      'binanceSymbol': binanceSymbol,
-      'explorer': explorer,
-      'type': type.index,
-      'network': network?.toJson(),
-      'contractAddress': contractAddress,
-      'decimals': decimals,
-      'valueUsd': valueUsd,
-      'cryptoId': cryptoId,
-      'canDisplay': canDisplay,
+      "apiKey": apiKey,
+      "apiBaseUrl": apiBaseUrl,
+      "canDisplay": canDisplay,
+      "cryptoId": cryptoId,
+      "name": name,
+      "color": color?.value ?? Colors.orangeAccent.value,
+      "type": type.index,
+      "icon": icon,
+      "rpc": rpc,
+      "decimals": decimals,
+      "chainId": chainId,
+      "binanceSymbol": binanceSymbol,
+      "network": network?.toJson(),
+      "contractAddress": contractAddress,
+      "explorer": explorer,
+      "valueUsd": valueUsd
     };
   }
 }
