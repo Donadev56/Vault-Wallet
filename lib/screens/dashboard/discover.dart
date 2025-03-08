@@ -2,17 +2,16 @@
 
 import 'dart:convert';
 
+import 'package:fast_cached_network_image/fast_cached_network_image.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_feather_icons/flutter_feather_icons.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:lucide_icons_flutter/lucide_icons.dart';
 import 'package:moonwallet/logger/logger.dart';
 import 'package:moonwallet/main.dart';
-import 'package:moonwallet/service/vibration.dart';
 import 'package:moonwallet/types/types.dart';
 import 'package:moonwallet/utils/prefs.dart';
 
-import 'package:moonwallet/widgets/navBar.dart';
 import 'package:moonwallet/widgets/snackbar.dart';
 
 class DiscoverScreen extends StatefulWidget {
@@ -317,18 +316,6 @@ class _DiscoverScreenState extends State<DiscoverScreen>
           ),
         ),
       ),
-      bottomNavigationBar: BottomNav(
-          onTap: (index) async {
-            await vibrate();
-
-            if (index == 0) {
-              Navigator.pushNamed(context, Routes.main);
-            }
-          },
-          currentIndex: 1,
-          primaryColor: primaryColor,
-          textColor: textColor,
-          secondaryColor: secondaryColor),
       body: SingleChildScrollView(
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
@@ -435,8 +422,8 @@ class _DiscoverScreenState extends State<DiscoverScreen>
                               leading: ClipRRect(
                                 borderRadius: BorderRadius.circular(50),
                                 child: dapp.isNetworkImage
-                                    ? Image.network(
-                                        dapp.icon,
+                                    ? FastCachedImage(
+                                        url: dapp.icon,
                                         width: 50,
                                         height: 50,
                                       )
@@ -507,16 +494,23 @@ class _DiscoverScreenState extends State<DiscoverScreen>
                                   leading: ClipRRect(
                                       borderRadius: BorderRadius.circular(50),
                                       child: Container(
-                                        decoration: BoxDecoration(
-                                            color: surfaceTintColor
-                                                .withOpacity(0.5)),
-                                        child: Image.network(
-                                          "https://www.google.com/s2/favicons?domain_url=${hist.link}",
-                                          width: 30,
-                                          height: 30,
-                                          fit: BoxFit.cover,
-                                        ),
-                                      )),
+                                          decoration: BoxDecoration(
+                                              color: surfaceTintColor
+                                                  .withOpacity(0.5)),
+                                          child: FastCachedImage(
+                                            url:
+                                                "https://www.google.com/s2/favicons?domain_url=${hist.link}",
+                                            width: 30,
+                                            height: 30,
+                                            fit: BoxFit.cover,
+                                            loadingBuilder: (ctx, p) {
+                                              return CircularProgressIndicator(
+                                                color: secondaryColor,
+                                                value:
+                                                    p.progressPercentage.value,
+                                              );
+                                            },
+                                          ))),
                                   title: Text(
                                     hist.title,
                                     style: GoogleFonts.roboto(

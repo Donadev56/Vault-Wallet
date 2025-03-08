@@ -144,13 +144,10 @@ class _WalletViewScreenState extends State<WalletViewScreen>
         }
       }
 
-      log("Retrieved $count wallets");
-
       for (final account in accounts) {
         if (account.address == lastAccount) {
           currentAccount = account;
 
-          log("The current wallet is ${json.encode(account.toJson())}");
           break;
         } else {
           log("Not account found");
@@ -175,8 +172,10 @@ class _WalletViewScreenState extends State<WalletViewScreen>
 
   Future<void> getCryptoData({int index = 0}) async {
     try {
+      log("getting crypto data");
       final result = await priceManager.getChartPriceDataUsingBinanceApi(
-          currentCrypto.binanceSymbol ?? "", intervals[index]);
+          currentCrypto.binanceSymbol ?? "${currentCrypto.symbol}USDT",
+          intervals[index]);
       if (result.isNotEmpty) {
         setState(() {
           cryptoData = result;
@@ -186,6 +185,24 @@ class _WalletViewScreenState extends State<WalletViewScreen>
       }
     } catch (e) {
       logError(e.toString());
+    }
+  }
+
+  Future<List<Candle>> getCandleData(
+      {int index = 0, required Crypto crypto}) async {
+    try {
+      log("getting crypto data");
+      final result = await priceManager.getChartPriceDataUsingBinanceApi(
+          crypto.binanceSymbol ?? "${crypto.symbol}USDT", intervals[index]);
+      if (result.isNotEmpty) {
+        return result;
+      } else {
+        logError("Crypto data is not available");
+        return [];
+      }
+    } catch (e) {
+      logError(e.toString());
+      return [];
     }
   }
 
@@ -328,7 +345,6 @@ class _WalletViewScreenState extends State<WalletViewScreen>
   void initState() {
     super.initState();
     getThemeMode();
-    getCryptoData();
     reorganizeCrypto();
     _tabController = TabController(length: 3, vsync: this);
   }
@@ -416,7 +432,7 @@ class _WalletViewScreenState extends State<WalletViewScreen>
               color: textColor,
             )),
         title: Text(
-          currentCrypto.name,
+          currentCrypto.symbol,
           style: GoogleFonts.roboto(
               color: textColor, fontWeight: FontWeight.bold, fontSize: 22),
         ),
@@ -500,17 +516,38 @@ class _WalletViewScreenState extends State<WalletViewScreen>
                                     ],
                                   ),
                                 ),
-                                cryptoData.isNotEmpty
-                                    ? SizedBox(
-                                        height: height * 0.3,
-                                        child: Candlesticks(
-                                          candles: cryptoData,
-                                        ),
-                                      )
-                                    : Center(
+                                FutureBuilder(
+                                    future: getCandleData(
+                                        crypto: currentCrypto,
+                                        index: currentIndex),
+                                    builder: (ctx, result) {
+                                      if (result.hasData) {
+                                        return SizedBox(
+                                          height: height * 0.3,
+                                          child: Candlesticks(
+                                            candles: result.data ?? [],
+                                          ),
+                                        );
+                                      } else if (result.hasError) {
+                                        return SizedBox(
+                                          height: height * 0.3,
+                                          child: Text(
+                                            "Error fetching data",
+                                            style: GoogleFonts.roboto(
+                                                color: Colors.pinkAccent),
+                                          ),
+                                        );
+                                      } else {
+                                        return SizedBox(
+                                            height: height * 0.3,
+                                            child: Text("Loading..."));
+                                      }
+                                    })
+                                /* Center(
                                         child: SizedBox(
                                             height: height * 0.3,
-                                            child: Text("Loading..."))),
+                                            child: Text("Loading...")))  */
+                                ,
                                 SizedBox(height: 15),
                                 Wrap(
                                   children:
@@ -527,7 +564,6 @@ class _WalletViewScreenState extends State<WalletViewScreen>
                                               currentIndex = index;
                                               log("currentIndex: $currentIndex ");
                                             });
-                                            await getCryptoData(index: index);
                                           },
                                           child: Container(
                                             width: 35,
@@ -600,7 +636,10 @@ class _WalletViewScreenState extends State<WalletViewScreen>
                                               BorderRadius.circular(50)),
                                       child: Center(
                                         child: Text(
-                                          currentCrypto.name.substring(0, 2),
+                                          currentCrypto.symbol.length > 2
+                                              ? currentCrypto.symbol
+                                                  .substring(0, 2)
+                                              : currentCrypto.symbol,
                                           style: GoogleFonts.roboto(
                                               color: primaryColor,
                                               fontWeight: FontWeight.bold,
@@ -642,7 +681,7 @@ class _WalletViewScreenState extends State<WalletViewScreen>
                                   AsyncSnapshot result) {
                                 if (result.hasData) {
                                   return Text(
-                                    "${formatter.format(result.data).split('0').length - 1 > 6 ? 0 : formatter.format(result.data)} ${currentCrypto.name}",
+                                    "${formatter.format(result.data).split('0').length - 1 > 6 ? 0 : formatter.format(result.data)} ${currentCrypto.symbol}",
                                     overflow: TextOverflow.clip,
                                     maxLines: 1,
                                     style: GoogleFonts.roboto(

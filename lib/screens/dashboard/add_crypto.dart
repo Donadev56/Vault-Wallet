@@ -167,6 +167,7 @@ class _AddCryptoViewState extends State<AddCryptoView> {
     return Scaffold(
         backgroundColor: primaryColor,
         appBar: AppBar(
+          surfaceTintColor: surfaceTintColor,
           backgroundColor: primaryColor,
           actions: [
             Container(
@@ -370,6 +371,8 @@ class _AddCryptoViewState extends State<AddCryptoView> {
                                                             }
 
                                                             final newCrypto = Crypto(
+                                                                symbol: searchingContractInfo?.symbol ??
+                                                                    "",
                                                                 name: searchingContractInfo
                                                                         ?.name ??
                                                                     "Unknown ",
@@ -601,7 +604,7 @@ class _AddCryptoViewState extends State<AddCryptoView> {
           ],
           leading: IconButton(
               onPressed: () {
-                Navigator.pushNamed(context, Routes.main);
+                Navigator.pushNamed(context, Routes.pageManager);
               },
               icon: Icon(
                 LucideIcons.chevronLeft,
@@ -621,6 +624,11 @@ class _AddCryptoViewState extends State<AddCryptoView> {
                 child: SizedBox(
                   width: width * 0.92,
                   child: TextField(
+                    onChanged: (v) {
+                      setState(() {
+                        _searchController.text = v;
+                      });
+                    },
                     style: GoogleFonts.roboto(color: textColor),
                     cursorColor: secondaryColor,
                     controller: _searchController,
@@ -649,8 +657,17 @@ class _AddCryptoViewState extends State<AddCryptoView> {
               ),
               SingleChildScrollView(
                 child: Column(
-                  children: List.generate(reorganizedCrypto.length, (i) {
-                    final crypto = reorganizedCrypto[i];
+                  children: List.generate(
+                      reorganizedCrypto
+                          .where((c) => c.symbol
+                              .toLowerCase()
+                              .contains(_searchController.text.toLowerCase()))
+                          .length, (i) {
+                    final crypto = reorganizedCrypto
+                        .where((c) => c.symbol
+                            .toLowerCase()
+                            .contains(_searchController.text.toLowerCase()))
+                        .toList()[i];
                     return Material(
                       color: Colors.transparent,
                       child: ListTile(
@@ -671,7 +688,9 @@ class _AddCryptoViewState extends State<AddCryptoView> {
                                               BorderRadius.circular(50)),
                                       child: Center(
                                         child: Text(
-                                          crypto.name.substring(0, 2),
+                                          crypto.symbol.length > 2
+                                              ? crypto.symbol.substring(0, 2)
+                                              : crypto.symbol,
                                           style: GoogleFonts.roboto(
                                               color: primaryColor,
                                               fontWeight: FontWeight.bold,
@@ -700,7 +719,7 @@ class _AddCryptoViewState extends State<AddCryptoView> {
                           ],
                         ),
                         title: Text(
-                          crypto.name,
+                          crypto.symbol,
                           style: GoogleFonts.roboto(
                               color: textColor,
                               fontSize: 16,

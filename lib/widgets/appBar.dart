@@ -192,10 +192,9 @@ class CustomAppBar extends StatelessWidget implements PreferredSizeWidget {
                                     ),
                                     focusedBorder: OutlineInputBorder(
                                         borderSide: BorderSide(
-                                            color: textColor.withOpacity(0.2),
-                                            width: 2),
-                                        borderRadius:
-                                            BorderRadius.circular(15)),
+                                            color: Colors.transparent,
+                                            width: 0),
+                                        borderRadius: BorderRadius.circular(5)),
                                     hintText: 'Search wallets',
                                     hintStyle: GoogleFonts.roboto(
                                         fontSize: 14,

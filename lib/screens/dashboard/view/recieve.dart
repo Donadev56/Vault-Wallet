@@ -51,7 +51,6 @@ class _ReceiveScreenState extends State<ReceiveScreen> {
   @override
   void initState() {
     super.initState();
-    getSavedWallets();
     getThemeMode();
   }
 
@@ -153,6 +152,7 @@ class _ReceiveScreenState extends State<ReceiveScreen> {
       final data = ModalRoute.of(context)?.settings.arguments;
       if (data != null && (data as Map<String, dynamic>)["id"] != null) {
         final id = data["id"];
+        await getSavedWallets();
         final savedCrypto =
             await cryptoStorageManager.getSavedCryptos(wallet: currentAccount);
         if (savedCrypto != null) {
@@ -259,7 +259,10 @@ class _ReceiveScreenState extends State<ReceiveScreen> {
                                       borderRadius: BorderRadius.circular(50)),
                                   child: Center(
                                     child: Text(
-                                      currentNetwork.name.substring(0, 2),
+                                      currentNetwork.symbol.length > 2
+                                          ? currentNetwork.symbol
+                                              .substring(0, 2)
+                                          : currentNetwork.symbol,
                                       style: GoogleFonts.roboto(
                                           color: primaryColor,
                                           fontWeight: FontWeight.bold,
@@ -291,7 +294,7 @@ class _ReceiveScreenState extends State<ReceiveScreen> {
                       width: 10,
                     ),
                     Text(
-                      currentNetwork.name,
+                      currentNetwork.symbol,
                       style: GoogleFonts.roboto(
                           color: textColor,
                           fontSize: 20,

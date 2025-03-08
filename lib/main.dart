@@ -1,5 +1,6 @@
 import 'dart:io';
 
+import 'package:fast_cached_network_image/fast_cached_network_image.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
@@ -13,6 +14,7 @@ import 'package:moonwallet/screens/dashboard/auth/private_key.dart';
 import 'package:moonwallet/screens/dashboard/browser.dart';
 import 'package:moonwallet/screens/dashboard/discover.dart';
 import 'package:moonwallet/screens/dashboard/main.dart';
+import 'package:moonwallet/screens/dashboard/page_manager.dart';
 import 'package:moonwallet/screens/dashboard/private/private_key_screen.dart';
 import 'package:moonwallet/screens/dashboard/settings/settings.dart';
 import 'package:moonwallet/screens/dashboard/view/recieve.dart';
@@ -24,7 +26,6 @@ import 'package:moonwallet/screens/dashboard/wallet_actions/add_private_key.dart
 import 'package:moonwallet/screens/dashboard/wallet_actions/private_key.dart';
 import 'package:moonwallet/service/wallet_saver.dart';
 import 'package:moonwallet/service/web3.dart';
-import 'package:moonwallet/types/types.dart';
 import 'package:moonwallet/utils/prefs.dart';
 
 void main() async {
@@ -36,6 +37,7 @@ void main() async {
   await Web3Webview.initJs();
   WidgetsFlutterBinding.ensureInitialized();
 
+  await FastCachedImageConfig.init(clearCacheAfter: const Duration(days: 15));
   runApp(const MyApp());
 }
 
@@ -57,6 +59,7 @@ class Routes {
   static const String sendScreen = '/sendScreen';
   static const String settings = '/settings';
   static const String addCrypto = '/main/addCrypto';
+  static const String pageManager = '/main/pageManager';
 
   static const String privateKeyCreator = '/privatekeyCreator';
 }
@@ -161,7 +164,7 @@ class MyApp extends StatelessWidget {
                     ),
                   ),
                 ),
-                initialRoute: result.data ? Routes.main : Routes.home,
+                initialRoute: result.data ? Routes.pageManager : Routes.home,
                 routes: {
                   Routes.main: (context) => MainDashboardScreen(key: key),
                   Routes.discover: (context) => DiscoverScreen(),
@@ -182,6 +185,7 @@ class MyApp extends StatelessWidget {
                   Routes.sendScreen: (context) => SendTransactionScreen(),
                   Routes.settings: (context) => SettingsPage(),
                   Routes.addCrypto: (context) => AddCryptoView(),
+                  Routes.pageManager: (context) => PagesManagerView(),
                 });
           } else {
             return Container(

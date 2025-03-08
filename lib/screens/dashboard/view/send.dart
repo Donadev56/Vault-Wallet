@@ -17,6 +17,7 @@ import 'package:moonwallet/logger/logger.dart';
 import 'package:moonwallet/main.dart';
 import 'package:moonwallet/service/crypto_storage_manager.dart';
 import 'package:moonwallet/service/price_manager.dart';
+import 'package:moonwallet/service/token_manager.dart';
 import 'package:moonwallet/service/vibration.dart';
 import 'package:moonwallet/service/wallet_saver.dart';
 import 'package:moonwallet/service/web3_interaction.dart';
@@ -74,11 +75,11 @@ class _SendTransactionScreenState extends State<SendTransactionScreen> {
   final TextEditingController _amountController = TextEditingController();
   final TextEditingController _amountUsdController = TextEditingController();
   final cryptoStorageManager = CryptoStorageManager();
+  final tokenManager = TokenManager();
 
   @override
   void initState() {
     super.initState();
-    getSavedWallets();
     getThemeMode();
     askCamera();
   }
@@ -241,7 +242,129 @@ class _SendTransactionScreenState extends State<SendTransactionScreen> {
         if (tx.isNotEmpty) {
           log("Transaction tx : $tx");
           if (mounted) {
-            Navigator.pushNamed(context, Routes.main);
+            Navigator.pushNamed(context, Routes.pageManager);
+          }
+        } else {
+          log("Transaction failed");
+          final snackBar = SnackBar(
+            /// need to set following properties for best effect of awesome_snackbar_content
+            elevation: 0,
+            behavior: SnackBarBehavior.floating,
+            backgroundColor: Colors.transparent,
+            content: AwesomeSnackbarContent(
+              title: 'Ho Ho!',
+              message: 'Transaction failed!',
+
+              /// change contentType to ContentType.success, ContentType.warning or ContentType.help for variants
+              contentType: ContentType.failure,
+            ),
+          );
+
+          ScaffoldMessenger.of(context)
+            ..hideCurrentSnackBar()
+            ..showSnackBar(snackBar);
+        }
+      }
+    } catch (e) {
+      logError(e.toString());
+      final snackBar = SnackBar(
+        /// need to set following properties for best effect of awesome_snackbar_content
+        elevation: 0,
+        behavior: SnackBarBehavior.floating,
+        backgroundColor: Colors.transparent,
+        content: AwesomeSnackbarContent(
+          title: 'Ho Ho!',
+          message: '${e.toString()}!',
+
+          /// change contentType to ContentType.success, ContentType.warning or ContentType.help for variants
+          contentType: ContentType.failure,
+        ),
+      );
+
+      ScaffoldMessenger.of(context)
+        ..hideCurrentSnackBar()
+        ..showSnackBar(snackBar);
+    }
+  }
+
+  Future<void> sendTokenTransaction() async {
+    try {
+      showDialog(
+          context: context,
+          builder: (BuildContext context) {
+            return Center(
+              child: Container(
+                padding: const EdgeInsets.all(30),
+                width: 100,
+                height: 100,
+                decoration: BoxDecoration(
+                  borderRadius: BorderRadius.circular(20),
+                  border: Border.all(color: secondaryColor, width: 0.5),
+                  color: primaryColor,
+                ),
+                child: SizedBox(
+                  width: 50,
+                  height: 50,
+                  child: CircularProgressIndicator(
+                    color: textColor,
+                  ),
+                ),
+              ),
+            );
+          });
+
+      final to = _addressController.text;
+      final from = currentAccount.address;
+
+      // final gasPrice = await web3InteractManager.getGasPrice(
+      //  currentNetwork.network?.rpc ?? "https://opbnb-mainnet-rpc.bnbchain.org");
+
+      final valueWei =
+          ((double.parse(_amountController.text)) * 1e18).toStringAsFixed(0);
+
+      final valueHex = (int.parse(valueWei)).toRadixString(16);
+
+      log("Value : $valueHex and value wei $valueWei");
+
+      final estimatedGas = await web3InteractManager.estimateGas(
+          rpcUrl: currentNetwork.network?.rpc ??
+              "https://opbnb-mainnet-rpc.bnbchain.org",
+          sender: currentAccount.address,
+          to: _addressController.text,
+          value: valueHex,
+          data: "");
+      log("Gas : ${estimatedGas.toString()}");
+
+      //  final gas = (estimatedGas * gasPrice * numerator) ~/ denominator;
+      final valueToSend = BigInt.parse(valueWei);
+
+      final transaction = JsTransactionObject(
+        gas: "0x${(estimatedGas.toInt()).toRadixString(16)}",
+        value: "0x${(valueToSend.toInt()).toRadixString(16)}",
+        from: from,
+        to: to,
+      );
+      if (mounted) {
+        Navigator.pop(context);
+
+        final tx = await tokenManager.transferToken(
+            data: transaction,
+            mounted: mounted,
+            context: context,
+            currentAccount: currentAccount,
+            currentNetwork: currentNetwork,
+            primaryColor: primaryColor,
+            textColor: textColor,
+            secondaryColor: secondaryColor,
+            actionsColor: actionsColor,
+            operationType: 1);
+
+        saveLastUsedAddresses(address: to);
+
+        if (tx != null && tx.isNotEmpty) {
+          log("Transaction tx : $tx");
+          if (mounted) {
+            Navigator.pushNamed(context, Routes.pageManager);
           }
         } else {
           log("Transaction failed");
@@ -316,7 +439,6 @@ class _SendTransactionScreenState extends State<SendTransactionScreen> {
           currentAccount = accounts[0];
         }
       }
-      getInitialData();
     } catch (e) {
       logError('Error getting saved wallets: $e');
     }
@@ -370,8 +492,17 @@ class _SendTransactionScreenState extends State<SendTransactionScreen> {
           .getPriceUsingBinanceApi(currentNetwork.binanceSymbol ?? "");
       final balance =
           await web3InteractManager.getBalance(currentAccount, currentNetwork);
-      final gasPrice = await web3InteractManager.getGasPrice(
-          currentNetwork.rpc ?? "https://opbnb-mainnet-rpc.bnbchain.org");
+      BigInt gasPrice = BigInt.zero;
+
+      if (currentNetwork.type == CryptoType.token) {
+        gasPrice = await web3InteractManager.getGasPrice(
+            currentNetwork.network?.rpc ??
+                "https://opbnb-mainnet-rpc.bnbchain.org");
+      } else {
+        gasPrice = await web3InteractManager.getGasPrice(
+            currentNetwork.rpc ?? "https://opbnb-mainnet-rpc.bnbchain.org");
+      }
+
       final lastUsedAddresses = await publicDataManager.getDataFromPrefs(
           key: "${currentAccount.address}/lastUsedAddresses");
       log("last address $lastUsedAddresses");
@@ -387,6 +518,7 @@ class _SendTransactionScreenState extends State<SendTransactionScreen> {
         transactionFee = ((21000 * gasPrice.toDouble()) / 1e18);
         log("Fees $transactionFee");
       });
+      log("Crypto price is ${price}");
     } catch (e) {
       logError(e.toString());
     }
@@ -399,6 +531,7 @@ class _SendTransactionScreenState extends State<SendTransactionScreen> {
       final data = ModalRoute.of(context)?.settings.arguments;
       if (data != null && (data as Map<String, dynamic>)["id"] != null) {
         final id = data["id"];
+        await getSavedWallets();
         final savedCrypto =
             await cryptoStorageManager.getSavedCryptos(wallet: currentAccount);
         if (savedCrypto != null) {
@@ -409,6 +542,7 @@ class _SendTransactionScreenState extends State<SendTransactionScreen> {
               });
             }
           }
+          await getInitialData();
         }
 
         log("Network sets to ${currentNetwork.binanceSymbol}");
@@ -477,7 +611,10 @@ class _SendTransactionScreenState extends State<SendTransactionScreen> {
                                             BorderRadius.circular(50)),
                                     child: Center(
                                       child: Text(
-                                        currentNetwork.name.substring(0, 2),
+                                        currentNetwork.symbol.length > 2
+                                            ? currentNetwork.symbol
+                                                .substring(0, 2)
+                                            : currentNetwork.symbol,
                                         style: GoogleFonts.roboto(
                                             color: primaryColor,
                                             fontWeight: FontWeight.bold,
@@ -541,7 +678,10 @@ class _SendTransactionScreenState extends State<SendTransactionScreen> {
                                       borderRadius: BorderRadius.circular(50)),
                                   child: Center(
                                     child: Text(
-                                      currentNetwork.name.substring(0, 2),
+                                      currentNetwork.symbol.length > 2
+                                          ? currentNetwork.symbol
+                                              .substring(0, 2)
+                                          : currentNetwork.symbol,
                                       style: GoogleFonts.roboto(
                                           color: primaryColor,
                                           fontWeight: FontWeight.bold,
@@ -688,7 +828,7 @@ class _SendTransactionScreenState extends State<SendTransactionScreen> {
                                                                                   decoration: BoxDecoration(color: textColor.withOpacity(0.6), borderRadius: BorderRadius.circular(50)),
                                                                                   child: Center(
                                                                                     child: Text(
-                                                                                      currentNetwork.name.substring(0, 2),
+                                                                                      currentNetwork.symbol.length > 2 ? currentNetwork.symbol.substring(0, 2) : currentNetwork.symbol,
                                                                                       style: GoogleFonts.roboto(color: primaryColor, fontWeight: FontWeight.bold, fontSize: 18),
                                                                                     ),
                                                                                   ),
@@ -852,7 +992,7 @@ class _SendTransactionScreenState extends State<SendTransactionScreen> {
                   ),
                   filled: true,
                   fillColor: surfaceTintColor.withOpacity(0.4),
-                  labelText: "Amount ${currentNetwork.name}",
+                  labelText: "Amount ${currentNetwork.symbol}",
                   suffixIcon: Container(
                     margin: const EdgeInsets.all(5),
                     child: InkWell(
@@ -941,7 +1081,7 @@ class _SendTransactionScreenState extends State<SendTransactionScreen> {
               Align(
                 alignment: Alignment.topLeft,
                 child: Text(
-                  "Balance : ${formatter.format(userBalance)} ${currentNetwork.name}",
+                  "Balance : ${formatter.format(userBalance)} ${currentNetwork.symbol}",
                   style: GoogleFonts.roboto(color: textColor.withOpacity(0.7)),
                 ),
               ),
@@ -957,7 +1097,11 @@ class _SendTransactionScreenState extends State<SendTransactionScreen> {
 
                       if (_formKey.currentState!.validate()) {
                         log("Validation success !");
-                        await sendTransaction();
+                        if (currentNetwork.type == CryptoType.network) {
+                          await sendTransaction();
+                        } else {
+                          await sendTokenTransaction();
+                        }
                       }
                     },
                     child: Text(

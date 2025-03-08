@@ -106,7 +106,8 @@ class MainDrawer extends StatelessWidget {
                   leading: Icon(Icons.explore, color: textColor),
                   title: Text('Discover', style: TextStyle(color: textColor)),
                   onTap: () {
-                    Navigator.pushNamed(context, Routes.discover);
+                    Navigator.pushNamed(context, Routes.pageManager,
+                        arguments: ({"pageIndex": 1}));
                   },
                 ),
                 ListTile(

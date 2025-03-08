@@ -29,6 +29,8 @@ class PriceManager {
 
   Future<List<Candle>> getChartPriceDataUsingBinanceApi(
       String symbol, String interval) async {
+    log("Getting the chart price for ${symbol}");
+
     try {
       final result = await http.get(Uri.parse(
           "https://api.binance.com/api/v3/klines?symbol=$symbol&interval=$interval&limit=100"));

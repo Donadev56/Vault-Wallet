@@ -8,7 +8,8 @@ import 'package:moonwallet/logger/logger.dart';
 import 'package:moonwallet/types/types.dart';
 
 Future<UserRequestResponse> askUserForConfirmation(
-    {required JsTransactionObject txData,
+    {Crypto? crypto,
+    required JsTransactionObject txData,
     required BuildContext context,
     required Color textColor,
     required Color primaryColor,
@@ -154,8 +155,8 @@ Future<UserRequestResponse> askUserForConfirmation(
                       alignment: Alignment.center,
                       child: Text(
                         txData.value != null
-                            ? "${(formatter.format(int.parse(txData.value ?? "0") / 1e18))} BNB"
-                            : "0 BNB",
+                            ? "${(formatter.format(int.parse(txData.value ?? "0") / 1e18))} ${crypto != null ? crypto.symbol : "BNB"}"
+                            : "0  ${crypto != null ? crypto.symbol : "BNB"}",
                         overflow: TextOverflow.clip,
                         maxLines: 1,
                         style: GoogleFonts.roboto(

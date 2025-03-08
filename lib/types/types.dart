@@ -227,6 +227,7 @@ class Crypto {
   final bool canDisplay;
   final String? apiKey;
   final String? apiBaseUrl;
+  final String symbol;
 
   Crypto(
       {required this.name,
@@ -244,7 +245,8 @@ class Crypto {
       required this.cryptoId,
       required this.canDisplay,
       this.apiKey,
-      this.apiBaseUrl});
+      this.apiBaseUrl,
+      required this.symbol});
 
   factory Crypto.fromJson(Map<String, dynamic> cryptoJson) {
     return Crypto(
@@ -265,7 +267,8 @@ class Crypto {
             : null,
         contractAddress: cryptoJson["contractAddress"],
         explorer: cryptoJson["explorer"],
-        valueUsd: cryptoJson["valueUsd"]);
+        valueUsd: cryptoJson["valueUsd"],
+        symbol: cryptoJson["symbol"]);
   }
 
   Map<String, dynamic> toJson() {
@@ -285,7 +288,8 @@ class Crypto {
       "network": network?.toJson(),
       "contractAddress": contractAddress,
       "explorer": explorer,
-      "valueUsd": valueUsd
+      "valueUsd": valueUsd,
+      "symbol": symbol
     };
   }
 }
@@ -483,6 +487,44 @@ class TransactionListResponseType {
       'status': status,
       'message': message,
       'result': result.map((tx) => tx.toJson()).toList(),
+    };
+  }
+}
+
+class Balance {
+  final Crypto crypto;
+  final double balanceUsd;
+  final double balanceCrypto;
+  final double cryptoTrendPercent;
+  final double cryptoPrice;
+
+  Balance({
+    required this.crypto,
+    required this.balanceUsd,
+    required this.balanceCrypto,
+    required this.cryptoTrendPercent,
+    required this.cryptoPrice,
+  });
+
+  // Convert a JSON Map to a HistoryItem instance
+  factory Balance.fromJson(Map<String, dynamic> json) {
+    return Balance(
+      crypto: Crypto.fromJson(json['crypto']),
+      balanceUsd: json['balanceUsd'] ?? 0,
+      balanceCrypto: json['balanceCrypto'] ?? 0,
+      cryptoTrendPercent: json['cryptoTrendPercent'] ?? 0,
+      cryptoPrice: json['cryptoPrice'] ?? 0,
+    );
+  }
+
+  // Convert a HistoryItem instance to a JSON Map
+  Map<String, dynamic> toJson() {
+    return {
+      'crypto': crypto.toJson(),
+      'balanceUsd': balanceUsd,
+      'balanceCrypto': balanceCrypto,
+      'cryptoTrendPercent': cryptoTrendPercent,
+      'cryptoPrice': cryptoPrice,
     };
   }
 }
