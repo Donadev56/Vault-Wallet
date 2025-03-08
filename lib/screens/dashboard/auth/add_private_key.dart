@@ -20,7 +20,14 @@ class AddPrivateKey extends StatefulWidget {
 class _AddPrivateKeyState extends State<AddPrivateKey> {
   late TextEditingController _textController;
   final _formKey = GlobalKey<FormState>();
-
+  AppColors colors = AppColors(
+      primaryColor: Color(0XFF0D0D0D),
+      themeColor: Colors.greenAccent,
+      greenColor: Colors.greenAccent,
+      secondaryColor: Color(0XFF121212),
+      grayColor: Color(0XFF353535),
+      textColor: Colors.white,
+      redColor: Colors.pinkAccent);
   String firstPassword = "";
   String secondPassword = "";
 
@@ -350,6 +357,7 @@ class _AddPrivateKeyState extends State<AddPrivateKey> {
                           onPressed: () {
                             if (_formKey.currentState?.validate() ?? false) {
                               showPinModalBottomSheet(
+                                  colors: colors,
                                   handleSubmit: handleSubmit,
                                   context: context,
                                   title: "Enter a secure password");

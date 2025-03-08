@@ -14,9 +14,11 @@ import 'package:moonwallet/logger/logger.dart';
 import 'package:moonwallet/service/wallet_saver.dart';
 import 'package:moonwallet/service/web3_interaction.dart';
 import 'package:moonwallet/types/types.dart';
+import 'package:moonwallet/utils/colors.dart';
 import 'package:moonwallet/utils/constant.dart';
 import 'package:moonwallet/utils/crypto.dart';
 import 'package:moonwallet/utils/prefs.dart';
+import 'package:moonwallet/utils/themes.dart';
 import 'package:moonwallet/widgets/change_network.dart';
 
 class Web3BrowserScreen extends StatefulWidget {
@@ -27,11 +29,6 @@ class Web3BrowserScreen extends StatefulWidget {
 }
 
 class Web3BrowserScreenState extends State<Web3BrowserScreen> {
-  Color primaryColor = Color(0XFF1B1B1B);
-  Color textColor = Color(0xFFF5F5F5);
-  Color secondaryColor = Colors.greenAccent;
-  Color actionsColor = Color(0XFF353535);
-  Color surfaceTintColor = Color(0XFF454545);
   Color darkNavigatorColor = Color(0XFF0D0D0D);
   Color darkNavigatorColorMainValue = Color(0XFF0D0D0D);
 
@@ -61,6 +58,33 @@ class Web3BrowserScreenState extends State<Web3BrowserScreen> {
 
   final encryptService = EncryptService();
   final String historyName = "UserHistory";
+  AppColors colors = AppColors(
+      primaryColor: Color(0XFF0D0D0D),
+      themeColor: Colors.greenAccent,
+      greenColor: Colors.greenAccent,
+      secondaryColor: Color(0XFF121212),
+      grayColor: Color(0XFF353535),
+      textColor: Colors.white,
+      redColor: Colors.pinkAccent);
+  Themes themes = Themes();
+  String savedThemeName = "";
+  Future<void> getSavedTheme() async {
+    try {
+      final manager = ColorsManager();
+      final savedName = await manager.getThemeName();
+      setState(() {
+        savedThemeName = savedName ?? "";
+      });
+      final savedTheme = await manager.getDefaultTheme();
+      setState(() {
+        colors = savedTheme;
+        darkNavigatorColor = colors.primaryColor;
+        darkNavigatorColorMainValue = colors.primaryColor;
+      });
+    } catch (e) {
+      logError(e.toString());
+    }
+  }
 
   void toggleShowAppBar() {
     if (!canShowAppBarOptions) {
@@ -210,68 +234,8 @@ class Web3BrowserScreenState extends State<Web3BrowserScreen> {
         statusBarIconBrightness: Brightness.light,
       ),
     );
-    getThemeMode();
+    getSavedTheme();
     getSavedWallets();
-  }
-
-  void setLightMode() {
-    setState(() {
-      isDarkMode = !isDarkMode;
-      primaryColor = Color(0xFFE4E4E4);
-      textColor = Color(0xFF0A0A0A);
-      actionsColor = Color(0xFFCACACA);
-      surfaceTintColor = Color(0xFFBABABA);
-      secondaryColor = Color(0xFF960F51);
-      darkNavigatorColor = Colors.white;
-      darkNavigatorColorMainValue = Colors.white;
-    });
-  }
-
-  void setDarkMode() {
-    setState(() {
-      isDarkMode = !isDarkMode;
-      primaryColor = Color(0XFF1B1B1B);
-      textColor = Color.fromARGB(255, 255, 255, 255);
-      secondaryColor = Colors.greenAccent;
-      actionsColor = Color(0XFF353535);
-      surfaceTintColor = Color(0XFF454545);
-      darkNavigatorColor = Color(0xFF0D0D0D);
-      darkNavigatorColorMainValue = Color(0xFF0D0D0D);
-    });
-  }
-
-  Future<void> getThemeMode() async {
-    try {
-      final savedMode =
-          await publicDataManager.getDataFromPrefs(key: "isDarkMode");
-      if (savedMode == null) {
-        return;
-      }
-      if (savedMode == "true") {
-        setDarkMode();
-      } else {
-        setLightMode();
-      }
-    } catch (e) {
-      logError(e.toString());
-    }
-  }
-
-  Future<void> toggleMode() async {
-    try {
-      if (isDarkMode) {
-        setLightMode();
-
-        await publicDataManager.saveDataInPrefs(
-            data: "false", key: "isDarkMode");
-      } else {
-        setDarkMode();
-        await publicDataManager.saveDataInPrefs(
-            data: "true", key: "isDarkMode");
-      }
-    } catch (e) {
-      logError(e.toString());
-    }
   }
 
   @override
@@ -371,7 +335,7 @@ class Web3BrowserScreenState extends State<Web3BrowserScreen> {
                                   _title,
                                   overflow: TextOverflow.ellipsis,
                                   style: GoogleFonts.roboto(
-                                      color: textColor,
+                                      color: colors.textColor,
                                       fontWeight: FontWeight.bold,
                                       fontSize: 22),
                                 ),
@@ -399,7 +363,7 @@ class Web3BrowserScreenState extends State<Web3BrowserScreen> {
                                             context: context,
                                             darkNavigatorColor:
                                                 darkNavigatorColor,
-                                            textColor: textColor,
+                                            textColor: colors.textColor,
                                             chainId: _chainId);
                                       },
                                       child: currentNetwork.icon == null
@@ -407,7 +371,7 @@ class Web3BrowserScreenState extends State<Web3BrowserScreen> {
                                               width: 25,
                                               height: 25,
                                               decoration: BoxDecoration(
-                                                  color: textColor
+                                                  color: colors.textColor
                                                       .withOpacity(0.6),
                                                   borderRadius:
                                                       BorderRadius.circular(
@@ -417,7 +381,8 @@ class Web3BrowserScreenState extends State<Web3BrowserScreen> {
                                                   currentNetwork.name
                                                       .substring(0, 2),
                                                   style: GoogleFonts.roboto(
-                                                      color: primaryColor,
+                                                      color:
+                                                          colors.primaryColor,
                                                       fontWeight:
                                                           FontWeight.bold,
                                                       fontSize: 18),
@@ -444,7 +409,7 @@ class Web3BrowserScreenState extends State<Web3BrowserScreen> {
                             padding: const EdgeInsets.only(left: 7),
                             margin: const EdgeInsets.only(top: 10),
                             decoration: BoxDecoration(
-                                color: secondaryColor.withOpacity(0.1),
+                                color: colors.themeColor.withOpacity(0.1),
                                 borderRadius: BorderRadius.circular(30)),
                             child: Material(
                               color: Colors.transparent,
@@ -462,7 +427,8 @@ class Web3BrowserScreenState extends State<Web3BrowserScreen> {
                                       child: Text(
                                         currentUrl,
                                         style: GoogleFonts.roboto(
-                                          color: textColor.withOpacity(0.8),
+                                          color:
+                                              colors.textColor.withOpacity(0.8),
                                           fontSize: 14,
                                         ),
                                         maxLines: 1,
@@ -474,7 +440,7 @@ class Web3BrowserScreenState extends State<Web3BrowserScreen> {
                                     ),
                                     Icon(
                                       FeatherIcons.copy,
-                                      color: secondaryColor,
+                                      color: colors.themeColor,
                                     )
                                   ],
                                 ),
@@ -486,7 +452,7 @@ class Web3BrowserScreenState extends State<Web3BrowserScreen> {
                     ),
                   ),
                   Divider(
-                    color: textColor.withOpacity(0.05),
+                    color: colors.textColor.withOpacity(0.05),
                   ),
                   Column(
                     children: List.generate(options.length, (index) {
@@ -504,7 +470,7 @@ class Web3BrowserScreenState extends State<Web3BrowserScreen> {
                                   height: height,
                                   context: context,
                                   darkNavigatorColor: darkNavigatorColor,
-                                  textColor: textColor,
+                                  textColor: colors.textColor,
                                   chainId: _chainId);
                             } else if (index == 2) {
                               toggleShowAppBar();
@@ -519,7 +485,7 @@ class Web3BrowserScreenState extends State<Web3BrowserScreen> {
                               Text(
                                 option["name"],
                                 style: GoogleFonts.roboto(
-                                  color: textColor,
+                                  color: colors.textColor,
                                 ),
                               ),
                               SizedBox(
@@ -530,11 +496,11 @@ class Web3BrowserScreenState extends State<Web3BrowserScreen> {
                                   padding: const EdgeInsets.all(5),
                                   decoration: BoxDecoration(
                                       borderRadius: BorderRadius.circular(10),
-                                      color: primaryColor),
+                                      color: colors.primaryColor),
                                   child: Text(
                                     currentNetwork.name,
                                     style: GoogleFonts.roboto(
-                                      color: textColor,
+                                      color: colors.textColor,
                                     ),
                                   ),
                                 )
@@ -542,7 +508,7 @@ class Web3BrowserScreenState extends State<Web3BrowserScreen> {
                           ),
                           trailing: Icon(
                             option["icon"],
-                            color: textColor.withOpacity(0.6),
+                            color: colors.textColor.withOpacity(0.6),
                           ),
                         ),
                       );
@@ -564,11 +530,11 @@ class Web3BrowserScreenState extends State<Web3BrowserScreen> {
         backgroundColor: darkNavigatorColor,
         floatingActionButton: !canShowAppBarOptions
             ? FloatingActionButton(
-                backgroundColor: surfaceTintColor,
+                backgroundColor: colors.grayColor,
                 onPressed: toggleShowAppBar,
                 child: Icon(
                   LucideIcons.minimize,
-                  color: textColor.withOpacity(0.6),
+                  color: colors.textColor.withOpacity(0.6),
                 ),
               )
             : null,
@@ -584,7 +550,7 @@ class Web3BrowserScreenState extends State<Web3BrowserScreen> {
                         },
                         icon: Icon(
                           Icons.arrow_back,
-                          color: textColor.withOpacity(0.7),
+                          color: colors.textColor.withOpacity(0.7),
                           size: 20,
                         )),
                     SizedBox(width: 5),
@@ -613,7 +579,7 @@ class Web3BrowserScreenState extends State<Web3BrowserScreen> {
                                 Uri.parse(currentUrl).host,
                                 overflow: TextOverflow.ellipsis,
                                 style: GoogleFonts.roboto(
-                                    color: textColor.withOpacity(0.8),
+                                    color: colors.textColor.withOpacity(0.8),
                                     fontSize: 16),
                               ),
                             ))
@@ -635,7 +601,7 @@ class Web3BrowserScreenState extends State<Web3BrowserScreen> {
                   IconButton(
                     icon: Icon(
                       Icons.more_vert,
-                      color: textColor.withOpacity(0.8),
+                      color: colors.textColor.withOpacity(0.8),
                     ),
                     onPressed: openModalBottomSheet,
                   )
@@ -648,7 +614,7 @@ class Web3BrowserScreenState extends State<Web3BrowserScreen> {
               LinearProgressIndicator(
                 minHeight: 2,
                 value: progress,
-                color: secondaryColor,
+                color: colors.themeColor,
               ),
             Expanded(
                 child: Web3Webview(
@@ -738,15 +704,16 @@ class Web3BrowserScreenState extends State<Web3BrowserScreen> {
                     ..showSnackBar(snackBar);
                 }
                 return await web3IntManager.sendEthTransaction(
+                    colors: colors,
                     data: data,
                     mounted: mounted,
                     context: context,
                     currentAccount: currentAccount,
                     currentNetwork: currentNetwork,
-                    primaryColor: primaryColor,
-                    textColor: textColor,
-                    secondaryColor: secondaryColor,
-                    actionsColor: actionsColor,
+                    primaryColor: colors.primaryColor,
+                    textColor: colors.textColor,
+                    secondaryColor: colors.themeColor,
+                    actionsColor: colors.grayColor,
                     operationType: 0);
               },
             ))

@@ -1,9 +1,14 @@
+// ignore_for_file: use_build_context_synchronously
+
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'dart:io';
 import 'package:image_picker/image_picker.dart';
 import 'package:moonwallet/logger/logger.dart';
+import 'package:moonwallet/types/types.dart';
+import 'package:moonwallet/utils/colors.dart';
 import 'package:moonwallet/utils/prefs.dart';
+import 'package:moonwallet/utils/themes.dart';
 import 'package:moonwallet/widgets/snackbar.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:path/path.dart' as path;
@@ -22,65 +27,30 @@ class _SettingsPageState extends State<SettingsPage> {
   bool wasPImageChanged = false;
   bool wasBImageChanged = false;
   final ImagePicker _picker = ImagePicker();
-  Color primaryColor = Color(0XFF1B1B1B);
-  Color textColor = Color.fromARGB(255, 255, 255, 255);
-  Color secondaryColor = Colors.greenAccent;
-  Color actionsColor = Color(0XFF353535);
-  Color surfaceTintColor = Color(0XFF454545);
+
   final publicDataManager = PublicDataManager();
   bool isDarkMode = false;
-
-  void setLightMode() {
-    setState(() {
-      isDarkMode = !isDarkMode;
-      primaryColor = Color(0xFFE4E4E4);
-      textColor = Color(0xFF0A0A0A);
-      actionsColor = Color(0xFFCACACA);
-      surfaceTintColor = Color(0xFFBABABA);
-      secondaryColor = Color(0xFF960F51);
-    });
-  }
-
-  void setDarkMode() {
-    setState(() {
-      isDarkMode = !isDarkMode;
-      primaryColor = Color(0XFF1B1B1B);
-      textColor = Color.fromARGB(255, 255, 255, 255);
-      secondaryColor = Colors.greenAccent;
-      actionsColor = Color(0XFF353535);
-      surfaceTintColor = Color(0XFF454545);
-    });
-  }
-
-  Future<void> getThemeMode() async {
+  AppColors colors = AppColors(
+      primaryColor: Color(0XFF0D0D0D),
+      themeColor: Colors.greenAccent,
+      greenColor: Colors.greenAccent,
+      secondaryColor: Color(0XFF121212),
+      grayColor: Color(0XFF353535),
+      textColor: Colors.white,
+      redColor: Colors.pinkAccent);
+  Themes themes = Themes();
+  String savedThemeName = "";
+  Future<void> getSavedTheme() async {
     try {
-      final savedMode =
-          await publicDataManager.getDataFromPrefs(key: "isDarkMode");
-      if (savedMode == null) {
-        return;
-      }
-      if (savedMode == "true") {
-        setDarkMode();
-      } else {
-        setLightMode();
-      }
-    } catch (e) {
-      logError(e.toString());
-    }
-  }
-
-  Future<void> toggleMode() async {
-    try {
-      if (isDarkMode) {
-        setLightMode();
-
-        await publicDataManager.saveDataInPrefs(
-            data: "false", key: "isDarkMode");
-      } else {
-        setDarkMode();
-        await publicDataManager.saveDataInPrefs(
-            data: "true", key: "isDarkMode");
-      }
+      final manager = ColorsManager();
+      final savedName = await manager.getThemeName();
+      setState(() {
+        savedThemeName = savedName ?? "";
+      });
+      final savedTheme = await manager.getDefaultTheme();
+      setState(() {
+        colors = savedTheme;
+      });
     } catch (e) {
       logError(e.toString());
     }
@@ -209,20 +179,20 @@ class _SettingsPageState extends State<SettingsPage> {
   void initState() {
     super.initState();
     loadData();
-    getThemeMode();
+    getSavedTheme();
   }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: primaryColor,
+      backgroundColor: colors.primaryColor,
       appBar: AppBar(
-        backgroundColor: primaryColor,
-        surfaceTintColor: primaryColor,
+        backgroundColor: colors.primaryColor,
+        surfaceTintColor: colors.primaryColor,
         leading: IconButton(
           icon: Icon(
             Icons.arrow_back,
-            color: textColor,
+            color: colors.textColor,
           ),
           onPressed: () {
             Navigator.pop(context);
@@ -310,27 +280,31 @@ class _SettingsPageState extends State<SettingsPage> {
                   backgroundColor: Colors.transparent,
                   elevation: 0,
                   shape: RoundedRectangleBorder(
-                    side: BorderSide(width: 1, color: textColor),
+                    side: BorderSide(width: 1, color: colors.textColor),
                     borderRadius: BorderRadius.circular(20),
                   ),
                 ),
                 onPressed: () async {
                   try {
                     final res = await saveData();
-                    if (!res) {
-                      showCustomSnackBar(
-                          context: context,
-                          message: "An error has occurred",
-                          iconColor: Colors.pinkAccent);
-                    } else {
-                      showCustomSnackBar(
-                          context: context,
-                          message: "Settings saved successfully",
-                          iconColor: Colors.greenAccent);
-                      Navigator.pop(context);
+                    if (mounted) {
+                      if (!res) {
+                        showCustomSnackBar(
+                            context: context,
+                            message: "An error has occurred",
+                            iconColor: Colors.pinkAccent);
+                      } else {
+                        showCustomSnackBar(
+                            context: context,
+                            message: "Settings saved successfully",
+                            iconColor: Colors.greenAccent);
+                        Navigator.pop(context);
+                      }
                     }
                   } catch (e) {
+                    if (!mounted) return;
                     showCustomSnackBar(
+                        // ignore: use_build_context_synchronously
                         context: context,
                         message: "An error has occurred",
                         iconColor: Colors.pinkAccent);
@@ -340,7 +314,7 @@ class _SettingsPageState extends State<SettingsPage> {
                 child: Text(
                   "Save Settings",
                   style: GoogleFonts.roboto(
-                    color: textColor,
+                    color: colors.textColor,
                   ),
                 ),
               ),

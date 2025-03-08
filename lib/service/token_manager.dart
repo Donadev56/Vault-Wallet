@@ -141,6 +141,7 @@ class TokenManager {
       required Color primaryColor,
       required Color textColor,
       required Color secondaryColor,
+      required AppColors colors,
       required Color actionsColor,
       required int operationType}) async {
     try {
@@ -266,6 +267,7 @@ class TokenManager {
         }
 
         final response = await showPinModalBottomSheet(
+            colors: colors,
             // ignore: use_build_context_synchronously
             context: context,
             handleSubmit: (password) async {

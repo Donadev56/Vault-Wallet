@@ -22,9 +22,11 @@ import 'package:moonwallet/service/vibration.dart';
 import 'package:moonwallet/service/wallet_saver.dart';
 import 'package:moonwallet/service/web3_interaction.dart';
 import 'package:moonwallet/types/types.dart';
+import 'package:moonwallet/utils/colors.dart';
 import 'package:moonwallet/utils/constant.dart';
 import 'package:moonwallet/utils/crypto.dart';
 import 'package:moonwallet/utils/prefs.dart';
+import 'package:moonwallet/utils/themes.dart';
 import 'package:permission_handler/permission_handler.dart';
 import 'package:qr_code_scanner_plus/qr_code_scanner_plus.dart';
 
@@ -43,11 +45,6 @@ class _SendTransactionScreenState extends State<SendTransactionScreen> {
   final MobileScannerController _mobileScannerController =
       MobileScannerController();
 
-  Color primaryColor = Color(0XFF1B1B1B);
-  Color textColor = Color.fromARGB(255, 255, 255, 255);
-  Color secondaryColor = Colors.greenAccent;
-  Color actionsColor = Color(0XFF353535);
-  Color surfaceTintColor = Color(0XFF454545);
   double userBalance = 0;
   double cryptoPrice = 0;
   double transactionFee = 0;
@@ -76,11 +73,36 @@ class _SendTransactionScreenState extends State<SendTransactionScreen> {
   final TextEditingController _amountUsdController = TextEditingController();
   final cryptoStorageManager = CryptoStorageManager();
   final tokenManager = TokenManager();
+  AppColors colors = AppColors(
+      primaryColor: Color(0XFF0D0D0D),
+      themeColor: Colors.greenAccent,
+      greenColor: Colors.greenAccent,
+      secondaryColor: Color(0XFF121212),
+      grayColor: Color(0XFF353535),
+      textColor: Colors.white,
+      redColor: Colors.pinkAccent);
+  Themes themes = Themes();
+  String savedThemeName = "";
+  Future<void> getSavedTheme() async {
+    try {
+      final manager = ColorsManager();
+      final savedName = await manager.getThemeName();
+      setState(() {
+        savedThemeName = savedName ?? "";
+      });
+      final savedTheme = await manager.getDefaultTheme();
+      setState(() {
+        colors = savedTheme;
+      });
+    } catch (e) {
+      logError(e.toString());
+    }
+  }
 
   @override
   void initState() {
     super.initState();
-    getThemeMode();
+    getSavedTheme();
     askCamera();
   }
 
@@ -100,62 +122,6 @@ class _SendTransactionScreenState extends State<SendTransactionScreen> {
     _amountController.dispose();
     _amountUsdController.dispose();
     super.dispose();
-  }
-
-  void setLightMode() {
-    setState(() {
-      isDarkMode = !isDarkMode;
-      primaryColor = Color(0xFFE4E4E4);
-      textColor = Color(0xFF0A0A0A);
-      actionsColor = Color(0xFFCACACA);
-      surfaceTintColor = Color(0xFFBABABA);
-      secondaryColor = Color(0xFF960F51);
-    });
-  }
-
-  void setDarkMode() {
-    setState(() {
-      isDarkMode = !isDarkMode;
-      primaryColor = Color(0XFF1B1B1B);
-      textColor = Color.fromARGB(255, 255, 255, 255);
-      secondaryColor = Colors.greenAccent;
-      actionsColor = Color(0XFF353535);
-      surfaceTintColor = Color(0XFF454545);
-    });
-  }
-
-  Future<void> getThemeMode() async {
-    try {
-      final savedMode =
-          await publicDataManager.getDataFromPrefs(key: "isDarkMode");
-      if (savedMode == null) {
-        return;
-      }
-      if (savedMode == "true") {
-        setDarkMode();
-      } else {
-        setLightMode();
-      }
-    } catch (e) {
-      logError(e.toString());
-    }
-  }
-
-  Future<void> toggleMode() async {
-    try {
-      if (isDarkMode) {
-        setLightMode();
-
-        await publicDataManager.saveDataInPrefs(
-            data: "false", key: "isDarkMode");
-      } else {
-        setDarkMode();
-        await publicDataManager.saveDataInPrefs(
-            data: "true", key: "isDarkMode");
-      }
-    } catch (e) {
-      logError(e.toString());
-    }
   }
 
   Future<void> askCamera() async {
@@ -182,14 +148,14 @@ class _SendTransactionScreenState extends State<SendTransactionScreen> {
                 height: 100,
                 decoration: BoxDecoration(
                   borderRadius: BorderRadius.circular(20),
-                  border: Border.all(color: secondaryColor, width: 0.5),
-                  color: primaryColor,
+                  border: Border.all(color: colors.themeColor, width: 0.5),
+                  color: colors.primaryColor,
                 ),
                 child: SizedBox(
                   width: 50,
                   height: 50,
                   child: CircularProgressIndicator(
-                    color: textColor,
+                    color: colors.textColor,
                   ),
                 ),
               ),
@@ -227,15 +193,16 @@ class _SendTransactionScreenState extends State<SendTransactionScreen> {
       if (mounted) {
         Navigator.pop(context);
         final tx = await web3InteractManager.sendEthTransaction(
+            colors: colors,
             data: transaction,
             mounted: mounted,
             context: context,
             currentAccount: currentAccount,
             currentNetwork: currentNetwork,
-            primaryColor: primaryColor,
-            textColor: textColor,
-            secondaryColor: secondaryColor,
-            actionsColor: actionsColor,
+            primaryColor: colors.primaryColor,
+            textColor: colors.textColor,
+            secondaryColor: colors.themeColor,
+            actionsColor: colors.grayColor,
             operationType: 1);
         saveLastUsedAddresses(address: to);
 
@@ -299,14 +266,14 @@ class _SendTransactionScreenState extends State<SendTransactionScreen> {
                 height: 100,
                 decoration: BoxDecoration(
                   borderRadius: BorderRadius.circular(20),
-                  border: Border.all(color: secondaryColor, width: 0.5),
-                  color: primaryColor,
+                  border: Border.all(color: colors.themeColor, width: 0.5),
+                  color: colors.primaryColor,
                 ),
                 child: SizedBox(
                   width: 50,
                   height: 50,
                   child: CircularProgressIndicator(
-                    color: textColor,
+                    color: colors.textColor,
                   ),
                 ),
               ),
@@ -348,15 +315,16 @@ class _SendTransactionScreenState extends State<SendTransactionScreen> {
         Navigator.pop(context);
 
         final tx = await tokenManager.transferToken(
+            colors: colors,
             data: transaction,
             mounted: mounted,
             context: context,
             currentAccount: currentAccount,
             currentNetwork: currentNetwork,
-            primaryColor: primaryColor,
-            textColor: textColor,
-            secondaryColor: secondaryColor,
-            actionsColor: actionsColor,
+            primaryColor: colors.primaryColor,
+            textColor: colors.textColor,
+            secondaryColor: colors.themeColor,
+            actionsColor: colors.grayColor,
             operationType: 1);
 
         saveLastUsedAddresses(address: to);
@@ -556,21 +524,21 @@ class _SendTransactionScreenState extends State<SendTransactionScreen> {
     final width = MediaQuery.of(context).size.width;
 
     return Scaffold(
-      backgroundColor: primaryColor,
+      backgroundColor: colors.primaryColor,
       appBar: AppBar(
-        surfaceTintColor: primaryColor,
-        backgroundColor: primaryColor,
+        surfaceTintColor: colors.primaryColor,
+        backgroundColor: colors.primaryColor,
         leading: IconButton(
             onPressed: () {
               Navigator.pop(context);
             },
             icon: Icon(
               Icons.arrow_back,
-              color: textColor,
+              color: colors.textColor,
             )),
         title: Text(
           'Send',
-          style: GoogleFonts.roboto(color: textColor),
+          style: GoogleFonts.roboto(color: colors.textColor),
         ),
       ),
       body: SingleChildScrollView(
@@ -593,7 +561,7 @@ class _SendTransactionScreenState extends State<SendTransactionScreen> {
                       width: width * 0.53,
                       padding: const EdgeInsets.all(5),
                       decoration: BoxDecoration(
-                        color: surfaceTintColor.withOpacity(0.4),
+                        color: colors.grayColor.withOpacity(0.4),
                         borderRadius: BorderRadius.circular(15),
                       ),
                       child: Row(
@@ -606,7 +574,8 @@ class _SendTransactionScreenState extends State<SendTransactionScreen> {
                                     width: 20,
                                     height: 20,
                                     decoration: BoxDecoration(
-                                        color: textColor.withOpacity(0.6),
+                                        color:
+                                            colors.textColor.withOpacity(0.6),
                                         borderRadius:
                                             BorderRadius.circular(50)),
                                     child: Center(
@@ -616,7 +585,7 @@ class _SendTransactionScreenState extends State<SendTransactionScreen> {
                                                 .substring(0, 2)
                                             : currentNetwork.symbol,
                                         style: GoogleFonts.roboto(
-                                            color: primaryColor,
+                                            color: colors.primaryColor,
                                             fontWeight: FontWeight.bold,
                                             fontSize: 18),
                                       ),
@@ -633,7 +602,7 @@ class _SendTransactionScreenState extends State<SendTransactionScreen> {
                             currentAccount.address.isNotEmpty
                                 ? "${currentAccount.address.substring(0, 6)}...${currentAccount.address.substring(currentAccount.address.length - 6, currentAccount.address.length)}"
                                 : "No Account",
-                            style: GoogleFonts.roboto(color: textColor),
+                            style: GoogleFonts.roboto(color: colors.textColor),
                           )
                         ],
                       ),
@@ -643,13 +612,13 @@ class _SendTransactionScreenState extends State<SendTransactionScreen> {
                       width: width * 0.35,
                       padding: const EdgeInsets.all(5),
                       decoration: BoxDecoration(
-                        color: surfaceTintColor.withOpacity(0.4),
+                        color: colors.grayColor.withOpacity(0.4),
                         borderRadius: BorderRadius.circular(15),
                       ),
                       child: Center(
                         child: Text(
                           currentAccount.walletName,
-                          style: GoogleFonts.roboto(color: textColor),
+                          style: GoogleFonts.roboto(color: colors.textColor),
                           overflow: TextOverflow.ellipsis,
                           maxLines: 1,
                         ),
@@ -659,7 +628,7 @@ class _SendTransactionScreenState extends State<SendTransactionScreen> {
               Container(
                 padding: const EdgeInsets.all(8),
                 decoration: BoxDecoration(
-                  color: surfaceTintColor.withOpacity(0.4),
+                  color: colors.grayColor.withOpacity(0.4),
                   borderRadius: BorderRadius.circular(15),
                 ),
                 child: Row(
@@ -674,7 +643,7 @@ class _SendTransactionScreenState extends State<SendTransactionScreen> {
                                   width: 30,
                                   height: 30,
                                   decoration: BoxDecoration(
-                                      color: textColor.withOpacity(0.6),
+                                      color: colors.textColor.withOpacity(0.6),
                                       borderRadius: BorderRadius.circular(50)),
                                   child: Center(
                                     child: Text(
@@ -683,7 +652,7 @@ class _SendTransactionScreenState extends State<SendTransactionScreen> {
                                               .substring(0, 2)
                                           : currentNetwork.symbol,
                                       style: GoogleFonts.roboto(
-                                          color: primaryColor,
+                                          color: colors.primaryColor,
                                           fontWeight: FontWeight.bold,
                                           fontSize: 18),
                                     ),
@@ -715,7 +684,8 @@ class _SendTransactionScreenState extends State<SendTransactionScreen> {
                         Text(
                           currentNetwork.name,
                           style: GoogleFonts.roboto(
-                              color: textColor, fontWeight: FontWeight.bold),
+                              color: colors.textColor,
+                              fontWeight: FontWeight.bold),
                         )
                       ],
                     )
@@ -726,7 +696,7 @@ class _SendTransactionScreenState extends State<SendTransactionScreen> {
                 children: [
                   Text(
                     "To",
-                    style: GoogleFonts.roboto(color: textColor),
+                    style: GoogleFonts.roboto(color: colors.textColor),
                   ),
                   Spacer(),
                   Row(
@@ -762,7 +732,7 @@ class _SendTransactionScreenState extends State<SendTransactionScreen> {
                                       filter: ImageFilter.blur(
                                           sigmaX: 10, sigmaY: 10),
                                       child: Container(
-                                          color: primaryColor,
+                                          color: colors.primaryColor,
                                           child: Column(
                                             children: [
                                               Align(
@@ -773,7 +743,7 @@ class _SendTransactionScreenState extends State<SendTransactionScreen> {
                                                   child: Text(
                                                     "Last Addresses :",
                                                     style: GoogleFonts.roboto(
-                                                        color: textColor,
+                                                        color: colors.textColor,
                                                         fontWeight:
                                                             FontWeight.bold),
                                                   ),
@@ -825,11 +795,11 @@ class _SendTransactionScreenState extends State<SendTransactionScreen> {
                                                                               ? Container(
                                                                                   width: 25,
                                                                                   height: 25,
-                                                                                  decoration: BoxDecoration(color: textColor.withOpacity(0.6), borderRadius: BorderRadius.circular(50)),
+                                                                                  decoration: BoxDecoration(color: colors.textColor.withOpacity(0.6), borderRadius: BorderRadius.circular(50)),
                                                                                   child: Center(
                                                                                     child: Text(
                                                                                       currentNetwork.symbol.length > 2 ? currentNetwork.symbol.substring(0, 2) : currentNetwork.symbol,
-                                                                                      style: GoogleFonts.roboto(color: primaryColor, fontWeight: FontWeight.bold, fontSize: 18),
+                                                                                      style: GoogleFonts.roboto(color: colors.primaryColor, fontWeight: FontWeight.bold, fontSize: 18),
                                                                                     ),
                                                                                   ),
                                                                                 )
@@ -844,7 +814,7 @@ class _SendTransactionScreenState extends State<SendTransactionScreen> {
                                                                             Text(
                                                                           "${(addr as String).substring(0, 10)}...${(addr).substring(addr.length - 10, addr.length)}",
                                                                           style:
-                                                                              GoogleFonts.roboto(color: textColor.withOpacity(0.7)),
+                                                                              GoogleFonts.roboto(color: colors.textColor.withOpacity(0.7)),
                                                                         ),
                                                                         trailing: IconButton(
                                                                             onPressed: () {
@@ -852,7 +822,7 @@ class _SendTransactionScreenState extends State<SendTransactionScreen> {
                                                                             },
                                                                             icon: Icon(
                                                                               LucideIcons.clipboard,
-                                                                              color: textColor,
+                                                                              color: colors.textColor,
                                                                             )),
                                                                       ),
                                                                     );
@@ -863,8 +833,8 @@ class _SendTransactionScreenState extends State<SendTransactionScreen> {
                                                               "No addresses found",
                                                               style: GoogleFonts
                                                                   .roboto(
-                                                                      color:
-                                                                          textColor),
+                                                                      color: colors
+                                                                          .textColor),
                                                             ),
                                                           );
                                                         }
@@ -936,7 +906,7 @@ class _SendTransactionScreenState extends State<SendTransactionScreen> {
                       borderRadius: BorderRadius.circular(15),
                     ),
                     filled: true,
-                    fillColor: surfaceTintColor.withOpacity(0.4),
+                    fillColor: colors.grayColor.withOpacity(0.4),
                     labelText: "Enter Address",
                     suffixIcon: IconButton(
                       onPressed: () async {
@@ -948,13 +918,13 @@ class _SendTransactionScreenState extends State<SendTransactionScreen> {
                       },
                       icon: Icon(
                         FeatherIcons.clipboard,
-                        color: textColor,
+                        color: colors.textColor,
                       ),
                     ),
-                    labelStyle: GoogleFonts.roboto(color: textColor),
+                    labelStyle: GoogleFonts.roboto(color: colors.textColor),
                     focusedBorder: OutlineInputBorder(
                       borderRadius: BorderRadius.circular(5),
-                      borderSide: BorderSide(color: secondaryColor),
+                      borderSide: BorderSide(color: colors.themeColor),
                     ),
                     enabledBorder: OutlineInputBorder(
                       borderRadius: BorderRadius.circular(5),
@@ -968,7 +938,7 @@ class _SendTransactionScreenState extends State<SendTransactionScreen> {
                 child: Text(
                   "Amount",
                   style: GoogleFonts.roboto(
-                      color: textColor, fontWeight: FontWeight.bold),
+                      color: colors.textColor, fontWeight: FontWeight.bold),
                 ),
               ),
               TextField(
@@ -991,7 +961,7 @@ class _SendTransactionScreenState extends State<SendTransactionScreen> {
                     borderRadius: BorderRadius.circular(15),
                   ),
                   filled: true,
-                  fillColor: surfaceTintColor.withOpacity(0.4),
+                  fillColor: colors.grayColor.withOpacity(0.4),
                   labelText: "Amount ${currentNetwork.symbol}",
                   suffixIcon: Container(
                     margin: const EdgeInsets.all(5),
@@ -1011,21 +981,22 @@ class _SendTransactionScreenState extends State<SendTransactionScreen> {
                         decoration: BoxDecoration(
                             borderRadius: BorderRadius.circular(10),
                             border: Border.all(
-                                width: 1, color: textColor.withOpacity(0.3))),
+                                width: 1,
+                                color: colors.textColor.withOpacity(0.3))),
                         child: Center(
                           child: Text(
                             "Max",
-                            style: GoogleFonts.roboto(color: textColor),
+                            style: GoogleFonts.roboto(color: colors.textColor),
                           ),
                         ),
                       ),
                     ),
                   ),
-                  labelStyle:
-                      GoogleFonts.roboto(color: textColor.withOpacity(0.3)),
+                  labelStyle: GoogleFonts.roboto(
+                      color: colors.textColor.withOpacity(0.3)),
                   focusedBorder: OutlineInputBorder(
                     borderRadius: BorderRadius.circular(5),
-                    borderSide: BorderSide(color: secondaryColor),
+                    borderSide: BorderSide(color: colors.themeColor),
                   ),
                   enabledBorder: OutlineInputBorder(
                     borderRadius: BorderRadius.circular(5),
@@ -1053,24 +1024,24 @@ class _SendTransactionScreenState extends State<SendTransactionScreen> {
                     borderRadius: BorderRadius.circular(15),
                   ),
                   filled: true,
-                  fillColor: surfaceTintColor.withOpacity(0.4),
+                  fillColor: colors.grayColor.withOpacity(0.4),
                   labelText: "Amount USD",
                   suffixIcon: SizedBox(
                     width: 35,
                     child: Center(
                       child: Text(
                         "USD",
-                        style:
-                            GoogleFonts.roboto(color: textColor, fontSize: 15),
+                        style: GoogleFonts.roboto(
+                            color: colors.textColor, fontSize: 15),
                       ),
                     ),
                   ),
                   alignLabelWithHint: false,
-                  labelStyle:
-                      GoogleFonts.roboto(color: textColor.withOpacity(0.3)),
+                  labelStyle: GoogleFonts.roboto(
+                      color: colors.textColor.withOpacity(0.3)),
                   focusedBorder: OutlineInputBorder(
                     borderRadius: BorderRadius.circular(5),
-                    borderSide: BorderSide(color: secondaryColor),
+                    borderSide: BorderSide(color: colors.textColor),
                   ),
                   enabledBorder: OutlineInputBorder(
                     borderRadius: BorderRadius.circular(5),
@@ -1082,7 +1053,8 @@ class _SendTransactionScreenState extends State<SendTransactionScreen> {
                 alignment: Alignment.topLeft,
                 child: Text(
                   "Balance : ${formatter.format(userBalance)} ${currentNetwork.symbol}",
-                  style: GoogleFonts.roboto(color: textColor.withOpacity(0.7)),
+                  style: GoogleFonts.roboto(
+                      color: colors.textColor.withOpacity(0.7)),
                 ),
               ),
               ConstrainedBox(
@@ -1090,8 +1062,8 @@ class _SendTransactionScreenState extends State<SendTransactionScreen> {
                 child: ElevatedButton(
                     style: ElevatedButton.styleFrom(
                         backgroundColor: _amountController.text.isEmpty
-                            ? textColor.withOpacity(0.2)
-                            : textColor),
+                            ? colors.textColor.withOpacity(0.2)
+                            : colors.textColor),
                     onPressed: () async {
                       if (_amountController.text.isEmpty) return;
 
@@ -1106,7 +1078,7 @@ class _SendTransactionScreenState extends State<SendTransactionScreen> {
                     },
                     child: Text(
                       "Next",
-                      style: GoogleFonts.roboto(color: primaryColor),
+                      style: GoogleFonts.roboto(color: colors.primaryColor),
                     )),
               )
             ],

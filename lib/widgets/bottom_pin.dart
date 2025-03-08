@@ -9,6 +9,7 @@ typedef ResultType = Future<PinSubmitResult> Function(String numbers);
 Future<bool> showPinModalBottomSheet(
     {required BuildContext context,
     required ResultType handleSubmit,
+    required AppColors colors,
     required String title}) async {
   final result = await showModalBottomSheet<bool>(
       context: context,
@@ -102,7 +103,7 @@ Future<bool> showPinModalBottomSheet(
             constraints: BoxConstraints(maxWidth: 700),
             child: Container(
               decoration: BoxDecoration(
-                color: Color(0XFF212121),
+                color: colors.primaryColor,
               ),
               child: Column(
                 children: [
@@ -110,7 +111,8 @@ Future<bool> showPinModalBottomSheet(
                     padding: const EdgeInsets.only(top: 20),
                     child: Text(
                       newTitle.isEmpty ? title : newTitle,
-                      style: GoogleFonts.exo(color: Colors.white, fontSize: 18),
+                      style: GoogleFonts.exo(
+                          color: colors.textColor, fontSize: 18),
                     ),
                   ),
                   SizedBox(
@@ -131,8 +133,8 @@ Future<bool> showPinModalBottomSheet(
                                   border: Border.all(
                                       width: 3,
                                       color: numberOfNumbers > index
-                                          ? Colors.white
-                                          : Colors.white.withOpacity(0.3)),
+                                          ? colors.textColor
+                                          : colors.textColor.withOpacity(0.3)),
                                   borderRadius: BorderRadius.circular(10)),
                               alignment: Alignment.center,
                               width: width * 0.1,
@@ -147,7 +149,7 @@ Future<bool> showPinModalBottomSheet(
                                         width: 10,
                                         height: 10,
                                         decoration: BoxDecoration(
-                                            color: Colors.white,
+                                            color: colors.textColor,
                                             borderRadius:
                                                 BorderRadius.circular(50)),
                                       ),
@@ -173,14 +175,14 @@ Future<bool> showPinModalBottomSheet(
                             children: [
                               Icon(
                                 FeatherIcons.alertCircle,
-                                color: Colors.pinkAccent,
+                                color: colors.redColor,
                               ),
                               SizedBox(
                                 width: 5,
                               ),
                               Text(error,
                                   style: GoogleFonts.roboto(
-                                      color: Colors.pinkAccent)),
+                                      color: colors.redColor)),
                             ],
                           )
                         ],
@@ -201,7 +203,7 @@ Future<bool> showPinModalBottomSheet(
                               width: width * 0.26,
                               height: height * 0.055,
                               decoration: BoxDecoration(
-                                  color: Color(0XFF454545),
+                                  color: colors.secondaryColor,
                                   borderRadius: BorderRadius.circular(5)),
                               margin: const EdgeInsets.all(5),
                               child: Material(
@@ -216,12 +218,12 @@ Future<bool> showPinModalBottomSheet(
                                     child: index > 9
                                         ? Icon(
                                             Icons.backspace,
-                                            color: Colors.white,
+                                            color: colors.textColor,
                                           )
                                         : Text(
                                             "${getIndex(index)}",
                                             style: GoogleFonts.roboto(
-                                              color: Colors.white,
+                                              color: colors.textColor,
                                               fontWeight: FontWeight.bold,
                                               fontSize: 20,
                                             ),

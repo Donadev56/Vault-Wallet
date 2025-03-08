@@ -4,7 +4,9 @@ import 'dart:convert';
 import 'dart:ui';
 import 'package:moonwallet/main.dart';
 import 'package:moonwallet/service/wallet_saver.dart';
+import 'package:moonwallet/utils/colors.dart';
 import 'package:moonwallet/utils/crypto.dart';
+import 'package:moonwallet/utils/themes.dart';
 import 'package:ulid/ulid.dart';
 
 import 'package:flutter/material.dart';
@@ -26,11 +28,6 @@ class AddCryptoView extends StatefulWidget {
 }
 
 class _AddCryptoViewState extends State<AddCryptoView> {
-  Color primaryColor = Color(0XFF1B1B1B);
-  Color textColor = Color.fromARGB(255, 255, 255, 255);
-  Color secondaryColor = Colors.greenAccent;
-  Color actionsColor = Color(0XFF353535);
-  Color surfaceTintColor = Color(0XFF454545);
   bool isDarkMode = true;
   Crypto? selectedNetwork;
   List<Crypto> reorganizedCrypto = [];
@@ -54,55 +51,42 @@ class _AddCryptoViewState extends State<AddCryptoView> {
       TextEditingController();
 
   final publicDataManager = PublicDataManager();
-
-  @override
-  void initState() {
-    super.initState();
-    getThemeMode();
-    getSavedWallets();
-  }
-
-  String generateUUID() {
-    return Ulid().toUuid();
-  }
-
-  Future<void> getThemeMode() async {
+  AppColors colors = AppColors(
+      primaryColor: Color(0XFF0D0D0D),
+      themeColor: Colors.greenAccent,
+      greenColor: Colors.greenAccent,
+      secondaryColor: Color(0XFF121212),
+      grayColor: Color(0XFF353535),
+      textColor: Colors.white,
+      redColor: Colors.pinkAccent);
+  bool saved = false;
+  Themes themes = Themes();
+  String savedThemeName = "";
+  Future<void> getSavedTheme() async {
     try {
-      final savedMode =
-          await publicDataManager.getDataFromPrefs(key: "isDarkMode");
-      if (savedMode == null) {
-        return;
-      }
-      if (savedMode == "true") {
-        setDarkMode();
-      } else {
-        setLightMode();
-      }
+      final manager = ColorsManager();
+      final savedName = await manager.getThemeName();
+      setState(() {
+        savedThemeName = savedName ?? "";
+      });
+      final savedTheme = await manager.getDefaultTheme();
+      setState(() {
+        colors = savedTheme;
+      });
     } catch (e) {
       logError(e.toString());
     }
   }
 
-  void setLightMode() {
-    setState(() {
-      isDarkMode = !isDarkMode;
-      primaryColor = Color(0xFFE4E4E4);
-      textColor = Color(0xFF0A0A0A);
-      actionsColor = Color(0xFFCACACA);
-      surfaceTintColor = Color(0xFFBABABA);
-      secondaryColor = Color(0xFF960F51);
-    });
+  @override
+  void initState() {
+    super.initState();
+    getSavedTheme();
+    getSavedWallets();
   }
 
-  void setDarkMode() {
-    setState(() {
-      isDarkMode = !isDarkMode;
-      primaryColor = Color(0XFF1B1B1B);
-      textColor = Color.fromARGB(255, 255, 255, 255);
-      secondaryColor = Colors.greenAccent;
-      actionsColor = Color(0XFF353535);
-      surfaceTintColor = Color(0XFF454545);
-    });
+  String generateUUID() {
+    return Ulid().toUuid();
   }
 
   Future<void> getSavedWallets() async {
@@ -165,30 +149,30 @@ class _AddCryptoViewState extends State<AddCryptoView> {
   Widget build(BuildContext context) {
     final width = MediaQuery.of(context).size.width;
     return Scaffold(
-        backgroundColor: primaryColor,
+        backgroundColor: colors.primaryColor,
         appBar: AppBar(
-          surfaceTintColor: surfaceTintColor,
-          backgroundColor: primaryColor,
+          surfaceTintColor: colors.grayColor,
+          backgroundColor: colors.primaryColor,
           actions: [
             Container(
               margin: const EdgeInsets.all(10),
               height: 35,
               width: 35,
               decoration: BoxDecoration(
-                  color: surfaceTintColor.withOpacity(0.1),
+                  color: colors.grayColor.withOpacity(0.1),
                   borderRadius: BorderRadius.circular(5)),
               child: IconButton(
                 onPressed: () {
                   showModalBottomSheet(
                       isScrollControlled: true,
-                      backgroundColor: primaryColor,
+                      backgroundColor: colors.primaryColor,
                       context: context,
                       builder: (ctx) {
                         return StatefulBuilder(builder: (bCtx, setModalState) {
                           return SizedBox(
                               height: MediaQuery.of(context).size.height * 0.95,
                               child: Scaffold(
-                                backgroundColor: primaryColor,
+                                backgroundColor: colors.primaryColor,
                                 appBar: AppBar(
                                   actions: [
                                     IconButton(
@@ -229,13 +213,13 @@ class _AddCryptoViewState extends State<AddCryptoView> {
                                                         sigmaX: 8, sigmaY: 8),
                                                     child: AlertDialog(
                                                       backgroundColor:
-                                                          primaryColor,
+                                                          colors.primaryColor,
                                                       title: Text(
                                                         "Confirmation",
                                                         style:
                                                             GoogleFonts.roboto(
-                                                                color:
-                                                                    textColor),
+                                                                color: colors
+                                                                    .textColor),
                                                       ),
                                                       content: Column(
                                                         children: [
@@ -249,14 +233,16 @@ class _AddCryptoViewState extends State<AddCryptoView> {
                                                                 Text(
                                                                   "Name :",
                                                                   style: GoogleFonts.roboto(
-                                                                      color: textColor
+                                                                      color: colors
+                                                                          .textColor
                                                                           .withOpacity(
                                                                               0.5)),
                                                                 ),
                                                                 Text(
                                                                   "${tokenFoundedData.name}",
                                                                   style: GoogleFonts.roboto(
-                                                                      color: textColor
+                                                                      color: colors
+                                                                          .textColor
                                                                           .withOpacity(
                                                                               0.8),
                                                                       fontWeight:
@@ -276,14 +262,16 @@ class _AddCryptoViewState extends State<AddCryptoView> {
                                                                 Text(
                                                                   "Symbol :",
                                                                   style: GoogleFonts.roboto(
-                                                                      color: textColor
+                                                                      color: colors
+                                                                          .textColor
                                                                           .withOpacity(
                                                                               0.5)),
                                                                 ),
                                                                 Text(
                                                                   "${tokenFoundedData.symbol}",
                                                                   style: GoogleFonts.roboto(
-                                                                      color: textColor
+                                                                      color: colors
+                                                                          .textColor
                                                                           .withOpacity(
                                                                               0.8),
                                                                       fontWeight:
@@ -303,14 +291,16 @@ class _AddCryptoViewState extends State<AddCryptoView> {
                                                                 Text(
                                                                   "Decimals :",
                                                                   style: GoogleFonts.roboto(
-                                                                      color: textColor
+                                                                      color: colors
+                                                                          .textColor
                                                                           .withOpacity(
                                                                               0.5)),
                                                                 ),
                                                                 Text(
                                                                   "${tokenFoundedData.decimals}",
                                                                   style: GoogleFonts.roboto(
-                                                                      color: textColor
+                                                                      color: colors
+                                                                          .textColor
                                                                           .withOpacity(
                                                                               0.8),
                                                                       fontWeight:
@@ -327,13 +317,14 @@ class _AddCryptoViewState extends State<AddCryptoView> {
                                                           style: ElevatedButton
                                                               .styleFrom(
                                                                   backgroundColor:
-                                                                      textColor),
+                                                                      colors
+                                                                          .textColor),
                                                           child: Text(
                                                             "Add Token",
                                                             style: GoogleFonts
                                                                 .roboto(
-                                                                    color:
-                                                                        primaryColor),
+                                                                    color: colors
+                                                                        .primaryColor),
                                                           ),
                                                           onPressed: () async {
                                                             final List<Crypto>?
@@ -443,8 +434,8 @@ class _AddCryptoViewState extends State<AddCryptoView> {
                                                             "Cancel",
                                                             style: GoogleFonts
                                                                 .roboto(
-                                                                    color:
-                                                                        textColor),
+                                                                    color: colors
+                                                                        .textColor),
                                                           ),
                                                           onPressed: () {
                                                             Navigator.pop(btx);
@@ -463,10 +454,11 @@ class _AddCryptoViewState extends State<AddCryptoView> {
                                         },
                                         icon: Icon(
                                           Icons.check,
-                                          color: textColor.withOpacity(0.5),
+                                          color:
+                                              colors.textColor.withOpacity(0.5),
                                         ))
                                   ],
-                                  backgroundColor: primaryColor,
+                                  backgroundColor: colors.primaryColor,
                                   leading: IconButton(
                                       onPressed: () {
                                         if (hasSaved) {
@@ -478,7 +470,8 @@ class _AddCryptoViewState extends State<AddCryptoView> {
                                       },
                                       icon: Icon(
                                         LucideIcons.chevronLeft,
-                                        color: textColor.withOpacity(0.5),
+                                        color:
+                                            colors.textColor.withOpacity(0.5),
                                       )),
                                 ),
                                 body: SingleChildScrollView(
@@ -488,7 +481,8 @@ class _AddCryptoViewState extends State<AddCryptoView> {
                                       ListTile(
                                         onTap: () {
                                           showModalBottomSheet(
-                                              backgroundColor: primaryColor,
+                                              backgroundColor:
+                                                  colors.primaryColor,
                                               context: context,
                                               builder: (ctx) {
                                                 return SingleChildScrollView(
@@ -514,8 +508,8 @@ class _AddCryptoViewState extends State<AddCryptoView> {
                                                         title: Text(crypto.name,
                                                             style: GoogleFonts
                                                                 .roboto(
-                                                                    color:
-                                                                        textColor)),
+                                                                    color: colors
+                                                                        .textColor)),
                                                         onTap: () {
                                                           setModalState(() {
                                                             selectedNetwork =
@@ -527,7 +521,8 @@ class _AddCryptoViewState extends State<AddCryptoView> {
                                                         trailing: Icon(
                                                           LucideIcons
                                                               .chevronRight,
-                                                          color: textColor,
+                                                          color:
+                                                              colors.textColor,
                                                         ),
                                                       );
                                                     }).toList(),
@@ -538,26 +533,26 @@ class _AddCryptoViewState extends State<AddCryptoView> {
                                         title: Text(
                                           "${selectedNetwork != null ? selectedNetwork?.name : "Select an network"}",
                                           style: GoogleFonts.roboto(
-                                              color:
-                                                  textColor.withOpacity(0.5)),
+                                              color: colors.textColor
+                                                  .withOpacity(0.5)),
                                         ),
                                         trailing: Icon(
                                           LucideIcons.chevronRight,
-                                          color: textColor,
+                                          color: colors.textColor,
                                         ),
                                       ),
                                       SizedBox(
                                         width: width * 0.92,
                                         child: TextField(
                                           style: GoogleFonts.roboto(
-                                              color: textColor),
-                                          cursorColor: secondaryColor,
+                                              color: colors.textColor),
+                                          cursorColor: colors.themeColor,
                                           controller:
                                               _contractAddressController,
                                           decoration: InputDecoration(
                                               hintText: "Contract address",
                                               hintStyle: GoogleFonts.robotoFlex(
-                                                  color: textColor
+                                                  color: colors.textColor
                                                       .withOpacity(0.4)),
                                               contentPadding:
                                                   const EdgeInsets.symmetric(
@@ -565,11 +560,11 @@ class _AddCryptoViewState extends State<AddCryptoView> {
                                                       horizontal: 8),
                                               prefixIcon: Icon(
                                                 LucideIcons.scrollText,
-                                                color:
-                                                    textColor.withOpacity(0.3),
+                                                color: colors.textColor
+                                                    .withOpacity(0.3),
                                               ),
                                               filled: true,
-                                              fillColor: surfaceTintColor
+                                              fillColor: colors.grayColor
                                                   .withOpacity(0.1),
                                               enabledBorder: OutlineInputBorder(
                                                   borderRadius:
@@ -596,7 +591,7 @@ class _AddCryptoViewState extends State<AddCryptoView> {
                 },
                 icon: Icon(
                   LucideIcons.plus,
-                  color: textColor,
+                  color: colors.textColor,
                   size: 20,
                 ),
               ),
@@ -608,11 +603,11 @@ class _AddCryptoViewState extends State<AddCryptoView> {
               },
               icon: Icon(
                 LucideIcons.chevronLeft,
-                color: textColor,
+                color: colors.textColor,
               )),
           title: Text(
             "Manage Coins ",
-            style: GoogleFonts.robotoFlex(color: textColor),
+            style: GoogleFonts.robotoFlex(color: colors.textColor),
           ),
         ),
         body: SingleChildScrollView(
@@ -629,21 +624,21 @@ class _AddCryptoViewState extends State<AddCryptoView> {
                         _searchController.text = v;
                       });
                     },
-                    style: GoogleFonts.roboto(color: textColor),
-                    cursorColor: secondaryColor,
+                    style: GoogleFonts.roboto(color: colors.textColor),
+                    cursorColor: colors.themeColor,
                     controller: _searchController,
                     decoration: InputDecoration(
                         hintText: "Search Crypto",
                         hintStyle: GoogleFonts.robotoFlex(
-                            color: textColor.withOpacity(0.4)),
+                            color: colors.textColor.withOpacity(0.4)),
                         contentPadding: const EdgeInsets.symmetric(
                             vertical: 8, horizontal: 8),
                         prefixIcon: Icon(
                           Icons.search,
-                          color: textColor.withOpacity(0.3),
+                          color: colors.textColor.withOpacity(0.3),
                         ),
                         filled: true,
-                        fillColor: surfaceTintColor.withOpacity(0.1),
+                        fillColor: colors.grayColor.withOpacity(0.1),
                         enabledBorder: OutlineInputBorder(
                             borderRadius: BorderRadius.circular(10),
                             borderSide: BorderSide(
@@ -683,7 +678,8 @@ class _AddCryptoViewState extends State<AddCryptoView> {
                                       width: 40,
                                       height: 40,
                                       decoration: BoxDecoration(
-                                          color: textColor.withOpacity(0.6),
+                                          color:
+                                              colors.textColor.withOpacity(0.6),
                                           borderRadius:
                                               BorderRadius.circular(50)),
                                       child: Center(
@@ -692,7 +688,7 @@ class _AddCryptoViewState extends State<AddCryptoView> {
                                               ? crypto.symbol.substring(0, 2)
                                               : crypto.symbol,
                                           style: GoogleFonts.roboto(
-                                              color: primaryColor,
+                                              color: colors.primaryColor,
                                               fontWeight: FontWeight.bold,
                                               fontSize: 18),
                                         ),
@@ -721,7 +717,7 @@ class _AddCryptoViewState extends State<AddCryptoView> {
                         title: Text(
                           crypto.symbol,
                           style: GoogleFonts.roboto(
-                              color: textColor,
+                              color: colors.textColor,
                               fontSize: 16,
                               fontWeight: FontWeight.bold),
                         ),

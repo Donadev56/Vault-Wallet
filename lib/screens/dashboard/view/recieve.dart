@@ -11,9 +11,11 @@ import 'package:moonwallet/service/crypto_storage_manager.dart';
 import 'package:moonwallet/service/price_manager.dart';
 import 'package:moonwallet/service/wallet_saver.dart';
 import 'package:moonwallet/types/types.dart';
+import 'package:moonwallet/utils/colors.dart';
 import 'package:moonwallet/utils/constant.dart';
 import 'package:moonwallet/utils/crypto.dart';
 import 'package:moonwallet/utils/prefs.dart';
+import 'package:moonwallet/utils/themes.dart';
 import 'package:qr_flutter/qr_flutter.dart';
 
 class ReceiveScreen extends StatefulWidget {
@@ -24,11 +26,6 @@ class ReceiveScreen extends StatefulWidget {
 }
 
 class _ReceiveScreenState extends State<ReceiveScreen> {
-  Color primaryColor = Color(0XFF1B1B1B);
-  Color textColor = Color.fromARGB(255, 255, 255, 255);
-  Color secondaryColor = Colors.greenAccent;
-  Color actionsColor = Color(0XFF353535);
-  Color surfaceTintColor = Color(0XFF454545);
   Color warningColor = Colors.orange;
   bool _isInitialized = false;
   bool isDarkMode = false;
@@ -51,7 +48,33 @@ class _ReceiveScreenState extends State<ReceiveScreen> {
   @override
   void initState() {
     super.initState();
-    getThemeMode();
+    getSavedTheme();
+  }
+
+  AppColors colors = AppColors(
+      primaryColor: Color(0XFF0D0D0D),
+      themeColor: Colors.greenAccent,
+      greenColor: Colors.greenAccent,
+      secondaryColor: Color(0XFF121212),
+      grayColor: Color(0XFF353535),
+      textColor: Colors.white,
+      redColor: Colors.pinkAccent);
+  Themes themes = Themes();
+  String savedThemeName = "";
+  Future<void> getSavedTheme() async {
+    try {
+      final manager = ColorsManager();
+      final savedName = await manager.getThemeName();
+      setState(() {
+        savedThemeName = savedName ?? "";
+      });
+      final savedTheme = await manager.getDefaultTheme();
+      setState(() {
+        colors = savedTheme;
+      });
+    } catch (e) {
+      logError(e.toString());
+    }
   }
 
   Future<void> getSavedWallets() async {
@@ -89,62 +112,6 @@ class _ReceiveScreenState extends State<ReceiveScreen> {
     }
   }
 
-  void setLightMode() {
-    setState(() {
-      isDarkMode = !isDarkMode;
-      primaryColor = Color(0xFFE4E4E4);
-      textColor = Color(0xFF0A0A0A);
-      actionsColor = Color(0xFFCACACA);
-      surfaceTintColor = Color(0xFFBABABA);
-      secondaryColor = Color(0xFF960F51);
-    });
-  }
-
-  void setDarkMode() {
-    setState(() {
-      isDarkMode = !isDarkMode;
-      primaryColor = Color(0XFF1B1B1B);
-      textColor = Color.fromARGB(255, 255, 255, 255);
-      secondaryColor = Colors.greenAccent;
-      actionsColor = Color(0XFF353535);
-      surfaceTintColor = Color(0XFF454545);
-    });
-  }
-
-  Future<void> getThemeMode() async {
-    try {
-      final savedMode =
-          await publicDataManager.getDataFromPrefs(key: "isDarkMode");
-      if (savedMode == null) {
-        return;
-      }
-      if (savedMode == "true") {
-        setDarkMode();
-      } else {
-        setLightMode();
-      }
-    } catch (e) {
-      logError(e.toString());
-    }
-  }
-
-  Future<void> toggleMode() async {
-    try {
-      if (isDarkMode) {
-        setLightMode();
-
-        await publicDataManager.saveDataInPrefs(
-            data: "false", key: "isDarkMode");
-      } else {
-        setDarkMode();
-        await publicDataManager.saveDataInPrefs(
-            data: "true", key: "isDarkMode");
-      }
-    } catch (e) {
-      logError(e.toString());
-    }
-  }
-
   @override
   void didChangeDependencies() async {
     super.didChangeDependencies();
@@ -176,13 +143,13 @@ class _ReceiveScreenState extends State<ReceiveScreen> {
     //final height = MediaQuery.of(context).size.height;
 
     return Scaffold(
-      backgroundColor: primaryColor,
+      backgroundColor: colors.primaryColor,
       appBar: AppBar(
-        backgroundColor: primaryColor,
+        backgroundColor: colors.primaryColor,
         leading: IconButton(
           icon: Icon(
             Icons.arrow_back,
-            color: textColor,
+            color: colors.textColor,
           ),
           onPressed: () {
             Navigator.pop(context);
@@ -190,7 +157,7 @@ class _ReceiveScreenState extends State<ReceiveScreen> {
         ),
         title: Text(
           "Receive",
-          style: GoogleFonts.roboto(color: textColor, fontSize: 20),
+          style: GoogleFonts.roboto(color: colors.textColor, fontSize: 20),
         ),
       ),
       body: Column(
@@ -255,7 +222,7 @@ class _ReceiveScreenState extends State<ReceiveScreen> {
                                   width: 30,
                                   height: 30,
                                   decoration: BoxDecoration(
-                                      color: textColor.withOpacity(0.6),
+                                      color: colors.textColor.withOpacity(0.6),
                                       borderRadius: BorderRadius.circular(50)),
                                   child: Center(
                                     child: Text(
@@ -264,7 +231,7 @@ class _ReceiveScreenState extends State<ReceiveScreen> {
                                               .substring(0, 2)
                                           : currentNetwork.symbol,
                                       style: GoogleFonts.roboto(
-                                          color: primaryColor,
+                                          color: colors.primaryColor,
                                           fontWeight: FontWeight.bold,
                                           fontSize: 18),
                                     ),
@@ -296,7 +263,7 @@ class _ReceiveScreenState extends State<ReceiveScreen> {
                     Text(
                       currentNetwork.symbol,
                       style: GoogleFonts.roboto(
-                          color: textColor,
+                          color: colors.textColor,
                           fontSize: 20,
                           fontWeight: FontWeight.bold),
                     )
@@ -349,12 +316,12 @@ class _ReceiveScreenState extends State<ReceiveScreen> {
                     padding: const EdgeInsets.all(10),
                     decoration: BoxDecoration(
                         borderRadius: BorderRadius.circular(30),
-                        color: surfaceTintColor.withOpacity(0.2)),
+                        color: colors.grayColor.withOpacity(0.2)),
                     child: Center(
                       child: Text(
                         currentAccount.address,
-                        style:
-                            GoogleFonts.roboto(color: textColor, fontSize: 11),
+                        style: GoogleFonts.roboto(
+                            color: colors.textColor, fontSize: 11),
                       ),
                     ))),
           ),
@@ -374,7 +341,7 @@ class _ReceiveScreenState extends State<ReceiveScreen> {
                   },
                   icon: Icon(
                     Icons.copy,
-                    color: primaryColor,
+                    color: colors.primaryColor,
                   ),
                   label: Text("Copy the address"),
                 ),

@@ -9,8 +9,10 @@ import 'package:moonwallet/service/price_manager.dart';
 import 'package:moonwallet/service/wallet_saver.dart';
 import 'package:moonwallet/service/web3_interaction.dart';
 import 'package:moonwallet/types/types.dart';
+import 'package:moonwallet/utils/colors.dart';
 import 'package:moonwallet/utils/crypto.dart';
 import 'package:moonwallet/utils/prefs.dart';
+import 'package:moonwallet/utils/themes.dart';
 import 'package:moonwallet/widgets/snackbar.dart';
 
 class PrivateKeyScreen extends StatefulWidget {
@@ -21,13 +23,32 @@ class PrivateKeyScreen extends StatefulWidget {
 }
 
 class _PrivateKeyScreenState extends State<PrivateKeyScreen> {
-  Color primaryColor = Color(0XFF1B1B1B);
-  Color textColor = Color.fromARGB(255, 255, 255, 255);
-  Color secondaryColor = Colors.greenAccent;
-  Color actionsColor = Color(0XFF353535);
-  Color surfaceTintColor = Color(0XFF454545);
-  Color darkNavigatorColor = Color(0XFF0D0D0D);
   bool isDarkMode = false;
+  AppColors colors = AppColors(
+      primaryColor: Color(0XFF0D0D0D),
+      themeColor: Colors.greenAccent,
+      greenColor: Colors.greenAccent,
+      secondaryColor: Color(0XFF121212),
+      grayColor: Color(0XFF353535),
+      textColor: Colors.white,
+      redColor: Colors.pinkAccent);
+  Themes themes = Themes();
+  String savedThemeName = "";
+  Future<void> getSavedTheme() async {
+    try {
+      final manager = ColorsManager();
+      final savedName = await manager.getThemeName();
+      setState(() {
+        savedThemeName = savedName ?? "";
+      });
+      final savedTheme = await manager.getDefaultTheme();
+      setState(() {
+        colors = savedTheme;
+      });
+    } catch (e) {
+      logError(e.toString());
+    }
+  }
 
   final TextEditingController _mnemonicController = TextEditingController();
   final TextEditingController _privateKeyController = TextEditingController();
@@ -43,74 +64,11 @@ class _PrivateKeyScreenState extends State<PrivateKeyScreen> {
 
   @override
   void initState() {
-    getThemeMode();
+    getSavedTheme();
     super.initState();
     WidgetsBinding.instance.addPostFrameCallback((_) {
       showWarn();
     });
-  }
-
-  void setLightMode() {
-    setState(() {
-      isDarkMode = !isDarkMode;
-      primaryColor = Color(0xFFE4E4E4);
-      textColor = Color(0xFF0A0A0A);
-      actionsColor = Color(0xFFCACACA);
-      surfaceTintColor = Color(0xFFBABABA);
-      secondaryColor = Color(0xFF960F51);
-    });
-  }
-
-  void setDarkMode() {
-    setState(() {
-      isDarkMode = !isDarkMode;
-      primaryColor = Color(0XFF1B1B1B);
-      textColor = Color.fromARGB(255, 255, 255, 255);
-      secondaryColor = Colors.greenAccent;
-      actionsColor = Color(0XFF353535);
-      surfaceTintColor = Color(0XFF454545);
-    });
-  }
-
-  Future<void> getThemeMode() async {
-    try {
-      final savedMode =
-          await publicDataManager.getDataFromPrefs(key: "isDarkMode");
-      if (savedMode == null) {
-        return;
-      }
-      if (savedMode == "true") {
-        setDarkMode();
-      } else {
-        setLightMode();
-      }
-    } catch (e) {
-      logError(e.toString());
-    }
-  }
-
-  Future<void> toggleMode() async {
-    try {
-      if (isDarkMode) {
-        setLightMode();
-
-        await publicDataManager.saveDataInPrefs(
-            data: "false", key: "isDarkMode");
-      } else {
-        setDarkMode();
-        await publicDataManager.saveDataInPrefs(
-            data: "true", key: "isDarkMode");
-      }
-    } catch (e) {
-      logError(e.toString());
-    }
-  }
-
-  @override
-  void dispose() {
-    _mnemonicController.dispose();
-    _privateKeyController.dispose();
-    super.dispose();
   }
 
   Future<void> getDecryptedData() async {
@@ -181,7 +139,7 @@ class _PrivateKeyScreenState extends State<PrivateKeyScreen> {
               sigmaY: 8.0,
             ),
             child: AlertDialog(
-              backgroundColor: primaryColor,
+              backgroundColor: colors.primaryColor,
               title: Text(
                 "Warning",
                 style: GoogleFonts.roboto(color: Colors.orange),
@@ -198,7 +156,7 @@ class _PrivateKeyScreenState extends State<PrivateKeyScreen> {
                     TextButton.icon(
                       icon: Icon(
                         Icons.arrow_back,
-                        color: textColor,
+                        color: colors.textColor,
                       ),
                       onPressed: () {
                         Navigator.pop(ctx);
@@ -206,13 +164,13 @@ class _PrivateKeyScreenState extends State<PrivateKeyScreen> {
                       },
                       label: Text(
                         "Go back",
-                        style: GoogleFonts.roboto(color: textColor),
+                        style: GoogleFonts.roboto(color: colors.textColor),
                       ),
                     ),
                     TextButton.icon(
                       icon: Icon(
                         Icons.remove_red_eye,
-                        color: textColor,
+                        color: colors.textColor,
                       ),
                       onPressed: () {
                         getDecryptedData();
@@ -220,7 +178,7 @@ class _PrivateKeyScreenState extends State<PrivateKeyScreen> {
                       },
                       label: Text(
                         "View",
-                        style: GoogleFonts.roboto(color: textColor),
+                        style: GoogleFonts.roboto(color: colors.textColor),
                       ),
                     ),
                   ],
@@ -255,18 +213,18 @@ class _PrivateKeyScreenState extends State<PrivateKeyScreen> {
   Widget build(BuildContext context) {
     final width = MediaQuery.of(context).size.width;
     return Scaffold(
-      backgroundColor: primaryColor,
+      backgroundColor: colors.primaryColor,
       appBar: AppBar(
-        backgroundColor: primaryColor,
+        backgroundColor: colors.primaryColor,
         leading: IconButton(
-          icon: Icon(Icons.arrow_back, color: textColor),
+          icon: Icon(Icons.arrow_back, color: colors.textColor),
           onPressed: () {
             Navigator.pop(context);
           },
         ),
         title: Text(
           "Private Data Overview",
-          style: GoogleFonts.roboto(color: textColor),
+          style: GoogleFonts.roboto(color: colors.textColor),
         ),
       ),
       body: Padding(
@@ -278,14 +236,16 @@ class _PrivateKeyScreenState extends State<PrivateKeyScreen> {
               controller: _mnemonicController,
               minLines: 4,
               maxLines: 5,
-              style: GoogleFonts.roboto(color: textColor),
+              style: GoogleFonts.roboto(color: colors.textColor),
               decoration: InputDecoration(
                   label: Text("Mnemonic"),
-                  labelStyle: GoogleFonts.roboto(color: textColor),
+                  labelStyle: GoogleFonts.roboto(color: colors.textColor),
                   enabledBorder: OutlineInputBorder(
-                      borderSide: BorderSide(width: 1, color: secondaryColor)),
+                      borderSide:
+                          BorderSide(width: 1, color: colors.themeColor)),
                   border: OutlineInputBorder(
-                      borderSide: BorderSide(width: 1, color: secondaryColor))),
+                      borderSide:
+                          BorderSide(width: 1, color: colors.themeColor))),
             ),
             SizedBox(
               height: 15,
@@ -295,14 +255,16 @@ class _PrivateKeyScreenState extends State<PrivateKeyScreen> {
               controller: _privateKeyController,
               minLines: 2,
               maxLines: 3,
-              style: GoogleFonts.roboto(color: textColor),
+              style: GoogleFonts.roboto(color: colors.textColor),
               decoration: InputDecoration(
                   label: Text("Private  Key"),
-                  labelStyle: GoogleFonts.roboto(color: textColor),
+                  labelStyle: GoogleFonts.roboto(color: colors.textColor),
                   enabledBorder: OutlineInputBorder(
-                      borderSide: BorderSide(width: 1, color: secondaryColor)),
+                      borderSide:
+                          BorderSide(width: 1, color: colors.themeColor)),
                   border: OutlineInputBorder(
-                      borderSide: BorderSide(width: 1, color: secondaryColor))),
+                      borderSide:
+                          BorderSide(width: 1, color: colors.themeColor))),
             ),
             SizedBox(
               height: 15,
@@ -328,7 +290,7 @@ class _PrivateKeyScreenState extends State<PrivateKeyScreen> {
                     label: Text('Mnemonic'),
                     icon: Icon(
                       Icons.copy,
-                      color: primaryColor,
+                      color: colors.primaryColor,
                     ),
                   ),
                 ),
@@ -349,7 +311,7 @@ class _PrivateKeyScreenState extends State<PrivateKeyScreen> {
                     label: Text('PrivateKey'),
                     icon: Icon(
                       Icons.copy,
-                      color: primaryColor,
+                      color: colors.primaryColor,
                     ),
                   ),
                 )

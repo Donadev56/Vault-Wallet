@@ -43,7 +43,7 @@ class BottomNav extends StatelessWidget {
           final bool isSelected = index == currentIndex;
 
           return BottomNavigationBarItem(
-            backgroundColor: const Color(0xFF0D0D0D),
+            backgroundColor: primaryColor,
             icon: AnimatedContainer(
               duration: const Duration(milliseconds: 300),
               padding: const EdgeInsets.all(5),

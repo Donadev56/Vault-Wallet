@@ -22,7 +22,14 @@ class _CreatePrivateKeyState extends State<CreatePrivateKey> {
   String firstPassword = "";
   String secondPassword = "";
   final manager = WalletSaver();
-
+  AppColors colors = AppColors(
+      primaryColor: Color(0XFF0D0D0D),
+      themeColor: Colors.greenAccent,
+      greenColor: Colors.greenAccent,
+      secondaryColor: Color(0XFF121212),
+      grayColor: Color(0XFF353535),
+      textColor: Colors.white,
+      redColor: Colors.pinkAccent);
   @override
   void initState() {
     _textController = TextEditingController();
@@ -278,6 +285,7 @@ class _CreatePrivateKeyState extends State<CreatePrivateKey> {
                       ),
                       onPressed: () {
                         showPinModalBottomSheet(
+                            colors: colors,
                             handleSubmit: handleSubmit,
                             context: context,
                             title: "Enter a secure password");

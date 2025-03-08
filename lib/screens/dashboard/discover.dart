@@ -10,7 +10,9 @@ import 'package:lucide_icons_flutter/lucide_icons.dart';
 import 'package:moonwallet/logger/logger.dart';
 import 'package:moonwallet/main.dart';
 import 'package:moonwallet/types/types.dart';
+import 'package:moonwallet/utils/colors.dart';
 import 'package:moonwallet/utils/prefs.dart';
+import 'package:moonwallet/utils/themes.dart';
 
 import 'package:moonwallet/widgets/snackbar.dart';
 
@@ -23,11 +25,6 @@ class DiscoverScreen extends StatefulWidget {
 
 class _DiscoverScreenState extends State<DiscoverScreen>
     with SingleTickerProviderStateMixin {
-  Color primaryColor = Color(0XFF1B1B1B);
-  Color textColor = Color(0xFFF5F5F5);
-  Color secondaryColor = Colors.greenAccent;
-  Color actionsColor = Color(0XFF353535);
-  Color surfaceTintColor = Color(0XFF454545);
   late TabController _tabController;
   final publicDataManager = PublicDataManager();
 
@@ -64,13 +61,38 @@ class _DiscoverScreenState extends State<DiscoverScreen>
     ),
   ];
   List<HistoryItem> history = [];
+  AppColors colors = AppColors(
+      primaryColor: Color(0XFF0D0D0D),
+      themeColor: Colors.greenAccent,
+      greenColor: Colors.greenAccent,
+      secondaryColor: Color(0XFF121212),
+      grayColor: Color(0XFF353535),
+      textColor: Colors.white,
+      redColor: Colors.pinkAccent);
+  Themes themes = Themes();
+  String savedThemeName = "";
+  Future<void> getSavedTheme() async {
+    try {
+      final manager = ColorsManager();
+      final savedName = await manager.getThemeName();
+      setState(() {
+        savedThemeName = savedName ?? "";
+      });
+      final savedTheme = await manager.getDefaultTheme();
+      setState(() {
+        colors = savedTheme;
+      });
+    } catch (e) {
+      logError(e.toString());
+    }
+  }
 
   @override
   void initState() {
     super.initState();
 
     _tabController = TabController(length: 2, vsync: this);
-    getThemeMode();
+    getSavedTheme();
     _focusNode.addListener(() {
       setState(() {
         _isSearchFocused = _focusNode.hasFocus;
@@ -240,79 +262,23 @@ class _DiscoverScreenState extends State<DiscoverScreen>
     }
   }
 
-  void setLightMode() {
-    setState(() {
-      isDarkMode = !isDarkMode;
-      primaryColor = Color(0xFFE4E4E4);
-      textColor = Color(0xFF0A0A0A);
-      actionsColor = Color(0xFFCACACA);
-      surfaceTintColor = Color(0xFFBABABA);
-      secondaryColor = Color(0xFF960F51);
-    });
-  }
-
-  void setDarkMode() {
-    setState(() {
-      isDarkMode = !isDarkMode;
-      primaryColor = Color(0XFF1B1B1B);
-      textColor = Color.fromARGB(255, 255, 255, 255);
-      secondaryColor = Colors.greenAccent;
-      actionsColor = Color(0XFF353535);
-      surfaceTintColor = Color(0XFF454545);
-    });
-  }
-
-  Future<void> getThemeMode() async {
-    try {
-      final savedMode =
-          await publicDataManager.getDataFromPrefs(key: "isDarkMode");
-      if (savedMode == null) {
-        return;
-      }
-      if (savedMode == "true") {
-        setDarkMode();
-      } else {
-        setLightMode();
-      }
-    } catch (e) {
-      logError(e.toString());
-    }
-  }
-
-  Future<void> toggleMode() async {
-    try {
-      if (isDarkMode) {
-        setLightMode();
-
-        await publicDataManager.saveDataInPrefs(
-            data: "false", key: "isDarkMode");
-      } else {
-        setDarkMode();
-        await publicDataManager.saveDataInPrefs(
-            data: "true", key: "isDarkMode");
-      }
-    } catch (e) {
-      logError(e.toString());
-    }
-  }
-
   @override
   Widget build(BuildContext context) {
     double width = MediaQuery.of(context).size.width;
     double height = MediaQuery.of(context).size.height;
 
     return Scaffold(
-      backgroundColor: primaryColor,
+      backgroundColor: colors.primaryColor,
       appBar: AppBar(
-        surfaceTintColor: primaryColor,
+        surfaceTintColor: colors.primaryColor,
         automaticallyImplyLeading: false,
-        backgroundColor: primaryColor,
+        backgroundColor: colors.primaryColor,
         title: Text(
           "Discover",
           style: GoogleFonts.roboto(
             fontSize: 24,
             fontWeight: FontWeight.bold,
-            color: textColor,
+            color: colors.textColor,
           ),
         ),
       ),
@@ -350,34 +316,35 @@ class _DiscoverScreenState extends State<DiscoverScreen>
                   },
                   focusNode: _focusNode,
                   controller: _textEditingController,
-                  cursorColor: secondaryColor,
+                  cursorColor: colors.themeColor,
                   style: GoogleFonts.roboto(
-                    color: textColor,
+                    color: colors.textColor,
                   ),
                   decoration: InputDecoration(
                     prefixIcon: Icon(
                       LucideIcons.search,
-                      color: textColor.withOpacity(0.3),
+                      color: colors.textColor.withOpacity(0.3),
                     ),
                     filled: true,
                     enabledBorder: OutlineInputBorder(
                       borderSide:
-                          BorderSide(color: surfaceTintColor.withOpacity(0)),
+                          BorderSide(color: colors.textColor.withOpacity(0)),
                       borderRadius: BorderRadius.circular(40),
                     ),
                     focusedBorder: OutlineInputBorder(
                       borderSide:
-                          BorderSide(color: surfaceTintColor.withOpacity(0)),
+                          BorderSide(color: colors.grayColor.withOpacity(0)),
                       borderRadius: BorderRadius.circular(40),
                     ),
                     contentPadding: const EdgeInsets.only(left: 10, right: 10),
                     border: OutlineInputBorder(
                         borderSide:
-                            BorderSide(color: surfaceTintColor.withOpacity(0)),
+                            BorderSide(color: colors.grayColor.withOpacity(0)),
                         borderRadius: BorderRadius.circular(40)),
                     labelText: "Search",
-                    labelStyle: TextStyle(color: textColor, fontSize: 12),
-                    fillColor: surfaceTintColor.withOpacity(0.2),
+                    labelStyle:
+                        TextStyle(color: colors.textColor, fontSize: 12),
+                    fillColor: colors.grayColor.withOpacity(0.2),
                   ),
                 ),
               ),
@@ -386,9 +353,9 @@ class _DiscoverScreenState extends State<DiscoverScreen>
             TabBar(
               dividerColor: Colors.transparent,
               controller: _tabController,
-              labelColor: textColor,
+              labelColor: colors.textColor,
               unselectedLabelColor: Colors.grey,
-              indicatorColor: secondaryColor,
+              indicatorColor: colors.themeColor,
               tabs: [
                 Tab(text: 'DApps'),
                 Tab(
@@ -411,7 +378,7 @@ class _DiscoverScreenState extends State<DiscoverScreen>
                             style: GoogleFonts.roboto(
                               fontSize: 20,
                               fontWeight: FontWeight.bold,
-                              color: textColor,
+                              color: colors.textColor,
                             ),
                           ),
                         ),
@@ -438,7 +405,7 @@ class _DiscoverScreenState extends State<DiscoverScreen>
                                 style: GoogleFonts.roboto(
                                   fontSize: 16,
                                   fontWeight: FontWeight.bold,
-                                  color: textColor,
+                                  color: colors.textColor,
                                 ),
                                 overflow: TextOverflow.ellipsis,
                                 maxLines: 1,
@@ -447,7 +414,7 @@ class _DiscoverScreenState extends State<DiscoverScreen>
                                 dapp.description,
                                 style: GoogleFonts.roboto(
                                   fontSize: 14,
-                                  color: textColor.withOpacity(0.6),
+                                  color: colors.textColor.withOpacity(0.6),
                                 ),
                                 overflow: TextOverflow.ellipsis,
                                 maxLines: 1,
@@ -480,7 +447,7 @@ class _DiscoverScreenState extends State<DiscoverScreen>
                             style: GoogleFonts.roboto(
                               fontSize: 20,
                               fontWeight: FontWeight.bold,
-                              color: textColor,
+                              color: colors.textColor,
                             ),
                           ),
                         ),
@@ -495,7 +462,7 @@ class _DiscoverScreenState extends State<DiscoverScreen>
                                       borderRadius: BorderRadius.circular(50),
                                       child: Container(
                                           decoration: BoxDecoration(
-                                              color: surfaceTintColor
+                                              color: colors.grayColor
                                                   .withOpacity(0.5)),
                                           child: FastCachedImage(
                                             url:
@@ -505,7 +472,7 @@ class _DiscoverScreenState extends State<DiscoverScreen>
                                             fit: BoxFit.cover,
                                             loadingBuilder: (ctx, p) {
                                               return CircularProgressIndicator(
-                                                color: secondaryColor,
+                                                color: colors.themeColor,
                                                 value:
                                                     p.progressPercentage.value,
                                               );
@@ -516,7 +483,7 @@ class _DiscoverScreenState extends State<DiscoverScreen>
                                     style: GoogleFonts.roboto(
                                       fontSize: 16,
                                       fontWeight: FontWeight.bold,
-                                      color: textColor,
+                                      color: colors.textColor,
                                     ),
                                     overflow: TextOverflow.ellipsis,
                                     maxLines: 1,
@@ -541,7 +508,8 @@ class _DiscoverScreenState extends State<DiscoverScreen>
                                       },
                                       icon: Icon(
                                         FeatherIcons.trash,
-                                        color: textColor.withOpacity(0.7),
+                                        color:
+                                            colors.textColor.withOpacity(0.7),
                                       )),
                                   onTap: () async {
                                     await changeHistoryIndex(index);

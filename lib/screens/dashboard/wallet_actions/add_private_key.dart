@@ -6,7 +6,9 @@ import 'package:moonwallet/logger/logger.dart';
 import 'package:moonwallet/main.dart';
 import 'package:moonwallet/service/wallet_saver.dart' show WalletSaver;
 import 'package:moonwallet/types/types.dart';
+import 'package:moonwallet/utils/colors.dart';
 import 'package:moonwallet/utils/prefs.dart';
+import 'package:moonwallet/utils/themes.dart';
 import 'package:moonwallet/widgets/bottom_pin.dart';
 import 'package:moonwallet/widgets/snackbar.dart';
 import 'package:web3dart/web3dart.dart';
@@ -26,80 +28,40 @@ class _AddPrivateKeyState extends State<AddPrivateKeyInMain> {
   int secAttempt = 0;
   final publicDataManager = PublicDataManager();
   bool isDarkMode = false;
-  Color primaryColor = Color(0XFF1B1B1B);
-  Color textColor = Color.fromARGB(255, 255, 255, 255);
-  Color secondaryColor = Colors.greenAccent;
-  Color actionsColor = Color(0XFF353535);
-  Color surfaceTintColor = Color(0XFF454545);
+
   final manager = WalletSaver();
+  AppColors colors = AppColors(
+      primaryColor: Color(0XFF0D0D0D),
+      themeColor: Colors.greenAccent,
+      greenColor: Colors.greenAccent,
+      secondaryColor: Color(0XFF121212),
+      grayColor: Color(0XFF353535),
+      textColor: Colors.white,
+      redColor: Colors.pinkAccent);
+  Themes themes = Themes();
+  String savedThemeName = "";
+  Future<void> getSavedTheme() async {
+    try {
+      final manager = ColorsManager();
+      final savedName = await manager.getThemeName();
+      setState(() {
+        savedThemeName = savedName ?? "";
+      });
+      final savedTheme = await manager.getDefaultTheme();
+      setState(() {
+        colors = savedTheme;
+      });
+    } catch (e) {
+      logError(e.toString());
+    }
+  }
 
   @override
   void initState() {
     _textController = TextEditingController();
-    getThemeMode();
-    SystemChrome.setSystemUIOverlayStyle(
-      SystemUiOverlayStyle(
-        statusBarColor: primaryColor,
-        statusBarIconBrightness: Brightness.light,
-      ),
-    );
+    getSavedTheme();
+
     super.initState();
-  }
-
-  void setLightMode() {
-    setState(() {
-      isDarkMode = !isDarkMode;
-      primaryColor = Color(0xFFE4E4E4);
-      textColor = Color(0xFF0A0A0A);
-      actionsColor = Color(0xFFCACACA);
-      surfaceTintColor = Color(0xFFBABABA);
-      secondaryColor = Color(0xFF960F51);
-    });
-  }
-
-  void setDarkMode() {
-    setState(() {
-      isDarkMode = !isDarkMode;
-      primaryColor = Color(0XFF1B1B1B);
-      textColor = Color.fromARGB(255, 255, 255, 255);
-      secondaryColor = Colors.greenAccent;
-      actionsColor = Color(0XFF353535);
-      surfaceTintColor = Color(0XFF454545);
-    });
-  }
-
-  Future<void> getThemeMode() async {
-    try {
-      final savedMode =
-          await publicDataManager.getDataFromPrefs(key: "isDarkMode");
-      if (savedMode == null) {
-        return;
-      }
-      if (savedMode == "true") {
-        setDarkMode();
-      } else {
-        setLightMode();
-      }
-    } catch (e) {
-      logError(e.toString());
-    }
-  }
-
-  Future<void> toggleMode() async {
-    try {
-      if (isDarkMode) {
-        setLightMode();
-
-        await publicDataManager.saveDataInPrefs(
-            data: "false", key: "isDarkMode");
-      } else {
-        setDarkMode();
-        await publicDataManager.saveDataInPrefs(
-            data: "true", key: "isDarkMode");
-      }
-    } catch (e) {
-      logError(e.toString());
-    }
   }
 
   Future<PinSubmitResult> handleSubmit(String numbers) async {
@@ -172,7 +134,7 @@ class _AddPrivateKeyState extends State<AddPrivateKeyInMain> {
             context: context,
             message: "Data saved successfully",
             icon: Icons.check_circle,
-            iconColor: secondaryColor);
+            iconColor: colors.themeColor);
         Navigator.pushNamed(context, Routes.main);
       } else {
         throw Exception("Failed to save the key.");
@@ -231,11 +193,11 @@ class _AddPrivateKeyState extends State<AddPrivateKeyInMain> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-        backgroundColor: primaryColor,
+        backgroundColor: colors.primaryColor,
         body: Form(
           key: _formKey,
           child: Container(
-            decoration: BoxDecoration(color: primaryColor),
+            decoration: BoxDecoration(color: colors.primaryColor),
             child: SafeArea(
                 child: SingleChildScrollView(
               child: Column(
@@ -248,7 +210,7 @@ class _AddPrivateKeyState extends State<AddPrivateKeyInMain> {
                       child: Text(
                         "Add Private Key",
                         style: GoogleFonts.exo2(
-                            color: textColor,
+                            color: colors.textColor,
                             fontSize: 24,
                             decoration: TextDecoration.none),
                       ),
@@ -275,24 +237,24 @@ class _AddPrivateKeyState extends State<AddPrivateKeyInMain> {
                           }
                         },
                         style: GoogleFonts.exo2(
-                          color: textColor,
+                          color: colors.textColor,
                         ),
-                        cursorColor: secondaryColor,
+                        cursorColor: colors.themeColor,
                         minLines: 3,
                         maxLines: 5,
                         controller: _textController,
                         decoration: InputDecoration(
                           enabledBorder: OutlineInputBorder(
-                              borderSide:
-                                  BorderSide(width: 1, color: secondaryColor)),
+                              borderSide: BorderSide(
+                                  width: 1, color: colors.themeColor)),
                           focusedBorder: OutlineInputBorder(
-                              borderSide:
-                                  BorderSide(width: 1, color: secondaryColor)),
+                              borderSide: BorderSide(
+                                  width: 1, color: colors.themeColor)),
                           labelText: 'Private Key',
-                          labelStyle: TextStyle(color: textColor),
+                          labelStyle: TextStyle(color: colors.textColor),
                           border: OutlineInputBorder(
                             borderRadius: BorderRadius.circular(10),
-                            borderSide: BorderSide(color: textColor),
+                            borderSide: BorderSide(color: colors.textColor),
                           ),
                         ),
                       ),
@@ -316,16 +278,16 @@ class _AddPrivateKeyState extends State<AddPrivateKeyInMain> {
                                 });
                               }
                             },
-                            icon: Icon(Icons.paste, color: secondaryColor),
+                            icon: Icon(Icons.paste, color: colors.themeColor),
                             label: Text(
                               "Paste",
                               style: GoogleFonts.exo2(
                                 fontSize: 16,
-                                color: secondaryColor,
+                                color: colors.themeColor,
                               ),
                             ),
                             style: OutlinedButton.styleFrom(
-                              side: BorderSide(color: secondaryColor),
+                              side: BorderSide(color: colors.themeColor),
                               // Instead of setting an infinite width, just set the height.
                               minimumSize: const Size.fromHeight(50),
                               shape: RoundedRectangleBorder(
@@ -341,16 +303,16 @@ class _AddPrivateKeyState extends State<AddPrivateKeyInMain> {
                           child: OutlinedButton.icon(
                             onPressed: () {},
                             icon: Icon(LucideIcons.maximize,
-                                color: secondaryColor),
+                                color: colors.themeColor),
                             label: Text(
                               "Scan",
                               style: GoogleFonts.exo2(
                                 fontSize: 16,
-                                color: secondaryColor,
+                                color: colors.themeColor,
                               ),
                             ),
                             style: OutlinedButton.styleFrom(
-                              side: BorderSide(color: secondaryColor),
+                              side: BorderSide(color: colors.themeColor),
                               minimumSize: const Size.fromHeight(50),
                               shape: RoundedRectangleBorder(
                                 borderRadius: BorderRadius.circular(30),
@@ -383,7 +345,7 @@ class _AddPrivateKeyState extends State<AddPrivateKeyInMain> {
                               Text("Important :",
                                   style: GoogleFonts.exo(
                                       fontSize: 16,
-                                      color: textColor,
+                                      color: colors.textColor,
                                       decoration: TextDecoration.none)),
                             ],
                           )),
@@ -394,7 +356,7 @@ class _AddPrivateKeyState extends State<AddPrivateKeyInMain> {
                                 "The private key is secret and is the only way to access your funds. Never share your private key with anyone and keep it in a safe place.",
                                 style: GoogleFonts.exo(
                                     fontSize: 16,
-                                    color: textColor.withOpacity(0.5),
+                                    color: colors.textColor.withOpacity(0.5),
                                     decoration: TextDecoration.none),
                               ),
                             ),
@@ -412,8 +374,9 @@ class _AddPrivateKeyState extends State<AddPrivateKeyInMain> {
                             bottom: 20, left: 20), // Optional padding
                         child: ElevatedButton(
                           style: ElevatedButton.styleFrom(
-                            backgroundColor: primaryColor,
-                            side: BorderSide(color: secondaryColor, width: 1),
+                            backgroundColor: colors.primaryColor,
+                            side:
+                                BorderSide(color: colors.themeColor, width: 1),
                             shape: RoundedRectangleBorder(
                               borderRadius: BorderRadius.circular(30),
                             ),
@@ -425,7 +388,7 @@ class _AddPrivateKeyState extends State<AddPrivateKeyInMain> {
                             "Previous",
                             style: GoogleFonts.exo(
                               fontSize: 18,
-                              color: secondaryColor,
+                              color: colors.themeColor,
                               decoration: TextDecoration.none,
                             ),
                           ),
@@ -444,6 +407,7 @@ class _AddPrivateKeyState extends State<AddPrivateKeyInMain> {
                           onPressed: () {
                             if (_formKey.currentState?.validate() ?? false) {
                               showPinModalBottomSheet(
+                                  colors: colors,
                                   handleSubmit: handleSubmit,
                                   context: context,
                                   title: "Enter a secure password");
@@ -453,7 +417,7 @@ class _AddPrivateKeyState extends State<AddPrivateKeyInMain> {
                             "Next",
                             style: GoogleFonts.exo(
                               fontSize: 18,
-                              color: primaryColor,
+                              color: colors.primaryColor,
                               decoration: TextDecoration.none,
                             ),
                           ),

@@ -5,6 +5,7 @@ import 'dart:io';
 import 'package:moonwallet/screens/dashboard/page_manager.dart';
 import 'package:moonwallet/service/crypto_storage_manager.dart';
 import 'package:moonwallet/service/wallet_saver.dart';
+import 'package:moonwallet/utils/colors.dart';
 import 'package:moonwallet/widgets/func/show_crypto_modal.dart';
 import 'package:path/path.dart' as path;
 
@@ -38,11 +39,6 @@ class MainDashboardScreen extends StatefulWidget {
 
 class _MainDashboardScreenState extends State<MainDashboardScreen>
     with SingleTickerProviderStateMixin {
-  Color primaryColor = Color(0XFF1B1B1B);
-  Color textColor = Color.fromARGB(255, 255, 255, 255);
-  Color secondaryColor = Colors.greenAccent;
-  Color actionsColor = Color(0XFF353535);
-  Color surfaceTintColor = Color(0XFF454545);
   List<Balance> cryptosAndBalance = [];
   bool isLoading = true;
 
@@ -57,6 +53,15 @@ class _MainDashboardScreenState extends State<MainDashboardScreen>
 // Color secondaryColor = Color(0xFF960F51);  // Inversion of Colors.greenAccent (assumed as Color(0xFF69F0AE))
 //Color actionsColor = Color(0xFFCACACA);     // Inversion of Color(0xFF353535)
 // Color surfaceTintColor = Color(0xFFBABABA); // Inversion of Color(0xFF454545)
+
+  AppColors colors = AppColors(
+      primaryColor: Color(0XFF0D0D0D),
+      themeColor: Colors.greenAccent,
+      greenColor: Colors.greenAccent,
+      secondaryColor: Color(0XFF121212),
+      grayColor: Color(0XFF353535),
+      textColor: Colors.white,
+      redColor: Colors.pinkAccent);
 
   List<PublicData> accounts = [];
   List<PublicData> filteredAccounts = [];
@@ -101,12 +106,20 @@ class _MainDashboardScreenState extends State<MainDashboardScreen>
   void initState() {
     getIsHidden();
 
-    getThemeMode();
+    getSavedTheme();
     getSavedWallets();
     loadData();
     super.initState();
 
     _tabController = TabController(length: 2, vsync: this);
+  }
+
+  Future<void> getSavedTheme() async {
+    final manager = ColorsManager();
+    final savedTheme = await manager.getDefaultTheme();
+    setState(() {
+      colors = savedTheme;
+    });
   }
 
   Future<void> getIsHidden() async {
@@ -262,6 +275,7 @@ class _MainDashboardScreenState extends State<MainDashboardScreen>
   Future<void> deleteWallet(int index) async {
     try {
       showPinModalBottomSheet(
+          colors: colors,
           context: context,
           handleSubmit: (password) async {
             final savedPassword = await web3Manager.getSavedPassword();
@@ -332,6 +346,7 @@ class _MainDashboardScreenState extends State<MainDashboardScreen>
       }
       String userPassword = "";
       final result = await showPinModalBottomSheet(
+          colors: colors,
           context: context,
           handleSubmit: (password) async {
             final savedPassword = await web3Manager.getSavedPassword();
@@ -472,62 +487,6 @@ class _MainDashboardScreenState extends State<MainDashboardScreen>
     }
   }
 
-  void setLightMode() {
-    setState(() {
-      isDarkMode = !isDarkMode;
-      primaryColor = Color(0xFFE4E4E4);
-      textColor = Color(0xFF0A0A0A);
-      actionsColor = Color(0xFFCACACA);
-      surfaceTintColor = Color(0xFFBABABA);
-      secondaryColor = Color(0xFF960F51);
-    });
-  }
-
-  void setDarkMode() {
-    setState(() {
-      isDarkMode = !isDarkMode;
-      primaryColor = Color(0XFF1B1B1B);
-      textColor = Color.fromARGB(255, 255, 255, 255);
-      secondaryColor = Colors.greenAccent;
-      actionsColor = Color(0XFF353535);
-      surfaceTintColor = Color(0XFF454545);
-    });
-  }
-
-  Future<void> getThemeMode() async {
-    try {
-      final savedMode =
-          await publicDataManager.getDataFromPrefs(key: "isDarkMode");
-      if (savedMode == null) {
-        return;
-      }
-      if (savedMode == "true") {
-        setDarkMode();
-      } else {
-        setLightMode();
-      }
-    } catch (e) {
-      logError(e.toString());
-    }
-  }
-
-  Future<void> toggleMode() async {
-    try {
-      if (isDarkMode) {
-        setLightMode();
-
-        await publicDataManager.saveDataInPrefs(
-            data: "false", key: "isDarkMode");
-      } else {
-        setDarkMode();
-        await publicDataManager.saveDataInPrefs(
-            data: "true", key: "isDarkMode");
-      }
-    } catch (e) {
-      logError(e.toString());
-    }
-  }
-
   Future<void> getCryptoData({required PublicData account}) async {
     try {
       final dataName = "cryptoAndBalance/${account.address}";
@@ -621,9 +580,9 @@ class _MainDashboardScreenState extends State<MainDashboardScreen>
   void showReceiveModal() {
     showCryptoModal(
         context: context,
-        primaryColor: primaryColor,
-        textColor: textColor,
-        surfaceTintColor: surfaceTintColor,
+        primaryColor: colors.primaryColor,
+        textColor: colors.textColor,
+        surfaceTintColor: colors.grayColor.withOpacity(0.6),
         reorganizedCrypto: reorganizedCrypto,
         route: Routes.receiveScreen);
   }
@@ -631,9 +590,9 @@ class _MainDashboardScreenState extends State<MainDashboardScreen>
   void showSendModal() {
     showCryptoModal(
         context: context,
-        primaryColor: primaryColor,
-        textColor: textColor,
-        surfaceTintColor: surfaceTintColor,
+        primaryColor: colors.primaryColor,
+        textColor: colors.textColor,
+        surfaceTintColor: colors.grayColor.withOpacity(0.6),
         reorganizedCrypto: reorganizedCrypto,
         route: Routes.sendScreen);
   }
@@ -648,7 +607,7 @@ class _MainDashboardScreenState extends State<MainDashboardScreen>
             width: MediaQuery.of(context).size.width,
             padding: const EdgeInsets.all(15),
             decoration: BoxDecoration(
-                color: primaryColor,
+                color: colors.primaryColor,
                 borderRadius: BorderRadius.only(
                     topLeft: Radius.circular(15),
                     topRight: Radius.circular(10))),
@@ -678,12 +637,12 @@ class _MainDashboardScreenState extends State<MainDashboardScreen>
                             },
                             leading: Icon(
                               opt["icon"],
-                              color: textColor,
+                              color: colors.textColor,
                             ),
                             title: Text(
                               opt["name"],
                               style: GoogleFonts.roboto(
-                                  color: textColor,
+                                  color: colors.textColor,
                                   fontWeight: FontWeight.bold),
                             ),
                           ),
@@ -703,50 +662,50 @@ class _MainDashboardScreenState extends State<MainDashboardScreen>
 
     return Scaffold(
       key: _scaffoldKey,
-      backgroundColor: primaryColor,
+      backgroundColor: colors.primaryColor,
       floatingActionButton: Container(
         width: 40,
         height: 40,
         decoration: BoxDecoration(
-            color: surfaceTintColor, borderRadius: BorderRadius.circular(10)),
+            color: colors.grayColor, borderRadius: BorderRadius.circular(10)),
         child: IconButton(
             onPressed: () {
               _refreshIndicatorKey.currentState?.show();
             },
             icon: Icon(
               Icons.refresh,
-              color: textColor.withOpacity(0.5),
+              color: colors.textColor.withOpacity(0.5),
             )),
       ),
       drawer: MainDrawer(
           isDarkMode: isDarkMode,
-          toggleMode: toggleMode,
+          toggleMode: () {},
           showSendModal: showSendModal,
           showReceiveModal: showReceiveModal,
           profileImage: _profileImage,
           backgroundImage: _backgroundImage,
           userName: userName,
           scaffoldKey: _scaffoldKey,
-          primaryColor: primaryColor,
-          textColor: textColor,
-          surfaceTintColor: surfaceTintColor),
+          primaryColor: colors.primaryColor,
+          textColor: colors.textColor,
+          surfaceTintColor: colors.secondaryColor),
       appBar: CustomAppBar(
           profileImage: _profileImage,
           scaffoldKey: _scaffoldKey,
           showPrivateData: showPrivateData,
           reorderList: reorderList,
-          secondaryColor: secondaryColor,
+          secondaryColor: colors.themeColor,
           changeAccount: changeWallet,
           deleteWallet: deleteWallet,
           editWalletName: editWalletName,
           currentAccount: currentAccount ?? nullAccount,
           accounts: accounts,
-          primaryColor: primaryColor,
-          textColor: textColor,
-          surfaceTintColor: surfaceTintColor),
+          primaryColor: colors.primaryColor,
+          textColor: colors.textColor,
+          surfaceTintColor: colors.secondaryColor),
       body: RefreshIndicator(
-          color: primaryColor,
-          backgroundColor: textColor.withOpacity(0.8),
+          color: colors.primaryColor,
+          backgroundColor: colors.textColor.withOpacity(0.8),
           key: _refreshIndicatorKey,
           triggerMode: RefreshIndicatorTriggerMode.anywhere,
           onRefresh: () async {
@@ -774,7 +733,8 @@ class _MainDashboardScreenState extends State<MainDashboardScreen>
                               children: [
                                 Text(
                                   "Balance",
-                                  style: GoogleFonts.roboto(color: textColor),
+                                  style: GoogleFonts.roboto(
+                                      color: colors.textColor),
                                 ),
                                 IconButton(
                                     onPressed: toggleHidden,
@@ -782,7 +742,7 @@ class _MainDashboardScreenState extends State<MainDashboardScreen>
                                       isHidden
                                           ? LucideIcons.eyeClosed
                                           : Icons.remove_red_eye_outlined,
-                                      color: textColor,
+                                      color: colors.textColor,
                                       size: 22,
                                     ))
                               ],
@@ -800,7 +760,7 @@ class _MainDashboardScreenState extends State<MainDashboardScreen>
                                         ? "***"
                                         : "\$ ${totalBalanceUsd.toStringAsFixed(2)}",
                                     style: GoogleFonts.roboto(
-                                        color: textColor,
+                                        color: colors.textColor,
                                         fontSize: 30,
                                         fontWeight: FontWeight.bold),
                                   ),
@@ -837,8 +797,8 @@ class _MainDashboardScreenState extends State<MainDashboardScreen>
                                 },
                                 text: action["name"],
                                 actIcon: action["icon"],
-                                textColor: textColor,
-                                actionsColor: actionsColor,
+                                textColor: colors.textColor,
+                                actionsColor: colors.grayColor.withOpacity(0.3),
                               );
                             })),
                       ),
@@ -850,15 +810,15 @@ class _MainDashboardScreenState extends State<MainDashboardScreen>
                       TabBar(
                         dividerColor: Colors.transparent,
                         controller: _tabController,
-                        labelColor: textColor,
-                        unselectedLabelColor: Colors.grey,
-                        indicatorColor: secondaryColor,
+                        labelColor: colors.textColor,
+                        unselectedLabelColor: colors.grayColor.withOpacity(0.7),
+                        indicatorColor: colors.themeColor,
                         tabs: const [
                           Tab(text: 'Crypto'),
                           Tab(text: 'Nfts'),
                         ],
                       ),
-                      primaryColor: primaryColor,
+                      primaryColor: colors.primaryColor,
                     ),
                   ),
                 ];
@@ -884,13 +844,13 @@ class _MainDashboardScreenState extends State<MainDashboardScreen>
                                       width: 15,
                                       height: 15,
                                       child: CircularProgressIndicator(
-                                        color: secondaryColor,
+                                        color: colors.themeColor,
                                       ),
                                     ),
                                     Text(
                                       "Initializing ...",
-                                      style:
-                                          GoogleFonts.roboto(color: textColor),
+                                      style: GoogleFonts.roboto(
+                                          color: colors.textColor),
                                     )
                                   ],
                                 ),
@@ -920,13 +880,13 @@ class _MainDashboardScreenState extends State<MainDashboardScreen>
                                             children: [
                                               Icon(
                                                 LucideIcons.slidersVertical,
-                                                color:
-                                                    textColor.withOpacity(0.7),
+                                                color: colors.textColor
+                                                    .withOpacity(0.7),
                                               ),
                                               Text(
                                                 "Manage cryptos",
                                                 style: GoogleFonts.roboto(
-                                                    color: textColor
+                                                    color: colors.textColor
                                                         .withOpacity(0.7)),
                                               )
                                             ],
@@ -957,7 +917,7 @@ class _MainDashboardScreenState extends State<MainDashboardScreen>
                                                   width: 40,
                                                   height: 40,
                                                   decoration: BoxDecoration(
-                                                      color: textColor
+                                                      color: colors.textColor
                                                           .withOpacity(0.6),
                                                       borderRadius:
                                                           BorderRadius.circular(
@@ -972,7 +932,8 @@ class _MainDashboardScreenState extends State<MainDashboardScreen>
                                                           : crypto
                                                               .crypto.symbol,
                                                       style: GoogleFonts.roboto(
-                                                          color: primaryColor,
+                                                          color: colors
+                                                              .primaryColor,
                                                           fontWeight:
                                                               FontWeight.bold,
                                                           fontSize: 18),
@@ -1010,7 +971,7 @@ class _MainDashboardScreenState extends State<MainDashboardScreen>
                                           maxLines: 1,
                                           overflow: TextOverflow.ellipsis,
                                           style: GoogleFonts.roboto(
-                                            color: textColor,
+                                            color: colors.textColor,
                                             fontSize: 16,
                                             fontWeight: FontWeight.bold,
                                           ),
@@ -1021,14 +982,15 @@ class _MainDashboardScreenState extends State<MainDashboardScreen>
                                             padding: const EdgeInsets.symmetric(
                                                 horizontal: 10, vertical: 2),
                                             decoration: BoxDecoration(
-                                                color: surfaceTintColor
+                                                color: colors.grayColor
+                                                    .withOpacity(0.9)
                                                     .withOpacity(0.2),
                                                 borderRadius:
                                                     BorderRadius.circular(20)),
                                             child: Text(
                                               "${crypto.crypto.network?.name}",
                                               style: GoogleFonts.roboto(
-                                                  color: textColor
+                                                  color: colors.textColor
                                                       .withOpacity(0.8),
                                                   fontSize: 10),
                                             ),
@@ -1040,7 +1002,8 @@ class _MainDashboardScreenState extends State<MainDashboardScreen>
                                       children: [
                                         Text("\$${crypto.cryptoPrice}",
                                             style: GoogleFonts.roboto(
-                                              color: textColor.withOpacity(0.6),
+                                              color: colors.textColor
+                                                  .withOpacity(0.6),
                                               fontSize: 16,
                                             )),
                                         if (crypto.cryptoTrendPercent != 0)
@@ -1049,8 +1012,8 @@ class _MainDashboardScreenState extends State<MainDashboardScreen>
                                             style: GoogleFonts.roboto(
                                               color:
                                                   crypto.cryptoTrendPercent > 0
-                                                      ? Colors.greenAccent
-                                                      : Colors.pinkAccent,
+                                                      ? colors.greenColor
+                                                      : colors.redColor,
                                               fontSize: 14,
                                             ),
                                           ),
@@ -1072,7 +1035,7 @@ class _MainDashboardScreenState extends State<MainDashboardScreen>
                                               overflow: TextOverflow.clip,
                                               maxLines: 1,
                                               style: GoogleFonts.roboto(
-                                                  color: textColor,
+                                                  color: colors.textColor,
                                                   fontSize: 16,
                                                   fontWeight: FontWeight.bold)),
                                         ),
@@ -1081,8 +1044,8 @@ class _MainDashboardScreenState extends State<MainDashboardScreen>
                                                 ? "***"
                                                 : "\$ ${crypto.balanceUsd.toStringAsFixed(3)}",
                                             style: GoogleFonts.roboto(
-                                                color:
-                                                    textColor.withOpacity(0.6),
+                                                color: colors.textColor
+                                                    .withOpacity(0.6),
                                                 fontSize: 14))
                                       ],
                                     ),
@@ -1096,7 +1059,7 @@ class _MainDashboardScreenState extends State<MainDashboardScreen>
                       child: Center(
                         child: Text(
                           'Coming soon',
-                          style: GoogleFonts.roboto(color: textColor),
+                          style: GoogleFonts.roboto(color: colors.textColor),
                         ),
                       ),
                     ),

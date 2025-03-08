@@ -1,3 +1,5 @@
+// ignore_for_file: deprecated_member_use
+
 import 'package:flutter/material.dart';
 
 enum CryptoType { network, token }
@@ -526,5 +528,54 @@ class Balance {
       'cryptoTrendPercent': cryptoTrendPercent,
       'cryptoPrice': cryptoPrice,
     };
+  }
+}
+
+class AppColors {
+  final Color primaryColor;
+  final Color themeColor;
+  final Color greenColor;
+  final Color secondaryColor;
+  final Color grayColor;
+  final Color textColor;
+  final Color redColor;
+
+  AppColors({
+    required this.primaryColor,
+    required this.themeColor,
+    required this.greenColor,
+    required this.secondaryColor,
+    required this.grayColor,
+    required this.textColor,
+    required this.redColor,
+  });
+
+  Map<String, dynamic> toJson() {
+    return {
+      'primaryColor': primaryColor.value,
+      'themeColor': themeColor.value,
+      'greenColor': greenColor.value,
+      'secondaryColor': secondaryColor.value,
+      'grayColor': grayColor.value,
+      'textColor': textColor.value,
+      'redColor': redColor.value,
+    };
+  }
+
+  factory AppColors.fromJson(Map<String, dynamic> json) {
+    return AppColors(
+      primaryColor: Color(json['primaryColor'] ?? Colors.black.value),
+      themeColor: Color(json['themeColor'] ?? Colors.black.value),
+      greenColor: Color(json['greenColor'] ?? Colors.black.value),
+      secondaryColor: Color(json['secondaryColor'] ?? Colors.black.value),
+      grayColor: Color(json['grayColor'] ?? Colors.black.value),
+      textColor: Color(json['textColor'] ?? Colors.black.value),
+      redColor: Color(json['redColor'] ?? Colors.black.value),
+    );
+  }
+
+  @override
+  String toString() {
+    return 'AppColors(primaryColor: $primaryColor, themeColor: $themeColor, greenColor: $greenColor, secondaryColor: $secondaryColor, grayColor: $grayColor, textColor: $textColor, redColor: $redColor)';
   }
 }

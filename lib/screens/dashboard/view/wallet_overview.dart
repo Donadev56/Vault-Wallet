@@ -17,9 +17,11 @@ import 'package:moonwallet/service/price_manager.dart';
 import 'package:moonwallet/service/wallet_saver.dart';
 import 'package:moonwallet/service/web3_interaction.dart';
 import 'package:moonwallet/types/types.dart';
+import 'package:moonwallet/utils/colors.dart';
 import 'package:moonwallet/utils/constant.dart';
 import 'package:moonwallet/utils/crypto.dart';
 import 'package:moonwallet/utils/prefs.dart';
+import 'package:moonwallet/utils/themes.dart';
 import 'package:moonwallet/widgets/view/transactions.dart';
 import 'package:moonwallet/widgets/view/view_button_action.dart';
 import 'package:url_launcher/url_launcher.dart';
@@ -70,57 +72,28 @@ class _WalletViewScreenState extends State<WalletViewScreen>
   bool _isInitialized = false;
   Crypto currentCrypto = cryptos[0];
   double userLastBalance = 0;
-  void setLightMode() {
-    setState(() {
-      isDarkMode = !isDarkMode;
-      primaryColor = Color(0xFFE4E4E4);
-      textColor = Color(0xFF0A0A0A);
-      actionsColor = Color(0xFFCACACA);
-      surfaceTintColor = Color(0xFFBABABA);
-      secondaryColor = Color(0xFF960F51);
-    });
-  }
 
-  void setDarkMode() {
-    setState(() {
-      isDarkMode = !isDarkMode;
-      primaryColor = Color(0XFF1B1B1B);
-      textColor = Color.fromARGB(255, 255, 255, 255);
-      secondaryColor = Colors.greenAccent;
-      actionsColor = Color(0XFF353535);
-      surfaceTintColor = Color(0XFF454545);
-    });
-  }
-
-  Future<void> getThemeMode() async {
+  AppColors colors = AppColors(
+      primaryColor: Color(0XFF0D0D0D),
+      themeColor: Colors.greenAccent,
+      greenColor: Colors.greenAccent,
+      secondaryColor: Color(0XFF121212),
+      grayColor: Color(0XFF353535),
+      textColor: Colors.white,
+      redColor: Colors.pinkAccent);
+  Themes themes = Themes();
+  String savedThemeName = "";
+  Future<void> getSavedTheme() async {
     try {
-      final savedMode =
-          await publicDataManager.getDataFromPrefs(key: "isDarkMode");
-      if (savedMode == null) {
-        return;
-      }
-      if (savedMode == "true") {
-        setDarkMode();
-      } else {
-        setLightMode();
-      }
-    } catch (e) {
-      logError(e.toString());
-    }
-  }
-
-  Future<void> toggleMode() async {
-    try {
-      if (isDarkMode) {
-        setLightMode();
-
-        await publicDataManager.saveDataInPrefs(
-            data: "false", key: "isDarkMode");
-      } else {
-        setDarkMode();
-        await publicDataManager.saveDataInPrefs(
-            data: "true", key: "isDarkMode");
-      }
+      final manager = ColorsManager();
+      final savedName = await manager.getThemeName();
+      setState(() {
+        savedThemeName = savedName ?? "";
+      });
+      final savedTheme = await manager.getDefaultTheme();
+      setState(() {
+        colors = savedTheme;
+      });
     } catch (e) {
       logError(e.toString());
     }
@@ -132,15 +105,12 @@ class _WalletViewScreenState extends State<WalletViewScreen>
 
       final lastAccount = await encryptService.getLastConnectedAddress();
 
-      int count = 0;
       if (savedData != null && lastAccount != null) {
         for (final account in savedData) {
           final newAccount = PublicData.fromJson(account);
           setState(() {
             accounts.add(newAccount);
           });
-
-          count++;
         }
       }
 
@@ -344,7 +314,7 @@ class _WalletViewScreenState extends State<WalletViewScreen>
   @override
   void initState() {
     super.initState();
-    getThemeMode();
+    getSavedTheme();
     reorganizeCrypto();
     _tabController = TabController(length: 3, vsync: this);
   }
@@ -405,36 +375,29 @@ class _WalletViewScreenState extends State<WalletViewScreen>
     }
   }
 
-  Color primaryColor = Color(0XFF1B1B1B);
-  Color textColor = Color.fromARGB(255, 255, 255, 255);
-  Color secondaryColor = Colors.greenAccent;
-  Color actionsColor = Color(0XFF353535);
-  Color surfaceTintColor = Color(0XFF454545);
-  Color darkNavigatorColor = Color(0XFF0D0D0D);
-  Color binanceColor = Color(0XFF1a1b20);
-  Color binanceColorButton = Color.fromARGB(255, 50, 52, 62);
-
   @override
   Widget build(BuildContext context) {
     double width = MediaQuery.of(context).size.width;
     double height = MediaQuery.of(context).size.height;
     return Scaffold(
-      backgroundColor: primaryColor,
+      backgroundColor: colors.primaryColor,
       appBar: AppBar(
-        surfaceTintColor: primaryColor,
-        backgroundColor: primaryColor,
+        surfaceTintColor: colors.primaryColor,
+        backgroundColor: colors.primaryColor,
         leading: IconButton(
             onPressed: () {
               Navigator.pop(context);
             },
             icon: Icon(
               Icons.arrow_back,
-              color: textColor,
+              color: colors.textColor,
             )),
         title: Text(
           currentCrypto.symbol,
           style: GoogleFonts.roboto(
-              color: textColor, fontWeight: FontWeight.bold, fontSize: 22),
+              color: colors.textColor,
+              fontWeight: FontWeight.bold,
+              fontSize: 22),
         ),
         actions: [
           IconButton(
@@ -449,7 +412,7 @@ class _WalletViewScreenState extends State<WalletViewScreen>
                         filter: ImageFilter.blur(sigmaX: 10, sigmaY: 10),
                         child: Container(
                             decoration: BoxDecoration(
-                              color: binanceColor,
+                              color: Color(0XFF1A1B20),
                               borderRadius: BorderRadius.only(
                                 topLeft: Radius.circular(15),
                                 topRight: Radius.circular(15),
@@ -482,8 +445,8 @@ class _WalletViewScreenState extends State<WalletViewScreen>
                                                   "\$ ${result.data["price"]}",
                                                   style: GoogleFonts.roboto(
                                                     color: isPositive
-                                                        ? Colors.greenAccent
-                                                        : Colors.pinkAccent,
+                                                        ? colors.greenColor
+                                                        : colors.redColor,
                                                     fontSize: 22,
                                                     fontWeight: FontWeight.bold,
                                                   ),
@@ -492,8 +455,8 @@ class _WalletViewScreenState extends State<WalletViewScreen>
                                                   " ${(result.data["percent"] as double).toStringAsFixed(5)}%",
                                                   style: GoogleFonts.roboto(
                                                     color: isPositive
-                                                        ? Colors.greenAccent
-                                                        : Colors.pinkAccent,
+                                                        ? colors.greenColor
+                                                        : colors.redColor,
                                                     fontSize: 14,
                                                   ),
                                                 ),
@@ -571,9 +534,9 @@ class _WalletViewScreenState extends State<WalletViewScreen>
                                             padding: const EdgeInsets.all(5),
                                             decoration: BoxDecoration(
                                               color: currentIndex == index
-                                                  ? secondaryColor
+                                                  ? colors.themeColor
                                                       .withOpacity(0.3)
-                                                  : binanceColorButton,
+                                                  : colors.themeColor,
                                               borderRadius:
                                                   BorderRadius.circular(15),
                                             ),
@@ -581,7 +544,7 @@ class _WalletViewScreenState extends State<WalletViewScreen>
                                               child: Text(
                                                 intervals[index],
                                                 style: GoogleFonts.roboto(
-                                                    color: textColor,
+                                                    color: colors.textColor,
                                                     fontSize: 10),
                                               ),
                                             ),
@@ -601,14 +564,14 @@ class _WalletViewScreenState extends State<WalletViewScreen>
             },
             icon: Icon(
               Icons.candlestick_chart_rounded,
-              color: textColor,
+              color: colors.textColor,
             ),
           ),
         ],
       ),
       body: RefreshIndicator(
-        color: primaryColor,
-        backgroundColor: textColor.withOpacity(0.8),
+        color: colors.primaryColor,
+        backgroundColor: colors.textColor.withOpacity(0.8),
         onRefresh: getTransactions,
         child: SingleChildScrollView(
           child: Column(
@@ -631,7 +594,8 @@ class _WalletViewScreenState extends State<WalletViewScreen>
                                       width: 65,
                                       height: 65,
                                       decoration: BoxDecoration(
-                                          color: textColor.withOpacity(0.6),
+                                          color:
+                                              colors.textColor.withOpacity(0.6),
                                           borderRadius:
                                               BorderRadius.circular(50)),
                                       child: Center(
@@ -641,7 +605,7 @@ class _WalletViewScreenState extends State<WalletViewScreen>
                                                   .substring(0, 2)
                                               : currentCrypto.symbol,
                                           style: GoogleFonts.roboto(
-                                              color: primaryColor,
+                                              color: colors.primaryColor,
                                               fontWeight: FontWeight.bold,
                                               fontSize: 18),
                                         ),
@@ -685,7 +649,7 @@ class _WalletViewScreenState extends State<WalletViewScreen>
                                     overflow: TextOverflow.clip,
                                     maxLines: 1,
                                     style: GoogleFonts.roboto(
-                                        color: textColor,
+                                        color: colors.textColor,
                                         fontWeight: FontWeight.bold,
                                         fontSize: 24),
                                   );
@@ -695,7 +659,7 @@ class _WalletViewScreenState extends State<WalletViewScreen>
                                     overflow: TextOverflow.clip,
                                     maxLines: 1,
                                     style: GoogleFonts.roboto(
-                                        color: textColor,
+                                        color: colors.textColor,
                                         fontWeight: FontWeight.bold,
                                         fontSize: 24),
                                   );
@@ -713,14 +677,14 @@ class _WalletViewScreenState extends State<WalletViewScreen>
                               return Text(
                                 "= \$${(result.data as double).toStringAsFixed(2)} ",
                                 style: GoogleFonts.roboto(
-                                    color: textColor.withOpacity(0.5),
+                                    color: colors.textColor.withOpacity(0.5),
                                     fontSize: 14),
                               );
                             } else {
                               return Text(
                                 " = \$0.00 ",
                                 style: GoogleFonts.roboto(
-                                    color: textColor.withOpacity(0.5),
+                                    color: colors.textColor.withOpacity(0.5),
                                     fontSize: 14),
                               );
                             }
@@ -735,7 +699,7 @@ class _WalletViewScreenState extends State<WalletViewScreen>
                 crossAxisAlignment: CrossAxisAlignment.center,
                 children: [
                   WalletViewButtonAction(
-                      textColor: textColor,
+                      textColor: colors.textColor,
                       onTap: () {
                         Navigator.pushNamed(context, Routes.sendScreen,
                             arguments: ({"id": currentCrypto.cryptoId}));
@@ -743,7 +707,7 @@ class _WalletViewScreenState extends State<WalletViewScreen>
                       bottomText: "Send",
                       icon: Icons.arrow_upward),
                   WalletViewButtonAction(
-                      textColor: textColor,
+                      textColor: colors.textColor,
                       onTap: () {
                         Navigator.pushNamed(context, Routes.receiveScreen,
                             arguments: ({"id": currentCrypto.cryptoId}));
@@ -756,14 +720,14 @@ class _WalletViewScreenState extends State<WalletViewScreen>
                 height: 10,
               ),
               Divider(
-                color: textColor.withOpacity(0.05),
+                color: colors.textColor.withOpacity(0.05),
               ),
               TabBar(
                 dividerColor: Colors.transparent,
                 controller: _tabController,
-                labelColor: textColor,
-                unselectedLabelColor: Colors.grey,
-                indicatorColor: secondaryColor,
+                labelColor: colors.textColor,
+                unselectedLabelColor: colors.grayColor,
+                indicatorColor: colors.themeColor,
                 tabs: [
                   Tab(text: 'All'),
                   Tab(
@@ -789,7 +753,7 @@ class _WalletViewScreenState extends State<WalletViewScreen>
                               decoration: BoxDecoration(
                                   borderRadius: BorderRadius.circular(15),
                                   border: Border.all(
-                                      width: 1, color: surfaceTintColor)),
+                                      width: 1, color: colors.grayColor)),
                               child: Align(
                                   alignment: Alignment.center,
                                   child: Row(
@@ -798,7 +762,8 @@ class _WalletViewScreenState extends State<WalletViewScreen>
                                       Text(
                                         "Cannot find your transaction ? ",
                                         style: GoogleFonts.roboto(
-                                            color: textColor.withOpacity(0.7)),
+                                            color: colors.textColor
+                                                .withOpacity(0.7)),
                                       ),
                                       InkWell(
                                         onTap: () async {
@@ -814,7 +779,7 @@ class _WalletViewScreenState extends State<WalletViewScreen>
                                         child: Text(
                                           "Check explorer",
                                           style: GoogleFonts.roboto(
-                                              color: secondaryColor),
+                                              color: colors.themeColor),
                                         ),
                                       )
                                     ],
@@ -831,13 +796,13 @@ class _WalletViewScreenState extends State<WalletViewScreen>
                                       .toLowerCase() ==
                                   currentAccount.address.trim().toLowerCase();
                               return TransactionsListElement(
-                                surfaceTintColor: surfaceTintColor,
+                                surfaceTintColor: colors.grayColor,
                                 isFrom: isFrom,
                                 tr: transaction,
-                                textColor: textColor,
-                                secondaryColor: secondaryColor,
-                                darkColor: darkNavigatorColor,
-                                primaryColor: primaryColor,
+                                textColor: colors.textColor,
+                                secondaryColor: colors.themeColor,
+                                darkColor: colors.primaryColor,
+                                primaryColor: colors.secondaryColor,
                                 currentNetwork: currentCrypto,
                               );
                             }),
@@ -863,49 +828,52 @@ class _WalletViewScreenState extends State<WalletViewScreen>
                           final isFrom = tr.from.trim().toLowerCase() ==
                               currentAccount.address.trim().toLowerCase();
                           return TransactionsListElement(
-                            surfaceTintColor: surfaceTintColor,
+                            surfaceTintColor: colors.grayColor,
                             isFrom: isFrom,
                             tr: tr,
-                            textColor: textColor,
-                            secondaryColor: secondaryColor,
-                            primaryColor: primaryColor,
-                            darkColor: darkNavigatorColor,
+                            textColor: colors.textColor,
+                            secondaryColor: colors.themeColor,
+                            darkColor: colors.primaryColor,
+                            primaryColor: colors.secondaryColor,
                             currentNetwork: currentCrypto,
                           );
                         }),
                   )),
                   SingleChildScrollView(
                       child: SizedBox(
-                    height: height * 0.82,
-                    child: ListView.builder(
-                        itemCount: getFilteredTransactions()
-                            .where((tr) =>
-                                tr.from.toLowerCase().trim() ==
-                                currentAccount.address.toLowerCase().trim())
-                            .toList()
-                            .length,
-                        itemBuilder: (BuildContext listCtx, index) {
-                          final trx = getFilteredTransactions();
-                          final trOut = trx
-                              .where((tr) =>
-                                  tr.from.toLowerCase().trim() ==
-                                  currentAccount.address.toLowerCase().trim())
-                              .toList();
-                          final tr = trOut[index];
-                          final isFrom = tr.from.trim().toLowerCase() ==
-                              currentAccount.address.trim().toLowerCase();
-                          return TransactionsListElement(
-                            surfaceTintColor: surfaceTintColor,
-                            isFrom: isFrom,
-                            tr: tr,
-                            textColor: textColor,
-                            secondaryColor: secondaryColor,
-                            darkColor: darkNavigatorColor,
-                            primaryColor: primaryColor,
-                            currentNetwork: currentCrypto,
-                          );
-                        }),
-                  )),
+                          height: height * 0.82,
+                          child: ListView.builder(
+                              itemCount: getFilteredTransactions()
+                                  .where((tr) =>
+                                      tr.from.toLowerCase().trim() ==
+                                      currentAccount.address
+                                          .toLowerCase()
+                                          .trim())
+                                  .toList()
+                                  .length,
+                              itemBuilder: (BuildContext listCtx, index) {
+                                final trx = getFilteredTransactions();
+                                final trOut = trx
+                                    .where((tr) =>
+                                        tr.from.toLowerCase().trim() ==
+                                        currentAccount.address
+                                            .toLowerCase()
+                                            .trim())
+                                    .toList();
+                                final tr = trOut[index];
+                                final isFrom = tr.from.trim().toLowerCase() ==
+                                    currentAccount.address.trim().toLowerCase();
+                                return TransactionsListElement(
+                                  surfaceTintColor: colors.grayColor,
+                                  isFrom: isFrom,
+                                  tr: tr,
+                                  textColor: colors.textColor,
+                                  secondaryColor: colors.themeColor,
+                                  darkColor: colors.primaryColor,
+                                  primaryColor: colors.secondaryColor,
+                                  currentNetwork: currentCrypto,
+                                );
+                              }))),
                 ]),
               )
             ],

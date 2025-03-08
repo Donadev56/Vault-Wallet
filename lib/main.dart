@@ -16,6 +16,7 @@ import 'package:moonwallet/screens/dashboard/discover.dart';
 import 'package:moonwallet/screens/dashboard/main.dart';
 import 'package:moonwallet/screens/dashboard/page_manager.dart';
 import 'package:moonwallet/screens/dashboard/private/private_key_screen.dart';
+import 'package:moonwallet/screens/dashboard/settings/change_colors.dart';
 import 'package:moonwallet/screens/dashboard/settings/settings.dart';
 import 'package:moonwallet/screens/dashboard/view/recieve.dart';
 import 'package:moonwallet/screens/dashboard/view/send.dart';
@@ -26,6 +27,8 @@ import 'package:moonwallet/screens/dashboard/wallet_actions/add_private_key.dart
 import 'package:moonwallet/screens/dashboard/wallet_actions/private_key.dart';
 import 'package:moonwallet/service/wallet_saver.dart';
 import 'package:moonwallet/service/web3.dart';
+import 'package:moonwallet/types/types.dart';
+import 'package:moonwallet/utils/colors.dart';
 import 'package:moonwallet/utils/prefs.dart';
 
 void main() async {
@@ -60,12 +63,52 @@ class Routes {
   static const String settings = '/settings';
   static const String addCrypto = '/main/addCrypto';
   static const String pageManager = '/main/pageManager';
+  static const String changeTheme = '/settings/changeColor';
 
   static const String privateKeyCreator = '/privatekeyCreator';
 }
 
-class MyApp extends StatelessWidget {
-  const MyApp({super.key});
+class MyApp extends StatefulWidget {
+  const MyApp({Key? key}) : super(key: key);
+
+  @override
+  _MyAppState createState() => _MyAppState();
+}
+
+class _MyAppState extends State<MyApp> {
+  Color themeColor = Colors.greenAccent;
+  AppColors colors = AppColors(
+      primaryColor: Color(0XFF0D0D0D),
+      themeColor: Colors.greenAccent,
+      greenColor: Colors.greenAccent,
+      secondaryColor: Color(0XFF121212),
+      grayColor: Color(0XFF353535),
+      textColor: Colors.white,
+      redColor: Colors.pinkAccent);
+  String savedThemeName = "";
+
+  @override
+  void initState() {
+    super.initState();
+    getSavedTheme();
+  }
+
+  Future<void> getSavedTheme() async {
+    try {
+      final manager = ColorsManager();
+      final savedName = await manager.getThemeName();
+      setState(() {
+        savedThemeName = savedName ?? "";
+      });
+      final savedTheme = await manager.getDefaultTheme();
+      setState(() {
+        themeColor = savedTheme.themeColor;
+        colors = savedTheme;
+      });
+    } catch (e) {
+      logError(e.toString());
+    }
+  }
 
   Future<bool> hasAtLastOneAccount() async {
     try {
@@ -77,11 +120,7 @@ class MyApp extends StatelessWidget {
         await upgradeDatabase();
       }
       final lastConnected = await prefs.getLastConnectedAddress();
-      if (lastConnected != null) {
-        return true;
-      } else {
-        return false;
-      }
+      return lastConnected != null;
     } catch (e) {
       logError(e.toString());
       return false;
@@ -125,17 +164,40 @@ class MyApp extends StatelessWidget {
     }
   }
 
-  // This widget is the root of your application.
   @override
   Widget build(BuildContext context) {
-    return FutureBuilder(
+    return FutureBuilder<bool>(
         future: hasAtLastOneAccount(),
-        builder: (BuildContext ctx, AsyncSnapshot result) {
-          if (result.hasData) {
+        builder: (BuildContext ctx, AsyncSnapshot<bool> snapshot) {
+          if (snapshot.connectionState == ConnectionState.waiting) {
+            return Container(
+              decoration: BoxDecoration(color: const Color(0XFF0D0D0D)),
+              child: Center(
+                child: Container(
+                    padding: const EdgeInsets.all(10),
+                    width: 100,
+                    height: 100,
+                    decoration: BoxDecoration(
+                        color: const Color(0XFF212121),
+                        borderRadius: BorderRadius.circular(10)),
+                    child: const Center(
+                      child: SizedBox(
+                        width: 70,
+                        height: 70,
+                        child: CircularProgressIndicator(
+                          color: Colors.white,
+                        ),
+                      ),
+                    )),
+              ),
+            );
+          } else if (snapshot.hasData) {
             return MaterialApp(
                 debugShowCheckedModeBanner: false,
                 title: 'Moon Wallet',
                 theme: ThemeData(
+                  primaryColor: colors.primaryColor,
+                  dividerColor: colors.textColor,
                   pageTransitionsTheme: PageTransitionsTheme(
                     builders: {
                       for (var platform in TargetPlatform.values)
@@ -143,13 +205,13 @@ class MyApp extends StatelessWidget {
                     },
                   ),
                   colorScheme: ColorScheme.fromSeed(
-                    seedColor: Colors.greenAccent,
+                    seedColor: themeColor,
                     brightness: Brightness.dark,
                   ),
                   useMaterial3: true,
                   textButtonTheme: TextButtonThemeData(
                     style: TextButton.styleFrom(
-                      foregroundColor: Colors.white, // Couleur du texte
+                      foregroundColor: Colors.white,
                     ),
                   ),
                   elevatedButtonTheme: ElevatedButtonThemeData(
@@ -164,9 +226,9 @@ class MyApp extends StatelessWidget {
                     ),
                   ),
                 ),
-                initialRoute: result.data ? Routes.pageManager : Routes.home,
+                initialRoute: snapshot.data! ? Routes.pageManager : Routes.home,
                 routes: {
-                  Routes.main: (context) => MainDashboardScreen(key: key),
+                  Routes.main: (context) => MainDashboardScreen(),
                   Routes.discover: (context) => DiscoverScreen(),
                   Routes.browser: (context) => Web3BrowserScreen(),
                   Routes.home: (context) => HomeScreen(),
@@ -186,29 +248,10 @@ class MyApp extends StatelessWidget {
                   Routes.settings: (context) => SettingsPage(),
                   Routes.addCrypto: (context) => AddCryptoView(),
                   Routes.pageManager: (context) => PagesManagerView(),
+                  Routes.changeTheme: (context) => ChangeThemeView(),
                 });
           } else {
-            return Container(
-              decoration: BoxDecoration(color: Color(0XFF0D0D0D)),
-              child: Center(
-                child: Container(
-                    padding: const EdgeInsets.all(10),
-                    width: 100,
-                    height: 100,
-                    decoration: BoxDecoration(
-                        color: Color(0XFF212121),
-                        borderRadius: BorderRadius.circular(10)),
-                    child: Center(
-                      child: SizedBox(
-                        width: 70,
-                        height: 70,
-                        child: CircularProgressIndicator(
-                          color: Colors.white,
-                        ),
-                      ),
-                    )),
-              ),
-            );
+            return const Center(child: Text("An error occurred."));
           }
         });
   }

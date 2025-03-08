@@ -6,7 +6,6 @@ import 'package:moonwallet/logger/logger.dart';
 import 'package:moonwallet/service/price_manager.dart';
 import 'package:moonwallet/service/token_manager.dart';
 import 'package:moonwallet/service/wallet_saver.dart';
-import 'package:moonwallet/service/web3.dart';
 import 'package:moonwallet/types/types.dart';
 import 'package:moonwallet/widgets/askUserforconf.dart';
 import 'package:moonwallet/widgets/bottom_pin_copy.dart';
@@ -166,6 +165,7 @@ class Web3InteractionManager {
 
   Future<String> sendEthTransaction(
       {required JsTransactionObject data,
+      required AppColors colors,
       required bool mounted,
       required BuildContext context,
       required PublicData currentAccount,
@@ -277,6 +277,7 @@ class Web3InteractionManager {
         }
 
         final response = await showPinModalBottomSheet(
+            colors: colors,
             // ignore: use_build_context_synchronously
             context: context,
             handleSubmit: (password) async {
