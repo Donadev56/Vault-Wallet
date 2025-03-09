@@ -88,6 +88,8 @@ class _AddPrivateKeyState extends State<AddPrivateKey> {
       if (result) {
         if (!mounted) return;
         showCustomSnackBar(
+                        primaryColor: colors.primaryColor,
+
             context: context,
             message: "Data saved successfully",
             icon: Icons.check_circle,
@@ -99,6 +101,8 @@ class _AddPrivateKeyState extends State<AddPrivateKey> {
     } catch (e) {
       logError(e.toString());
       showCustomSnackBar(
+                      primaryColor: colors.primaryColor,
+
           context: context,
           message: "Failed to save the key.",
           iconColor: Colors.pinkAccent);
@@ -115,6 +119,8 @@ class _AddPrivateKeyState extends State<AddPrivateKey> {
       String hexKey;
       if (key.isEmpty) {
         showCustomSnackBar(
+                        primaryColor: colors.primaryColor,
+
             context: context,
             message: "Please enter a private key !",
             iconColor: Colors.pinkAccent);

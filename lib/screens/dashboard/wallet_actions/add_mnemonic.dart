@@ -89,6 +89,8 @@ class _AddPrivateKeyState extends State<AddMnemonicScreen> {
             attempt = 0;
           });
           showCustomSnackBar(
+                          primaryColor: colors.primaryColor,
+
               context: context,
               message: "Too many failed attempts.",
               icon: Icons.error,
@@ -134,6 +136,8 @@ class _AddPrivateKeyState extends State<AddMnemonicScreen> {
       if (result) {
         if (!mounted) return;
         showCustomSnackBar(
+                        primaryColor: colors.primaryColor,
+
             context: context,
             message: "Data saved successfully",
             icon: Icons.check_circle,
@@ -145,6 +149,8 @@ class _AddPrivateKeyState extends State<AddMnemonicScreen> {
     } catch (e) {
       logError(e.toString());
       showCustomSnackBar(
+                      primaryColor: colors.primaryColor,
+
           context: context,
           message: "Failed to save the key.",
           iconColor: Colors.pinkAccent);

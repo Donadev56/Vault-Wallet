@@ -207,3 +207,67 @@ Uint8List hexToUint8List(String hex) {
   }
   return result;
 }
+
+
+
+List<Color> colorList = [
+  Colors.amberAccent,
+  Colors.lightBlueAccent,
+  Colors.greenAccent,
+  Colors.amber,
+  Colors.pinkAccent,
+  Colors.deepPurple,
+  Colors.lightGreenAccent,
+  Colors.deepOrange,
+  Colors.deepOrangeAccent,
+  Colors.white,
+  Colors.grey,
+
+  // Primary Colors + Accents
+  Colors.red,
+  Colors.redAccent,
+  Colors.pink,
+  Colors.purple,
+  Colors.purpleAccent,
+  Colors.deepPurpleAccent,
+  Colors.indigo,
+  Colors.indigoAccent,
+  Colors.blue,
+  Colors.blueAccent,
+  Colors.lightBlue,
+  Colors.cyan,
+  Colors.cyanAccent,
+  Colors.teal,
+  Colors.tealAccent,
+  Colors.green,
+  Colors.lightGreen,
+  Colors.lime,
+  Colors.limeAccent,
+  Colors.yellow,
+  Colors.yellowAccent,
+  Colors.orange,
+  Colors.orangeAccent,
+  Colors.brown,
+  Colors.blueGrey,
+
+  Colors.red.shade100,
+  Colors.red.shade700,
+  Colors.blue.shade200,
+  Colors.blue.shade800,
+  Colors.green.shade300,
+  Colors.green.shade600,
+  Colors.amber.shade200,
+  Colors.amber.shade800,
+  Colors.deepPurple.shade100,
+  Colors.deepPurple.shade400,
+  Colors.orange.shade300,
+  Colors.orange.shade700,
+  Colors.teal.shade200,
+  Colors.teal.shade500,
+
+  Colors.black,
+  Colors.purple.shade300,
+  Colors.cyan.shade100,
+  Colors.yellow.shade600,
+  Colors.transparent
+];

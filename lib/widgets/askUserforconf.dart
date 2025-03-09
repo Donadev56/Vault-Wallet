@@ -3,7 +3,6 @@ import 'package:flutter/material.dart';
 import 'package:flutter_feather_icons/flutter_feather_icons.dart';
 import 'package:flutter_web3_webview/flutter_web3_webview.dart';
 import 'package:google_fonts/google_fonts.dart';
-import 'package:intl/intl.dart';
 import 'package:lucide_icons_flutter/lucide_icons.dart';
 import 'package:moonwallet/logger/logger.dart';
 import 'package:moonwallet/types/types.dart';

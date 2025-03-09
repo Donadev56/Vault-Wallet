@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
-import 'package:lucide_icons_flutter/lucide_icons.dart';
-import 'package:moonwallet/logger/logger.dart';
+
 
 typedef OnTap = void Function(int index);
 

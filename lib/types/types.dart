@@ -1,8 +1,17 @@
 // ignore_for_file: deprecated_member_use
 
 import 'package:flutter/material.dart';
+import 'package:lucide_icons_flutter/lucide_icons.dart';
 
 enum CryptoType { network, token }
+extension IconJson on IconData {
+  Map<String, dynamic> toJson() => {
+        'codePoint': codePoint,
+        'fontFamily': fontFamily,
+        'fontPackage': fontPackage,
+        'matchTextDirection': matchTextDirection,
+      };
+}
 
 class SecureData {
   final String privateKey;
@@ -110,6 +119,8 @@ class PublicData {
   final String walletName;
   final String address;
   final bool isWatchOnly;
+  final IconData? walletIcon;
+  final Color? walletColor;
 
   PublicData({
     required this.keyId,
@@ -117,6 +128,8 @@ class PublicData {
     required this.walletName,
     required this.address,
     required this.isWatchOnly,
+     this.walletIcon = LucideIcons.wallet,
+      this.walletColor= Colors.transparent,
   });
 
   factory PublicData.fromJson(Map<String, dynamic> json) {
@@ -126,6 +139,12 @@ class PublicData {
       walletName: json['walletName'] as String,
       address: json['address'] as String,
       isWatchOnly: json['isWatchOnly'] as bool,
+        walletIcon:json["walletIcon"] != null ?  IconData(json['walletIcon']["codePoint"],
+          fontFamily: json['walletIcon']['fontFamily'],
+          matchTextDirection: json['walletIcon']["matchTextDirection"],
+          fontPackage: json['walletIcon']['fontPackage']) : Icons.wallet, 
+          walletColor:json['walletColor'] != null ? Color(json['walletColor']) : Colors.transparent
+      
     );
   }
 
@@ -136,6 +155,8 @@ class PublicData {
       'walletName': walletName,
       'address': address,
       'isWatchOnly': isWatchOnly,
+       'walletIcon': walletIcon?.toJson() ?? Icons.wallet.toJson(),
+      'walletColor': walletColor?.value ??Colors.transparent.value,
     };
   }
 }
@@ -231,6 +252,7 @@ class Crypto {
   final String? apiBaseUrl;
   final String symbol;
 
+
   Crypto(
       {required this.name,
       this.icon,
@@ -248,6 +270,9 @@ class Crypto {
       required this.canDisplay,
       this.apiKey,
       this.apiBaseUrl,
+     
+      
+      
       required this.symbol});
 
   factory Crypto.fromJson(Map<String, dynamic> cryptoJson) {
@@ -257,7 +282,7 @@ class Crypto {
         canDisplay: cryptoJson["canDisplay"],
         cryptoId: cryptoJson["cryptoId"],
         name: cryptoJson["name"],
-        color: Color(cryptoJson["color"]),
+        color:cryptoJson["color"] != null ? Color(cryptoJson["color"]): Colors.transparent,
         type: CryptoType.values[cryptoJson["type"]],
         icon: cryptoJson["icon"],
         rpc: cryptoJson["rpc"],
@@ -270,7 +295,8 @@ class Crypto {
         contractAddress: cryptoJson["contractAddress"],
         explorer: cryptoJson["explorer"],
         valueUsd: cryptoJson["valueUsd"],
-        symbol: cryptoJson["symbol"]);
+        symbol: cryptoJson["symbol"],
+) ;
   }
 
   Map<String, dynamic> toJson() {
@@ -291,7 +317,9 @@ class Crypto {
       "contractAddress": contractAddress,
       "explorer": explorer,
       "valueUsd": valueUsd,
-      "symbol": symbol
+      "symbol": symbol,
+     
+
     };
   }
 }

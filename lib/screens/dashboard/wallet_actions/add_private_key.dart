@@ -90,6 +90,8 @@ class _AddPrivateKeyState extends State<AddPrivateKeyInMain> {
             attempt = 0;
           });
           showCustomSnackBar(
+                          primaryColor: colors.primaryColor,
+
               context: context,
               message: "Too many failed attempts.",
               icon: Icons.error,
@@ -131,6 +133,8 @@ class _AddPrivateKeyState extends State<AddPrivateKeyInMain> {
       if (result) {
         if (!mounted) return;
         showCustomSnackBar(
+                        primaryColor: colors.primaryColor,
+
             context: context,
             message: "Data saved successfully",
             icon: Icons.check_circle,
@@ -142,6 +146,8 @@ class _AddPrivateKeyState extends State<AddPrivateKeyInMain> {
     } catch (e) {
       logError(e.toString());
       showCustomSnackBar(
+                      primaryColor: colors.primaryColor,
+
           context: context,
           message: "Failed to save the key.",
           iconColor: Colors.pinkAccent);
@@ -156,6 +162,8 @@ class _AddPrivateKeyState extends State<AddPrivateKeyInMain> {
       final key = data.trim();
       if (key.length < 60) {
         showCustomSnackBar(
+                        primaryColor: colors.primaryColor,
+
             context: context,
             message: "Private key is not valid.",
             iconColor: Colors.pinkAccent);
@@ -164,6 +172,8 @@ class _AddPrivateKeyState extends State<AddPrivateKeyInMain> {
       String hexKey;
       if (key.isEmpty) {
         showCustomSnackBar(
+                        primaryColor: colors.primaryColor,
+
             context: context,
             message: "Please enter a private key !",
             iconColor: Colors.pinkAccent);

@@ -3,10 +3,9 @@ import 'package:flutter/material.dart';
 void showCustomSnackBar(
     {required BuildContext context,
     required String message,
+    required Color primaryColor,
     IconData icon = Icons.info,
-    Color backgroundColor = const Color(0XFF0D0D0D),
-    Color iconColor = Colors.white}) {
-  Color primaryColor = Color(0XFF1B1B1B);
+        Color iconColor = Colors.white}) {
 
   ScaffoldMessenger.of(context).showSnackBar(SnackBar(
     backgroundColor: primaryColor,

@@ -76,7 +76,9 @@ class _CreatePrivateKeyState extends State<CreatePrivateKeyMain> {
       }
     } catch (e) {
       if (!mounted) return;
-      showCustomSnackBar(context: context, message: "Failed to create a key");
+      showCustomSnackBar(
+                      primaryColor: colors.primaryColor,
+ context: context, message: "Failed to create a key");
     }
   }
 
@@ -98,6 +100,8 @@ class _CreatePrivateKeyState extends State<CreatePrivateKeyMain> {
         });
         if (mounted) {
           showCustomSnackBar(
+                          primaryColor: colors.primaryColor,
+
               context: context,
               message: "Too many failed attempts. Please try again later.",
               icon: Icons.error,
@@ -136,6 +140,8 @@ class _CreatePrivateKeyState extends State<CreatePrivateKeyMain> {
       if (result) {
         if (!mounted) return;
         showCustomSnackBar(
+                        primaryColor: colors.primaryColor,
+
             context: context,
             message: "Data saved successfully",
             icon: Icons.check_circle,
@@ -148,6 +154,8 @@ class _CreatePrivateKeyState extends State<CreatePrivateKeyMain> {
     } catch (e) {
       logError(e.toString());
       showCustomSnackBar(
+                      primaryColor: colors.primaryColor,
+
           context: context,
           message: "Failed to save the key.",
           iconColor: Colors.pinkAccent);

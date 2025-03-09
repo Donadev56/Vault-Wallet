@@ -199,10 +199,14 @@ class _WalletViewScreenState extends State<WalletViewScreen>
         trUrl =
             "https://$baseUrl/api?module=account&action=txlist&address=${currentAccount.address.trim()}&startblock=0&endblock=latest&page=1&offset=200&sort=desc&apikey=$key";
       }
-
-      final trRequest = await http.get(Uri.parse(trUrl));
+      final results =  await Future.wait([
+      http.get(Uri.parse(trUrl)),
+      if (currentCrypto.type == CryptoType.network)  http.get(Uri.parse(internalUrl) ) 
+        
+      ]);
+      final trRequest = results[0];
       if (internalUrl.isNotEmpty && currentCrypto.type != CryptoType.token) {
-        final internalTrResult = await http.get(Uri.parse(internalUrl));
+        final internalTrResult =   results[1];
         log("tr request status : ${trRequest.statusCode}");
 
         if (internalTrResult.statusCode == 200) {

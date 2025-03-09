@@ -11,6 +11,7 @@ void showChangeNetworkModal(
     required Color darkNavigatorColor,
     required Color textColor,
     required int chainId,
+    required AppColors colors ,
     required ChangeNetworkType changeNetwork}) {
   showDialog(
       context: context,
@@ -54,6 +55,8 @@ void showChangeNetworkModal(
                             final res = await changeNetwork(index);
                             if (!res) {
                               showCustomSnackBar(
+                                              primaryColor: colors.primaryColor,
+
                                   context: context,
                                   message: "can't change network",
                                   iconColor: Colors.pinkAccent);

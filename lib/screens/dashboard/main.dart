@@ -87,6 +87,7 @@ class _MainDashboardScreenState extends State<MainDashboardScreen>
   bool isHidden = false;
 
   double totalBalanceUsd = 0;
+  double balanceOfAllAccounts = 0;
   String searchQuery = "";
 
   final List<Map<String, dynamic>> actionsData = [
@@ -108,6 +109,8 @@ class _MainDashboardScreenState extends State<MainDashboardScreen>
 
     getSavedTheme();
     getSavedWallets();
+    calculateTotalBalanceOfAllWallets();
+
     loadData();
     super.initState();
 
@@ -128,9 +131,15 @@ class _MainDashboardScreenState extends State<MainDashboardScreen>
           await publicDataManager.getDataFromPrefs(key: "isHidden");
       if (savedData != null) {
         if (savedData == "true") {
-          isHidden = true;
+          setState(() {
+                      isHidden = true;
+
+          });
         } else {
-          isHidden = false;
+          setState(() {
+                      isHidden = false;
+
+          });
         }
       }
     } catch (e) {
@@ -230,6 +239,8 @@ class _MainDashboardScreenState extends State<MainDashboardScreen>
     try {
       if (name.isEmpty) {
         showCustomSnackBar(
+                        primaryColor: colors.primaryColor,
+
             context: context,
             message: "Name cannot be empty",
             iconColor: Colors.pinkAccent);
@@ -238,6 +249,8 @@ class _MainDashboardScreenState extends State<MainDashboardScreen>
       }
       final wallet = accounts[index];
       final PublicData newWallet = PublicData(
+          walletColor: wallet.walletColor,
+           walletIcon: wallet.walletIcon,
           isWatchOnly: wallet.isWatchOnly,
           address: wallet.address,
           walletName: name,
@@ -251,6 +264,8 @@ class _MainDashboardScreenState extends State<MainDashboardScreen>
       if (result) {
         if (mounted) {
           showCustomSnackBar(
+                          primaryColor: colors.primaryColor,
+
               context: context,
               message: "Name edit was successful",
               iconColor: Colors.greenAccent);
@@ -258,6 +273,8 @@ class _MainDashboardScreenState extends State<MainDashboardScreen>
       } else {
         if (mounted) {
           showCustomSnackBar(
+                          primaryColor: colors.primaryColor,
+
               context: context,
               message: "Name edit failed",
               iconColor: Colors.pinkAccent);
@@ -271,7 +288,50 @@ class _MainDashboardScreenState extends State<MainDashboardScreen>
       }
     }
   }
+  Future<void> editVisualData({Color? color, required int index , IconData? icon}) async {
+    try {
+      
+      final wallet = accounts[index];
+      final PublicData newWallet = PublicData(
+          walletColor: color ?? wallet.walletColor,
+           walletIcon: icon ?? wallet.walletIcon,
+          isWatchOnly: wallet.isWatchOnly,
+          address: wallet.address,
+          walletName: wallet.walletName,
+          creationDate: wallet.creationDate,
+          keyId: wallet.keyId);
+      setState(() {
+        accounts[index] = newWallet;
+        currentAccount = newWallet;
+      });
+      final result = await web3Manager.saveListPublicDataJson(accounts);
+      if (result) {
+        if (mounted) {
+          showCustomSnackBar(
+                          primaryColor: colors.primaryColor,
 
+              context: context,
+              message: "Data was successful",
+              iconColor: Colors.greenAccent);
+        }
+      } else {
+        if (mounted) {
+          showCustomSnackBar(
+                          primaryColor: colors.primaryColor,
+
+              context: context,
+              message: "Data edit failed",
+              iconColor: Colors.pinkAccent);
+          Navigator.pop(context);
+        }
+      }
+    } catch (e) {
+      logError(e.toString());
+      if (mounted) {
+        Navigator.pop(context);
+      }
+    }
+  }
   Future<void> deleteWallet(int index) async {
     try {
       showPinModalBottomSheet(
@@ -294,6 +354,8 @@ class _MainDashboardScreenState extends State<MainDashboardScreen>
               if (result) {
                 if (mounted) {
                   showCustomSnackBar(
+                                  primaryColor: colors.primaryColor,
+
                       context: context,
                       message: "Wallet deleted successfully",
                       icon: Icons.check_circle,
@@ -310,6 +372,8 @@ class _MainDashboardScreenState extends State<MainDashboardScreen>
               } else {
                 if (mounted) {
                   showCustomSnackBar(
+                                  primaryColor: colors.primaryColor,
+
                       context: context,
                       message: "Wallet deletion failed",
                       iconColor: Colors.pinkAccent);
@@ -320,6 +384,8 @@ class _MainDashboardScreenState extends State<MainDashboardScreen>
               }
             } else {
               showCustomSnackBar(
+                              primaryColor: colors.primaryColor,
+
                   context: context,
                   message: "Incorrect password",
                   iconColor: Colors.pinkAccent);
@@ -333,12 +399,159 @@ class _MainDashboardScreenState extends State<MainDashboardScreen>
     }
   }
 
+  Future<void> calculateTotalBalanceOfAllWallets () async {
+    try {
+
+       final savedData = await web3Manager.getPublicData();
+       List<PublicData> wallets = [];
+       double totalBalance = 0;
+
+      final lastAccount = await encryptService.getLastConnectedAddress();
+
+      if (savedData != null && lastAccount != null) {
+        for (final account in savedData) {
+          final newAccount = PublicData.fromJson(account);
+          setState(() {
+            wallets.add(newAccount);
+          });
+        }
+      }
+      log("Accounts founds length: ${wallets.length} ");
+
+      if (wallets.isNotEmpty) {
+        for (final wallet in wallets)  {
+     final dataName = "cryptoAndBalance/${wallet.address}";
+     log("Searching data for ${wallet.address}");
+
+      final savedData = await publicDataManager.getDataFromPrefs(key: dataName);
+      if (savedData != null) {
+        List<dynamic> savedDataString = json.decode(savedData);
+        for (final balance in savedDataString) {
+         
+          totalBalance += balance["balanceUsd"] ?? 0; 
+          log("Founded ${balance["balanceUsd"] }");
+        }
+
+
+      }
+        }
+      }
+
+
+        setState(() {
+          balanceOfAllAccounts = totalBalance;
+        });
+        log("Balance of all accounts $balanceOfAllAccounts");
+    } catch (e) {
+      logError('Error getting saved wallets: $e');
+      
+    }
+  }
+
+  Future<void> silentUpdate () async {
+    try {
+         final savedData = await web3Manager.getPublicData();
+       List<PublicData> wallets = [];
+
+      final lastAccount = await encryptService.getLastConnectedAddress();
+
+      if (savedData != null && lastAccount != null) {
+        for (final account in savedData) {
+          final newAccount = PublicData.fromJson(account);
+          setState(() {
+            wallets.add(newAccount);
+          });
+        }
+      }
+      log("Accounts founds length: ${wallets.length} ");
+      if (wallets.isNotEmpty) {
+        int walletNumber = 0 ;
+       
+        for (final wallet in wallets) {
+           if (!mounted) {
+            log("The wallet is not mounted");
+            return ;
+           } 
+          walletNumber++;
+          log("Processing wallet $walletNumber");
+      List<Crypto> cryptosList = [];
+      List<Crypto> enabledCryptos = [];
+      List<Balance> cryptoBalance = [];
+      List<Crypto> availableCryptos = [];
+      final dataName = "cryptoAndBalance/${wallet.address}";
+
+
+         
+       final savedCrypto =
+          await cryptoStorageManager.getSavedCryptos(wallet: wallet);
+
+
+      if (savedCrypto == null) {
+        final res = await cryptoStorageManager.saveListCrypto(
+            cryptos: cryptos, wallet: wallet);
+        cryptosList = cryptos;
+
+        if (res) {
+          log("Crypto saved successfully");
+        } else {
+          log("failed to save default crypto");
+        }
+      } else {
+        cryptosList = savedCrypto;
+        log("initialized done");
+      }
+
+
+      if (cryptosList.isNotEmpty) {
+        enabledCryptos =
+            cryptosList.where((c) => c.canDisplay == true).toList();
+
+        availableCryptos = [];
+       final results = await Future.wait(enabledCryptos.map((crypto) async {
+  final balance = await web3InteractManager.getBalance(wallet, crypto);
+  final trend = await priceManager.checkCryptoTrend(crypto.binanceSymbol ?? "${crypto.symbol}USDT");
+  final cryptoPrice = await priceManager.getPriceUsingBinanceApi(crypto.binanceSymbol ?? "${crypto.symbol}USDT");
+  final balanceUsd = cryptoPrice * balance;
+
+  return Balance(
+    crypto: crypto,
+    balanceUsd: balanceUsd,
+    balanceCrypto: balance,
+    cryptoTrendPercent: trend["percent"] ?? 0,
+    cryptoPrice: cryptoPrice,
+  );
+}));
+cryptoBalance.addAll(results);
+availableCryptos.addAll(enabledCryptos);
+        cryptoBalance.sort((a, b) => (b.balanceUsd).compareTo(a.balanceUsd));
+       
+
+        final cryptoListString = cryptoBalance.map((c) => c.toJson()).toList();
+
+        await publicDataManager.saveDataInPrefs(
+            data: json.encode(cryptoListString), key: dataName);
+
+      } 
+        }
+      }
+     
+
+
+      
+    } catch (e) {
+      logError('Error silent update: $e');
+      
+    }
+  }
+
   Future<void> showPrivateData(int index) async {
     try {
       final wallet = accounts[index];
       if (wallet.isWatchOnly) {
         Navigator.pop(context);
         showCustomSnackBar(
+                        primaryColor: colors.primaryColor,
+
             context: context,
             message: "This is a watch-only wallet.",
             iconColor: Colors.pinkAccent);
@@ -358,6 +571,8 @@ class _MainDashboardScreenState extends State<MainDashboardScreen>
             } else {
               if (mounted) {
                 showCustomSnackBar(
+                                primaryColor: colors.primaryColor,
+
                     context: context,
                     message: "Incorrect password",
                     iconColor: Colors.pinkAccent);
@@ -396,6 +611,8 @@ class _MainDashboardScreenState extends State<MainDashboardScreen>
       } else {
         if (mounted) {
           showCustomSnackBar(
+                          primaryColor: colors.primaryColor,
+
               context: context,
               message: "List reorder failed",
               iconColor: Colors.pinkAccent);
@@ -439,6 +656,8 @@ class _MainDashboardScreenState extends State<MainDashboardScreen>
       } else {
         if (mounted) {
           showCustomSnackBar(
+                          primaryColor: colors.primaryColor,
+
               context: context,
               message: "Wallet change failed",
               iconColor: Colors.pinkAccent);
@@ -538,23 +757,35 @@ class _MainDashboardScreenState extends State<MainDashboardScreen>
             cryptosList.where((c) => c.canDisplay == true).toList();
         userBalanceUsd = 0;
         availableCryptos = [];
-        for (final crypto in enabledCryptos) {
-          final balance = await web3InteractManager.getBalance(account, crypto);
-          final trend = await priceManager
-              .checkCryptoTrend(crypto.binanceSymbol ?? "${crypto.symbol}USDT");
-          final cryptoPrice = await priceManager.getPriceUsingBinanceApi(
-              crypto.binanceSymbol ?? "${crypto.symbol}USDT");
-          final balanceUsd = cryptoPrice * balance;
-          userBalanceUsd += balanceUsd;
-          final newCryptoBalance = Balance(
-              crypto: crypto,
-              balanceUsd: balanceUsd,
-              balanceCrypto: balance,
-              cryptoTrendPercent: trend["percent"] ?? 0,
-              cryptoPrice: cryptoPrice);
-          cryptoBalance.add(newCryptoBalance);
-          availableCryptos.add(crypto);
-        }
+
+
+        
+       final results = await Future.wait(enabledCryptos.map((crypto) async {
+  final balance = await web3InteractManager.getBalance(account, crypto);
+  final trend = await priceManager.checkCryptoTrend(crypto.binanceSymbol ?? "${crypto.symbol}USDT");
+  final cryptoPrice = await priceManager.getPriceUsingBinanceApi(crypto.binanceSymbol ?? "${crypto.symbol}USDT");
+  final balanceUsd = cryptoPrice * balance;
+
+  return {
+    "cryptoBalance": Balance(
+      crypto: crypto,
+      balanceUsd: balanceUsd,
+      balanceCrypto: balance,
+      cryptoTrendPercent: trend["percent"] ?? 0,
+      cryptoPrice: cryptoPrice,
+    ),
+    "availableCrypto": crypto,
+    "balanceUsd": balanceUsd
+  };
+}));
+
+  cryptoBalance.addAll(results.map((r) => r["cryptoBalance"] as Balance));
+  availableCryptos.addAll(results.map((r) => r["availableCrypto"] as Crypto));
+
+userBalanceUsd += results.fold(0.0, (sum, r) => sum + (r["balanceUsd"] as double));
+
+log("Crypto balance length ${cryptoBalance.length} , available Cryptos length ${availableCryptos.length} , userBalance ${userBalanceUsd}");
+
         setState(() {
           cryptosAndBalance = cryptoBalance;
           totalBalanceUsd = userBalanceUsd;
@@ -571,7 +802,11 @@ class _MainDashboardScreenState extends State<MainDashboardScreen>
 
         await publicDataManager.saveDataInPrefs(
             data: json.encode(cryptoListString), key: dataName);
+
+
       }
+
+      silentUpdate();
     } catch (e) {
       logError(e.toString());
     }
@@ -690,6 +925,10 @@ class _MainDashboardScreenState extends State<MainDashboardScreen>
           textColor: colors.textColor,
           surfaceTintColor: colors.secondaryColor),
       appBar: CustomAppBar(
+        editVisualData: editVisualData,
+        colors: colors,
+        isHidden: isHidden,
+        balanceOfAllAccounts: balanceOfAllAccounts,
           profileImage: _profileImage,
           scaffoldKey: _scaffoldKey,
           showPrivateData: showPrivateData,

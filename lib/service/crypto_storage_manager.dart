@@ -80,6 +80,7 @@ class CryptoStorageManager {
         if (cryptoToEdit != null) {
           final index = savedCryptos.indexOf(cryptoToEdit);
           final newCrypto = Crypto(
+              
               symbol: cryptoToEdit.symbol,
               name: cryptoToEdit.name,
               color: cryptoToEdit.color,

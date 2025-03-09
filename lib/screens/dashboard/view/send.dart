@@ -1,11 +1,9 @@
 // ignore_for_file: deprecated_member_use
 
 import 'dart:convert';
-import 'dart:ffi';
 import 'dart:io';
 import 'dart:ui';
 import 'package:awesome_snackbar_content/awesome_snackbar_content.dart';
-import 'package:decimal/decimal.dart';
 
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
@@ -50,6 +48,7 @@ class _SendTransactionScreenState extends State<SendTransactionScreen> {
   double userBalance = 0;
   double cryptoPrice = 0;
   double transactionFee = 0;
+  double nativeTokenBalance = 0;
   bool isAndroid = false;
   double networkBalance = 0;
   bool isDarkMode = false;
@@ -270,7 +269,11 @@ double roundedAmount = double.parse(amount.toStringAsFixed(8));
 if (roundedAmount > userBalance) {
     throw Exception("Insufficient balance");
 }
+if (nativeTokenBalance < transactionFee) {
+  throw Exception("Insufficient ${currentNetwork.network?.symbol} balance , add ${(transactionFee - nativeTokenBalance).toStringAsFixed(8)}");
+}
 
+     
       showDialog(
           context: context,
           builder: (BuildContext context) {
@@ -468,49 +471,59 @@ if (roundedAmount > userBalance) {
 
   Future<void> getInitialData() async {
     try {
-      final lastBalance = await publicDataManager.getDataFromPrefs(
-          key: "${currentAccount.address}/lastBalanceEth");
-      if (lastBalance != null) {
-        setState(() {
-          userBalance = double.parse(lastBalance);
-        });
-      }
-      final estimatedGas = await web3InteractManager.estimateGas(rpcUrl: currentNetwork.type == CryptoType.token ?  currentNetwork.network?.rpc ?? "" : currentNetwork.rpc  ?? "", sender: currentAccount.address, to: currentAccount.address, value: "0x0", data: "");
-      log("estimated gas $estimatedGas");
-      final price = await priceManager
-          .getPriceUsingBinanceApi(currentNetwork.binanceSymbol ?? "");
-      final balance =
-          await web3InteractManager.getBalance(currentAccount, currentNetwork);
-      BigInt gasPrice = BigInt.zero;
-
-      if (currentNetwork.type == CryptoType.token) {
-        gasPrice = await web3InteractManager.getGasPrice(
+      final results = await Future.wait([
+        //1
+         web3InteractManager.estimateGas(rpcUrl: currentNetwork.type == CryptoType.token ?  currentNetwork.network?.rpc ?? "" : currentNetwork.rpc  ?? "", sender: currentAccount.address, to: currentAccount.address, value: "0x0", data: ""),
+         //2
+          priceManager.getPriceUsingBinanceApi(currentNetwork.binanceSymbol ?? ""),
+          // 3
+         web3InteractManager.getBalance(currentAccount, currentNetwork),
+         // 4
+         currentNetwork.type == CryptoType.token ?  web3InteractManager.getGasPrice(
             currentNetwork.network?.rpc ??
-                "https://opbnb-mainnet-rpc.bnbchain.org");
-      } else {
-        gasPrice = await web3InteractManager.getGasPrice(
-            currentNetwork.rpc ?? "https://opbnb-mainnet-rpc.bnbchain.org");
-      }
-      log(" gas $gasPrice");
+                "https://opbnb-mainnet-rpc.bnbchain.org") : web3InteractManager.getGasPrice(
+            currentNetwork.rpc ?? "https://opbnb-mainnet-rpc.bnbchain.org"),
+            // 5
+          publicDataManager.getDataFromPrefs(
+          key: "${currentAccount.address}/lastUsedAddresses")
+        
+         
+      ]);
+      final estimatedGas = (results[0] as BigInt?);
+      log("estimated gas $estimatedGas");
+      final price = results[1];
+      final balance = results[2];
+          
+      BigInt gasPrice = (results[3] as BigInt?) ?? BigInt.from(1000000);
 
-      final lastUsedAddresses = await publicDataManager.getDataFromPrefs(
-          key: "${currentAccount.address}/lastUsedAddresses");
+     
+      log("gas $gasPrice");
+
+      final lastUsedAddresses = results[4];
       log("last address $lastUsedAddresses");
       if (lastUsedAddresses != null) {
         setState(() {
-          lastEthUsedAddresses = json.decode(lastUsedAddresses);
+          lastEthUsedAddresses = json.decode((lastUsedAddresses as String));
         });
       }
 
       setState(() {
-        cryptoPrice = price;
-        userBalance = balance;
+        cryptoPrice =( price as double);
+        userBalance = (balance as double);
          final BigInt gas =estimatedGas != null ? (estimatedGas  * BigInt.from(2)) : BigInt.from(21000);
          final double gasPriceDouble = gasPrice.toDouble();
 
          transactionFee =( (gas * BigInt.from(gasPriceDouble.toInt())) / BigInt.from(10).pow(18) );
          log("Fees ${transactionFee.toStringAsFixed(8)}");
       });
+          if (currentNetwork.type  == CryptoType.token ) {
+          final networkBalance =
+          await web3InteractManager.getBalance(currentAccount, currentNetwork.network ?? currentNetwork);
+          setState(() {
+            nativeTokenBalance = networkBalance ;
+          });
+          }
+       
       log("Crypto price is $price");
     } catch (e) {
       logError(e.toString());
