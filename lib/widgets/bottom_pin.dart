@@ -203,8 +203,10 @@ Future<bool> showPinModalBottomSheet(
                               width: width * 0.26,
                               height: height * 0.055,
                               decoration: BoxDecoration(
-                                border: Border.all(width: 0.1 , color: colors.textColor.withOpacity(0.13)),
-                               ),
+                                border: Border.all(
+                                    width: 0.1,
+                                    color: colors.textColor.withOpacity(0.13)),
+                              ),
                               margin: const EdgeInsets.all(5),
                               child: Material(
                                 color: Colors.transparent,

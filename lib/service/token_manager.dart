@@ -192,7 +192,7 @@ class TokenManager {
       }
 
       BigInt? estimatedGas = await web3InteractionManager.estimateGas(
-          value:  "0x0",
+          value: "0x0",
           rpcUrl:
               currentNetwork.rpc ?? "https://opbnb-mainnet-rpc.bnbchain.org",
           sender: data.from ?? "",
@@ -210,12 +210,11 @@ class TokenManager {
         throw Exception("Failed to estimate gas");
       }
       log("Data gas ${data.gas}");
-        
+
       BigInt? gasLimit = data.gas != null
           ? BigInt.parse(data.gas!.replaceFirst("0x", ""), radix: 16)
-    
           : (estimatedGas * BigInt.from(130)) ~/ BigInt.from(100);
-          log("Gas limit: ${gasLimit}");
+      log("Gas limit: ${gasLimit}");
       final gasPriceResult = await web3InteractionManager.getGasPrice(
           currentNetwork.network?.rpc ??
               "https://opbnb-mainnet-rpc.bnbchain.org");
@@ -262,8 +261,12 @@ class TokenManager {
           function: transferFunction,
           parameters: [receiver, valueInWei],
           from: sender,
-          maxGas: confirmedResponse.gasLimit.toInt() > 0 ? confirmedResponse.gasLimit.toInt() * 2 : null,
-          gasPrice: confirmedResponse.gasPrice > BigInt.zero ?  EtherAmount.inWei(confirmedResponse.gasPrice) : null ,
+          maxGas: confirmedResponse.gasLimit.toInt() > 0
+              ? confirmedResponse.gasLimit.toInt() * 2
+              : null,
+          gasPrice: confirmedResponse.gasPrice > BigInt.zero
+              ? EtherAmount.inWei(confirmedResponse.gasPrice)
+              : null,
         );
 
         String userPassword = "";

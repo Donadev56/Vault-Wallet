@@ -358,7 +358,7 @@ class Web3BrowserScreenState extends State<Web3BrowserScreen> {
                                       borderRadius: BorderRadius.circular(50),
                                       onTap: () {
                                         showChangeNetworkModal(
-                                          colors: colors,
+                                            colors: colors,
                                             changeNetwork: changeNetwork,
                                             height: height,
                                             context: context,
@@ -467,7 +467,7 @@ class Web3BrowserScreenState extends State<Web3BrowserScreen> {
                               Navigator.pop(context);
                             } else if (index == 1) {
                               showChangeNetworkModal(
-                                colors: colors,
+                                  colors: colors,
                                   changeNetwork: changeNetwork,
                                   height: height,
                                   context: context,
@@ -706,7 +706,7 @@ class Web3BrowserScreenState extends State<Web3BrowserScreen> {
                     ..showSnackBar(snackBar);
                 }
                 return await web3IntManager.sendEthTransaction(
-                  crypto: currentNetwork,
+                    crypto: currentNetwork,
                     colors: colors,
                     data: data,
                     mounted: mounted,

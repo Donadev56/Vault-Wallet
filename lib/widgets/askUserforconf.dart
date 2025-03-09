@@ -35,12 +35,12 @@ Future<UserRequestResponse> askUserForConfirmation(
   }
 
   CurrencyFormat formatterSettings = CurrencyFormat(
-  symbol: crypto?.symbol ?? "",
-  symbolSide: SymbolSide.right,
-  thousandSeparator: ',',
-  decimalSeparator: '.',
-  symbolSeparator: ' ',
-);
+    symbol: crypto?.symbol ?? "",
+    symbolSide: SymbolSide.right,
+    thousandSeparator: ',',
+    decimalSeparator: '.',
+    symbolSeparator: ' ',
+  );
 
   final BigInt baseCost = (estimatedGas == BigInt.zero)
       ? gasLimit * gasPrice
@@ -74,16 +74,19 @@ Future<UserRequestResponse> askUserForConfirmation(
       "gwei": BigInt.zero,
     },
   ];
-String getValue() {
-  final valueInWei = BigInt.parse(txData.value!.replaceFirst("0x", ""), radix: 16);
-  final double tokenAmount = double.parse(valueInWei.toString()) / 1e18;
-  String formatted = CurrencyFormatter.format(tokenAmount, formatterSettings, decimal: 8);
+  String getValue() {
+    final valueInWei =
+        BigInt.parse(txData.value!.replaceFirst("0x", ""), radix: 16);
+    final double tokenAmount = double.parse(valueInWei.toString()) / 1e18;
+    String formatted =
+        CurrencyFormatter.format(tokenAmount, formatterSettings, decimal: 8);
 
-  formatted = formatted.replaceAll(RegExp(r'(\.\d*?[1-9])0+$'), r'$1'); 
-  formatted = formatted.replaceAll(RegExp(r'\.0+$'), ''); 
+    formatted = formatted.replaceAll(RegExp(r'(\.\d*?[1-9])0+$'), r'$1');
+    formatted = formatted.replaceAll(RegExp(r'\.0+$'), '');
 
-  return formatted;
-}
+    return formatted;
+  }
+
   final result = await showModalBottomSheet<UserRequestResponse>(
     context: context,
     isScrollControlled: true,
@@ -171,7 +174,7 @@ String getValue() {
                       alignment: Alignment.center,
                       child: Text(
                         txData.value != null
-                            ? "${getValue ()} "
+                            ? "${getValue()} "
                             : "0  ${crypto != null ? crypto.symbol : ""}",
                         overflow: TextOverflow.clip,
                         maxLines: 1,

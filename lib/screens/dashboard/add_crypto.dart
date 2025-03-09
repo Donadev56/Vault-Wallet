@@ -179,8 +179,8 @@ class _AddCryptoViewState extends State<AddCryptoView> {
                                         onPressed: () async {
                                           if (selectedNetwork == null) {
                                             showCustomSnackBar(
-                                                            primaryColor: colors.primaryColor,
-
+                                                primaryColor:
+                                                    colors.primaryColor,
                                                 context: context,
                                                 message:
                                                     'Please select a network.',
@@ -189,8 +189,8 @@ class _AddCryptoViewState extends State<AddCryptoView> {
                                           if (_contractAddressController
                                               .text.isEmpty) {
                                             showCustomSnackBar(
-                                                            primaryColor: colors.primaryColor,
-
+                                                primaryColor:
+                                                    colors.primaryColor,
                                                 context: context,
                                                 message:
                                                     'Please enter a contract address.',
@@ -351,8 +351,9 @@ class _AddCryptoViewState extends State<AddCryptoView> {
                                                                             .trim()
                                                                             .toLowerCase()) {
                                                                   showCustomSnackBar(
-                                                                                  primaryColor: colors.primaryColor,
-
+                                                                      primaryColor:
+                                                                          colors
+                                                                              .primaryColor,
                                                                       context:
                                                                           context,
                                                                       message:
@@ -405,8 +406,9 @@ class _AddCryptoViewState extends State<AddCryptoView> {
                                                             if (saveResult) {
                                                               hasSaved = true;
                                                               showCustomSnackBar(
-                                                                              primaryColor: colors.primaryColor,
-
+                                                                  primaryColor:
+                                                                      colors
+                                                                          .primaryColor,
                                                                   context:
                                                                       context,
                                                                   icon: Icons
@@ -420,8 +422,8 @@ class _AddCryptoViewState extends State<AddCryptoView> {
                                                                   context);
                                                             } else {
                                                               showCustomSnackBar(
-                                                                              primaryColor: colors.primaryColor,
-
+                                                                primaryColor: colors
+                                                                    .primaryColor,
                                                                 context:
                                                                     context,
                                                                 message:
@@ -457,8 +459,8 @@ class _AddCryptoViewState extends State<AddCryptoView> {
                                                 });
                                           } else {
                                             showCustomSnackBar(
-                                                            primaryColor: colors.primaryColor,
-
+                                                primaryColor:
+                                                    colors.primaryColor,
                                                 context: context,
                                                 message: 'Token not found.',
                                                 iconColor: Colors.pinkAccent);
@@ -474,8 +476,8 @@ class _AddCryptoViewState extends State<AddCryptoView> {
                                   leading: IconButton(
                                       onPressed: () {
                                         if (hasSaved) {
-                                                   Navigator.pushNamed(context, Routes.pageManager);
-
+                                          Navigator.pushNamed(
+                                              context, Routes.pageManager);
                                         } else {
                                           Navigator.pop(context);
                                         }

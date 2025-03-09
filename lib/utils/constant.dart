@@ -208,8 +208,6 @@ Uint8List hexToUint8List(String hex) {
   return result;
 }
 
-
-
 List<Color> colorList = [
   Colors.amberAccent,
   Colors.lightBlueAccent,

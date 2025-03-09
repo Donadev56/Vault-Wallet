@@ -30,7 +30,8 @@ class CustomAppBar extends StatelessWidget implements PreferredSizeWidget {
   final PublicData currentAccount;
   final List<PublicData> accounts;
   final EditWalletNameType editWalletName;
-  final Future<void> Function ({Color ? color , required int index , IconData? icon}) editVisualData ;
+  final Future<void> Function(
+      {Color? color, required int index, IconData? icon}) editVisualData;
   final ActionWithIndexType deleteWallet;
   final ActionWithIndexType changeAccount;
   final ActionWithIndexType showPrivateData;
@@ -38,9 +39,9 @@ class CustomAppBar extends StatelessWidget implements PreferredSizeWidget {
   final Color secondaryColor;
   final GlobalKey<ScaffoldState> scaffoldKey;
   final File? profileImage;
-  final double balanceOfAllAccounts ;
-  final bool isHidden ;
-  final AppColors colors ;
+  final double balanceOfAllAccounts;
+  final bool isHidden;
+  final AppColors colors;
 
   const CustomAppBar(
       {super.key,
@@ -60,8 +61,7 @@ class CustomAppBar extends StatelessWidget implements PreferredSizeWidget {
       required this.isHidden,
       required this.colors,
       required this.editVisualData,
-      required
-      this.profileImage});
+      required this.profileImage});
 
   @override
   Widget build(BuildContext context) {
@@ -73,9 +73,12 @@ class CustomAppBar extends StatelessWidget implements PreferredSizeWidget {
 
     final List<Map<String, dynamic>> options = [
       {'icon': LucideIcons.pencil, 'name': 'Edit name', 'color': textColor},
-      {'icon': LucideIcons.badgeDollarSign, 'name': 'Edit Icon', 'color': textColor},
+      {
+        'icon': LucideIcons.badgeDollarSign,
+        'name': 'Edit Icon',
+        'color': textColor
+      },
       {'icon': LucideIcons.palette, 'name': 'Edit Color', 'color': textColor},
-
       {'icon': LucideIcons.copy, 'name': 'Copy address', 'color': textColor},
       {
         'icon': LucideIcons.key,
@@ -157,17 +160,49 @@ class CustomAppBar extends StatelessWidget implements PreferredSizeWidget {
                                         FeatherIcons.xCircle,
                                         color: Colors.pinkAccent,
                                       )),
-                                balanceOfAllAccounts == 0 ? SizedBox(width: 30,height: 30, child: CircularProgressIndicator(color: secondaryColor,),) :
-                                       Column(spacing: 5,mainAxisAlignment: MainAxisAlignment.end ,children: [
-                                        Text("Last Balance", style: GoogleFonts.roboto(color: textColor.withOpacity(0.45), fontSize: 14), ),
-                                      isHidden ? Text("*****", style: GoogleFonts.roboto(color: textColor),) : Text("≈ \$${balanceOfAllAccounts.toStringAsFixed(2)}", style: GoogleFonts.roboto(color: textColor, fontWeight: FontWeight.bold, fontSize: 20),)
-                                       ],),
+                                  balanceOfAllAccounts == 0
+                                      ? SizedBox(
+                                          width: 30,
+                                          height: 30,
+                                          child: CircularProgressIndicator(
+                                            color: secondaryColor,
+                                          ),
+                                        )
+                                      : Column(
+                                          spacing: 5,
+                                          mainAxisAlignment:
+                                              MainAxisAlignment.end,
+                                          children: [
+                                            Text(
+                                              "Last Balance",
+                                              style: GoogleFonts.roboto(
+                                                  color: textColor
+                                                      .withOpacity(0.45),
+                                                  fontSize: 14),
+                                            ),
+                                            isHidden
+                                                ? Text(
+                                                    "*****",
+                                                    style: GoogleFonts.roboto(
+                                                        color: textColor),
+                                                  )
+                                                : Text(
+                                                    "≈ \$${balanceOfAllAccounts.toStringAsFixed(2)}",
+                                                    style: GoogleFonts.roboto(
+                                                        color: textColor,
+                                                        fontWeight:
+                                                            FontWeight.bold,
+                                                        fontSize: 20),
+                                                  )
+                                          ],
+                                        ),
                                   IconButton(
                                       padding: const EdgeInsets.all(0),
                                       onPressed: () {
                                         Navigator.pop(context);
                                       },
-                                      icon: Text("") /* Icon(
+                                      icon: Text(
+                                          "") /* Icon(
                                         FeatherIcons.layers,
                                         color: textColor,
                                       ) */
@@ -237,7 +272,7 @@ class CustomAppBar extends StatelessWidget implements PreferredSizeWidget {
                                                   left: 15,
                                                   right: 15),
                                               decoration: BoxDecoration(
-                                                  color:  (filteredList(
+                                                  color: (filteredList(
                                                                       query:
                                                                           searchQuery)[
                                                                   index]
@@ -248,9 +283,10 @@ class CustomAppBar extends StatelessWidget implements PreferredSizeWidget {
                                                       : filteredList(
                                                                       query:
                                                                           searchQuery)[
-                                                                  index].walletColor ?? textColor
-                                                          .withOpacity(0.05)), 
-                                                                 
+                                                                  index]
+                                                              .walletColor ??
+                                                          textColor.withOpacity(
+                                                              0.05)),
                                                   borderRadius:
                                                       BorderRadius.circular(5)),
                                               child: ListTile(
@@ -263,16 +299,20 @@ class CustomAppBar extends StatelessWidget implements PreferredSizeWidget {
                                                     borderRadius:
                                                         BorderRadius.circular(
                                                             5)),
-                                                leading:
-                                                    filteredList(query: searchQuery)[
+                                                leading: filteredList(
+                                                                    query:
+                                                                        searchQuery)[
+                                                                index]
+                                                            .isWatchOnly ==
+                                                        true
+                                                    ? Icon(LucideIcons.eye,
+                                                        color: textColor)
+                                                    : Icon(
+                                                        filteredList(query: searchQuery)[
                                                                     index]
-                                                                .isWatchOnly ==
-                                                            true
-                                                        ? Icon(LucideIcons.eye,
-                                                            color: textColor)
-                                                        : Icon(    filteredList(query: searchQuery)[
-                                                                    index].walletIcon ?? LucideIcons.wallet,
-                                                            color: textColor),
+                                                                .walletIcon ??
+                                                            LucideIcons.wallet,
+                                                        color: textColor),
                                                 title: Text(
                                                   filteredList(
                                                               query:
@@ -418,45 +458,76 @@ class CustomAppBar extends StatelessWidget implements PreferredSizeWidget {
                                                             showPrivateData(
                                                                 index);
                                                           } else if (i == 2) {
-                                                            showColorPicker(onSelect: (c) async{
-                                                            await  editVisualData(index: index, color: colorList[c]);
-                                                            setModalState((){});
-                                                            }, context: context, colors: colors);
-                                                          
+                                                            showColorPicker(
+                                                                onSelect:
+                                                                    (c) async {
+                                                                  await editVisualData(
+                                                                      index:
+                                                                          index,
+                                                                      color:
+                                                                          colorList[
+                                                                              c]);
+                                                                  setModalState(
+                                                                      () {});
+                                                                },
+                                                                context:
+                                                                    context,
+                                                                colors: colors);
                                                           } else if (i == 1) {
-                                                            if (currentAccount.isWatchOnly) {
-                                                              showDialog(context: context, builder: (ctx) {
-                                                                return AlertDialog(
-                                                                  backgroundColor: colors.secondaryColor,
-                                                                   content: Text(
-                                                                     "This wallet is a watch-only wallet. You cannot change the icon.",
-                                                                   style: TextStyle(
-                                                                     color: colors.redColor,
-                                                                   ),
-                                                                 ),
-                                                                 actions: [
-                                                                   TextButton(
-                                                                     onPressed: () {
-                                                                       Navigator.pop(ctx);
-                                                                     },
-                                                                     child: Text(
-                                                                       "Close",
-                                                                       style: TextStyle(
-                                                                         color: colors.redColor,
-                                                                       ),
-                                                                     ),
-                                                                   ),
-                                                                 ],
-                                                                );
-                                                              });
+                                                            if (currentAccount
+                                                                .isWatchOnly) {
+                                                              showDialog(
+                                                                  context:
+                                                                      context,
+                                                                  builder:
+                                                                      (ctx) {
+                                                                    return AlertDialog(
+                                                                      backgroundColor:
+                                                                          colors
+                                                                              .secondaryColor,
+                                                                      content:
+                                                                          Text(
+                                                                        "This wallet is a watch-only wallet. You cannot change the icon.",
+                                                                        style:
+                                                                            TextStyle(
+                                                                          color:
+                                                                              colors.redColor,
+                                                                        ),
+                                                                      ),
+                                                                      actions: [
+                                                                        TextButton(
+                                                                          onPressed:
+                                                                              () {
+                                                                            Navigator.pop(ctx);
+                                                                          },
+                                                                          child:
+                                                                              Text(
+                                                                            "Close",
+                                                                            style:
+                                                                                TextStyle(
+                                                                              color: colors.redColor,
+                                                                            ),
+                                                                          ),
+                                                                        ),
+                                                                      ],
+                                                                    );
+                                                                  });
 
-                                                              return ;
+                                                              return;
                                                             }
-                                                            showIconPicker(onSelect: (ic)async{
-                                                             await editVisualData(index: index, icon:ic );
-                                                             setModalState(() {});
-                                                            }, context: context, colors: colors);
-
+                                                            showIconPicker(
+                                                                onSelect:
+                                                                    (ic) async {
+                                                                  await editVisualData(
+                                                                      index:
+                                                                          index,
+                                                                      icon: ic);
+                                                                  setModalState(
+                                                                      () {});
+                                                                },
+                                                                context:
+                                                                    context,
+                                                                colors: colors);
                                                           }
                                                         },
                                                       );

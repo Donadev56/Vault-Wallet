@@ -100,7 +100,10 @@ class TransactionsListElement extends StatelessWidget {
                                               BorderRadius.circular(50)),
                                       child: Center(
                                         child: Text(
-                                          currentNetwork.symbol.length> 2 ? currentNetwork.symbol.substring(0, 2) : currentNetwork.symbol,
+                                          currentNetwork.symbol.length > 2
+                                              ? currentNetwork.symbol
+                                                  .substring(0, 2)
+                                              : currentNetwork.symbol,
                                           style: GoogleFonts.roboto(
                                               color: primaryColor,
                                               fontWeight: FontWeight.bold,

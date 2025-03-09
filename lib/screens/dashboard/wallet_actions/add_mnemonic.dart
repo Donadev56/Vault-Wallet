@@ -89,8 +89,7 @@ class _AddPrivateKeyState extends State<AddMnemonicScreen> {
             attempt = 0;
           });
           showCustomSnackBar(
-                          primaryColor: colors.primaryColor,
-
+              primaryColor: colors.primaryColor,
               context: context,
               message: "Too many failed attempts.",
               icon: Icons.error,
@@ -136,21 +135,19 @@ class _AddPrivateKeyState extends State<AddMnemonicScreen> {
       if (result) {
         if (!mounted) return;
         showCustomSnackBar(
-                        primaryColor: colors.primaryColor,
-
+            primaryColor: colors.primaryColor,
             context: context,
             message: "Data saved successfully",
             icon: Icons.check_circle,
             iconColor: colors.themeColor);
-          Navigator.pushNamed(context, Routes.pageManager);
+        Navigator.pushNamed(context, Routes.pageManager);
       } else {
         throw Exception("Failed to save the key.");
       }
     } catch (e) {
       logError(e.toString());
       showCustomSnackBar(
-                      primaryColor: colors.primaryColor,
-
+          primaryColor: colors.primaryColor,
           context: context,
           message: "Failed to save the key.",
           iconColor: Colors.pinkAccent);

@@ -5,8 +5,7 @@ void showCustomSnackBar(
     required String message,
     required Color primaryColor,
     IconData icon = Icons.info,
-        Color iconColor = Colors.white}) {
-
+    Color iconColor = Colors.white}) {
   ScaffoldMessenger.of(context).showSnackBar(SnackBar(
     backgroundColor: primaryColor,
     content: ConstrainedBox(

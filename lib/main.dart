@@ -174,16 +174,13 @@ class _MyAppState extends State<MyApp> {
               decoration: BoxDecoration(color: const Color(0XFF0D0D0D)),
               child: Center(
                 child: Container(
-                    padding: const EdgeInsets.all(10),
-                    width: 40,
-                    height: 40,
-                    
-                    
-                    decoration: BoxDecoration(
-                      
-                        color: const Color(0XFF212121),
-                        borderRadius: BorderRadius.circular(50)),
-                     ),
+                  padding: const EdgeInsets.all(10),
+                  width: 40,
+                  height: 40,
+                  decoration: BoxDecoration(
+                      color: const Color(0XFF212121),
+                      borderRadius: BorderRadius.circular(50)),
+                ),
               ),
             );
           } else if (snapshot.hasData) {

@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:lucide_icons_flutter/lucide_icons.dart';
 
 enum CryptoType { network, token }
+
 extension IconJson on IconData {
   Map<String, dynamic> toJson() => {
         'codePoint': codePoint,
@@ -128,24 +129,26 @@ class PublicData {
     required this.walletName,
     required this.address,
     required this.isWatchOnly,
-     this.walletIcon = LucideIcons.wallet,
-      this.walletColor= Colors.transparent,
+    this.walletIcon = LucideIcons.wallet,
+    this.walletColor = Colors.transparent,
   });
 
   factory PublicData.fromJson(Map<String, dynamic> json) {
     return PublicData(
-      keyId: json['keyId'] as String,
-      creationDate: json['creationDate'] as int,
-      walletName: json['walletName'] as String,
-      address: json['address'] as String,
-      isWatchOnly: json['isWatchOnly'] as bool,
-        walletIcon:json["walletIcon"] != null ?  IconData(json['walletIcon']["codePoint"],
-          fontFamily: json['walletIcon']['fontFamily'],
-          matchTextDirection: json['walletIcon']["matchTextDirection"],
-          fontPackage: json['walletIcon']['fontPackage']) : Icons.wallet, 
-          walletColor:json['walletColor'] != null ? Color(json['walletColor']) : Colors.transparent
-      
-    );
+        keyId: json['keyId'] as String,
+        creationDate: json['creationDate'] as int,
+        walletName: json['walletName'] as String,
+        address: json['address'] as String,
+        isWatchOnly: json['isWatchOnly'] as bool,
+        walletIcon: json["walletIcon"] != null
+            ? IconData(json['walletIcon']["codePoint"],
+                fontFamily: json['walletIcon']['fontFamily'],
+                matchTextDirection: json['walletIcon']["matchTextDirection"],
+                fontPackage: json['walletIcon']['fontPackage'])
+            : Icons.wallet,
+        walletColor: json['walletColor'] != null
+            ? Color(json['walletColor'])
+            : Colors.transparent);
   }
 
   Map<String, dynamic> toJson() {
@@ -155,8 +158,8 @@ class PublicData {
       'walletName': walletName,
       'address': address,
       'isWatchOnly': isWatchOnly,
-       'walletIcon': walletIcon?.toJson() ?? Icons.wallet.toJson(),
-      'walletColor': walletColor?.value ??Colors.transparent.value,
+      'walletIcon': walletIcon?.toJson() ?? Icons.wallet.toJson(),
+      'walletColor': walletColor?.value ?? Colors.transparent.value,
     };
   }
 }
@@ -252,7 +255,6 @@ class Crypto {
   final String? apiBaseUrl;
   final String symbol;
 
-
   Crypto(
       {required this.name,
       this.icon,
@@ -270,33 +272,32 @@ class Crypto {
       required this.canDisplay,
       this.apiKey,
       this.apiBaseUrl,
-     
-      
-      
       required this.symbol});
 
   factory Crypto.fromJson(Map<String, dynamic> cryptoJson) {
     return Crypto(
-        apiKey: cryptoJson["apiKey"],
-        apiBaseUrl: cryptoJson["apiBaseUrl"],
-        canDisplay: cryptoJson["canDisplay"],
-        cryptoId: cryptoJson["cryptoId"],
-        name: cryptoJson["name"],
-        color:cryptoJson["color"] != null ? Color(cryptoJson["color"]): Colors.transparent,
-        type: CryptoType.values[cryptoJson["type"]],
-        icon: cryptoJson["icon"],
-        rpc: cryptoJson["rpc"],
-        decimals: cryptoJson["decimals"],
-        chainId: cryptoJson["chainId"],
-        binanceSymbol: cryptoJson["binanceSymbol"],
-        network: cryptoJson["network"] != null
-            ? Crypto.fromJson(cryptoJson["network"])
-            : null,
-        contractAddress: cryptoJson["contractAddress"],
-        explorer: cryptoJson["explorer"],
-        valueUsd: cryptoJson["valueUsd"],
-        symbol: cryptoJson["symbol"],
-) ;
+      apiKey: cryptoJson["apiKey"],
+      apiBaseUrl: cryptoJson["apiBaseUrl"],
+      canDisplay: cryptoJson["canDisplay"],
+      cryptoId: cryptoJson["cryptoId"],
+      name: cryptoJson["name"],
+      color: cryptoJson["color"] != null
+          ? Color(cryptoJson["color"])
+          : Colors.transparent,
+      type: CryptoType.values[cryptoJson["type"]],
+      icon: cryptoJson["icon"],
+      rpc: cryptoJson["rpc"],
+      decimals: cryptoJson["decimals"],
+      chainId: cryptoJson["chainId"],
+      binanceSymbol: cryptoJson["binanceSymbol"],
+      network: cryptoJson["network"] != null
+          ? Crypto.fromJson(cryptoJson["network"])
+          : null,
+      contractAddress: cryptoJson["contractAddress"],
+      explorer: cryptoJson["explorer"],
+      valueUsd: cryptoJson["valueUsd"],
+      symbol: cryptoJson["symbol"],
+    );
   }
 
   Map<String, dynamic> toJson() {
@@ -318,8 +319,6 @@ class Crypto {
       "explorer": explorer,
       "valueUsd": valueUsd,
       "symbol": symbol,
-     
-
     };
   }
 }

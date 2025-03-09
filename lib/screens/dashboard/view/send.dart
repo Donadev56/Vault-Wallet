@@ -140,7 +140,7 @@ class _SendTransactionScreenState extends State<SendTransactionScreen> {
 
   Future<void> sendTransaction() async {
     try {
-       if (userBalance <=double.parse( _amountController.text)) {
+      if (userBalance <= double.parse(_amountController.text)) {
         throw Exception("Insufficient balance");
       }
       showDialog(
@@ -167,13 +167,11 @@ class _SendTransactionScreenState extends State<SendTransactionScreen> {
             );
           });
 
-
       final to = _addressController.text;
       final from = currentAccount.address;
       final value = double.parse(_amountController.text) * 1e18;
       log("Value before parsing $value");
-      final valueWei =
-          ((BigInt.parse(value.toStringAsFixed(0)))).toString();
+      final valueWei = ((BigInt.parse(value.toStringAsFixed(0)))).toString();
       log("valueWei $valueWei");
       final valueHex = (BigInt.parse(valueWei)).toRadixString(16);
       log("Value : $valueHex and value wei $valueWei");
@@ -185,12 +183,12 @@ class _SendTransactionScreenState extends State<SendTransactionScreen> {
           value: valueHex,
           data: "");
       log("Gas : ${estimatedGas.toString()}");
-     if (estimatedGas == null) {
+      if (estimatedGas == null) {
         throw Exception("Gas estimation error");
-      } 
+      }
 
       final transaction = JsTransactionObject(
-        gas: "0x${(estimatedGas.toInt() ).toRadixString(16)}",
+        gas: "0x${(estimatedGas.toInt()).toRadixString(16)}",
         value: valueHex,
         from: from,
         to: to,
@@ -198,7 +196,7 @@ class _SendTransactionScreenState extends State<SendTransactionScreen> {
       if (mounted) {
         Navigator.pop(context);
         final tx = await web3InteractManager.sendEthTransaction(
-          crypto: currentNetwork,
+            crypto: currentNetwork,
             colors: colors,
             data: transaction,
             mounted: mounted,
@@ -260,20 +258,19 @@ class _SendTransactionScreenState extends State<SendTransactionScreen> {
     }
   }
 
-
   Future<void> sendTokenTransaction() async {
     try {
-     double amount = double.parse(_amountController.text);
-double roundedAmount = double.parse(amount.toStringAsFixed(8));
+      double amount = double.parse(_amountController.text);
+      double roundedAmount = double.parse(amount.toStringAsFixed(8));
 
-if (roundedAmount > userBalance) {
-    throw Exception("Insufficient balance");
-}
-if (nativeTokenBalance < transactionFee) {
-  throw Exception("Insufficient ${currentNetwork.network?.symbol} balance , add ${(transactionFee - nativeTokenBalance).toStringAsFixed(8)}");
-}
+      if (roundedAmount > userBalance) {
+        throw Exception("Insufficient balance");
+      }
+      if (nativeTokenBalance < transactionFee) {
+        throw Exception(
+            "Insufficient ${currentNetwork.network?.symbol} balance , add ${(transactionFee - nativeTokenBalance).toStringAsFixed(8)}");
+      }
 
-     
       showDialog(
           context: context,
           builder: (BuildContext context) {
@@ -304,14 +301,12 @@ if (nativeTokenBalance < transactionFee) {
       // final gasPrice = await web3InteractManager.getGasPrice(
       //  currentNetwork.network?.rpc ?? "https://opbnb-mainnet-rpc.bnbchain.org");
 
- final value = roundedAmount * 1e18;
+      final value = roundedAmount * 1e18;
       log("Value before parsing $value");
-      final valueWei =
-          ((BigInt.parse(value.toStringAsFixed(0)))).toString();
+      final valueWei = ((BigInt.parse(value.toStringAsFixed(0)))).toString();
       log("valueWei $valueWei");
 
       final valueHex = (BigInt.parse(valueWei)).toRadixString(16);
-
 
       final estimatedGas = await web3InteractManager.estimateGas(
           rpcUrl: currentNetwork.network?.rpc ??
@@ -320,12 +315,12 @@ if (nativeTokenBalance < transactionFee) {
           to: _addressController.text,
           value: "0x0",
           data: "");
-          
+
       log("Gas : ${estimatedGas.toString()}");
 
       //  final gas = (estimatedGas * gasPrice * numerator) ~/ denominator;
       if (estimatedGas == null) {
-      throw Exception("Gas estimation error");
+        throw Exception("Gas estimation error");
       }
       final transaction = JsTransactionObject(
         gas: "0x${(estimatedGas.toInt()).toRadixString(16)}",
@@ -473,30 +468,36 @@ if (nativeTokenBalance < transactionFee) {
     try {
       final results = await Future.wait([
         //1
-         web3InteractManager.estimateGas(rpcUrl: currentNetwork.type == CryptoType.token ?  currentNetwork.network?.rpc ?? "" : currentNetwork.rpc  ?? "", sender: currentAccount.address, to: currentAccount.address, value: "0x0", data: ""),
-         //2
-          priceManager.getPriceUsingBinanceApi(currentNetwork.binanceSymbol ?? ""),
-          // 3
-         web3InteractManager.getBalance(currentAccount, currentNetwork),
-         // 4
-         currentNetwork.type == CryptoType.token ?  web3InteractManager.getGasPrice(
-            currentNetwork.network?.rpc ??
-                "https://opbnb-mainnet-rpc.bnbchain.org") : web3InteractManager.getGasPrice(
-            currentNetwork.rpc ?? "https://opbnb-mainnet-rpc.bnbchain.org"),
-            // 5
-          publicDataManager.getDataFromPrefs(
-          key: "${currentAccount.address}/lastUsedAddresses")
-        
-         
+        web3InteractManager.estimateGas(
+            rpcUrl: currentNetwork.type == CryptoType.token
+                ? currentNetwork.network?.rpc ?? ""
+                : currentNetwork.rpc ?? "",
+            sender: currentAccount.address,
+            to: currentAccount.address,
+            value: "0x0",
+            data: ""),
+        //2
+        priceManager
+            .getPriceUsingBinanceApi(currentNetwork.binanceSymbol ?? ""),
+        // 3
+        web3InteractManager.getBalance(currentAccount, currentNetwork),
+        // 4
+        currentNetwork.type == CryptoType.token
+            ? web3InteractManager.getGasPrice(currentNetwork.network?.rpc ??
+                "https://opbnb-mainnet-rpc.bnbchain.org")
+            : web3InteractManager.getGasPrice(
+                currentNetwork.rpc ?? "https://opbnb-mainnet-rpc.bnbchain.org"),
+        // 5
+        publicDataManager.getDataFromPrefs(
+            key: "${currentAccount.address}/lastUsedAddresses")
       ]);
       final estimatedGas = (results[0] as BigInt?);
       log("estimated gas $estimatedGas");
       final price = results[1];
       final balance = results[2];
-          
+
       BigInt gasPrice = (results[3] as BigInt?) ?? BigInt.from(1000000);
 
-     
       log("gas $gasPrice");
 
       final lastUsedAddresses = results[4];
@@ -508,22 +509,25 @@ if (nativeTokenBalance < transactionFee) {
       }
 
       setState(() {
-        cryptoPrice =( price as double);
+        cryptoPrice = (price as double);
         userBalance = (balance as double);
-         final BigInt gas =estimatedGas != null ? (estimatedGas  * BigInt.from(2)) : BigInt.from(21000);
-         final double gasPriceDouble = gasPrice.toDouble();
+        final BigInt gas = estimatedGas != null
+            ? (estimatedGas * BigInt.from(2))
+            : BigInt.from(21000);
+        final double gasPriceDouble = gasPrice.toDouble();
 
-         transactionFee =( (gas * BigInt.from(gasPriceDouble.toInt())) / BigInt.from(10).pow(18) );
-         log("Fees ${transactionFee.toStringAsFixed(8)}");
+        transactionFee = ((gas * BigInt.from(gasPriceDouble.toInt())) /
+            BigInt.from(10).pow(18));
+        log("Fees ${transactionFee.toStringAsFixed(8)}");
       });
-          if (currentNetwork.type  == CryptoType.token ) {
-          final networkBalance =
-          await web3InteractManager.getBalance(currentAccount, currentNetwork.network ?? currentNetwork);
-          setState(() {
-            nativeTokenBalance = networkBalance ;
-          });
-          }
-       
+      if (currentNetwork.type == CryptoType.token) {
+        final networkBalance = await web3InteractManager.getBalance(
+            currentAccount, currentNetwork.network ?? currentNetwork);
+        setState(() {
+          nativeTokenBalance = networkBalance;
+        });
+      }
+
       log("Crypto price is $price");
     } catch (e) {
       logError(e.toString());
@@ -984,15 +988,14 @@ if (nativeTokenBalance < transactionFee) {
                   log("Value $v");
                   if (double.parse(v ?? "") >= userBalance) {
                     return "Amount exceeds balance";
-                  } else if (double.parse(v ?? "") == userBalance && userBalance > 0) {
+                  } else if (double.parse(v ?? "") == userBalance &&
+                      userBalance > 0) {
                     return "Transaction fee must be deducted";
                   } else {
                     return null;
                   }
                 },
-                
                 keyboardType: TextInputType.number,
-                
                 onChanged: (value) {
                   if (value.isEmpty) {
                     setState(() {
@@ -1019,20 +1022,18 @@ if (nativeTokenBalance < transactionFee) {
                       borderRadius: BorderRadius.circular(10),
                       onTap: () {
                         setState(() {
-                        if (currentNetwork.type == CryptoType.network) {
-                          final value = userBalance - transactionFee;
-                          log("value $value , balance $userBalance" );
-                              _amountController.text =
-                              formatter.format(value);
-                          _amountUsdController.text =
-                              ((userBalance) * cryptoPrice).toString();
-                        } else {
+                          if (currentNetwork.type == CryptoType.network) {
+                            final value = userBalance - transactionFee;
+                            log("value $value , balance $userBalance");
+                            _amountController.text = formatter.format(value);
+                            _amountUsdController.text =
+                                ((userBalance) * cryptoPrice).toString();
+                          } else {
                             _amountController.text =
-                              formatter.format(userBalance);
-                          _amountUsdController.text =
-                              ((userBalance) * cryptoPrice).toString();
-                        }
-                        
+                                formatter.format(userBalance);
+                            _amountUsdController.text =
+                                ((userBalance) * cryptoPrice).toString();
+                          }
                         });
                       },
                       child: Container(

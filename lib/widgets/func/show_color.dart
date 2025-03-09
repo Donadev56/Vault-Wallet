@@ -3,7 +3,6 @@ import 'package:lucide_icons_flutter/lucide_icons.dart';
 import 'package:moonwallet/types/types.dart';
 import 'package:moonwallet/utils/constant.dart';
 
-
 void showColorPicker(
     {required void Function(int index) onSelect,
     required BuildContext context,
@@ -30,16 +29,21 @@ void showColorPicker(
                       Navigator.pop(context);
                     },
                     icon: Container(
-
                       width: 30,
                       height: 30,
                       decoration: BoxDecoration(
                           borderRadius: BorderRadius.circular(50),
-                          color: colorList[index] ,
-                          border: index == colorList.length - 1 ? Border.all(width: 1 , color: colors.themeColor) : Border.all(width: 0, color: Colors.transparent)
-                          ),
-                      child: index == colorList.length - 1 ?  Icon(LucideIcons.x, color:colors.themeColor.withOpacity(0.5),) : null,
-                          
+                          color: colorList[index],
+                          border: index == colorList.length - 1
+                              ? Border.all(width: 1, color: colors.themeColor)
+                              : Border.all(
+                                  width: 0, color: Colors.transparent)),
+                      child: index == colorList.length - 1
+                          ? Icon(
+                              LucideIcons.x,
+                              color: colors.themeColor.withOpacity(0.5),
+                            )
+                          : null,
                     ));
               }),
         );

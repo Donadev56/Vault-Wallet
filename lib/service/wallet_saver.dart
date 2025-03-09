@@ -299,7 +299,6 @@ class WalletSaver {
     }
   }
 
-
   // get the savedKey if the user use fingerprint
   Future<String?> getSavedPassword() async {
     try {
