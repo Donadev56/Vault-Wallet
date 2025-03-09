@@ -92,7 +92,7 @@ class _AddPrivateKeyState extends State<AddPrivateKey> {
             message: "Data saved successfully",
             icon: Icons.check_circle,
             iconColor: Colors.greenAccent);
-        Navigator.pushNamed(context, Routes.main);
+          Navigator.pushNamed(context, Routes.pageManager);
       } else {
         throw Exception("Failed to save the key.");
       }

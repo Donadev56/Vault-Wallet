@@ -109,7 +109,7 @@ class Web3InteractionManager {
     }
   }
 
-  Future<BigInt> getGasPrice(String rpcUrl) async {
+  Future<BigInt> getGasPrice(String rpcUrl ) async {
     try {
       if (rpcUrl.isEmpty) {
         log("rpc url is empty");
@@ -125,8 +125,11 @@ class Web3InteractionManager {
     }
   }
 
-  Future<BigInt> estimateGas(
-      {required String rpcUrl,
+  Future<BigInt?> estimateGas(
+
+
+      {
+        required String rpcUrl,
       required String sender,
       required String to,
       required String value,
@@ -147,9 +150,10 @@ class Web3InteractionManager {
       return estimatedGas;
     } catch (e) {
       logError(e.toString());
-      return BigInt.zero;
+      return null;
     }
   }
+
 
   BigInt parseHex(String hex) {
     log("Parsing hex $hex");
@@ -164,7 +168,9 @@ class Web3InteractionManager {
   }
 
   Future<String> sendEthTransaction(
-      {required JsTransactionObject data,
+      {
+       required Crypto crypto,
+      required JsTransactionObject data,
       required AppColors colors,
       required bool mounted,
       required BuildContext context,
@@ -205,8 +211,8 @@ class Web3InteractionManager {
         throw Exception(
             "Different address detected : \n  it seems like ${data.from} is different from the connected address  ${currentAccount.address} , please check again your transaction data .");
       }
-
-      BigInt estimatedGas = await estimateGas(
+      log("Data value ${data.value}");
+      BigInt? estimatedGas = await estimateGas(
           value: data.value ?? "0x0",
           rpcUrl:
               currentNetwork.rpc ?? "https://opbnb-mainnet-rpc.bnbchain.org",
@@ -222,9 +228,13 @@ class Web3InteractionManager {
 
       log("value wei $valueInWei");
 
+     if (estimatedGas == null) {
+        throw Exception("An error occurred when trying to estimate the gas.");
+      } 
+
       BigInt? gasLimit = data.gas != null
           ? BigInt.parse(data.gas!.replaceFirst("0x", ""), radix: 16)
-          : (estimatedGas * BigInt.from(30)) ~/ BigInt.from(100);
+          : (estimatedGas   * BigInt.from(30)) ~/ BigInt.from(100);
       final gasPriceResult = await getGasPrice(
           currentNetwork.rpc ?? "https://opbnb-mainnet-rpc.bnbchain.org");
       BigInt gasPrice =
@@ -239,10 +249,11 @@ class Web3InteractionManager {
         throw Exception("Internal error");
       }
       final confirmedResponse = await askUserForConfirmation(
+          crypto: crypto,
           operationType: operationType,
           secondaryColor: secondaryColor,
           cryptoPrice: cryptoPrice,
-          estimatedGas: estimatedGas,
+          estimatedGas: estimatedGas ,
           gasPrice: gasPrice,
           gasLimit: gasLimit,
           valueInWei: valueInWei,

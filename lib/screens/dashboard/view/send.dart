@@ -1,9 +1,11 @@
 // ignore_for_file: deprecated_member_use
 
 import 'dart:convert';
+import 'dart:ffi';
 import 'dart:io';
 import 'dart:ui';
 import 'package:awesome_snackbar_content/awesome_snackbar_content.dart';
+import 'package:decimal/decimal.dart';
 
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
@@ -49,6 +51,7 @@ class _SendTransactionScreenState extends State<SendTransactionScreen> {
   double cryptoPrice = 0;
   double transactionFee = 0;
   bool isAndroid = false;
+  double networkBalance = 0;
   bool isDarkMode = false;
   Color darkNavigatorColor = Color(0XFF0D0D0D);
   bool _isInitialized = false;
@@ -138,6 +141,9 @@ class _SendTransactionScreenState extends State<SendTransactionScreen> {
 
   Future<void> sendTransaction() async {
     try {
+       if (userBalance <=double.parse( _amountController.text)) {
+        throw Exception("Insufficient balance");
+      }
       showDialog(
           context: context,
           builder: (BuildContext context) {
@@ -161,16 +167,16 @@ class _SendTransactionScreenState extends State<SendTransactionScreen> {
               ),
             );
           });
-      BigInt numerator = BigInt.from(100); // pour 1.2, 12/10
-      BigInt denominator = BigInt.from(10);
+
 
       final to = _addressController.text;
       final from = currentAccount.address;
-      final gasPrice = await web3InteractManager.getGasPrice(
-          currentNetwork.rpc ?? "https://opbnb-mainnet-rpc.bnbchain.org");
+      final value = double.parse(_amountController.text) * 1e18;
+      log("Value before parsing $value");
       final valueWei =
-          ((double.parse(_amountController.text)) * 1e18).toStringAsFixed(0);
-      final valueHex = (int.parse(valueWei)).toRadixString(16);
+          ((BigInt.parse(value.toStringAsFixed(0)))).toString();
+      log("valueWei $valueWei");
+      final valueHex = (BigInt.parse(valueWei)).toRadixString(16);
       log("Value : $valueHex and value wei $valueWei");
       final estimatedGas = await web3InteractManager.estimateGas(
           rpcUrl:
@@ -180,19 +186,20 @@ class _SendTransactionScreenState extends State<SendTransactionScreen> {
           value: valueHex,
           data: "");
       log("Gas : ${estimatedGas.toString()}");
+     if (estimatedGas == null) {
+        throw Exception("Gas estimation error");
+      } 
 
-      final gas = (estimatedGas * gasPrice * numerator) ~/ denominator;
-      final valueToSend = BigInt.parse(valueWei) - gas;
-      log("Value to send ${valueToSend.toString()} and gas $gas \n Value wei $valueWei and ${BigInt.parse(valueWei) - valueToSend}");
       final transaction = JsTransactionObject(
-        gas: "0x${(estimatedGas.toInt()).toRadixString(16)}",
-        value: "0x${(valueToSend.toInt()).toRadixString(16)}",
+        gas: "0x${(estimatedGas.toInt() ).toRadixString(16)}",
+        value: valueHex,
         from: from,
         to: to,
       );
       if (mounted) {
         Navigator.pop(context);
         final tx = await web3InteractManager.sendEthTransaction(
+          crypto: currentNetwork,
             colors: colors,
             data: transaction,
             mounted: mounted,
@@ -254,8 +261,16 @@ class _SendTransactionScreenState extends State<SendTransactionScreen> {
     }
   }
 
+
   Future<void> sendTokenTransaction() async {
     try {
+     double amount = double.parse(_amountController.text);
+double roundedAmount = double.parse(amount.toStringAsFixed(8));
+
+if (roundedAmount > userBalance) {
+    throw Exception("Insufficient balance");
+}
+
       showDialog(
           context: context,
           builder: (BuildContext context) {
@@ -286,28 +301,32 @@ class _SendTransactionScreenState extends State<SendTransactionScreen> {
       // final gasPrice = await web3InteractManager.getGasPrice(
       //  currentNetwork.network?.rpc ?? "https://opbnb-mainnet-rpc.bnbchain.org");
 
+ final value = roundedAmount * 1e18;
+      log("Value before parsing $value");
       final valueWei =
-          ((double.parse(_amountController.text)) * 1e18).toStringAsFixed(0);
+          ((BigInt.parse(value.toStringAsFixed(0)))).toString();
+      log("valueWei $valueWei");
 
-      final valueHex = (int.parse(valueWei)).toRadixString(16);
+      final valueHex = (BigInt.parse(valueWei)).toRadixString(16);
 
-      log("Value : $valueHex and value wei $valueWei");
 
       final estimatedGas = await web3InteractManager.estimateGas(
           rpcUrl: currentNetwork.network?.rpc ??
               "https://opbnb-mainnet-rpc.bnbchain.org",
           sender: currentAccount.address,
           to: _addressController.text,
-          value: valueHex,
+          value: "0x0",
           data: "");
+          
       log("Gas : ${estimatedGas.toString()}");
 
       //  final gas = (estimatedGas * gasPrice * numerator) ~/ denominator;
-      final valueToSend = BigInt.parse(valueWei);
-
+      if (estimatedGas == null) {
+      throw Exception("Gas estimation error");
+      }
       final transaction = JsTransactionObject(
         gas: "0x${(estimatedGas.toInt()).toRadixString(16)}",
-        value: "0x${(valueToSend.toInt()).toRadixString(16)}",
+        value: valueHex,
         from: from,
         to: to,
       );
@@ -456,6 +475,8 @@ class _SendTransactionScreenState extends State<SendTransactionScreen> {
           userBalance = double.parse(lastBalance);
         });
       }
+      final estimatedGas = await web3InteractManager.estimateGas(rpcUrl: currentNetwork.type == CryptoType.token ?  currentNetwork.network?.rpc ?? "" : currentNetwork.rpc  ?? "", sender: currentAccount.address, to: currentAccount.address, value: "0x0", data: "");
+      log("estimated gas $estimatedGas");
       final price = await priceManager
           .getPriceUsingBinanceApi(currentNetwork.binanceSymbol ?? "");
       final balance =
@@ -470,6 +491,7 @@ class _SendTransactionScreenState extends State<SendTransactionScreen> {
         gasPrice = await web3InteractManager.getGasPrice(
             currentNetwork.rpc ?? "https://opbnb-mainnet-rpc.bnbchain.org");
       }
+      log(" gas $gasPrice");
 
       final lastUsedAddresses = await publicDataManager.getDataFromPrefs(
           key: "${currentAccount.address}/lastUsedAddresses");
@@ -483,10 +505,13 @@ class _SendTransactionScreenState extends State<SendTransactionScreen> {
       setState(() {
         cryptoPrice = price;
         userBalance = balance;
-        transactionFee = ((21000 * gasPrice.toDouble()) / 1e18);
-        log("Fees $transactionFee");
+         final BigInt gas =estimatedGas != null ? (estimatedGas  * BigInt.from(2)) : BigInt.from(21000);
+         final double gasPriceDouble = gasPrice.toDouble();
+
+         transactionFee =( (gas * BigInt.from(gasPriceDouble.toInt())) / BigInt.from(10).pow(18) );
+         log("Fees ${transactionFee.toStringAsFixed(8)}");
       });
-      log("Crypto price is ${price}");
+      log("Crypto price is $price");
     } catch (e) {
       logError(e.toString());
     }
@@ -682,7 +707,7 @@ class _SendTransactionScreenState extends State<SendTransactionScreen> {
                       spacing: 10,
                       children: [
                         Text(
-                          currentNetwork.name,
+                          currentNetwork.symbol,
                           style: GoogleFonts.roboto(
                               color: colors.textColor,
                               fontWeight: FontWeight.bold),
@@ -941,8 +966,20 @@ class _SendTransactionScreenState extends State<SendTransactionScreen> {
                       color: colors.textColor, fontWeight: FontWeight.bold),
                 ),
               ),
-              TextField(
+              TextFormField(
+                validator: (v) {
+                  log("Value $v");
+                  if (double.parse(v ?? "") >= userBalance) {
+                    return "Amount exceeds balance";
+                  } else if (double.parse(v ?? "") == userBalance && userBalance > 0) {
+                    return "Transaction fee must be deducted";
+                  } else {
+                    return null;
+                  }
+                },
+                
                 keyboardType: TextInputType.number,
+                
                 onChanged: (value) {
                   if (value.isEmpty) {
                     setState(() {
@@ -969,10 +1006,20 @@ class _SendTransactionScreenState extends State<SendTransactionScreen> {
                       borderRadius: BorderRadius.circular(10),
                       onTap: () {
                         setState(() {
-                          _amountController.text =
-                              formatter.format(userBalance - transactionFee);
+                        if (currentNetwork.type == CryptoType.network) {
+                          final value = userBalance - transactionFee;
+                          log("value $value , balance $userBalance" );
+                              _amountController.text =
+                              formatter.format(value);
                           _amountUsdController.text =
                               ((userBalance) * cryptoPrice).toString();
+                        } else {
+                            _amountController.text =
+                              formatter.format(userBalance);
+                          _amountUsdController.text =
+                              ((userBalance) * cryptoPrice).toString();
+                        }
+                        
                         });
                       },
                       child: Container(

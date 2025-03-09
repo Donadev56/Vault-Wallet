@@ -141,7 +141,7 @@ class _CreatePrivateKeyState extends State<CreatePrivateKeyMain> {
             icon: Icons.check_circle,
             iconColor: colors.themeColor);
 
-        Navigator.pushNamed(context, Routes.main);
+          Navigator.pushNamed(context, Routes.pageManager);
       } else {
         throw Exception("Failed to save the key.");
       }

@@ -1,0 +1,1 @@
+/Users/macbook/Documents/moon_wallet/moonwallet/build/app/intermediates/cxx/RelWithDebInfo/1047505a/obj/arm64-v8a

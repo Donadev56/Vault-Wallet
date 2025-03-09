@@ -81,7 +81,7 @@ class _AddPrivateKeyState extends State<AddObservationWallet> {
           secAttempt = 0;
         });
         if (mounted) {
-          Navigator.pushNamed(context, Routes.main);
+          Navigator.pushNamed(context, Routes.pageManager);
         }
       }
       if (attempt == 3) {
@@ -132,7 +132,7 @@ class _AddPrivateKeyState extends State<AddObservationWallet> {
             message: "Data saved successfully",
             icon: Icons.check_circle,
             iconColor: colors.themeColor);
-        Navigator.pushNamed(context, Routes.main);
+          Navigator.pushNamed(context, Routes.pageManager);
       } else {
         throw Exception("Failed to save the address.");
       }

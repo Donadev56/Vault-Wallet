@@ -1,0 +1,2 @@
+/Users/macbook/Documents/moon_wallet/moonwallet/android/app/.cxx/RelWithDebInfo/1047505a/armeabi-v7a/CMakeFiles/edit_cache.dir
+/Users/macbook/Documents/moon_wallet/moonwallet/android/app/.cxx/RelWithDebInfo/1047505a/armeabi-v7a/CMakeFiles/rebuild_cache.dir

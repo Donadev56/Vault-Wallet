@@ -1,3 +1,4 @@
+import 'package:currency_formatter/currency_formatter.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_feather_icons/flutter_feather_icons.dart';
 import 'package:flutter_web3_webview/flutter_web3_webview.dart';
@@ -26,7 +27,6 @@ Future<UserRequestResponse> askUserForConfirmation(
   BigInt customGasPrice = BigInt.zero;
   BigInt customGasLimit = BigInt.zero;
   bool canUseCustomGas = false;
-  final formatter = NumberFormat("0.##############", "en_US");
 
   double calculatePrice(BigInt wei) {
     final double tokenAmount = double.parse(wei.toString()) / 1e18;
@@ -34,6 +34,14 @@ Future<UserRequestResponse> askUserForConfirmation(
     log("Conversion: $wei wei correspond to $tokenAmount token(s)  $price USD");
     return price;
   }
+
+  CurrencyFormat formatterSettings = CurrencyFormat(
+  symbol: crypto?.symbol ?? "",
+  symbolSide: SymbolSide.right,
+  thousandSeparator: ',',
+  decimalSeparator: '.',
+  symbolSeparator: ' ',
+);
 
   final BigInt baseCost = (estimatedGas == BigInt.zero)
       ? gasLimit * gasPrice
@@ -67,7 +75,16 @@ Future<UserRequestResponse> askUserForConfirmation(
       "gwei": BigInt.zero,
     },
   ];
+String getValue() {
+  final valueInWei = BigInt.parse(txData.value!.replaceFirst("0x", ""), radix: 16);
+  final double tokenAmount = double.parse(valueInWei.toString()) / 1e18;
+  String formatted = CurrencyFormatter.format(tokenAmount, formatterSettings, decimal: 8);
 
+  formatted = formatted.replaceAll(RegExp(r'(\.\d*?[1-9])0+$'), r'$1'); 
+  formatted = formatted.replaceAll(RegExp(r'\.0+$'), ''); 
+
+  return formatted;
+}
   final result = await showModalBottomSheet<UserRequestResponse>(
     context: context,
     isScrollControlled: true,
@@ -155,8 +172,8 @@ Future<UserRequestResponse> askUserForConfirmation(
                       alignment: Alignment.center,
                       child: Text(
                         txData.value != null
-                            ? "${(formatter.format(int.parse(txData.value ?? "0") / 1e18))} ${crypto != null ? crypto.symbol : "BNB"}"
-                            : "0  ${crypto != null ? crypto.symbol : "BNB"}",
+                            ? "${getValue ()} "
+                            : "0  ${crypto != null ? crypto.symbol : ""}",
                         overflow: TextOverflow.clip,
                         maxLines: 1,
                         style: GoogleFonts.roboto(

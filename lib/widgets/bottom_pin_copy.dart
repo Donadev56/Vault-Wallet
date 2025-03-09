@@ -131,11 +131,11 @@ Future<bool> showPinModalBottomSheet(
                             child: Container(
                               decoration: BoxDecoration(
                                   border: Border.all(
-                                      width: 3,
+                                      width: 0.5,
                                       color: numberOfNumbers > index
                                           ? colors.textColor
                                           : colors.textColor.withOpacity(0.3)),
-                                  borderRadius: BorderRadius.circular(10)),
+                                  borderRadius: BorderRadius.circular(5)),
                               alignment: Alignment.center,
                               width: width * 0.1,
                               height: height * 0.05,
@@ -203,14 +203,12 @@ Future<bool> showPinModalBottomSheet(
                               width: width * 0.26,
                               height: height * 0.055,
                               decoration: BoxDecoration(
-                                  color: colors.secondaryColor,
-                                  borderRadius: BorderRadius.circular(5)),
+                                border: Border.all(width: 0.1 , color: colors.textColor.withOpacity(0.13)),
+                               ),
                               margin: const EdgeInsets.all(5),
                               child: Material(
-                                elevation: 5,
                                 color: Colors.transparent,
                                 child: InkWell(
-                                  borderRadius: BorderRadius.circular(5),
                                   onTap: () {
                                     handleType(index);
                                   },

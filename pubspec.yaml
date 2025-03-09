@@ -69,6 +69,7 @@ dependencies:
   fast_cached_network_image: ^1.3.3+5
   memory_cache: ^1.2.0
   delightful_toast: ^1.1.0
+  currency_formatter: ^2.2.2
 
 
 
@@ -106,17 +107,12 @@ flutter:
   - assets/4.png
   - assets/b1.webp
   - assets/image.png
-  - assets/bnb.png
   - assets/g2.gif
-  - assets/green_blur.png
   - assets/blur1.png
   - assets/i1.png
-  - assets/b2.png
   - assets/bnb.png
-  - assets/bnb.webp
   - assets/bg/i2.png
   - assets/pro/image.png
-  - assets/logos/usdt.png
   - assets/logos/usdt2.png
   - assets/logos/bitcoin.png
   - assets/logos/eth.png

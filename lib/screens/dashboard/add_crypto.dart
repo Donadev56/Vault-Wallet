@@ -462,8 +462,8 @@ class _AddCryptoViewState extends State<AddCryptoView> {
                                   leading: IconButton(
                                       onPressed: () {
                                         if (hasSaved) {
-                                          Navigator.pushNamed(
-                                              context, Routes.main);
+                                                   Navigator.pushNamed(context, Routes.pageManager);
+
                                         } else {
                                           Navigator.pop(context);
                                         }

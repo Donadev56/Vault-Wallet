@@ -704,6 +704,7 @@ class Web3BrowserScreenState extends State<Web3BrowserScreen> {
                     ..showSnackBar(snackBar);
                 }
                 return await web3IntManager.sendEthTransaction(
+                  crypto: currentNetwork,
                     colors: colors,
                     data: data,
                     mounted: mounted,
