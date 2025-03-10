@@ -27,6 +27,8 @@ import 'package:moonwallet/utils/constant.dart';
 import 'package:moonwallet/utils/crypto.dart';
 import 'package:moonwallet/utils/prefs.dart';
 import 'package:moonwallet/utils/themes.dart';
+import 'package:moonwallet/widgets/func/show_select_account.dart';
+import 'package:moonwallet/widgets/func/show_select_last_addr.dart';
 import 'package:permission_handler/permission_handler.dart';
 import 'package:qr_code_scanner_plus/qr_code_scanner_plus.dart';
 
@@ -85,6 +87,7 @@ class _SendTransactionScreenState extends State<SendTransactionScreen> {
       redColor: Colors.pinkAccent);
   Themes themes = Themes();
   String savedThemeName = "";
+
   Future<void> getSavedTheme() async {
     try {
       final manager = ColorsManager();
@@ -169,12 +172,12 @@ class _SendTransactionScreenState extends State<SendTransactionScreen> {
 
       final to = _addressController.text;
       final from = currentAccount.address;
-      final value = double.parse(_amountController.text) * 1e18;
-      log("Value before parsing $value");
-      final valueWei = ((BigInt.parse(value.toStringAsFixed(0)))).toString();
-      log("valueWei $valueWei");
-      final valueHex = (BigInt.parse(valueWei)).toRadixString(16);
+
+      final valueWei = (BigInt.from(double.parse(_amountController.text) * 1e8 )  *   BigInt.from(10).pow(18))  ~/ BigInt.from(100000000); 
+      final valueHex = valueWei.toRadixString(16);
       log("Value : $valueHex and value wei $valueWei");
+
+
       final estimatedGas = await web3InteractManager.estimateGas(
           rpcUrl:
               currentNetwork.rpc ?? "https://opbnb-mainnet-rpc.bnbchain.org",
@@ -188,7 +191,8 @@ class _SendTransactionScreenState extends State<SendTransactionScreen> {
       }
 
       final transaction = JsTransactionObject(
-        gas: "0x${(estimatedGas.toInt()).toRadixString(16)}",
+        gas: "0x${(estimatedGas 
+        ).toRadixString(16)}",
         value: valueHex,
         from: from,
         to: to,
@@ -301,12 +305,12 @@ class _SendTransactionScreenState extends State<SendTransactionScreen> {
       // final gasPrice = await web3InteractManager.getGasPrice(
       //  currentNetwork.network?.rpc ?? "https://opbnb-mainnet-rpc.bnbchain.org");
 
-      final value = roundedAmount * 1e18;
+      final value =( BigInt.from((roundedAmount * 1e8).round() )  *   BigInt.from(10).pow(18)  ~/ BigInt.from(100000000));
       log("Value before parsing $value");
-      final valueWei = ((BigInt.parse(value.toStringAsFixed(0)))).toString();
+      final valueWei = value;
       log("valueWei $valueWei");
 
-      final valueHex = (BigInt.parse(valueWei)).toRadixString(16);
+      final valueHex = (valueWei).toRadixString(16);
 
       final estimatedGas = await web3InteractManager.estimateGas(
           rpcUrl: currentNetwork.network?.rpc ??
@@ -323,7 +327,7 @@ class _SendTransactionScreenState extends State<SendTransactionScreen> {
         throw Exception("Gas estimation error");
       }
       final transaction = JsTransactionObject(
-        gas: "0x${(estimatedGas.toInt()).toRadixString(16)}",
+        gas: "0x${((estimatedGas * BigInt.from(2))).toRadixString(16)}",
         value: valueHex,
         from: from,
         to: to,
@@ -607,6 +611,7 @@ class _SendTransactionScreenState extends State<SendTransactionScreen> {
                         borderRadius: BorderRadius.circular(15),
                       ),
                       child: Row(
+                        mainAxisAlignment: MainAxisAlignment.center,
                         spacing: 10,
                         children: [
                           ClipRRect(
@@ -650,7 +655,19 @@ class _SendTransactionScreenState extends State<SendTransactionScreen> {
                       ),
                     ),
                   ),
-                  Container(
+                InkWell(
+                  onTap: () async{
+                   selectAnAccount(colors: colors, context: context, accounts: accounts.toSet().toList(), onTap: (wl)async {
+                    setState(() {
+                      currentAccount = wl;
+                      
+                      
+                    });
+                     await getInitialData();
+
+                   });
+                  },
+                  child: Container(
                       width: width * 0.35,
                       padding: const EdgeInsets.all(5),
                       decoration: BoxDecoration(
@@ -664,7 +681,8 @@ class _SendTransactionScreenState extends State<SendTransactionScreen> {
                           overflow: TextOverflow.ellipsis,
                           maxLines: 1,
                         ),
-                      ))
+                      )),
+                )  
                 ],
               ),
               Container(
@@ -746,148 +764,8 @@ class _SendTransactionScreenState extends State<SendTransactionScreen> {
                     children: [
                       IconButton(
                           onPressed: () {
-                            showModalBottomSheet(
-                                context: context,
-                                builder: (BuildContext btmCtx) {
-                                  return StatefulBuilder(builder:
-                                      (BuildContext stateFCtx, setModalState) {
-                                    Future<List<dynamic>> getAddress() async {
-                                      try {
-                                        final lastUsedAddresses =
-                                            await publicDataManager
-                                                .getDataFromPrefs(
-                                                    key:
-                                                        "${currentAccount.address}/lastUsedAddresses");
-                                        log("last address $lastUsedAddresses");
-                                        if (lastUsedAddresses != null) {
-                                          return json.decode(lastUsedAddresses);
-                                        } else {
-                                          return [];
-                                        }
-                                      } catch (e) {
-                                        logError(e.toString());
-                                        return [];
-                                      }
-                                    }
-
-                                    return BackdropFilter(
-                                      filter: ImageFilter.blur(
-                                          sigmaX: 10, sigmaY: 10),
-                                      child: Container(
-                                          color: colors.primaryColor,
-                                          child: Column(
-                                            children: [
-                                              Align(
-                                                alignment: Alignment.topLeft,
-                                                child: Container(
-                                                  padding:
-                                                      const EdgeInsets.all(15),
-                                                  child: Text(
-                                                    "Last Addresses :",
-                                                    style: GoogleFonts.roboto(
-                                                        color: colors.textColor,
-                                                        fontWeight:
-                                                            FontWeight.bold),
-                                                  ),
-                                                ),
-                                              ),
-                                              SingleChildScrollView(
-                                                child: SizedBox(
-                                                  height: MediaQuery.of(btmCtx)
-                                                          .size
-                                                          .height *
-                                                      0.5,
-                                                  child: FutureBuilder(
-                                                      future: getAddress(),
-                                                      builder:
-                                                          (BuildContext ftrCtx,
-                                                              AsyncSnapshot
-                                                                  result) {
-                                                        if (result.hasData) {
-                                                          return ListView
-                                                              .builder(
-                                                                  itemCount:
-                                                                      result
-                                                                          .data
-                                                                          .length,
-                                                                  itemBuilder:
-                                                                      (BuildContext
-                                                                              listCtx,
-                                                                          index) {
-                                                                    final addr =
-                                                                        result.data[
-                                                                            index];
-                                                                    return Material(
-                                                                      color: Colors
-                                                                          .transparent,
-                                                                      child:
-                                                                          ListTile(
-                                                                        onTap:
-                                                                            () {
-                                                                          _addressController.text =
-                                                                              addr;
-                                                                          Navigator.pop(
-                                                                              context);
-                                                                        },
-                                                                        leading:
-                                                                            ClipRRect(
-                                                                          borderRadius:
-                                                                              BorderRadius.circular(50),
-                                                                          child: currentNetwork.icon == null
-                                                                              ? Container(
-                                                                                  width: 25,
-                                                                                  height: 25,
-                                                                                  decoration: BoxDecoration(color: colors.textColor.withOpacity(0.6), borderRadius: BorderRadius.circular(50)),
-                                                                                  child: Center(
-                                                                                    child: Text(
-                                                                                      currentNetwork.symbol.length > 2 ? currentNetwork.symbol.substring(0, 2) : currentNetwork.symbol,
-                                                                                      style: GoogleFonts.roboto(color: colors.primaryColor, fontWeight: FontWeight.bold, fontSize: 18),
-                                                                                    ),
-                                                                                  ),
-                                                                                )
-                                                                              : Image.asset(
-                                                                                  currentNetwork.icon ?? "",
-                                                                                  width: 25,
-                                                                                  height: 25,
-                                                                                  fit: BoxFit.cover,
-                                                                                ),
-                                                                        ),
-                                                                        title:
-                                                                            Text(
-                                                                          "${(addr as String).substring(0, 10)}...${(addr).substring(addr.length - 10, addr.length)}",
-                                                                          style:
-                                                                              GoogleFonts.roboto(color: colors.textColor.withOpacity(0.7)),
-                                                                        ),
-                                                                        trailing: IconButton(
-                                                                            onPressed: () {
-                                                                              Clipboard.setData(ClipboardData(text: addr));
-                                                                            },
-                                                                            icon: Icon(
-                                                                              LucideIcons.clipboard,
-                                                                              color: colors.textColor,
-                                                                            )),
-                                                                      ),
-                                                                    );
-                                                                  });
-                                                        } else {
-                                                          return Center(
-                                                            child: Text(
-                                                              "No addresses found",
-                                                              style: GoogleFonts
-                                                                  .roboto(
-                                                                      color: colors
-                                                                          .textColor),
-                                                            ),
-                                                          );
-                                                        }
-                                                      }),
-                                                ),
-                                              )
-                                            ],
-                                          )),
-                                    );
-                                  });
-                                });
+                            showSelectLastAddr(context: context, publicDataManager: publicDataManager, currentAccount: currentAccount, colors: colors, addressController: _addressController, currentNetwork: currentNetwork)
+                           ;
                           },
                           icon: Icon(Icons.contact_page_outlined)),
                       IconButton(

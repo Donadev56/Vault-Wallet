@@ -7,6 +7,8 @@ import 'package:moonwallet/service/wallet_saver.dart';
 import 'package:moonwallet/utils/colors.dart';
 import 'package:moonwallet/utils/crypto.dart';
 import 'package:moonwallet/utils/themes.dart';
+import 'package:moonwallet/widgets/barre.dart';
+import 'package:moonwallet/widgets/func/show_add_token.dart';
 import 'package:ulid/ulid.dart';
 
 import 'package:flutter/material.dart';
@@ -151,7 +153,7 @@ class _AddCryptoViewState extends State<AddCryptoView> {
     return Scaffold(
         backgroundColor: colors.primaryColor,
         appBar: AppBar(
-          surfaceTintColor: colors.grayColor,
+          surfaceTintColor: colors.primaryColor,
           backgroundColor: colors.primaryColor,
           actions: [
             Container(
@@ -163,445 +165,8 @@ class _AddCryptoViewState extends State<AddCryptoView> {
                   borderRadius: BorderRadius.circular(5)),
               child: IconButton(
                 onPressed: () {
-                  showModalBottomSheet(
-                      isScrollControlled: true,
-                      backgroundColor: colors.primaryColor,
-                      context: context,
-                      builder: (ctx) {
-                        return StatefulBuilder(builder: (bCtx, setModalState) {
-                          return SizedBox(
-                              height: MediaQuery.of(context).size.height * 0.95,
-                              child: Scaffold(
-                                backgroundColor: colors.primaryColor,
-                                appBar: AppBar(
-                                  actions: [
-                                    IconButton(
-                                        onPressed: () async {
-                                          if (selectedNetwork == null) {
-                                            showCustomSnackBar(
-                                                primaryColor:
-                                                    colors.primaryColor,
-                                                context: context,
-                                                message:
-                                                    'Please select a network.',
-                                                iconColor: Colors.pinkAccent);
-                                          }
-                                          if (_contractAddressController
-                                              .text.isEmpty) {
-                                            showCustomSnackBar(
-                                                primaryColor:
-                                                    colors.primaryColor,
-                                                context: context,
-                                                message:
-                                                    'Please enter a contract address.',
-                                                iconColor: Colors.pinkAccent);
-                                          }
-                                          final tokenFoundedData =
-                                              await tokenManager.getCryptoInfo(
-                                                  address:
-                                                      _contractAddressController
-                                                          .text
-                                                          .trim(),
-                                                  network: selectedNetwork ??
-                                                      cryptos[0]);
-                                          setState(() {
-                                            searchingContractInfo =
-                                                tokenFoundedData;
-                                          });
-                                          if (tokenFoundedData != null) {
-                                            showDialog(
-                                                context: context,
-                                                builder: (btx) {
-                                                  return BackdropFilter(
-                                                    filter: ImageFilter.blur(
-                                                        sigmaX: 8, sigmaY: 8),
-                                                    child: AlertDialog(
-                                                      backgroundColor:
-                                                          colors.primaryColor,
-                                                      title: Text(
-                                                        "Confirmation",
-                                                        style:
-                                                            GoogleFonts.roboto(
-                                                                color: colors
-                                                                    .textColor),
-                                                      ),
-                                                      content: Column(
-                                                        children: [
-                                                          Container(
-                                                            padding:
-                                                                const EdgeInsets
-                                                                    .all(10),
-                                                            child: Row(
-                                                              spacing: 10,
-                                                              children: [
-                                                                Text(
-                                                                  "Name :",
-                                                                  style: GoogleFonts.roboto(
-                                                                      color: colors
-                                                                          .textColor
-                                                                          .withOpacity(
-                                                                              0.5)),
-                                                                ),
-                                                                Text(
-                                                                  "${tokenFoundedData.name}",
-                                                                  style: GoogleFonts.roboto(
-                                                                      color: colors
-                                                                          .textColor
-                                                                          .withOpacity(
-                                                                              0.8),
-                                                                      fontWeight:
-                                                                          FontWeight
-                                                                              .bold),
-                                                                ),
-                                                              ],
-                                                            ),
-                                                          ),
-                                                          Container(
-                                                            padding:
-                                                                const EdgeInsets
-                                                                    .all(10),
-                                                            child: Row(
-                                                              spacing: 10,
-                                                              children: [
-                                                                Text(
-                                                                  "Symbol :",
-                                                                  style: GoogleFonts.roboto(
-                                                                      color: colors
-                                                                          .textColor
-                                                                          .withOpacity(
-                                                                              0.5)),
-                                                                ),
-                                                                Text(
-                                                                  "${tokenFoundedData.symbol}",
-                                                                  style: GoogleFonts.roboto(
-                                                                      color: colors
-                                                                          .textColor
-                                                                          .withOpacity(
-                                                                              0.8),
-                                                                      fontWeight:
-                                                                          FontWeight
-                                                                              .bold),
-                                                                ),
-                                                              ],
-                                                            ),
-                                                          ),
-                                                          Container(
-                                                            padding:
-                                                                const EdgeInsets
-                                                                    .all(10),
-                                                            child: Row(
-                                                              spacing: 10,
-                                                              children: [
-                                                                Text(
-                                                                  "Decimals :",
-                                                                  style: GoogleFonts.roboto(
-                                                                      color: colors
-                                                                          .textColor
-                                                                          .withOpacity(
-                                                                              0.5)),
-                                                                ),
-                                                                Text(
-                                                                  "${tokenFoundedData.decimals}",
-                                                                  style: GoogleFonts.roboto(
-                                                                      color: colors
-                                                                          .textColor
-                                                                          .withOpacity(
-                                                                              0.8),
-                                                                      fontWeight:
-                                                                          FontWeight
-                                                                              .bold),
-                                                                ),
-                                                              ],
-                                                            ),
-                                                          )
-                                                        ],
-                                                      ),
-                                                      actions: [
-                                                        TextButton(
-                                                          style: ElevatedButton
-                                                              .styleFrom(
-                                                                  backgroundColor:
-                                                                      colors
-                                                                          .textColor),
-                                                          child: Text(
-                                                            "Add Token",
-                                                            style: GoogleFonts
-                                                                .roboto(
-                                                                    color: colors
-                                                                        .primaryColor),
-                                                          ),
-                                                          onPressed: () async {
-                                                            final List<Crypto>?
-                                                                cryptos =
-                                                                await cryptoStorageManager
-                                                                    .getSavedCryptos(
-                                                                        wallet: currentAccount ??
-                                                                            nullAccount);
-                                                            if (cryptos !=
-                                                                null) {
-                                                              for (final crypto
-                                                                  in cryptos) {
-                                                                if (crypto.contractAddress !=
-                                                                        null &&
-                                                                    crypto.contractAddress
-                                                                            ?.trim()
-                                                                            .toLowerCase() ==
-                                                                        _contractAddressController
-                                                                            .text
-                                                                            .trim()
-                                                                            .toLowerCase()) {
-                                                                  showCustomSnackBar(
-                                                                      primaryColor:
-                                                                          colors
-                                                                              .primaryColor,
-                                                                      context:
-                                                                          context,
-                                                                      message:
-                                                                          'Token already added.',
-                                                                      iconColor:
-                                                                          Colors
-                                                                              .orange);
-                                                                  Navigator.pop(
-                                                                      context);
-                                                                  return;
-                                                                }
-                                                              }
-                                                            }
-
-                                                            final newCrypto = Crypto(
-                                                                symbol: searchingContractInfo?.symbol ??
-                                                                    "",
-                                                                name: searchingContractInfo
-                                                                        ?.name ??
-                                                                    "Unknown ",
-                                                                color: selectedNetwork
-                                                                        ?.color ??
-                                                                    Colors
-                                                                        .white,
-                                                                type:
-                                                                    CryptoType
-                                                                        .token,
-                                                                valueUsd: 0,
-                                                                cryptoId:
-                                                                    generateUUID(),
-                                                                canDisplay:
-                                                                    true,
-                                                                network:
-                                                                    selectedNetwork,
-                                                                decimals:
-                                                                    searchingContractInfo
-                                                                        ?.decimals
-                                                                        .toInt(),
-                                                                binanceSymbol:
-                                                                    "${searchingContractInfo?.symbol}USDT",
-                                                                contractAddress:
-                                                                    _contractAddressController
-                                                                        .text);
-                                                            final saveResult =
-                                                                await cryptoStorageManager.addCrypto(
-                                                                    wallet: currentAccount ??
-                                                                        nullAccount,
-                                                                    crypto:
-                                                                        newCrypto);
-                                                            if (saveResult) {
-                                                              hasSaved = true;
-                                                              showCustomSnackBar(
-                                                                  primaryColor:
-                                                                      colors
-                                                                          .primaryColor,
-                                                                  context:
-                                                                      context,
-                                                                  icon: Icons
-                                                                      .check,
-                                                                  message:
-                                                                      'Token added successfully.',
-                                                                  iconColor:
-                                                                      Colors
-                                                                          .green);
-                                                              Navigator.pop(
-                                                                  context);
-                                                            } else {
-                                                              showCustomSnackBar(
-                                                                primaryColor: colors
-                                                                    .primaryColor,
-                                                                context:
-                                                                    context,
-                                                                message:
-                                                                    'Error adding token.',
-                                                                iconColor:
-                                                                    Colors.red,
-                                                              );
-                                                              Navigator.pop(
-                                                                  context);
-                                                            }
-                                                          },
-                                                        ),
-                                                        TextButton(
-                                                          style: ElevatedButton
-                                                              .styleFrom(
-                                                                  backgroundColor:
-                                                                      Colors
-                                                                          .pinkAccent),
-                                                          child: Text(
-                                                            "Cancel",
-                                                            style: GoogleFonts
-                                                                .roboto(
-                                                                    color: colors
-                                                                        .textColor),
-                                                          ),
-                                                          onPressed: () {
-                                                            Navigator.pop(btx);
-                                                          },
-                                                        )
-                                                      ],
-                                                    ),
-                                                  );
-                                                });
-                                          } else {
-                                            showCustomSnackBar(
-                                                primaryColor:
-                                                    colors.primaryColor,
-                                                context: context,
-                                                message: 'Token not found.',
-                                                iconColor: Colors.pinkAccent);
-                                          }
-                                        },
-                                        icon: Icon(
-                                          Icons.check,
-                                          color:
-                                              colors.textColor.withOpacity(0.5),
-                                        ))
-                                  ],
-                                  backgroundColor: colors.primaryColor,
-                                  leading: IconButton(
-                                      onPressed: () {
-                                        if (hasSaved) {
-                                          Navigator.pushNamed(
-                                              context, Routes.pageManager);
-                                        } else {
-                                          Navigator.pop(context);
-                                        }
-                                      },
-                                      icon: Icon(
-                                        LucideIcons.chevronLeft,
-                                        color:
-                                            colors.textColor.withOpacity(0.5),
-                                      )),
-                                ),
-                                body: SingleChildScrollView(
-                                  child: Column(
-                                    spacing: 10,
-                                    children: [
-                                      ListTile(
-                                        onTap: () {
-                                          showModalBottomSheet(
-                                              backgroundColor:
-                                                  colors.primaryColor,
-                                              context: context,
-                                              builder: (ctx) {
-                                                return SingleChildScrollView(
-                                                  child: Column(
-                                                    children: reorganizedCrypto
-                                                        .where((crypto) =>
-                                                            crypto.type ==
-                                                            CryptoType.network)
-                                                        .toList()
-                                                        .map((crypto) {
-                                                      return ListTile(
-                                                        leading: ClipRRect(
-                                                          borderRadius:
-                                                              BorderRadius
-                                                                  .circular(50),
-                                                          child: Image.asset(
-                                                            crypto.icon ?? "",
-                                                            fit: BoxFit.cover,
-                                                            width: 30,
-                                                            height: 30,
-                                                          ),
-                                                        ),
-                                                        title: Text(crypto.name,
-                                                            style: GoogleFonts
-                                                                .roboto(
-                                                                    color: colors
-                                                                        .textColor)),
-                                                        onTap: () {
-                                                          setModalState(() {
-                                                            selectedNetwork =
-                                                                crypto;
-                                                          });
-                                                          Navigator.pop(
-                                                              context);
-                                                        },
-                                                        trailing: Icon(
-                                                          LucideIcons
-                                                              .chevronRight,
-                                                          color:
-                                                              colors.textColor,
-                                                        ),
-                                                      );
-                                                    }).toList(),
-                                                  ),
-                                                );
-                                              });
-                                        },
-                                        title: Text(
-                                          "${selectedNetwork != null ? selectedNetwork?.name : "Select an network"}",
-                                          style: GoogleFonts.roboto(
-                                              color: colors.textColor
-                                                  .withOpacity(0.5)),
-                                        ),
-                                        trailing: Icon(
-                                          LucideIcons.chevronRight,
-                                          color: colors.textColor,
-                                        ),
-                                      ),
-                                      SizedBox(
-                                        width: width * 0.92,
-                                        child: TextField(
-                                          style: GoogleFonts.roboto(
-                                              color: colors.textColor),
-                                          cursorColor: colors.themeColor,
-                                          controller:
-                                              _contractAddressController,
-                                          decoration: InputDecoration(
-                                              hintText: "Contract address",
-                                              hintStyle: GoogleFonts.robotoFlex(
-                                                  color: colors.textColor
-                                                      .withOpacity(0.4)),
-                                              contentPadding:
-                                                  const EdgeInsets.symmetric(
-                                                      vertical: 8,
-                                                      horizontal: 8),
-                                              prefixIcon: Icon(
-                                                LucideIcons.scrollText,
-                                                color: colors.textColor
-                                                    .withOpacity(0.3),
-                                              ),
-                                              filled: true,
-                                              fillColor: colors.grayColor
-                                                  .withOpacity(0.1),
-                                              enabledBorder: OutlineInputBorder(
-                                                  borderRadius:
-                                                      BorderRadius.circular(10),
-                                                  borderSide: BorderSide(
-                                                      width: 0,
-                                                      color:
-                                                          Colors.transparent)),
-                                              focusedBorder: OutlineInputBorder(
-                                                  borderRadius:
-                                                      BorderRadius.circular(10),
-                                                  borderSide: BorderSide(
-                                                      width: 0,
-                                                      color:
-                                                          Colors.transparent))),
-                                        ),
-                                      ),
-                                    ],
-                                  ),
-                                ),
-                              ));
-                        });
-                      });
+                  showAddToken(context: context, colors: colors, width: width, reorganizedCrypto: reorganizedCrypto, currentAccount: currentAccount ?? nullAccount, hasSaved: hasSaved)
+                ;
                 },
                 icon: Icon(
                   LucideIcons.plus,
@@ -624,10 +189,10 @@ class _AddCryptoViewState extends State<AddCryptoView> {
             style: GoogleFonts.robotoFlex(color: colors.textColor),
           ),
         ),
-        body: SingleChildScrollView(
-          child: Column(
+        body:  Column(
             spacing: 15,
             children: [
+              SizedBox(height: 10,),
               Align(
                 alignment: Alignment.center,
                 child: SizedBox(
@@ -664,20 +229,25 @@ class _AddCryptoViewState extends State<AddCryptoView> {
                   ),
                 ),
               ),
-              SingleChildScrollView(
-                child: Column(
-                  children: List.generate(
-                      reorganizedCrypto
+
+              Expanded(child: 
+              ListView.builder(
+                itemCount: reorganizedCrypto
                           .where((c) => c.symbol
                               .toLowerCase()
                               .contains(_searchController.text.toLowerCase()))
-                          .length, (i) {
+                          .length,
+                
+                itemBuilder: (ctx , i) {
+
                     final crypto = reorganizedCrypto
                         .where((c) => c.symbol
                             .toLowerCase()
                             .contains(_searchController.text.toLowerCase()))
                         .toList()[i];
-                    return Material(
+
+
+                        return Material(
                       color: Colors.transparent,
                       child: ListTile(
                         contentPadding: const EdgeInsets.symmetric(
@@ -753,11 +323,10 @@ class _AddCryptoViewState extends State<AddCryptoView> {
                             }),
                       ),
                     );
-                  }),
-                ),
-              )
+                }))
+           
             ],
           ),
-        ));
+        );
   }
 }

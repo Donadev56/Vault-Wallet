@@ -1,28 +1,32 @@
+import 'package:delightful_toast/delight_toast.dart';
+import 'package:delightful_toast/toast/components/toast_card.dart';
 import 'package:flutter/material.dart';
+import 'package:moonwallet/types/types.dart';
 
 void showCustomSnackBar(
     {required BuildContext context,
     required String message,
     required Color primaryColor,
     IconData icon = Icons.info,
-    Color iconColor = Colors.white}) {
-  ScaffoldMessenger.of(context).showSnackBar(SnackBar(
-    backgroundColor: primaryColor,
-    content: ConstrainedBox(
-      constraints: BoxConstraints(
-        maxWidth: MediaQuery.of(context).size.width * 0.8,
-      ),
-      child: Row(
-        mainAxisAlignment: MainAxisAlignment.center,
-        children: [
-          Icon(icon, color: iconColor),
-          Text(
-            message,
-            style: TextStyle(color: Colors.white),
-            textAlign: TextAlign.center,
+    required AppColors colors ,
+    Color? iconColor}) {
+  DelightToastBar(
+        autoDismiss: true,
+        builder: (context) => ToastCard(
+          color:  colors.secondaryColor,
+          leading: Icon(
+            color:  iconColor ?? colors.redColor,
+           icon,
+            size: 28,
           ),
-        ],
-      ),
-    ),
-  ));
+          title: Text(
+            message,
+            style: TextStyle(
+              color: colors.textColor,
+              fontWeight: FontWeight.w700,
+              fontSize: 14,
+            ),
+          ),
+        ),
+      ).show(context);
 }

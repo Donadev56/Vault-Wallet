@@ -55,6 +55,7 @@ void showChangeNetworkModal(
                             final res = await changeNetwork(index);
                             if (!res) {
                               showCustomSnackBar(
+                                colors: colors,
                                   primaryColor: colors.primaryColor,
                                   context: context,
                                   message: "can't change network",

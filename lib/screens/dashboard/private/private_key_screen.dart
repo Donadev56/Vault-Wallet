@@ -104,6 +104,8 @@ class _PrivateKeyScreenState extends State<PrivateKeyScreen> {
         } else {
           if (mounted) {
             showCustomSnackBar(
+                                              colors: colors,
+
                 primaryColor: colors.primaryColor,
                 context: context,
                 message: "No encrypted data found",
@@ -113,6 +115,8 @@ class _PrivateKeyScreenState extends State<PrivateKeyScreen> {
       } else {
         if (mounted) {
           showCustomSnackBar(
+                                            colors: colors,
+
               primaryColor: colors.primaryColor,
               context: context,
               message: "No decrypted data found",
@@ -122,6 +126,8 @@ class _PrivateKeyScreenState extends State<PrivateKeyScreen> {
     } catch (e) {
       if (mounted) {
         showCustomSnackBar(
+                                          colors: colors,
+
             primaryColor: colors.primaryColor,
             context: context,
             message: "An error occurred data",
@@ -282,6 +288,8 @@ class _PrivateKeyScreenState extends State<PrivateKeyScreen> {
                     onPressed: () {
                       if (_mnemonicController.text.isEmpty) {
                         showCustomSnackBar(
+                                                          colors: colors,
+
                             primaryColor: colors.primaryColor,
                             context: context,
                             message: "No Mnemonic found",
@@ -302,8 +310,11 @@ class _PrivateKeyScreenState extends State<PrivateKeyScreen> {
                   constraints: BoxConstraints(minWidth: width * 0.35),
                   child: ElevatedButton.icon(
                     onPressed: () {
-                      if (_privateKeyController.text.isEmpty) {
+                      if (_privateKeyController.
+                      text.isEmpty) {
                         showCustomSnackBar(
+                                                          colors: colors,
+
                             primaryColor: colors.primaryColor,
                             context: context,
                             message: "No Private Key found",

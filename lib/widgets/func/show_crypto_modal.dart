@@ -3,9 +3,11 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:moonwallet/types/types.dart';
+import 'package:moonwallet/widgets/barre.dart';
 
 void showCryptoModal(
     {required BuildContext context,
+    required AppColors colors ,
     required Color primaryColor,
     required Color textColor,
     required Color surfaceTintColor,
@@ -32,6 +34,10 @@ void showCryptoModal(
                     topRight: Radius.circular(30))),
             child: Column(
               children: [
+                        Column(
+                          children: [
+ DraggableBar(colors : colors),
+
                 TextField(
                   onChanged: (v) {
                     setLocalState(() {
@@ -66,10 +72,12 @@ void showCryptoModal(
                 SizedBox(
                   height: 10,
                 ),
-                SingleChildScrollView(
+                          ],
+                        )   ,
+                Expanded(
                     child: SizedBox(
-                  height: MediaQuery.of(btmCtx).size.height * 0.68,
-                  child: ListView.builder(
+                  child:
+                   ListView.builder(
                       itemCount: reorganizedCrypto
                           .where((c) => c.symbol
                               .toLowerCase()

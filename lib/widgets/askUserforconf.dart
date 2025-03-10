@@ -6,6 +6,7 @@ import 'package:google_fonts/google_fonts.dart';
 import 'package:lucide_icons_flutter/lucide_icons.dart';
 import 'package:moonwallet/logger/logger.dart';
 import 'package:moonwallet/types/types.dart';
+import 'package:moonwallet/widgets/barre.dart';
 
 Future<UserRequestResponse> askUserForConfirmation(
     {Crypto? crypto,
@@ -90,7 +91,12 @@ Future<UserRequestResponse> askUserForConfirmation(
   final result = await showModalBottomSheet<UserRequestResponse>(
     context: context,
     isScrollControlled: true,
-    enableDrag: false,
+    shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.only(
+                topLeft: Radius.circular(30),
+                topRight: Radius.circular(30),
+              ),
+    ),
     builder: (BuildContext confirmationCtx) {
       final width = MediaQuery.of(confirmationCtx).size.width;
       final height = MediaQuery.of(confirmationCtx).size.height;
@@ -101,12 +107,23 @@ Future<UserRequestResponse> askUserForConfirmation(
             decoration: BoxDecoration(
               color: primaryColor,
               borderRadius: BorderRadius.only(
-                topLeft: Radius.circular(15),
-                topRight: Radius.circular(15),
+                topLeft: Radius.circular(30),
+                topRight: Radius.circular(30),
               ),
             ),
             child: Column(
               children: [
+                 Align(alignment: Alignment.center,
+                            child: Container(
+                              margin: const EdgeInsets.all(10),
+                              height: 7,
+                              width: 80,
+                              decoration: BoxDecoration(
+                                color: secondaryColor,
+                                borderRadius: BorderRadius.circular(50)
+                              ),
+
+                            ),),
                 Padding(
                   padding: const EdgeInsets.all(10),
                   child: Row(
@@ -167,7 +184,7 @@ Future<UserRequestResponse> askUserForConfirmation(
                     margin: const EdgeInsets.all(10),
                     width: width,
                     decoration: BoxDecoration(
-                      color: actionsColor,
+                      color: actionsColor.withOpacity(0.7),
                       borderRadius: BorderRadius.circular(10),
                     ),
                     child: Align(
@@ -181,7 +198,7 @@ Future<UserRequestResponse> askUserForConfirmation(
                         style: GoogleFonts.roboto(
                             color: textColor,
                             fontWeight: FontWeight.bold,
-                            fontSize: 20),
+                            fontSize: 25),
                       ),
                     ),
                   ),
@@ -202,7 +219,8 @@ Future<UserRequestResponse> askUserForConfirmation(
                   padding: const EdgeInsets.all(10),
                   decoration: BoxDecoration(
                       borderRadius: BorderRadius.circular(10),
-                      color: actionsColor),
+                                            color: actionsColor.withOpacity(0.7),
+),
                   child: Column(
                     children: [
                       Row(
@@ -260,7 +278,8 @@ Future<UserRequestResponse> askUserForConfirmation(
                   padding: const EdgeInsets.all(10),
                   decoration: BoxDecoration(
                       borderRadius: BorderRadius.circular(10),
-                      color: actionsColor),
+                        color: actionsColor.withOpacity(0.7),
+),
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [

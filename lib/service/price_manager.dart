@@ -18,7 +18,7 @@ class PriceManager {
         return double.parse(price);
       } else {
         logError(
-            'Error fetching price from Binance API: statusCode=$response.statusCode');
+            'Error fetching price from Binance API for $symbol: statusCode=${response.statusCode}');
         return 0;
       }
     } catch (e) {

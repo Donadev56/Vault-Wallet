@@ -290,12 +290,16 @@ class _SettingsPageState extends State<SettingsPage> {
                     if (mounted) {
                       if (!res) {
                         showCustomSnackBar(
+                                                          colors: colors,
+
                             primaryColor: colors.primaryColor,
                             context: context,
                             message: "An error has occurred",
                             iconColor: Colors.pinkAccent);
                       } else {
                         showCustomSnackBar(
+                                                          colors: colors,
+
                             primaryColor: colors.primaryColor,
                             context: context,
                             message: "Settings saved successfully",
@@ -306,6 +310,8 @@ class _SettingsPageState extends State<SettingsPage> {
                   } catch (e) {
                     if (!mounted) return;
                     showCustomSnackBar(
+                                                      colors: colors,
+
                         primaryColor: colors.primaryColor,
                         context: context,
                         message: "An error has occurred",

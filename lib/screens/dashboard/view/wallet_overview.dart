@@ -3,6 +3,7 @@
 import 'dart:convert';
 import 'dart:ui';
 import 'package:candlesticks/candlesticks.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_feather_icons/flutter_feather_icons.dart';
 // ignore: depend_on_referenced_packages
 import 'package:http/http.dart' as http;
@@ -10,6 +11,7 @@ import 'package:http/http.dart' as http;
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:intl/intl.dart';
+import 'package:lucide_icons_flutter/lucide_icons.dart';
 import 'package:moonwallet/logger/logger.dart';
 import 'package:moonwallet/main.dart';
 import 'package:moonwallet/service/crypto_storage_manager.dart';
@@ -22,6 +24,8 @@ import 'package:moonwallet/utils/constant.dart';
 import 'package:moonwallet/utils/crypto.dart';
 import 'package:moonwallet/utils/prefs.dart';
 import 'package:moonwallet/utils/themes.dart';
+import 'package:moonwallet/widgets/barre.dart';
+import 'package:moonwallet/widgets/text.dart';
 import 'package:moonwallet/widgets/view/transactions.dart';
 import 'package:moonwallet/widgets/view/view_button_action.dart';
 import 'package:url_launcher/url_launcher.dart';
@@ -72,6 +76,7 @@ class _WalletViewScreenState extends State<WalletViewScreen>
   bool _isInitialized = false;
   Crypto currentCrypto = cryptos[0];
   double userLastBalance = 0;
+  double balance = 0;
 
   AppColors colors = AppColors(
       primaryColor: Color(0XFF0D0D0D),
@@ -137,6 +142,18 @@ class _WalletViewScreenState extends State<WalletViewScreen>
     } catch (e) {
       logError(e.toString());
       return 0;
+    }
+  }
+
+  Future<void> getBalanceOfUser ({required PublicData account , required Crypto  crypto})  async {
+    try {
+      final userBalance = await web3InteractManager.getBalance(account, crypto);
+      setState(() {
+        balance = userBalance;
+        log("Shib balance $balance");
+      });
+    } catch (e) {
+      logError(e.toString());
     }
   }
 
@@ -366,7 +383,10 @@ class _WalletViewScreenState extends State<WalletViewScreen>
             if (crypto.cryptoId == id) {
               setState(() {
                 currentCrypto = crypto;
+
               });
+        await  getBalanceOfUser(account: currentAccount, crypto: crypto );
+
             }
           }
         }
@@ -440,7 +460,7 @@ class _WalletViewScreenState extends State<WalletViewScreen>
                                             AsyncSnapshot result) {
                                           if (result.hasData) {
                                             final isPositive =
-                                                result.data["percent"] > 0;
+                                                result.data["percent"] != null ?  result.data["percent"] > 0 : false;
                                             return Column(
                                               crossAxisAlignment:
                                                   CrossAxisAlignment.start,
@@ -456,7 +476,7 @@ class _WalletViewScreenState extends State<WalletViewScreen>
                                                   ),
                                                 ),
                                                 Text(
-                                                  " ${(result.data["percent"] as double).toStringAsFixed(5)}%",
+                                                  " ${(result.data["percent"] != null ? result.data["percent"]  as double : 0).toStringAsFixed(5)}%",
                                                   style: GoogleFonts.roboto(
                                                     color: isPositive
                                                         ? colors.greenColor
@@ -571,12 +591,189 @@ class _WalletViewScreenState extends State<WalletViewScreen>
               color: colors.textColor,
             ),
           ),
+
+          IconButton(onPressed: (){
+
+            showModalBottomSheet(
+              backgroundColor: Colors.transparent,
+              context: context, builder: (ctx) {
+              return Container(decoration: BoxDecoration(
+                color: colors.primaryColor,
+                borderRadius: BorderRadius.only(topLeft: Radius.circular(30), topRight: Radius.circular(30)),
+                
+
+              ),
+              child: Column(
+                children: [
+                  ListTile(
+                                      leading: Stack(
+                                      children: [
+                                        ClipRRect(
+                                          borderRadius:
+                                              BorderRadius.circular(50),
+                                          child: currentCrypto.icon == null
+                                              ? Container(
+                                                  width: 40,
+                                                  height: 40,
+                                                  decoration: BoxDecoration(
+                                                      color: colors.textColor
+                                                          .withOpacity(0.6),
+                                                      borderRadius:
+                                                          BorderRadius.circular(
+                                                              50)),
+                                                  child: Center(
+                                                    child: Text(
+                                                     currentCrypto.symbol
+                                                                  .length >
+                                                              2
+                                                          ? currentCrypto.symbol
+                                                              .substring(0, 2)
+                                                          : currentCrypto.symbol,
+                                                      style: customTextStyle(
+                                                        color: colors
+                                                              .primaryColor,
+                                                          fontWeight:
+                                                              FontWeight.bold,
+                                                          fontSize: 18
+                                                      ),
+                                                    ),
+                                                  ),
+                                                )
+                                              : Image.asset(
+                                                  currentCrypto.icon ?? "",
+                                                  width: 40,
+                                                  height: 40,
+                                                ),
+                                        ),
+                                        if (currentCrypto.type ==
+                                            CryptoType.token)
+                                          Positioned(
+                                              top: 25,
+                                              left: 25,
+                                              child: ClipRRect(
+                                                borderRadius:
+                                                    BorderRadius.circular(50),
+                                                child: Image.asset(
+                                                  currentCrypto.network?.icon ??
+                                                      "",
+                                                  width: 15,
+                                                  height: 15,
+                                                ),
+                                              ))
+                                      ],
+                                    ),
+                                    title: Text(currentCrypto.symbol, style: GoogleFonts.roboto(color: colors.textColor, fontWeight: FontWeight.bold),),
+                                    subtitle: Text(currentCrypto.name, style: GoogleFonts.roboto(color: colors.textColor.withOpacity(0.5)),),
+                                    trailing: IconButton(onPressed: (){
+                                      Navigator.pop(context);
+                                    }, icon: Icon(LucideIcons.x, color: colors.grayColor,)),
+
+                  ),
+                  Divider(color: colors.textColor.withOpacity(0.1),),
+               Column(
+                spacing: 20,
+                children: [
+                   Align(alignment: Alignment.center,
+                 child : Container(
+                
+                  decoration: BoxDecoration(
+                    borderRadius: BorderRadius.circular(5),
+                    color: colors.grayColor.withOpacity(0.25)
+                  ),
+                  width: width * 0.9,
+                    child: Column(
+                    children: [
+                      ListTile(
+                         onTap: (){
+                                
+                              },
+                        leading: Icon(LucideIcons.network, color: colors.textColor,),
+                        title: Text("Network", style: GoogleFonts.roboto(color: colors.textColor),),
+                        trailing: Text("${currentCrypto.type == CryptoType.network ? currentCrypto.name : currentCrypto.network?.name}", style: GoogleFonts.roboto(color: colors.textColor.withOpacity(0.5)),),
+                      ),
+                            ListTile(
+                              onTap: (){
+                                if (currentCrypto.type == CryptoType.network) return ;
+                                           Clipboard.setData(ClipboardData(text: currentCrypto.contractAddress ?? ""));
+
+                              },
+                        leading: Icon(LucideIcons.scrollText, color: colors.textColor,),
+                        title: Text("Contract", style: GoogleFonts.roboto(color: colors.textColor),),
+                        trailing:                             Text("${currentCrypto.contractAddress != null ? currentCrypto.contractAddress!.length > 10 ? currentCrypto.contractAddress?.substring(0, 10)  : "" : ""}...", style: GoogleFonts.roboto(color: colors.textColor.withOpacity(0.5)),),
+/*Row(
+                          spacing: 10,
+                          children: [
+                            IconButton(onPressed: (){
+                              Clipboard.setData(ClipboardData(text: currentCrypto.contractAddress ?? ""));
+                            }, icon: Icon(Icons.copy)),
+                            Text("${currentCrypto.contractAddress != null ? currentCrypto.contractAddress!.length > 10 ? currentCrypto.contractAddress?.substring(0, 10)  : "" : ""}...", style: GoogleFonts.roboto(color: colors.textColor.withOpacity(0.5)),),
+                          ],
+                        ) */
+                      )
+
+
+                    ],
+                  )),),
+
+                         Align(alignment: Alignment.center,
+                 child : Container(
+                
+                  decoration: BoxDecoration(
+                    borderRadius: BorderRadius.circular(5),
+                    color: colors.grayColor.withOpacity(0.25)
+                  ),
+                  width: width * 0.9,
+                    child: Column(
+                    children: [
+                     
+                            ListTile(
+                              onTap: (){
+                              if (currentCrypto.type == CryptoType.token) {
+                                launchUrl(Uri.parse('${currentCrypto.network?.explorer}/address/${currentCrypto.contractAddress}'));
+
+                              }  else {
+                                launchUrl(Uri.parse('${currentCrypto.explorer}'));
+                              }
+                              },
+                        leading: Icon(LucideIcons.scrollText, color: colors.textColor,),
+                        title: Text("View on Explorer", style: GoogleFonts.roboto(color: colors.textColor),),
+                        trailing:                           Icon(Icons.chevron_right, color: colors.textColor.withOpacity(0.5),)
+/*Row(
+                          spacing: 10,
+                          children: [
+                            IconButton(onPressed: (){
+                              Clipboard.setData(ClipboardData(text: currentCrypto.contractAddress ?? ""));
+                            }, icon: Icon(Icons.copy)),
+                            Text("${currentCrypto.contractAddress != null ? currentCrypto.contractAddress!.length > 10 ? currentCrypto.contractAddress?.substring(0, 10)  : "" : ""}...", style: GoogleFonts.roboto(color: colors.textColor.withOpacity(0.5)),),
+                          ],
+                        ) */
+                      )
+
+
+                    ],
+                  )),)
+                ],
+               ) 
+                ],
+              ),
+              );
+            });
+
+          }, icon: Icon(Icons.more_vert, color: colors.textColor,),
+          )
+
+        
         ],
       ),
       body: RefreshIndicator(
         color: colors.primaryColor,
         backgroundColor: colors.textColor.withOpacity(0.8),
-        onRefresh: getTransactions,
+        onRefresh: () async{
+await getTransactions();
+
+        await  getBalanceOfUser(account: currentAccount, crypto: currentCrypto );
+
+        },
         child: SingleChildScrollView(
           child: Column(
             children: [
@@ -642,34 +839,15 @@ class _WalletViewScreenState extends State<WalletViewScreen>
                       SizedBox(
                         width: width * 0.4,
                         child: Center(
-                          child: FutureBuilder(
-                              future: web3InteractManager.getBalance(
-                                  currentAccount, currentCrypto),
-                              builder: (BuildContext balanceCtx,
-                                  AsyncSnapshot result) {
-                                if (result.hasData) {
-                                  return Text(
-                                    "${formatter.format(result.data).split('0').length - 1 > 6 ? 0 : formatter.format(result.data)} ${currentCrypto.symbol}",
+                          child: Text(
+                                    "${formatter.format(balance)} ${currentCrypto.symbol}",
                                     overflow: TextOverflow.clip,
                                     maxLines: 1,
                                     style: GoogleFonts.roboto(
                                         color: colors.textColor,
                                         fontWeight: FontWeight.bold,
                                         fontSize: 24),
-                                  );
-                                } else {
-                                  return Text(
-                                    "$userLastBalance BNB",
-                                    overflow: TextOverflow.clip,
-                                    maxLines: 1,
-                                    style: GoogleFonts.roboto(
-                                        color: colors.textColor,
-                                        fontWeight: FontWeight.bold,
-                                        fontSize: 24),
-                                  );
-                                }
-                              }),
-                        ),
+                                  ))
                       ),
                       SizedBox(
                         height: 5,
@@ -749,15 +927,15 @@ class _WalletViewScreenState extends State<WalletViewScreen>
                       child: SizedBox(
                     height: height * 0.82,
                     child: getFilteredTransactions().isEmpty
-                        ? Align(
-                            alignment: Alignment.topCenter,
+                        ?Align(
+                          alignment: Alignment.topCenter,
                             child: Container(
                               height: 70,
-                              margin: const EdgeInsets.all(10),
+                              
+                              margin: const EdgeInsets.only(top: 30),
                               decoration: BoxDecoration(
                                   borderRadius: BorderRadius.circular(15),
-                                  border: Border.all(
-                                      width: 1, color: colors.grayColor)),
+                              ),
                               child: Align(
                                   alignment: Alignment.center,
                                   child: Row(
@@ -788,8 +966,9 @@ class _WalletViewScreenState extends State<WalletViewScreen>
                                       )
                                     ],
                                   )),
-                            ),
-                          )
+                            
+                          ) ,
+                        ) 
                         : ListView.builder(
                             itemCount: getFilteredTransactions().length,
                             itemBuilder: (BuildContext listCtx, index) {
@@ -800,13 +979,14 @@ class _WalletViewScreenState extends State<WalletViewScreen>
                                       .toLowerCase() ==
                                   currentAccount.address.trim().toLowerCase();
                               return TransactionsListElement(
+                                colors: colors,
                                 surfaceTintColor: colors.grayColor,
                                 isFrom: isFrom,
                                 tr: transaction,
                                 textColor: colors.textColor,
                                 secondaryColor: colors.themeColor,
                                 darkColor: colors.primaryColor,
-                                primaryColor: colors.secondaryColor,
+                                primaryColor: colors.primaryColor,
                                 currentNetwork: currentCrypto,
                               );
                             }),
@@ -832,13 +1012,14 @@ class _WalletViewScreenState extends State<WalletViewScreen>
                           final isFrom = tr.from.trim().toLowerCase() ==
                               currentAccount.address.trim().toLowerCase();
                           return TransactionsListElement(
+                            colors: colors,
                             surfaceTintColor: colors.grayColor,
                             isFrom: isFrom,
                             tr: tr,
                             textColor: colors.textColor,
                             secondaryColor: colors.themeColor,
                             darkColor: colors.primaryColor,
-                            primaryColor: colors.secondaryColor,
+                            primaryColor: colors.primaryColor,
                             currentNetwork: currentCrypto,
                           );
                         }),
@@ -868,13 +1049,14 @@ class _WalletViewScreenState extends State<WalletViewScreen>
                                 final isFrom = tr.from.trim().toLowerCase() ==
                                     currentAccount.address.trim().toLowerCase();
                                 return TransactionsListElement(
+                                  colors: colors,
                                   surfaceTintColor: colors.grayColor,
                                   isFrom: isFrom,
                                   tr: tr,
                                   textColor: colors.textColor,
                                   secondaryColor: colors.themeColor,
                                   darkColor: colors.primaryColor,
-                                  primaryColor: colors.secondaryColor,
+                                  primaryColor: colors.primaryColor,
                                   currentNetwork: currentCrypto,
                                 );
                               }))),

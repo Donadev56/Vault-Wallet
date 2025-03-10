@@ -309,6 +309,8 @@ class _DiscoverScreenState extends State<DiscoverScreen>
                     } catch (e) {
                       logError(e.toString());
                       showCustomSnackBar(
+                                                        colors: colors,
+
                           primaryColor: colors.primaryColor,
                           context: context,
                           message: "Invalid Url",
@@ -495,6 +497,8 @@ class _DiscoverScreenState extends State<DiscoverScreen>
                                             await deleteHistoryItem(index);
                                         if (res) {
                                           showCustomSnackBar(
+                                                                            colors: colors,
+
                                               primaryColor: colors.primaryColor,
                                               context: context,
                                               message: "Deleted successfully",
@@ -502,6 +506,8 @@ class _DiscoverScreenState extends State<DiscoverScreen>
                                               icon: Icons.check);
                                         } else {
                                           showCustomSnackBar(
+                                                                            colors: colors,
+
                                               primaryColor: colors.primaryColor,
                                               context: context,
                                               message: "Failed to delete",

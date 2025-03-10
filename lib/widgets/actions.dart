@@ -39,7 +39,7 @@ class ActionsWidgets extends StatelessWidget {
                       child: Icon(
                         actIcon,
                         color: textColor,
-                        size: 15,
+                        size: 18,
                       ),
                     ),
                   ))),

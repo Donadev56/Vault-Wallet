@@ -19,6 +19,7 @@ import 'package:moonwallet/utils/constant.dart';
 import 'package:moonwallet/utils/crypto.dart';
 import 'package:moonwallet/utils/prefs.dart';
 import 'package:moonwallet/utils/themes.dart';
+import 'package:moonwallet/widgets/barre.dart';
 import 'package:moonwallet/widgets/change_network.dart';
 
 class Web3BrowserScreen extends StatefulWidget {
@@ -318,6 +319,8 @@ class Web3BrowserScreenState extends State<Web3BrowserScreen> {
                 mainAxisAlignment: MainAxisAlignment.start,
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
+                                                 DraggableBar(colors : colors),
+
                   Container(
                     margin: const EdgeInsets.all(10),
                     padding: const EdgeInsets.all(10),
@@ -455,6 +458,7 @@ class Web3BrowserScreenState extends State<Web3BrowserScreen> {
                   Divider(
                     color: colors.textColor.withOpacity(0.05),
                   ),
+
                   Column(
                     children: List.generate(options.length, (index) {
                       final option = options[index];

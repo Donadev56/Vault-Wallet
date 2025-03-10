@@ -15,6 +15,7 @@ class TransactionsListElement extends StatelessWidget {
 
   final bool isFrom;
   final BscScanTransaction tr;
+  final AppColors colors ;
   final Color textColor;
   final Color secondaryColor;
   final Color primaryColor;
@@ -30,6 +31,7 @@ class TransactionsListElement extends StatelessWidget {
     required this.primaryColor,
     required this.darkColor,
     required this.currentNetwork,
+    required this.colors,
   });
 
   @override
@@ -40,41 +42,35 @@ class TransactionsListElement extends StatelessWidget {
       child: ListTile(
         onTap: () {
           showModalBottomSheet(
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.only(topLeft: Radius.circular(30), topRight: Radius.circular(30))
+            ),
               isScrollControlled: true,
               context: context,
               builder: (BuildContext ctx) {
                 return Container(
                   padding: const EdgeInsets.all(15),
-                  height: height * 0.8,
+                  height: height * 0.7,
                   decoration: BoxDecoration(
                     color: primaryColor,
                     borderRadius: BorderRadius.only(
-                        topLeft: Radius.circular(15),
-                        topRight: Radius.circular(15)),
+                        topLeft: Radius.circular(30),
+                        topRight: Radius.circular(30)),
                   ),
                   child: Column(
                     children: [
-                      Row(
-                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                        crossAxisAlignment: CrossAxisAlignment.center,
-                        children: [
-                          Text(
-                            isFrom ? "Send" : "Receive",
-                            style: GoogleFonts.roboto(
-                                color: textColor,
-                                fontSize: 20,
-                                fontWeight: FontWeight.bold),
-                          ),
-                          IconButton(
-                              onPressed: () {
-                                Navigator.pop(context);
-                              },
-                              icon: Icon(
-                                FeatherIcons.xCircle,
-                                color: Colors.pinkAccent,
-                              ))
-                        ],
-                      ),
+                              Align(alignment: Alignment.center,
+                            child: Container(
+                              margin: const EdgeInsets.all(10),
+                              height: 10,
+                              width: 80,
+                              decoration: BoxDecoration(
+                                color: isFrom ?  colors.redColor.withOpacity(0.8) : colors.greenColor.withOpacity(0.8),
+                                borderRadius: BorderRadius.circular(50)
+                              ),
+
+                            ),),
+                  
                       SizedBox(
                         height: 15,
                       ),
@@ -124,13 +120,13 @@ class TransactionsListElement extends StatelessWidget {
                                 ? "- ${BigInt.parse(tr.value).toDouble() / 1e18}"
                                 : "+ ${BigInt.parse(tr.value).toDouble() / 1e18}",
                             style: GoogleFonts.roboto(
-                                color: textColor, fontWeight: FontWeight.bold),
+                                color: textColor, fontWeight: FontWeight.bold, fontSize: 21),
                           ),
                           subtitle: Text(
                             currentNetwork.symbol,
                             style: GoogleFonts.roboto(
                                 color: textColor.withOpacity(0.3),
-                                fontSize: 12,
+                                fontSize: 15,
                                 fontWeight: FontWeight.normal),
                           ),
                         ),
@@ -308,7 +304,7 @@ class TransactionsListElement extends StatelessWidget {
                           borderRadius: BorderRadius.circular(10),
                           onTap: () async {
                             final url =
-                                "${currentNetwork.explorer}/tx/${tr.hash}";
+                                "${currentNetwork.type == CryptoType.token ? currentNetwork.network?.explorer :  currentNetwork.explorer}/tx/${tr.hash}";
                             log("The url is $url");
                             await launchUrl(Uri.parse(url));
                           },
