@@ -22,8 +22,7 @@ class AddWalletButton extends StatelessWidget {
       child: ListTile(
         tileColor: textColor.withOpacity(0.05),
         onTap: onTap,
-        shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(10)),
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
         leading: Icon(
           icon,
           color: textColor,

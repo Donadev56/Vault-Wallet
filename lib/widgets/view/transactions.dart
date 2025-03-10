@@ -15,7 +15,7 @@ class TransactionsListElement extends StatelessWidget {
 
   final bool isFrom;
   final BscScanTransaction tr;
-  final AppColors colors ;
+  final AppColors colors;
   final Color textColor;
   final Color secondaryColor;
   final Color primaryColor;
@@ -42,9 +42,10 @@ class TransactionsListElement extends StatelessWidget {
       child: ListTile(
         onTap: () {
           showModalBottomSheet(
-            shape: RoundedRectangleBorder(
-              borderRadius: BorderRadius.only(topLeft: Radius.circular(30), topRight: Radius.circular(30))
-            ),
+              shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.only(
+                      topLeft: Radius.circular(30),
+                      topRight: Radius.circular(30))),
               isScrollControlled: true,
               context: context,
               builder: (BuildContext ctx) {
@@ -59,18 +60,19 @@ class TransactionsListElement extends StatelessWidget {
                   ),
                   child: Column(
                     children: [
-                              Align(alignment: Alignment.center,
-                            child: Container(
-                              margin: const EdgeInsets.all(10),
-                              height: 10,
-                              width: 80,
-                              decoration: BoxDecoration(
-                                color: isFrom ?  colors.redColor.withOpacity(0.8) : colors.greenColor.withOpacity(0.8),
-                                borderRadius: BorderRadius.circular(50)
-                              ),
-
-                            ),),
-                  
+                      Align(
+                        alignment: Alignment.center,
+                        child: Container(
+                          margin: const EdgeInsets.all(10),
+                          height: 10,
+                          width: 80,
+                          decoration: BoxDecoration(
+                              color: isFrom
+                                  ? colors.redColor.withOpacity(0.8)
+                                  : colors.greenColor.withOpacity(0.8),
+                              borderRadius: BorderRadius.circular(50)),
+                        ),
+                      ),
                       SizedBox(
                         height: 15,
                       ),
@@ -120,7 +122,9 @@ class TransactionsListElement extends StatelessWidget {
                                 ? "- ${BigInt.parse(tr.value).toDouble() / 1e18}"
                                 : "+ ${BigInt.parse(tr.value).toDouble() / 1e18}",
                             style: GoogleFonts.roboto(
-                                color: textColor, fontWeight: FontWeight.bold, fontSize: 21),
+                                color: textColor,
+                                fontWeight: FontWeight.bold,
+                                fontSize: 21),
                           ),
                           subtitle: Text(
                             currentNetwork.symbol,
@@ -304,7 +308,7 @@ class TransactionsListElement extends StatelessWidget {
                           borderRadius: BorderRadius.circular(10),
                           onTap: () async {
                             final url =
-                                "${currentNetwork.type == CryptoType.token ? currentNetwork.network?.explorer :  currentNetwork.explorer}/tx/${tr.hash}";
+                                "${currentNetwork.type == CryptoType.token ? currentNetwork.network?.explorer : currentNetwork.explorer}/tx/${tr.hash}";
                             log("The url is $url");
                             await launchUrl(Uri.parse(url));
                           },

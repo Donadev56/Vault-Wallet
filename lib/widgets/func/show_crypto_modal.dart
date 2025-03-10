@@ -7,7 +7,7 @@ import 'package:moonwallet/widgets/barre.dart';
 
 void showCryptoModal(
     {required BuildContext context,
-    required AppColors colors ,
+    required AppColors colors,
     required Color primaryColor,
     required Color textColor,
     required Color surfaceTintColor,
@@ -34,50 +34,48 @@ void showCryptoModal(
                     topRight: Radius.circular(30))),
             child: Column(
               children: [
-                        Column(
-                          children: [
- DraggableBar(colors : colors),
-
-                TextField(
-                  onChanged: (v) {
-                    setLocalState(() {
-                      searchQuery = v;
-                    });
-                  },
-                  maxLines: 1,
-                  minLines: 1,
-                  scrollPadding: const EdgeInsets.all(10),
-                  decoration: InputDecoration(
-                    contentPadding:
-                        const EdgeInsets.symmetric(vertical: 6, horizontal: 6),
-                    label: Text("Search crypto"),
-                    labelStyle:
-                        GoogleFonts.roboto(color: textColor.withOpacity(0.7)),
-                    filled: true,
-                    fillColor: surfaceTintColor.withOpacity(0.15),
-                    prefixIcon: Icon(
-                      Icons.search,
-                      color: textColor.withOpacity(0.5),
+                Column(
+                  children: [
+                    DraggableBar(colors: colors),
+                    TextField(
+                      onChanged: (v) {
+                        setLocalState(() {
+                          searchQuery = v;
+                        });
+                      },
+                      maxLines: 1,
+                      minLines: 1,
+                      scrollPadding: const EdgeInsets.all(10),
+                      decoration: InputDecoration(
+                        contentPadding: const EdgeInsets.symmetric(
+                            vertical: 6, horizontal: 6),
+                        label: Text("Search crypto"),
+                        labelStyle: GoogleFonts.roboto(
+                            color: textColor.withOpacity(0.7)),
+                        filled: true,
+                        fillColor: surfaceTintColor.withOpacity(0.15),
+                        prefixIcon: Icon(
+                          Icons.search,
+                          color: textColor.withOpacity(0.5),
+                        ),
+                        enabledBorder: OutlineInputBorder(
+                            borderRadius: BorderRadius.circular(10),
+                            borderSide: BorderSide(
+                                width: 0, color: Colors.transparent)),
+                        focusedBorder: OutlineInputBorder(
+                            borderRadius: BorderRadius.circular(10),
+                            borderSide: BorderSide(
+                                width: 0, color: Colors.transparent)),
+                      ),
                     ),
-                    enabledBorder: OutlineInputBorder(
-                        borderRadius: BorderRadius.circular(10),
-                        borderSide:
-                            BorderSide(width: 0, color: Colors.transparent)),
-                    focusedBorder: OutlineInputBorder(
-                        borderRadius: BorderRadius.circular(10),
-                        borderSide:
-                            BorderSide(width: 0, color: Colors.transparent)),
-                  ),
+                    SizedBox(
+                      height: 10,
+                    ),
+                  ],
                 ),
-                SizedBox(
-                  height: 10,
-                ),
-                          ],
-                        )   ,
                 Expanded(
                     child: SizedBox(
-                  child:
-                   ListView.builder(
+                  child: ListView.builder(
                       itemCount: reorganizedCrypto
                           .where((c) => c.symbol
                               .toLowerCase()

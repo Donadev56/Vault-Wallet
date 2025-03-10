@@ -44,7 +44,7 @@ class CustomAppBar extends StatelessWidget implements PreferredSizeWidget {
   final double balanceOfAllAccounts;
   final bool isHidden;
   final AppColors colors;
-  final bool isTotalBalanceUpdated ;
+  final bool isTotalBalanceUpdated;
 
   const CustomAppBar(
       {super.key,
@@ -132,9 +132,10 @@ class CustomAppBar extends StatelessWidget implements PreferredSizeWidget {
             onTap: () async {
               await vibrate(duration: 10);
               showModalBottomSheet(
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.only(topLeft: Radius.circular(30), topRight: Radius.circular(30))
-                ),
+                  shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.only(
+                          topLeft: Radius.circular(30),
+                          topRight: Radius.circular(30))),
                   isScrollControlled: true,
                   // ignore: use_build_context_synchronously
                   context: context,
@@ -151,7 +152,7 @@ class CustomAppBar extends StatelessWidget implements PreferredSizeWidget {
                             color: primaryColor),
                         child: Column(
                           children: [
-                           DraggableBar(colors: colors),
+                            DraggableBar(colors: colors),
                             // top
                             Container(
                               padding: const EdgeInsets.all(10),
@@ -224,7 +225,6 @@ class CustomAppBar extends StatelessWidget implements PreferredSizeWidget {
                               width: width * 0.89,
                               margin: const EdgeInsets.only(bottom: 9),
                               child: TextField(
-                                
                                   style: GoogleFonts.roboto(
                                     color: textColor,
                                   ),
@@ -235,9 +235,8 @@ class CustomAppBar extends StatelessWidget implements PreferredSizeWidget {
                                   },
                                   cursorColor: textColor.withOpacity(0.4),
                                   decoration: InputDecoration(
-                                    
-                                  
-                                    contentPadding: const EdgeInsets.symmetric(vertical: 2, horizontal: 20),
+                                    contentPadding: const EdgeInsets.symmetric(
+                                        vertical: 2, horizontal: 20),
                                     filled: true,
                                     fillColor: textColor.withOpacity(0.05),
                                     enabledBorder: OutlineInputBorder(
@@ -253,7 +252,8 @@ class CustomAppBar extends StatelessWidget implements PreferredSizeWidget {
                                         borderSide: BorderSide(
                                             color: Colors.transparent,
                                             width: 0),
-                                        borderRadius: BorderRadius.circular(30)),
+                                        borderRadius:
+                                            BorderRadius.circular(30)),
                                     hintText: 'Search wallets',
                                     hintStyle: GoogleFonts.roboto(
                                         fontSize: 14,
@@ -300,7 +300,8 @@ class CustomAppBar extends StatelessWidget implements PreferredSizeWidget {
                                                           textColor.withOpacity(
                                                               0.05)),
                                                   borderRadius:
-                                                      BorderRadius.circular(15)),
+                                                      BorderRadius.circular(
+                                                          15)),
                                               child: ListTile(
                                                 onTap: () async {
                                                   await vibrate();
@@ -334,19 +335,20 @@ class CustomAppBar extends StatelessWidget implements PreferredSizeWidget {
                                                   style: GoogleFonts.roboto(
                                                       color: textColor),
                                                 ),
-                                                trailing:    PopupMenuButton(
+                                                trailing: PopupMenuButton(
                                                   elevation: 10,
-                                                  
                                                   requestFocus: true,
                                                   splashRadius: 10,
-                                                  menuPadding: const EdgeInsets.all(0),
+                                                  menuPadding:
+                                                      const EdgeInsets.all(0),
                                                   shape: RoundedRectangleBorder(
-                                                    borderRadius: BorderRadius.circular(20)
-                                                  ),
-                                                  padding: const EdgeInsets.all(10),
+                                                      borderRadius:
+                                                          BorderRadius.circular(
+                                                              20)),
+                                                  padding:
+                                                      const EdgeInsets.all(10),
                                                   color: colors.secondaryColor,
                                                   iconColor: textColor,
-
                                                   itemBuilder:
                                                       (BuildContext ctx) {
                                                     return List.generate(
@@ -553,7 +555,7 @@ class CustomAppBar extends StatelessWidget implements PreferredSizeWidget {
                                                                 colors: colors);
                                                           }
                                                         },
-                                                      ); 
+                                                      );
                                                     });
                                                   },
                                                   child: Icon(
@@ -587,8 +589,9 @@ class CustomAppBar extends StatelessWidget implements PreferredSizeWidget {
                                       isScrollControlled: true,
                                       backgroundColor: Colors.transparent,
                                       shape: RoundedRectangleBorder(
-                                        borderRadius: BorderRadius.only(topLeft: Radius.circular(30), topRight: Radius.circular(30))
-                                      ),
+                                          borderRadius: BorderRadius.only(
+                                              topLeft: Radius.circular(30),
+                                              topRight: Radius.circular(30))),
                                       context: context,
                                       builder: (BuildContext btnCtx) {
                                         return Container(
@@ -686,16 +689,18 @@ class CustomAppBar extends StatelessWidget implements PreferredSizeWidget {
                                         );
                                       });
                                 },
-                                icon:
-                                   Icon(Icons.add, color: colors.themeColor),
+                                icon: Icon(Icons.add, color: colors.themeColor),
                                 label: Text(
                                   "Add a new wallet",
                                   style: GoogleFonts.exo2(
-                                      fontSize: 16, color: colors.themeColor , fontWeight: FontWeight.bold),
+                                      fontSize: 16,
+                                      color: colors.themeColor,
+                                      fontWeight: FontWeight.bold),
                                 ),
                                 style: ElevatedButton.styleFrom(
                                   elevation: 0,
-                                  padding: const EdgeInsets.symmetric(vertical: 8, horizontal: 8),
+                                  padding: const EdgeInsets.symmetric(
+                                      vertical: 8, horizontal: 8),
                                   backgroundColor: colors.secondaryColor,
                                   minimumSize: const Size(double.infinity, 50),
                                   shape: RoundedRectangleBorder(
@@ -751,8 +756,6 @@ class CustomAppBar extends StatelessWidget implements PreferredSizeWidget {
   Size get preferredSize => const Size.fromHeight(kToolbarHeight);
 }
 
-
-
 class CustomPopupMenuItem<T> extends PopupMenuEntry<T> {
   final T value;
   final Widget child;
@@ -779,7 +782,10 @@ class CustomPopupMenuItemState<T> extends State<CustomPopupMenuItem<T>> {
     return Container(
       height: widget.height,
       alignment: Alignment.centerLeft,
-      child: PopupMenuItem(child: widget.child , onTap: widget.onTap, ) ,
+      child: PopupMenuItem(
+        child: widget.child,
+        onTap: widget.onTap,
+      ),
     );
   }
 }

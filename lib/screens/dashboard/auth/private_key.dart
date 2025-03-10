@@ -57,8 +57,7 @@ class _CreatePrivateKeyState extends State<CreatePrivateKey> {
     } catch (e) {
       if (!mounted) return;
       showCustomSnackBar(
-                                        colors: colors,
-
+          colors: colors,
           primaryColor: colors.primaryColor,
           context: context,
           message: "Failed to create a key");
@@ -108,8 +107,7 @@ class _CreatePrivateKeyState extends State<CreatePrivateKey> {
       if (result) {
         if (!mounted) return;
         showCustomSnackBar(
-                                          colors: colors,
-
+            colors: colors,
             primaryColor: colors.primaryColor,
             context: context,
             message: "Data saved successfully",
@@ -123,8 +121,7 @@ class _CreatePrivateKeyState extends State<CreatePrivateKey> {
     } catch (e) {
       logError(e.toString());
       showCustomSnackBar(
-                                        colors: colors,
-
+          colors: colors,
           primaryColor: colors.primaryColor,
           context: context,
           message: "Failed to save the key.",

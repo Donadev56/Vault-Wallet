@@ -151,103 +151,106 @@ class _AddCryptoViewState extends State<AddCryptoView> {
   Widget build(BuildContext context) {
     final width = MediaQuery.of(context).size.width;
     return Scaffold(
+      backgroundColor: colors.primaryColor,
+      appBar: AppBar(
+        surfaceTintColor: colors.primaryColor,
         backgroundColor: colors.primaryColor,
-        appBar: AppBar(
-          surfaceTintColor: colors.primaryColor,
-          backgroundColor: colors.primaryColor,
-          actions: [
-            Container(
-              margin: const EdgeInsets.all(10),
-              height: 35,
-              width: 35,
-              decoration: BoxDecoration(
-                  color: colors.grayColor.withOpacity(0.1),
-                  borderRadius: BorderRadius.circular(5)),
-              child: IconButton(
-                onPressed: () {
-                  showAddToken(context: context, colors: colors, width: width, reorganizedCrypto: reorganizedCrypto, currentAccount: currentAccount ?? nullAccount, hasSaved: hasSaved)
-                ;
-                },
-                icon: Icon(
-                  LucideIcons.plus,
-                  color: colors.textColor,
-                  size: 20,
-                ),
-              ),
-            ),
-          ],
-          leading: IconButton(
+        actions: [
+          Container(
+            margin: const EdgeInsets.all(10),
+            height: 35,
+            width: 35,
+            decoration: BoxDecoration(
+                color: colors.grayColor.withOpacity(0.1),
+                borderRadius: BorderRadius.circular(5)),
+            child: IconButton(
               onPressed: () {
-                Navigator.pushNamed(context, Routes.pageManager);
+                showAddToken(
+                    context: context,
+                    colors: colors,
+                    width: width,
+                    reorganizedCrypto: reorganizedCrypto,
+                    currentAccount: currentAccount ?? nullAccount,
+                    hasSaved: hasSaved);
               },
               icon: Icon(
-                LucideIcons.chevronLeft,
+                LucideIcons.plus,
                 color: colors.textColor,
-              )),
-          title: Text(
-            "Manage Coins ",
-            style: GoogleFonts.robotoFlex(color: colors.textColor),
-          ),
-        ),
-        body:  Column(
-            spacing: 15,
-            children: [
-              SizedBox(height: 10,),
-              Align(
-                alignment: Alignment.center,
-                child: SizedBox(
-                  width: width * 0.92,
-                  child: TextField(
-                    onChanged: (v) {
-                      setState(() {
-                        _searchController.text = v;
-                      });
-                    },
-                    style: GoogleFonts.roboto(color: colors.textColor),
-                    cursorColor: colors.themeColor,
-                    controller: _searchController,
-                    decoration: InputDecoration(
-                        hintText: "Search Crypto",
-                        hintStyle: GoogleFonts.robotoFlex(
-                            color: colors.textColor.withOpacity(0.4)),
-                        contentPadding: const EdgeInsets.symmetric(
-                            vertical: 8, horizontal: 8),
-                        prefixIcon: Icon(
-                          Icons.search,
-                          color: colors.textColor.withOpacity(0.3),
-                        ),
-                        filled: true,
-                        fillColor: colors.grayColor.withOpacity(0.1),
-                        enabledBorder: OutlineInputBorder(
-                            borderRadius: BorderRadius.circular(10),
-                            borderSide: BorderSide(
-                                width: 0, color: Colors.transparent)),
-                        focusedBorder: OutlineInputBorder(
-                            borderRadius: BorderRadius.circular(10),
-                            borderSide: BorderSide(
-                                width: 0, color: Colors.transparent))),
-                  ),
-                ),
+                size: 20,
               ),
-
-              Expanded(child: 
-              ListView.builder(
-                itemCount: reorganizedCrypto
-                          .where((c) => c.symbol
-                              .toLowerCase()
-                              .contains(_searchController.text.toLowerCase()))
-                          .length,
-                
-                itemBuilder: (ctx , i) {
-
+            ),
+          ),
+        ],
+        leading: IconButton(
+            onPressed: () {
+              Navigator.pushNamed(context, Routes.pageManager);
+            },
+            icon: Icon(
+              LucideIcons.chevronLeft,
+              color: colors.textColor,
+            )),
+        title: Text(
+          "Manage Coins ",
+          style: GoogleFonts.robotoFlex(color: colors.textColor),
+        ),
+      ),
+      body: Column(
+        spacing: 15,
+        children: [
+          SizedBox(
+            height: 10,
+          ),
+          Align(
+            alignment: Alignment.center,
+            child: SizedBox(
+              width: width * 0.92,
+              child: TextField(
+                onChanged: (v) {
+                  setState(() {
+                    _searchController.text = v;
+                  });
+                },
+                style: GoogleFonts.roboto(color: colors.textColor),
+                cursorColor: colors.themeColor,
+                controller: _searchController,
+                decoration: InputDecoration(
+                    hintText: "Search Crypto",
+                    hintStyle: GoogleFonts.robotoFlex(
+                        color: colors.textColor.withOpacity(0.4)),
+                    contentPadding:
+                        const EdgeInsets.symmetric(vertical: 8, horizontal: 8),
+                    prefixIcon: Icon(
+                      Icons.search,
+                      color: colors.textColor.withOpacity(0.3),
+                    ),
+                    filled: true,
+                    fillColor: colors.grayColor.withOpacity(0.1),
+                    enabledBorder: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(10),
+                        borderSide:
+                            BorderSide(width: 0, color: Colors.transparent)),
+                    focusedBorder: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(10),
+                        borderSide:
+                            BorderSide(width: 0, color: Colors.transparent))),
+              ),
+            ),
+          ),
+          Expanded(
+              child: ListView.builder(
+                  itemCount: reorganizedCrypto
+                      .where((c) => c.symbol
+                          .toLowerCase()
+                          .contains(_searchController.text.toLowerCase()))
+                      .length,
+                  itemBuilder: (ctx, i) {
                     final crypto = reorganizedCrypto
                         .where((c) => c.symbol
                             .toLowerCase()
                             .contains(_searchController.text.toLowerCase()))
                         .toList()[i];
 
-
-                        return Material(
+                    return Material(
                       color: Colors.transparent,
                       child: ListTile(
                         contentPadding: const EdgeInsets.symmetric(
@@ -323,10 +326,9 @@ class _AddCryptoViewState extends State<AddCryptoView> {
                             }),
                       ),
                     );
-                }))
-           
-            ],
-          ),
-        );
+                  }))
+        ],
+      ),
+    );
   }
 }

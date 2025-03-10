@@ -319,8 +319,7 @@ class Web3BrowserScreenState extends State<Web3BrowserScreen> {
                 mainAxisAlignment: MainAxisAlignment.start,
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                                                 DraggableBar(colors : colors),
-
+                  DraggableBar(colors: colors),
                   Container(
                     margin: const EdgeInsets.all(10),
                     padding: const EdgeInsets.all(10),
@@ -458,7 +457,6 @@ class Web3BrowserScreenState extends State<Web3BrowserScreen> {
                   Divider(
                     color: colors.textColor.withOpacity(0.05),
                   ),
-
                   Column(
                     children: List.generate(options.length, (index) {
                       final option = options[index];

@@ -40,7 +40,8 @@ class Web3InteractionManager {
   Future<double> getBalance(PublicData account, Crypto crypto) async {
     try {
       final address = account.address;
-      final rpcUrl = crypto.type == CryptoType.network ? crypto.rpc : crypto.network?.rpc ;
+      final rpcUrl =
+          crypto.type == CryptoType.network ? crypto.rpc : crypto.network?.rpc;
       if (crypto.type == CryptoType.token) {
         return await tokenManager.getTokenBalance(crypto, address);
       }

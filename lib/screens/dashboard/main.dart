@@ -33,6 +33,7 @@ import 'package:moonwallet/widgets/snackbar.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:url_launcher/url_launcher.dart';
 import 'package:internet_connection_checker_plus/internet_connection_checker_plus.dart';
+
 class MainDashboardScreen extends StatefulWidget {
   const MainDashboardScreen({super.key});
 
@@ -51,8 +52,6 @@ class _MainDashboardScreenState extends State<MainDashboardScreen>
   File? _profileImage;
   File? _backgroundImage;
   String userName = "Moon User";
-  
-
 
 // Color primaryColor = Color(0xFFE4E4E4);    // Inversion of Color(0xFF1B1B1B)
 //Color textColor = Color(0xFF0A0A0A);       // Inversion of Color(0xFFF5F5F5)
@@ -119,25 +118,18 @@ class _MainDashboardScreenState extends State<MainDashboardScreen>
     getSavedTheme();
     getSavedWallets();
     calculateTotalBalanceOfAllWallets();
-  
-  
-
 
     loadData();
     super.initState();
 
-
     _tabController = TabController(length: 2, vsync: this);
-
-   
   }
-
 
   @override
   void dispose() {
-
     super.dispose();
   }
+
   Future<void> getSavedTheme() async {
     final manager = ColorsManager();
     final savedTheme = await manager.getDefaultTheme();
@@ -258,8 +250,7 @@ class _MainDashboardScreenState extends State<MainDashboardScreen>
     try {
       if (name.isEmpty) {
         showCustomSnackBar(
-                                          colors: colors,
-
+            colors: colors,
             primaryColor: colors.primaryColor,
             context: context,
             message: "Name cannot be empty",
@@ -284,8 +275,7 @@ class _MainDashboardScreenState extends State<MainDashboardScreen>
       if (result) {
         if (mounted) {
           showCustomSnackBar(
-                                            colors: colors,
-
+              colors: colors,
               primaryColor: colors.primaryColor,
               context: context,
               message: "Name edit was successful",
@@ -294,8 +284,7 @@ class _MainDashboardScreenState extends State<MainDashboardScreen>
       } else {
         if (mounted) {
           showCustomSnackBar(
-                                            colors: colors,
-
+              colors: colors,
               primaryColor: colors.primaryColor,
               context: context,
               message: "Name edit failed",
@@ -331,8 +320,7 @@ class _MainDashboardScreenState extends State<MainDashboardScreen>
       if (result) {
         if (mounted) {
           showCustomSnackBar(
-                                            colors: colors,
-
+              colors: colors,
               primaryColor: colors.primaryColor,
               context: context,
               message: "Data was successful",
@@ -341,8 +329,7 @@ class _MainDashboardScreenState extends State<MainDashboardScreen>
       } else {
         if (mounted) {
           showCustomSnackBar(
-                                            colors: colors,
-
+              colors: colors,
               primaryColor: colors.primaryColor,
               context: context,
               message: "Data edit failed",
@@ -380,8 +367,7 @@ class _MainDashboardScreenState extends State<MainDashboardScreen>
               if (result) {
                 if (mounted) {
                   showCustomSnackBar(
-                                                    colors: colors,
-
+                      colors: colors,
                       primaryColor: colors.primaryColor,
                       context: context,
                       message: "Wallet deleted successfully",
@@ -399,8 +385,7 @@ class _MainDashboardScreenState extends State<MainDashboardScreen>
               } else {
                 if (mounted) {
                   showCustomSnackBar(
-                                                    colors: colors,
-
+                      colors: colors,
                       primaryColor: colors.primaryColor,
                       context: context,
                       message: "Wallet deletion failed",
@@ -412,8 +397,7 @@ class _MainDashboardScreenState extends State<MainDashboardScreen>
               }
             } else {
               showCustomSnackBar(
-                                                colors: colors,
-
+                  colors: colors,
                   primaryColor: colors.primaryColor,
                   context: context,
                   message: "Incorrect password",
@@ -438,7 +422,6 @@ class _MainDashboardScreenState extends State<MainDashboardScreen>
 
       if (savedData != null && lastAccount != null) {
         for (final account in savedData) {
-            
           final newAccount = PublicData.fromJson(account);
           setState(() {
             wallets.add(newAccount);
@@ -449,7 +432,6 @@ class _MainDashboardScreenState extends State<MainDashboardScreen>
       if (wallets.isNotEmpty) {
         for (final wallet in wallets) {
           final dataName = "cryptoAndBalance/${wallet.address}";
-          
 
           final savedData =
               await publicDataManager.getDataFromPrefs(key: dataName);
@@ -458,7 +440,7 @@ class _MainDashboardScreenState extends State<MainDashboardScreen>
             for (final balance in savedDataString) {
               totalBalance += balance["balanceUsd"] ?? 0;
             }
-            isTotalBalanceUpdated = true ;
+            isTotalBalanceUpdated = true;
           }
         }
       }
@@ -473,7 +455,6 @@ class _MainDashboardScreenState extends State<MainDashboardScreen>
 
   Future<void> silentUpdate() async {
     try {
-       
       final savedData = await web3Manager.getPublicData();
       List<PublicData> wallets = [];
 
@@ -488,7 +469,6 @@ class _MainDashboardScreenState extends State<MainDashboardScreen>
         }
       }
       if (wallets.isNotEmpty) {
-
         for (final wallet in wallets) {
           if (!mounted) {
             log("The wallet is not mounted");
@@ -504,10 +484,9 @@ class _MainDashboardScreenState extends State<MainDashboardScreen>
               await cryptoStorageManager.getSavedCryptos(wallet: wallet);
 
           if (savedCrypto == null) {
-          await cryptoStorageManager.saveListCrypto(
+            await cryptoStorageManager.saveListCrypto(
                 cryptos: cryptos, wallet: wallet);
             cryptosList = cryptos;
-
           } else {
             cryptosList = savedCrypto;
           }
@@ -517,7 +496,7 @@ class _MainDashboardScreenState extends State<MainDashboardScreen>
                 cryptosList.where((c) => c.canDisplay == true).toList();
 
             availableCryptos = [];
-             
+
             final results =
                 await Future.wait(enabledCryptos.map((crypto) async {
               final balance =
@@ -543,7 +522,6 @@ class _MainDashboardScreenState extends State<MainDashboardScreen>
 
             final cryptoListString =
                 cryptoBalance.map((c) => c.toJson()).toList();
-             
 
             await publicDataManager.saveDataInPrefs(
                 data: json.encode(cryptoListString), key: dataName);
@@ -552,7 +530,6 @@ class _MainDashboardScreenState extends State<MainDashboardScreen>
       }
     } catch (e) {
       logError('Error silent update: $e');
-
     }
   }
 
@@ -562,8 +539,7 @@ class _MainDashboardScreenState extends State<MainDashboardScreen>
       if (wallet.isWatchOnly) {
         Navigator.pop(context);
         showCustomSnackBar(
-                                          colors: colors,
-
+            colors: colors,
             primaryColor: colors.primaryColor,
             context: context,
             message: "This is a watch-only wallet.",
@@ -584,8 +560,7 @@ class _MainDashboardScreenState extends State<MainDashboardScreen>
             } else {
               if (mounted) {
                 showCustomSnackBar(
-                                                  colors: colors,
-
+                    colors: colors,
                     primaryColor: colors.primaryColor,
                     context: context,
                     message: "Incorrect password",
@@ -625,8 +600,7 @@ class _MainDashboardScreenState extends State<MainDashboardScreen>
       } else {
         if (mounted) {
           showCustomSnackBar(
-                                            colors: colors,
-
+              colors: colors,
               primaryColor: colors.primaryColor,
               context: context,
               message: "List reorder failed",
@@ -656,12 +630,9 @@ class _MainDashboardScreenState extends State<MainDashboardScreen>
       if (changeResult) {
         if (mounted) {
           await Future.wait([
-                 getCryptoData(account: wallet),
-
-                calculateTotalBalanceOfAllWallets(),
-
+            getCryptoData(account: wallet),
+            calculateTotalBalanceOfAllWallets(),
           ]);
-         
 
           /*  showCustomSnackBar(
               context: context,
@@ -674,8 +645,7 @@ class _MainDashboardScreenState extends State<MainDashboardScreen>
       } else {
         if (mounted) {
           showCustomSnackBar(
-                                            colors: colors,
-
+              colors: colors,
               primaryColor: colors.primaryColor,
               context: context,
               message: "Wallet change failed",
@@ -684,8 +654,11 @@ class _MainDashboardScreenState extends State<MainDashboardScreen>
       }
     } catch (e) {
       logError(e.toString());
-          showCustomSnackBar(context: context, message: "$e", primaryColor: colors.primaryColor, colors: colors);
-
+      showCustomSnackBar(
+          context: context,
+          message: "$e",
+          primaryColor: colors.primaryColor,
+          colors: colors);
     }
   }
 
@@ -729,8 +702,6 @@ class _MainDashboardScreenState extends State<MainDashboardScreen>
 
   Future<void> getCryptoData({required PublicData account}) async {
     try {
-  
-
       final dataName = "cryptoAndBalance/${account.address}";
       final List<Crypto> standardCrypto = cryptos;
       List<Crypto> cryptosList = [];
@@ -762,11 +733,9 @@ class _MainDashboardScreenState extends State<MainDashboardScreen>
           await cryptoStorageManager.getSavedCryptos(wallet: account);
 
       if (savedCrypto == null) {
-         await cryptoStorageManager.saveListCrypto(
+        await cryptoStorageManager.saveListCrypto(
             cryptos: standardCrypto, wallet: account);
         cryptosList = standardCrypto;
-
-
       } else {
         cryptosList = savedCrypto;
       }
@@ -803,7 +772,7 @@ class _MainDashboardScreenState extends State<MainDashboardScreen>
 
         userBalanceUsd +=
             results.fold(0.0, (sum, r) => sum + (r["balanceUsd"] as double));
-           
+
         setState(() {
           cryptosAndBalance = cryptoBalance;
           totalBalanceUsd = userBalanceUsd;
@@ -817,20 +786,18 @@ class _MainDashboardScreenState extends State<MainDashboardScreen>
         });
 
         final cryptoListString = cryptoBalance.map((c) => c.toJson()).toList();
-         
+
         await publicDataManager.saveDataInPrefs(
             data: json.encode(cryptoListString), key: dataName);
       }
-        
     } catch (e) {
       logError(e.toString());
-
-    } 
+    }
   }
 
   void showReceiveModal() {
     showCryptoModal(
-      colors: colors,
+        colors: colors,
         context: context,
         primaryColor: colors.primaryColor,
         textColor: colors.textColor,
@@ -841,7 +808,7 @@ class _MainDashboardScreenState extends State<MainDashboardScreen>
 
   void showSendModal() {
     showCryptoModal(
-      colors: colors,
+        colors: colors,
         context: context,
         primaryColor: colors.primaryColor,
         textColor: colors.textColor,
@@ -852,14 +819,13 @@ class _MainDashboardScreenState extends State<MainDashboardScreen>
 
   void showOptionsModal() {
     showModalBottomSheet(
-      shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.only(topLeft: Radius.circular(30),topRight: Radius.circular(30)),
-
-      ),
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.only(
+              topLeft: Radius.circular(30), topRight: Radius.circular(30)),
+        ),
         isScrollControlled: true,
         context: context,
         builder: (BuildContext btmCtx) {
-        
           return Container(
             height: MediaQuery.of(context).size.height * 0.34,
             width: MediaQuery.of(context).size.width,
@@ -871,8 +837,7 @@ class _MainDashboardScreenState extends State<MainDashboardScreen>
                     topRight: Radius.circular(30))),
             child: Column(
               children: [
-                DraggableBar(colors : colors),
-
+                DraggableBar(colors: colors),
                 SizedBox(
                   height: MediaQuery.of(btmCtx).size.height * 0.26,
                   child: ListView.builder(
@@ -883,8 +848,7 @@ class _MainDashboardScreenState extends State<MainDashboardScreen>
                           color: Colors.transparent,
                           child: ListTile(
                             shape: RoundedRectangleBorder(
-                              borderRadius: BorderRadius.circular(10)
-                            ),
+                                borderRadius: BorderRadius.circular(10)),
                             onTap: () {
                               if (index == options.length - 1) {
                                 Navigator.pushNamed(context, Routes.settings);
@@ -905,9 +869,8 @@ class _MainDashboardScreenState extends State<MainDashboardScreen>
                             title: Text(
                               opt["name"],
                               style: customTextStyle(
-                                 color: colors.textColor,
-                                  fontWeight: FontWeight.bold
-                              ),
+                                  color: colors.textColor,
+                                  fontWeight: FontWeight.bold),
                             ),
                           ),
                         );
@@ -923,16 +886,20 @@ class _MainDashboardScreenState extends State<MainDashboardScreen>
   Widget build(BuildContext context) {
     double width = MediaQuery.of(context).size.width;
     // double height = MediaQuery.of(context).size.height;
-  if (reorganizedCrypto.isEmpty) {
-            return Container(
-              decoration: BoxDecoration(
-                color: colors.primaryColor
-              ),
-              child: Center(
-                child: SizedBox(height: 30 , width: 30,child: CircularProgressIndicator(color: colors.themeColor,),),
-              ),
-            );
-          }
+    if (reorganizedCrypto.isEmpty) {
+      return Container(
+        decoration: BoxDecoration(color: colors.primaryColor),
+        child: Center(
+          child: SizedBox(
+            height: 30,
+            width: 30,
+            child: CircularProgressIndicator(
+              color: colors.themeColor,
+            ),
+          ),
+        ),
+      );
+    }
     return Scaffold(
       key: _scaffoldKey,
       backgroundColor: colors.primaryColor,
@@ -963,7 +930,7 @@ class _MainDashboardScreenState extends State<MainDashboardScreen>
           textColor: colors.textColor,
           surfaceTintColor: colors.secondaryColor),
       appBar: CustomAppBar(
-        isTotalBalanceUpdated: isTotalBalanceUpdated ,
+          isTotalBalanceUpdated: isTotalBalanceUpdated,
           editVisualData: editVisualData,
           colors: colors,
           isHidden: isHidden,
@@ -1011,9 +978,8 @@ class _MainDashboardScreenState extends State<MainDashboardScreen>
                               children: [
                                 Text(
                                   "Balance",
-                                  style: customTextStyle(
-                                    color: colors.textColor
-                                  ),
+                                  style:
+                                      customTextStyle(color: colors.textColor),
                                 ),
                                 IconButton(
                                     onPressed: toggleHidden,
@@ -1084,8 +1050,7 @@ class _MainDashboardScreenState extends State<MainDashboardScreen>
                     ],
                   )),
                   SliverPersistentHeader(
-                      key: ValueKey(colors.primaryColor), 
-
+                    key: ValueKey(colors.primaryColor),
                     pinned: true,
                     delegate: _SliverAppBarDelegate(
                       TabBar(
@@ -1130,9 +1095,8 @@ class _MainDashboardScreenState extends State<MainDashboardScreen>
                                     ),
                                     Text(
                                       "Initializing ...",
-                                      style:customTextStyle(
-                                        color: colors.textColor
-                                      ),
+                                      style: customTextStyle(
+                                          color: colors.textColor),
                                     )
                                   ],
                                 ),
@@ -1168,9 +1132,8 @@ class _MainDashboardScreenState extends State<MainDashboardScreen>
                                               Text(
                                                 "Manage cryptos",
                                                 style: customTextStyle(
-                                                   color: colors.textColor
-                                                        .withOpacity(0.7)
-                                                ),
+                                                    color: colors.textColor
+                                                        .withOpacity(0.7)),
                                               )
                                             ],
                                           ),
@@ -1182,7 +1145,8 @@ class _MainDashboardScreenState extends State<MainDashboardScreen>
                                 return Material(
                                   color: Colors.transparent,
                                   child: ListTile(
-                                    splashColor: colors.textColor.withOpacity(0.05),
+                                    splashColor:
+                                        colors.textColor.withOpacity(0.05),
                                     onTap: () {
                                       log("Crypto id ${crypto.crypto.cryptoId}");
                                       Navigator.pushNamed(
@@ -1216,12 +1180,11 @@ class _MainDashboardScreenState extends State<MainDashboardScreen>
                                                           : crypto
                                                               .crypto.symbol,
                                                       style: customTextStyle(
-                                                        color: colors
+                                                          color: colors
                                                               .primaryColor,
                                                           fontWeight:
                                                               FontWeight.bold,
-                                                          fontSize: 18
-                                                      ),
+                                                          fontSize: 18),
                                                     ),
                                                   ),
                                                 )
@@ -1256,7 +1219,7 @@ class _MainDashboardScreenState extends State<MainDashboardScreen>
                                           maxLines: 1,
                                           overflow: TextOverflow.ellipsis,
                                           style: customTextStyle(
-                                              color: colors.textColor,
+                                            color: colors.textColor,
                                             fontSize: 16,
                                             fontWeight: FontWeight.bold,
                                           ),
@@ -1273,13 +1236,11 @@ class _MainDashboardScreenState extends State<MainDashboardScreen>
                                                 borderRadius:
                                                     BorderRadius.circular(20)),
                                             child: Text(
-                                              "${crypto.crypto.network?.name}",
-                                              style: customTextStyle(
-                                                color: colors.textColor
-                                                      .withOpacity(0.8),
-                                                  fontSize: 10
-                                              )
-                                            ),
+                                                "${crypto.crypto.network?.name}",
+                                                style: customTextStyle(
+                                                    color: colors.textColor
+                                                        .withOpacity(0.8),
+                                                    fontSize: 10)),
                                           )
                                       ],
                                     ),
@@ -1288,7 +1249,7 @@ class _MainDashboardScreenState extends State<MainDashboardScreen>
                                       children: [
                                         Text("\$${crypto.cryptoPrice}",
                                             style: customTextStyle(
-                                               color: colors.textColor
+                                              color: colors.textColor
                                                   .withOpacity(0.6),
                                               fontSize: 16,
                                             )),
@@ -1296,7 +1257,7 @@ class _MainDashboardScreenState extends State<MainDashboardScreen>
                                           Text(
                                             " ${(crypto.cryptoTrendPercent).toStringAsFixed(2)}%",
                                             style: customTextStyle(
-                                                  color:
+                                              color:
                                                   crypto.cryptoTrendPercent > 0
                                                       ? colors.greenColor
                                                       : colors.redColor,
@@ -1321,20 +1282,18 @@ class _MainDashboardScreenState extends State<MainDashboardScreen>
                                               overflow: TextOverflow.clip,
                                               maxLines: 1,
                                               style: customTextStyle(
-                                                   color: colors.textColor,
+                                                  color: colors.textColor,
                                                   fontSize: 16,
-                                                  fontWeight: FontWeight.bold
-                                              )),
+                                                  fontWeight: FontWeight.bold)),
                                         ),
                                         Text(
                                             isHidden
                                                 ? "***"
                                                 : "\$ ${crypto.balanceUsd.toStringAsFixed(3)}",
                                             style: customTextStyle(
-                                               color: colors.textColor
+                                                color: colors.textColor
                                                     .withOpacity(0.6),
-                                                fontSize: 14
-                                            ))
+                                                fontSize: 14))
                                       ],
                                     ),
                                   ),
@@ -1347,7 +1306,7 @@ class _MainDashboardScreenState extends State<MainDashboardScreen>
                       child: Center(
                         child: Text(
                           'Coming soon',
-                          style:  customTextStyle(color: colors.textColor),
+                          style: customTextStyle(color: colors.textColor),
                         ),
                       ),
                     ),

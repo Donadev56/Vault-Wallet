@@ -92,10 +92,10 @@ Future<UserRequestResponse> askUserForConfirmation(
     context: context,
     isScrollControlled: true,
     shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.only(
-                topLeft: Radius.circular(30),
-                topRight: Radius.circular(30),
-              ),
+      borderRadius: BorderRadius.only(
+        topLeft: Radius.circular(30),
+        topRight: Radius.circular(30),
+      ),
     ),
     builder: (BuildContext confirmationCtx) {
       final width = MediaQuery.of(confirmationCtx).size.width;
@@ -113,17 +113,17 @@ Future<UserRequestResponse> askUserForConfirmation(
             ),
             child: Column(
               children: [
-                 Align(alignment: Alignment.center,
-                            child: Container(
-                              margin: const EdgeInsets.all(10),
-                              height: 7,
-                              width: 80,
-                              decoration: BoxDecoration(
-                                color: secondaryColor,
-                                borderRadius: BorderRadius.circular(50)
-                              ),
-
-                            ),),
+                Align(
+                  alignment: Alignment.center,
+                  child: Container(
+                    margin: const EdgeInsets.all(10),
+                    height: 7,
+                    width: 80,
+                    decoration: BoxDecoration(
+                        color: secondaryColor,
+                        borderRadius: BorderRadius.circular(50)),
+                  ),
+                ),
                 Padding(
                   padding: const EdgeInsets.all(10),
                   child: Row(
@@ -218,9 +218,9 @@ Future<UserRequestResponse> askUserForConfirmation(
                   margin: const EdgeInsets.all(10),
                   padding: const EdgeInsets.all(10),
                   decoration: BoxDecoration(
-                      borderRadius: BorderRadius.circular(10),
-                                            color: actionsColor.withOpacity(0.7),
-),
+                    borderRadius: BorderRadius.circular(10),
+                    color: actionsColor.withOpacity(0.7),
+                  ),
                   child: Column(
                     children: [
                       Row(
@@ -277,9 +277,9 @@ Future<UserRequestResponse> askUserForConfirmation(
                   margin: const EdgeInsets.only(left: 10, right: 10, top: 5),
                   padding: const EdgeInsets.all(10),
                   decoration: BoxDecoration(
-                      borderRadius: BorderRadius.circular(10),
-                        color: actionsColor.withOpacity(0.7),
-),
+                    borderRadius: BorderRadius.circular(10),
+                    color: actionsColor.withOpacity(0.7),
+                  ),
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [

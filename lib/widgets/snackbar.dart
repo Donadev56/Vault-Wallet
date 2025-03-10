@@ -8,25 +8,25 @@ void showCustomSnackBar(
     required String message,
     required Color primaryColor,
     IconData icon = Icons.info,
-    required AppColors colors ,
+    required AppColors colors,
     Color? iconColor}) {
   DelightToastBar(
-        autoDismiss: true,
-        builder: (context) => ToastCard(
-          color:  colors.secondaryColor,
-          leading: Icon(
-            color:  iconColor ?? colors.redColor,
-           icon,
-            size: 28,
-          ),
-          title: Text(
-            message,
-            style: TextStyle(
-              color: colors.textColor,
-              fontWeight: FontWeight.w700,
-              fontSize: 14,
-            ),
-          ),
+    autoDismiss: true,
+    builder: (context) => ToastCard(
+      color: colors.secondaryColor,
+      leading: Icon(
+        color: iconColor ?? colors.redColor,
+        icon,
+        size: 28,
+      ),
+      title: Text(
+        message,
+        style: TextStyle(
+          color: colors.textColor,
+          fontWeight: FontWeight.w700,
+          fontSize: 14,
         ),
-      ).show(context);
+      ),
+    ),
+  ).show(context);
 }

@@ -173,10 +173,12 @@ class _SendTransactionScreenState extends State<SendTransactionScreen> {
       final to = _addressController.text;
       final from = currentAccount.address;
 
-      final valueWei = (BigInt.from(double.parse(_amountController.text) * 1e8 )  *   BigInt.from(10).pow(18))  ~/ BigInt.from(100000000); 
+      final valueWei =
+          (BigInt.from(double.parse(_amountController.text) * 1e8) *
+                  BigInt.from(10).pow(18)) ~/
+              BigInt.from(100000000);
       final valueHex = valueWei.toRadixString(16);
       log("Value : $valueHex and value wei $valueWei");
-
 
       final estimatedGas = await web3InteractManager.estimateGas(
           rpcUrl:
@@ -191,8 +193,7 @@ class _SendTransactionScreenState extends State<SendTransactionScreen> {
       }
 
       final transaction = JsTransactionObject(
-        gas: "0x${(estimatedGas 
-        ).toRadixString(16)}",
+        gas: "0x${(estimatedGas).toRadixString(16)}",
         value: valueHex,
         from: from,
         to: to,
@@ -305,7 +306,9 @@ class _SendTransactionScreenState extends State<SendTransactionScreen> {
       // final gasPrice = await web3InteractManager.getGasPrice(
       //  currentNetwork.network?.rpc ?? "https://opbnb-mainnet-rpc.bnbchain.org");
 
-      final value =( BigInt.from((roundedAmount * 1e8).round() )  *   BigInt.from(10).pow(18)  ~/ BigInt.from(100000000));
+      final value = (BigInt.from((roundedAmount * 1e8).round()) *
+          BigInt.from(10).pow(18) ~/
+          BigInt.from(100000000));
       log("Value before parsing $value");
       final valueWei = value;
       log("valueWei $valueWei");
@@ -655,34 +658,35 @@ class _SendTransactionScreenState extends State<SendTransactionScreen> {
                       ),
                     ),
                   ),
-                InkWell(
-                  onTap: () async{
-                   selectAnAccount(colors: colors, context: context, accounts: accounts.toSet().toList(), onTap: (wl)async {
-                    setState(() {
-                      currentAccount = wl;
-                      
-                      
-                    });
-                     await getInitialData();
-
-                   });
-                  },
-                  child: Container(
-                      width: width * 0.35,
-                      padding: const EdgeInsets.all(5),
-                      decoration: BoxDecoration(
-                        color: colors.grayColor.withOpacity(0.4),
-                        borderRadius: BorderRadius.circular(15),
-                      ),
-                      child: Center(
-                        child: Text(
-                          currentAccount.walletName,
-                          style: GoogleFonts.roboto(color: colors.textColor),
-                          overflow: TextOverflow.ellipsis,
-                          maxLines: 1,
+                  InkWell(
+                    onTap: () async {
+                      selectAnAccount(
+                          colors: colors,
+                          context: context,
+                          accounts: accounts.toSet().toList(),
+                          onTap: (wl) async {
+                            setState(() {
+                              currentAccount = wl;
+                            });
+                            await getInitialData();
+                          });
+                    },
+                    child: Container(
+                        width: width * 0.35,
+                        padding: const EdgeInsets.all(5),
+                        decoration: BoxDecoration(
+                          color: colors.grayColor.withOpacity(0.4),
+                          borderRadius: BorderRadius.circular(15),
                         ),
-                      )),
-                )  
+                        child: Center(
+                          child: Text(
+                            currentAccount.walletName,
+                            style: GoogleFonts.roboto(color: colors.textColor),
+                            overflow: TextOverflow.ellipsis,
+                            maxLines: 1,
+                          ),
+                        )),
+                  )
                 ],
               ),
               Container(
@@ -764,8 +768,13 @@ class _SendTransactionScreenState extends State<SendTransactionScreen> {
                     children: [
                       IconButton(
                           onPressed: () {
-                            showSelectLastAddr(context: context, publicDataManager: publicDataManager, currentAccount: currentAccount, colors: colors, addressController: _addressController, currentNetwork: currentNetwork)
-                           ;
+                            showSelectLastAddr(
+                                context: context,
+                                publicDataManager: publicDataManager,
+                                currentAccount: currentAccount,
+                                colors: colors,
+                                addressController: _addressController,
+                                currentNetwork: currentNetwork);
                           },
                           icon: Icon(Icons.contact_page_outlined)),
                       IconButton(
