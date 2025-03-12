@@ -808,6 +808,8 @@ class _SendTransactionScreenState extends State<SendTransactionScreen> {
               Form(
                 key: _formKey,
                 child: TextFormField(
+                  style: GoogleFonts.roboto(
+                      color: colors.textColor.withOpacity(0.8)),
                   validator: (value) {
                     if (value != null) {
                       if (value.length == 42 &&
@@ -871,6 +873,8 @@ class _SendTransactionScreenState extends State<SendTransactionScreen> {
                 ),
               ),
               TextFormField(
+                style: GoogleFonts.roboto(
+                    color: colors.textColor.withOpacity(0.8)),
                 validator: (v) {
                   log("Value $v");
                   if (double.parse(v ?? "") >= userBalance) {
@@ -953,6 +957,8 @@ class _SendTransactionScreenState extends State<SendTransactionScreen> {
                 ),
               ),
               TextField(
+                style: GoogleFonts.roboto(
+                    color: colors.textColor.withOpacity(0.8)),
                 keyboardType: TextInputType.number,
                 onChanged: (value) {
                   if (value.isEmpty) {

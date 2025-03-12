@@ -1,4 +1,6 @@
+import 'dart:convert';
 import 'dart:typed_data';
+import 'package:hex/hex.dart';
 
 import 'package:flutter/material.dart';
 import 'package:flutter_web3_webview/flutter_web3_webview.dart';
@@ -9,6 +11,8 @@ import 'package:moonwallet/service/wallet_saver.dart';
 import 'package:moonwallet/types/types.dart';
 import 'package:moonwallet/widgets/askUserforconf.dart';
 import 'package:moonwallet/widgets/bottom_pin_copy.dart';
+import 'package:moonwallet/widgets/func/ask_password.dart';
+import 'package:web3dart/crypto.dart';
 import 'package:web3dart/web3dart.dart';
 import 'package:http/http.dart';
 
@@ -60,18 +64,160 @@ class Web3InteractionManager {
     }
   }
 
-  Future<String> sendTransaction(
-      {required Transaction transaction,
-      required int chainId,
-      required String rpcUrl,
-      required String password,
-      required String address}) async {
+  Future<String?> personalSign(String data,
+      {required Crypto network,
+      required PublicData account,
+      required String password}) async {
     try {
-      if (rpcUrl.isEmpty) {
-        log("rpc url is empty");
-        throw Exception("Internal error : rpcUrl is empty");
+      final credentials =
+          await getCredentials(password: password, address: account.address);
+      List<int> messageBytes = utf8.encode(data);
+      if (credentials != null) {
+        final signature = credentials
+            .signPersonalMessageToUint8List(Uint8List.fromList(messageBytes));
+        final signed = HEX.encode(signature);
+        log("the signed message $signed");
+        return signed;
+      } else {
+        return null;
       }
-      var ethClient = Web3Client(rpcUrl, httpClient);
+    } catch (e) {
+      logError(e.toString());
+      return null;
+    }
+  }
+
+  Future<String?> sign(String data,
+      {required Crypto network,
+      required PublicData account,
+      required String password}) async {
+    try {
+      final credentials =
+          await getCredentials(password: password, address: account.address);
+      List<int> messageBytes = utf8.encode(data);
+      if (credentials != null) {
+        final signature =
+            credentials.signToUint8List(Uint8List.fromList(messageBytes));
+        return HEX.encode(signature);
+      } else {
+        return null;
+      }
+    } catch (e) {
+      logError(e.toString());
+      return null;
+    }
+  }
+
+  Future<String?> getPrivateKey({required String address}) async {
+    try {
+      String password = "";
+      final pRes = await web3Manager.getSavedPassword();
+      if (pRes != null) {
+        password = pRes;
+      }
+      final savedPrivateKeys = await web3Manager.getDecryptedData(password);
+      if (savedPrivateKeys != null) {
+        log("Retrieved private key list");
+
+        if (savedPrivateKeys.isNotEmpty) {
+          log('the list is not empty');
+          for (final privatekey in savedPrivateKeys) {
+            final key = privatekey["privatekey"];
+            final Credentials fromHex = EthPrivateKey.fromHex(key);
+
+            final keyAddr = fromHex.address.hex;
+            log("Address  $address");
+            if (keyAddr.trim().toLowerCase() == address.trim().toLowerCase()) {
+              log("Key found for address $address");
+              log("Address $keyAddr == $address");
+              return key;
+            }
+          }
+
+          return null;
+        } else {
+          log("No key found for address $address");
+          throw Exception("Internal error : No key found for address $address");
+        }
+      } else {
+        log("Invalid password or no data found");
+        throw Exception("Internal error : Invalid password or no data found");
+      }
+    } catch (e) {
+      logError(e.toString());
+      return null;
+    }
+  }
+
+  Future<Credentials?> getCredentialsUsingPassword(
+      {required BuildContext context,
+      required String address,
+      required AppColors colors}) async {
+    try {
+      log("Address $address");
+      if (address.isEmpty) {
+        logError("Address is empty");
+        throw Exception("Address is empty");
+      }
+      final password = await askPassword(context: context, colors: colors);
+      if (password.isNotEmpty) {
+        try {
+          final cred =
+              await getCredentials(password: password, address: address);
+          return cred;
+        } catch (e) {
+          logError("Error: $e");
+          return null;
+        }
+      } else {
+        log("Password is empty");
+        throw Exception("Password is empty");
+      }
+    } catch (e) {
+      logError(e.toString());
+      return null;
+    }
+  }
+
+  Future<Credentials?> getCredentials(
+      {required String password, required String address}) async {
+    try {
+      final savedPrivateKeys = await web3Manager.getDecryptedData(password);
+      if (savedPrivateKeys != null) {
+        if (savedPrivateKeys.isNotEmpty) {
+          for (final privatekey in savedPrivateKeys) {
+            final key = privatekey["privatekey"];
+            final Credentials fromHex = EthPrivateKey.fromHex(key);
+
+            final keyAddr = fromHex.address.hex;
+            if (keyAddr.trim().toLowerCase() == address.trim().toLowerCase()) {
+              log("Key found for address $address");
+              return fromHex;
+            }
+          }
+
+          return null;
+        } else {
+          log("No key found for address $address");
+          throw Exception("Internal error : No key found for address $address");
+        }
+      } else {
+        log("Invalid password or no data found");
+        throw Exception("Internal error : Invalid password or no data found");
+      }
+    } catch (e) {
+      logError(e.toString());
+      return null;
+    }
+  }
+
+  Future<Credentials?> getCredentialsV2({required String address}) async {
+    try {
+      String password = "";
+      final pRes = await web3Manager.getSavedPassword();
+      if (pRes != null) {
+        password = pRes;
+      }
       final savedPrivateKeys = await web3Manager.getDecryptedData(password);
       if (savedPrivateKeys != null) {
         log("Retrieved private key list");
@@ -86,14 +232,11 @@ class Web3InteractionManager {
             log("Address found $address");
             if (keyAddr.trim().toLowerCase() == address.trim().toLowerCase()) {
               log("Key found for address $address");
-
-              return await ethClient.sendTransaction(
-                fromHex,
-                transaction,
-                chainId: chainId,
-              );
+              return fromHex;
             }
           }
+
+          return null;
         } else {
           log("No key found for address $address");
           throw Exception("Internal error : No key found for address $address");
@@ -102,8 +245,36 @@ class Web3InteractionManager {
         log("Invalid password or no data found");
         throw Exception("Internal error : Invalid password or no data found");
       }
+    } catch (e) {
+      logError(e.toString());
+      return null;
+    }
+  }
 
-      throw Exception("Internal error");
+  Future<String> sendTransaction(
+      {required Transaction transaction,
+      required int chainId,
+      required String rpcUrl,
+      required String password,
+      required String address}) async {
+    try {
+      if (rpcUrl.isEmpty) {
+        log("rpc url is empty");
+        throw Exception("Internal error : rpcUrl is empty");
+      }
+      var ethClient = Web3Client(rpcUrl, httpClient);
+      final credentials =
+          await getCredentials(password: password, address: address);
+      if (credentials != null) {
+        return await ethClient.sendTransaction(
+          credentials,
+          transaction,
+          chainId: chainId,
+        );
+      } else {
+        log("Credentials are null");
+        throw Exception("Internal error : Credentials are null");
+      }
     } catch (e) {
       logError(e.toString());
       return ("Internal error : $e");

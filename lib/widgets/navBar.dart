@@ -25,10 +25,9 @@ class BottomNav extends StatelessWidget {
     ];
 
     return Container(
-      decoration: BoxDecoration(
-          border: Border(
-              top: BorderSide(width: 1, color: textColor.withOpacity(0.1)))),
+      decoration: BoxDecoration(border: Border()),
       child: BottomNavigationBar(
+        elevation: 20,
         backgroundColor: primaryColor,
         currentIndex: currentIndex,
         onTap: onTap,

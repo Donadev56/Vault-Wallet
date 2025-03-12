@@ -9,6 +9,7 @@ import 'package:google_fonts/google_fonts.dart';
 import 'package:lucide_icons_flutter/lucide_icons.dart';
 import 'package:moonwallet/logger/logger.dart';
 import 'package:moonwallet/main.dart';
+import 'package:moonwallet/screens/dashboard/browser.dart';
 import 'package:moonwallet/types/types.dart';
 import 'package:moonwallet/utils/colors.dart';
 import 'package:moonwallet/utils/prefs.dart';
@@ -301,11 +302,14 @@ class _DiscoverScreenState extends State<DiscoverScreen>
                       await updateSavedHistory(formateUrl(data.trim()));
                       _textEditingController.text = "";
 
-                      Navigator.pushNamed(context, Routes.browser,
-                          arguments: ({
-                            "url": data.trim(),
-                            "network": "opBNB"
-                          }));
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                          builder: (context) => Web3BrowserScreen(
+                            url: data.trim(),
+                          ),
+                        ),
+                      );
                     } catch (e) {
                       logError(e.toString());
                       showCustomSnackBar(
@@ -388,50 +392,52 @@ class _DiscoverScreenState extends State<DiscoverScreen>
                           children: List.generate(dapps.length, (index) {
                             final dapp = dapps[index];
                             return ListTile(
-                              leading: ClipRRect(
-                                borderRadius: BorderRadius.circular(50),
-                                child: dapp.isNetworkImage
-                                    ? FastCachedImage(
-                                        url: dapp.icon,
-                                        width: 50,
-                                        height: 50,
-                                      )
-                                    : Image.asset(
-                                        dapp.icon,
-                                        width: 50,
-                                        height: 50,
-                                      ),
-                              ),
-                              title: Text(
-                                dapp.name,
-                                style: GoogleFonts.roboto(
-                                  fontSize: 16,
-                                  fontWeight: FontWeight.bold,
-                                  color: colors.textColor,
+                                leading: ClipRRect(
+                                  borderRadius: BorderRadius.circular(50),
+                                  child: dapp.isNetworkImage
+                                      ? FastCachedImage(
+                                          url: dapp.icon,
+                                          width: 50,
+                                          height: 50,
+                                        )
+                                      : Image.asset(
+                                          dapp.icon,
+                                          width: 50,
+                                          height: 50,
+                                        ),
                                 ),
-                                overflow: TextOverflow.ellipsis,
-                                maxLines: 1,
-                              ),
-                              subtitle: Text(
-                                dapp.description,
-                                style: GoogleFonts.roboto(
-                                  fontSize: 14,
-                                  color: colors.textColor.withOpacity(0.6),
+                                title: Text(
+                                  dapp.name,
+                                  style: GoogleFonts.roboto(
+                                    fontSize: 16,
+                                    fontWeight: FontWeight.bold,
+                                    color: colors.textColor,
+                                  ),
+                                  overflow: TextOverflow.ellipsis,
+                                  maxLines: 1,
                                 ),
-                                overflow: TextOverflow.ellipsis,
-                                maxLines: 1,
-                              ),
-                              onTap: () async {
-                                await updateSavedHistory(
-                                    formateUrl(dapp.link.trim()));
+                                subtitle: Text(
+                                  dapp.description,
+                                  style: GoogleFonts.roboto(
+                                    fontSize: 14,
+                                    color: colors.textColor.withOpacity(0.6),
+                                  ),
+                                  overflow: TextOverflow.ellipsis,
+                                  maxLines: 1,
+                                ),
+                                onTap: () async {
+                                  await updateSavedHistory(
+                                      formateUrl(dapp.link.trim()));
 
-                                Navigator.pushNamed(context, Routes.browser,
-                                    arguments: ({
-                                      "url": dapp.link.trim(),
-                                      "network": "opBNB"
-                                    }));
-                              },
-                            );
+                                  Navigator.push(
+                                    context,
+                                    MaterialPageRoute(
+                                      builder: (context) => Web3BrowserScreen(
+                                        url: dapp.link,
+                                      ),
+                                    ),
+                                  );
+                                });
                           }),
                         )
                       ],
@@ -460,72 +466,77 @@ class _DiscoverScreenState extends State<DiscoverScreen>
                               children: List.generate(history.length, (index) {
                                 final hist = history[index];
                                 return ListTile(
-                                  leading: ClipRRect(
-                                      borderRadius: BorderRadius.circular(50),
-                                      child: Container(
-                                          decoration: BoxDecoration(
-                                              color: colors.grayColor
-                                                  .withOpacity(0.5)),
-                                          child: FastCachedImage(
-                                            url:
-                                                "https://www.google.com/s2/favicons?domain_url=${hist.link}",
-                                            width: 30,
-                                            height: 30,
-                                            fit: BoxFit.cover,
-                                            loadingBuilder: (ctx, p) {
-                                              return CircularProgressIndicator(
-                                                color: colors.themeColor,
-                                                value:
-                                                    p.progressPercentage.value,
-                                              );
-                                            },
-                                          ))),
-                                  title: Text(
-                                    hist.title,
-                                    style: GoogleFonts.roboto(
-                                      fontSize: 16,
-                                      fontWeight: FontWeight.bold,
-                                      color: colors.textColor,
+                                    leading: ClipRRect(
+                                        borderRadius: BorderRadius.circular(50),
+                                        child: Container(
+                                            decoration: BoxDecoration(
+                                                color: colors.grayColor
+                                                    .withOpacity(0.5)),
+                                            child: FastCachedImage(
+                                              url:
+                                                  "https://www.google.com/s2/favicons?domain_url=${hist.link}",
+                                              width: 30,
+                                              height: 30,
+                                              fit: BoxFit.cover,
+                                              loadingBuilder: (ctx, p) {
+                                                return CircularProgressIndicator(
+                                                  color: colors.themeColor,
+                                                  value: p
+                                                      .progressPercentage.value,
+                                                );
+                                              },
+                                            ))),
+                                    title: Text(
+                                      hist.title,
+                                      style: GoogleFonts.roboto(
+                                        fontSize: 16,
+                                        fontWeight: FontWeight.bold,
+                                        color: colors.textColor,
+                                      ),
+                                      overflow: TextOverflow.ellipsis,
+                                      maxLines: 1,
                                     ),
-                                    overflow: TextOverflow.ellipsis,
-                                    maxLines: 1,
-                                  ),
-                                  trailing: IconButton(
-                                      onPressed: () async {
-                                        final res =
-                                            await deleteHistoryItem(index);
-                                        if (res) {
-                                          showCustomSnackBar(
-                                              colors: colors,
-                                              primaryColor: colors.primaryColor,
-                                              context: context,
-                                              message: "Deleted successfully",
-                                              iconColor: Colors.greenAccent,
-                                              icon: Icons.check);
-                                        } else {
-                                          showCustomSnackBar(
-                                              colors: colors,
-                                              primaryColor: colors.primaryColor,
-                                              context: context,
-                                              message: "Failed to delete",
-                                              iconColor: Colors.pinkAccent,
-                                              icon: Icons.error);
-                                        }
-                                      },
-                                      icon: Icon(
-                                        FeatherIcons.trash,
-                                        color:
-                                            colors.textColor.withOpacity(0.7),
-                                      )),
-                                  onTap: () async {
-                                    await changeHistoryIndex(index);
-                                    Navigator.pushNamed(context, Routes.browser,
-                                        arguments: ({
-                                          "url": hist.link.trim(),
-                                          "network": "opBNB"
-                                        }));
-                                  },
-                                );
+                                    trailing: IconButton(
+                                        onPressed: () async {
+                                          final res =
+                                              await deleteHistoryItem(index);
+                                          if (res) {
+                                            showCustomSnackBar(
+                                                colors: colors,
+                                                primaryColor:
+                                                    colors.primaryColor,
+                                                context: context,
+                                                message: "Deleted successfully",
+                                                iconColor: Colors.greenAccent,
+                                                icon: Icons.check);
+                                          } else {
+                                            showCustomSnackBar(
+                                                colors: colors,
+                                                primaryColor:
+                                                    colors.primaryColor,
+                                                context: context,
+                                                message: "Failed to delete",
+                                                iconColor: Colors.pinkAccent,
+                                                icon: Icons.error);
+                                          }
+                                        },
+                                        icon: Icon(
+                                          FeatherIcons.trash,
+                                          color:
+                                              colors.textColor.withOpacity(0.7),
+                                        )),
+                                    onTap: () async {
+                                      await changeHistoryIndex(index);
+                                      Navigator.push(
+                                        context,
+                                        MaterialPageRoute(
+                                          builder: (context) =>
+                                              Web3BrowserScreen(
+                                            url: hist.link,
+                                          ),
+                                        ),
+                                      );
+                                    });
                               }),
                             ),
                           ),

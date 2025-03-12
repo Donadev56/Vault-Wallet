@@ -212,12 +212,9 @@ class Web3Manager {
         dataToSave = [];
         return [];
       } else {
-        log("Data is not null");
         final decryptData =
             await encryptService.decryptJson(savedData, password);
         if (decryptData != null) {
-          log("Decrypted data is ${decryptData.toString()}");
-
           dataToSave = json.decode(decryptData);
           return dataToSave;
         } else {

@@ -1,12 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:moonwallet/types/types.dart';
-import 'package:moonwallet/utils/constant.dart';
-import 'package:moonwallet/widgets/snackbar.dart';
 
-typedef ChangeNetworkType = Future<bool> Function(int index);
+typedef ChangeNetworkType = Future<void> Function(Crypto network);
 void showChangeNetworkModal(
     {required double height,
+    required List<Crypto> networks,
     required BuildContext context,
     required Color darkNavigatorColor,
     required Color textColor,
@@ -39,28 +38,24 @@ void showChangeNetworkModal(
                 ConstrainedBox(
                   constraints: BoxConstraints(maxHeight: height * 0.4),
                   child: ListView.builder(
-                    itemCount: cryptos
+                    itemCount: networks
                         .where((crypto) => crypto.type != CryptoType.token)
                         .toList()
                         .length,
                     itemBuilder: (BuildContext context, int index) {
-                      final network = cryptos
+                      final network = networks
                           .where((crypto) => crypto.type != CryptoType.token)
                           .toList()[index];
                       return Material(
                         color: Colors.transparent,
                         child: ListTile(
                           selected: chainId == network.chainId,
+                          tileColor: chainId == network.chainId
+                              ? colors.themeColor
+                              : Colors.transparent,
                           onTap: () async {
-                            final res = await changeNetwork(index);
-                            if (!res) {
-                              showCustomSnackBar(
-                                  colors: colors,
-                                  primaryColor: colors.primaryColor,
-                                  context: context,
-                                  message: "can't change network",
-                                  iconColor: Colors.pinkAccent);
-                            }
+                            await changeNetwork(network);
+
                             Navigator.pop(context);
                           },
                           leading: Container(

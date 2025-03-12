@@ -55,15 +55,15 @@ class ColorsManager extends Themes {
           return defaultTheme;
         } else {
           log("Default theme not found");
-          return darkColors;
+          return lightColors;
         }
       } else {
         log("Default theme not found");
-        return darkColors;
+        return lightColors;
       }
     } catch (e) {
       logError(e.toString());
-      return darkColors;
+      return lightColors;
     }
   }
 

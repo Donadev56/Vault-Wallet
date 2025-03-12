@@ -689,19 +689,20 @@ class CustomAppBar extends StatelessWidget implements PreferredSizeWidget {
                                         );
                                       });
                                 },
-                                icon: Icon(Icons.add, color: colors.themeColor),
+                                icon:
+                                    Icon(Icons.add, color: colors.primaryColor),
                                 label: Text(
-                                  "Add a new wallet",
+                                  "Add Wallet",
                                   style: GoogleFonts.exo2(
                                       fontSize: 16,
-                                      color: colors.themeColor,
+                                      color: colors.primaryColor,
                                       fontWeight: FontWeight.bold),
                                 ),
                                 style: ElevatedButton.styleFrom(
                                   elevation: 0,
                                   padding: const EdgeInsets.symmetric(
                                       vertical: 8, horizontal: 8),
-                                  backgroundColor: colors.secondaryColor,
+                                  backgroundColor: colors.themeColor,
                                   minimumSize: const Size(double.infinity, 50),
                                   shape: RoundedRectangleBorder(
                                     borderRadius: BorderRadius.circular(30),

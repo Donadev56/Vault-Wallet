@@ -211,7 +211,6 @@ class WalletSaver {
       List<dynamic> dataToSave;
       final savedData =
           await documentStorage.readData(filePath: privateDataPath);
-      log("Saved Data : ${savedData.toString()}");
 
       if (savedData == null) {
         log("Data is null");
@@ -222,8 +221,6 @@ class WalletSaver {
         final decryptData =
             await encryptService.decryptJson(savedData, password);
         if (decryptData != null) {
-          log("Decrypted data is ${decryptData.toString()}");
-
           dataToSave = json.decode(decryptData);
           return dataToSave;
         } else {

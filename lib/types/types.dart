@@ -5,6 +5,8 @@ import 'package:lucide_icons_flutter/lucide_icons.dart';
 
 enum CryptoType { network, token }
 
+enum SignatureRequestType { ethPersonalSign, ethSign, ethSignTypedData }
+
 extension IconJson on IconData {
   Map<String, dynamic> toJson() => {
         'codePoint': codePoint,
@@ -254,6 +256,7 @@ class Crypto {
   final String? apiKey;
   final String? apiBaseUrl;
   final String symbol;
+  final bool? isNetworkIcon;
 
   Crypto(
       {required this.name,
@@ -272,32 +275,33 @@ class Crypto {
       required this.canDisplay,
       this.apiKey,
       this.apiBaseUrl,
-      required this.symbol});
+      required this.symbol,
+      this.isNetworkIcon});
 
   factory Crypto.fromJson(Map<String, dynamic> cryptoJson) {
     return Crypto(
-      apiKey: cryptoJson["apiKey"],
-      apiBaseUrl: cryptoJson["apiBaseUrl"],
-      canDisplay: cryptoJson["canDisplay"],
-      cryptoId: cryptoJson["cryptoId"],
-      name: cryptoJson["name"],
-      color: cryptoJson["color"] != null
-          ? Color(cryptoJson["color"])
-          : Colors.transparent,
-      type: CryptoType.values[cryptoJson["type"]],
-      icon: cryptoJson["icon"],
-      rpc: cryptoJson["rpc"],
-      decimals: cryptoJson["decimals"],
-      chainId: cryptoJson["chainId"],
-      binanceSymbol: cryptoJson["binanceSymbol"],
-      network: cryptoJson["network"] != null
-          ? Crypto.fromJson(cryptoJson["network"])
-          : null,
-      contractAddress: cryptoJson["contractAddress"],
-      explorer: cryptoJson["explorer"],
-      valueUsd: cryptoJson["valueUsd"],
-      symbol: cryptoJson["symbol"],
-    );
+        apiKey: cryptoJson["apiKey"],
+        apiBaseUrl: cryptoJson["apiBaseUrl"],
+        canDisplay: cryptoJson["canDisplay"],
+        cryptoId: cryptoJson["cryptoId"],
+        name: cryptoJson["name"],
+        color: cryptoJson["color"] != null
+            ? Color(cryptoJson["color"])
+            : Colors.transparent,
+        type: CryptoType.values[cryptoJson["type"]],
+        icon: cryptoJson["icon"],
+        rpc: cryptoJson["rpc"],
+        decimals: cryptoJson["decimals"],
+        chainId: cryptoJson["chainId"],
+        binanceSymbol: cryptoJson["binanceSymbol"],
+        network: cryptoJson["network"] != null
+            ? Crypto.fromJson(cryptoJson["network"])
+            : null,
+        contractAddress: cryptoJson["contractAddress"],
+        explorer: cryptoJson["explorer"],
+        valueUsd: cryptoJson["valueUsd"],
+        symbol: cryptoJson["symbol"],
+        isNetworkIcon: cryptoJson["isNetworkIcon"]);
   }
 
   Map<String, dynamic> toJson() {

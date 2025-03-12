@@ -23,6 +23,7 @@ void showAddToken(
     required bool hasSaved}) {
   Crypto? selectedNetwork;
   TextEditingController _contractAddressController = TextEditingController();
+
   final tokenManager = TokenManager();
   final cryptoStorageManager = CryptoStorageManager();
   SearchingContractInfo? searchingContractInfo;
@@ -193,6 +194,7 @@ void showAddToken(
                                             }
 
                                             final newCrypto = Crypto(
+                                                isNetworkIcon: false,
                                                 symbol: searchingContractInfo
                                                         ?.symbol ??
                                                     "",

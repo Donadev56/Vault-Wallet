@@ -1,13 +1,12 @@
 // ignore_for_file: deprecated_member_use
-import 'package:awesome_snackbar_content/awesome_snackbar_content.dart';
 import 'package:http/http.dart' as http;
+import 'package:moonwallet/service/crypto_storage_manager.dart';
 import 'package:moonwallet/service/price_manager.dart';
 
 import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_feather_icons/flutter_feather_icons.dart';
-import 'package:flutter_web3_webview/flutter_web3_webview.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:lucide_icons_flutter/lucide_icons.dart';
 import 'package:moonwallet/logger/logger.dart';
@@ -19,11 +18,17 @@ import 'package:moonwallet/utils/constant.dart';
 import 'package:moonwallet/utils/crypto.dart';
 import 'package:moonwallet/utils/prefs.dart';
 import 'package:moonwallet/utils/themes.dart';
-import 'package:moonwallet/widgets/barre.dart';
-import 'package:moonwallet/widgets/change_network.dart';
+import 'package:moonwallet/web3_webview/lib/models/network_config.dart';
+import 'package:moonwallet/web3_webview/lib/models/web3_wallet_config.dart';
+import 'package:moonwallet/web3_webview/lib/web3_webview.dart';
+import 'package:moonwallet/web3_webview/lib/web3_webview_eip1193.dart';
+import 'package:moonwallet/widgets/func/browser/show_bottom_options.dart';
 
 class Web3BrowserScreen extends StatefulWidget {
-  const Web3BrowserScreen({super.key});
+  final String? url;
+  final Crypto? network;
+
+  const Web3BrowserScreen({super.key, this.url, this.network});
 
   @override
   Web3BrowserScreenState createState() => Web3BrowserScreenState();
@@ -32,7 +37,7 @@ class Web3BrowserScreen extends StatefulWidget {
 class Web3BrowserScreenState extends State<Web3BrowserScreen> {
   Color darkNavigatorColor = Color(0XFF0D0D0D);
   Color darkNavigatorColorMainValue = Color(0XFF0D0D0D);
-
+  final GlobalKey<InAppWebViewEIP1193State> webViewKey = GlobalKey();
   final publicDataManager = PublicDataManager();
   bool isDarkMode = false;
 
@@ -41,18 +46,14 @@ class Web3BrowserScreenState extends State<Web3BrowserScreen> {
   bool canShowAppBarOptions = true;
   int _chainId = 204;
   double progress = 0;
-  bool isPageLoading = false;
+  bool isPageLoading = true;
   Crypto currentNetwork = cryptos[0];
   InAppWebViewController? _webViewController;
   bool _isInitialized = false;
   bool isFullScreen = false;
   List<PublicData> accounts = [];
-  PublicData currentAccount = PublicData(
-      keyId: "",
-      creationDate: 0,
-      walletName: "",
-      address: "",
-      isWatchOnly: false);
+  List<Crypto> networks = [];
+  PublicData? currentAccount;
   final web3Manager = WalletSaver();
   final web3IntManager = Web3InteractionManager();
   final priceManager = PriceManager();
@@ -114,43 +115,12 @@ class Web3BrowserScreenState extends State<Web3BrowserScreen> {
     }
   }
 
-  Future<int> _ethChainId() async {
-    return _chainId;
-  }
-
-  Future<List<String>> _ethAccounts() async {
-    return [currentAccount.address];
-  }
-
-  Future<bool> _walletSwitchEthereumChain(JsAddEthereumChain data) async {
-    log("Changing the network id");
-    int requestedChainId =
-        int.parse((data.chainId)?.replaceFirst('0x', '') ?? '1', radix: 16);
-    log("Current chain Id $_chainId");
-
-    for (final net in cryptos) {
-      if (net.chainId == requestedChainId) {
-        if (net.type == CryptoType.token) return false;
-        setState(() {
-          currentNetwork = net;
-          _chainId = requestedChainId;
-          log("Switched to network: ${currentNetwork.name}");
-        });
-
-        return true;
-      } else {
-        continue;
-      }
-    }
-    return _chainId == requestedChainId;
-  }
-
-  Future<bool> changeNetwork(int data) async {
+  Future<bool> changeNetwork(Crypto network) async {
     log("Changing the network id");
 
-    int requestedChainId = cryptos[data].chainId ?? 204;
+    int requestedChainId = network.chainId ?? 1;
 
-    for (final net in cryptos) {
+    for (final net in networks) {
       log("Current network : ${net.chainId} . requested chain $requestedChainId");
 
       if (net.chainId == requestedChainId) {
@@ -166,6 +136,30 @@ class Web3BrowserScreenState extends State<Web3BrowserScreen> {
       }
     }
     return _chainId == requestedChainId;
+  }
+
+  Future<void> manualChangeNetwork(Crypto network) async {
+    try {
+      int requestedChainId = network.chainId ?? 1;
+
+      for (final net in networks) {
+        if (net.chainId == requestedChainId) {
+          setState(() {
+            currentNetwork = net;
+            _chainId = requestedChainId;
+          });
+          webViewKey.currentState?.changeNetwork(
+              chainId: '0x${requestedChainId.toRadixString(16)}',
+              context: context,
+              colors: colors);
+          Navigator.pop(context);
+        } else {
+          continue;
+        }
+      }
+    } catch (e) {
+      logError(e.toString());
+    }
   }
 
   Uint8List hexToUint8List(String hex) {
@@ -226,17 +220,41 @@ class Web3BrowserScreenState extends State<Web3BrowserScreen> {
     }
   }
 
+  Future<void> getSavedCrypto({required PublicData account}) async {
+    try {
+      final savedCryptos =
+          await CryptoStorageManager().getSavedCryptos(wallet: account);
+      if (savedCryptos != null) {
+        setState(() {
+          networks =
+              savedCryptos.where((c) => c.type == CryptoType.network).toList();
+        });
+      }
+    } catch (e) {
+      logError('Error getting saved crypto: $e');
+    }
+  }
+
   @override
   void initState() {
     super.initState();
-    SystemChrome.setSystemUIOverlayStyle(
-      const SystemUiOverlayStyle(
-        statusBarColor: Color(0xFF0D0D0D),
-        statusBarIconBrightness: Brightness.light,
-      ),
-    );
+
     getSavedTheme();
     getSavedWallets();
+    if (widget.network != null) {
+      currentNetwork = widget.network!;
+    }
+    if (widget.url != null) {
+      String url = widget.url!;
+      if (!(url.startsWith("http://") || url.startsWith("https://"))) {
+        url = "https://$url";
+      }
+      currentUrl = url;
+      if (_webViewController != null) {
+        _webViewController!
+            .loadUrl(urlRequest: URLRequest(url: WebUri(currentUrl)));
+      }
+    }
   }
 
   @override
@@ -257,6 +275,7 @@ class Web3BrowserScreenState extends State<Web3BrowserScreen> {
       if (savedData != null && lastAccount != null) {
         for (final account in savedData) {
           final newAccount = PublicData.fromJson(account);
+
           setState(() {
             accounts.add(newAccount);
           });
@@ -270,15 +289,22 @@ class Web3BrowserScreenState extends State<Web3BrowserScreen> {
       for (final account in accounts) {
         if (account.address == lastAccount) {
           currentAccount = account;
+          await getSavedCrypto(account: account);
+
+          isPageLoading = false;
+
           log("The current wallet is ${json.encode(account.toJson())}");
           break;
         } else {
           log("Not account found");
+          isPageLoading = false;
+
           currentAccount = accounts[0];
         }
       }
     } catch (e) {
       logError('Error getting saved wallets: $e');
+      isPageLoading = false;
     }
   }
 
@@ -302,234 +328,20 @@ class Web3BrowserScreenState extends State<Web3BrowserScreen> {
     }
   }
 
-  void openModalBottomSheet() async {
-    try {
-      showModalBottomSheet(
-          context: context,
-          builder: (BuildContext context) {
-            double width = MediaQuery.of(context).size.width;
-            double height = MediaQuery.of(context).size.height;
-
-            return Container(
-              width: width,
-              decoration: BoxDecoration(
-                color: darkNavigatorColor,
-              ),
-              child: Column(
-                mainAxisAlignment: MainAxisAlignment.start,
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  DraggableBar(colors: colors),
-                  Container(
-                    margin: const EdgeInsets.all(10),
-                    padding: const EdgeInsets.all(10),
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      mainAxisSize: MainAxisSize.min,
-                      children: [
-                        Container(
-                          margin: const EdgeInsets.only(left: 4),
-                          child: Row(
-                            children: [
-                              SizedBox(
-                                width: width * 0.3,
-                                child: Text(
-                                  _title,
-                                  overflow: TextOverflow.ellipsis,
-                                  style: GoogleFonts.roboto(
-                                      color: colors.textColor,
-                                      fontWeight: FontWeight.bold,
-                                      fontSize: 22),
-                                ),
-                              ),
-                              SizedBox(
-                                width: 10,
-                              ),
-                              Container(
-                                padding: const EdgeInsets.all(2),
-                                decoration: BoxDecoration(
-                                    borderRadius: BorderRadius.circular(50),
-                                    border: Border.all(
-                                        width: 1,
-                                        color: Colors.orange.withOpacity(0.8))),
-                                child: ClipRRect(
-                                  borderRadius: BorderRadius.circular(50),
-                                  child: Material(
-                                    color: Colors.transparent,
-                                    child: InkWell(
-                                      borderRadius: BorderRadius.circular(50),
-                                      onTap: () {
-                                        showChangeNetworkModal(
-                                            colors: colors,
-                                            changeNetwork: changeNetwork,
-                                            height: height,
-                                            context: context,
-                                            darkNavigatorColor:
-                                                darkNavigatorColor,
-                                            textColor: colors.textColor,
-                                            chainId: _chainId);
-                                      },
-                                      child: currentNetwork.icon == null
-                                          ? Container(
-                                              width: 25,
-                                              height: 25,
-                                              decoration: BoxDecoration(
-                                                  color: colors.textColor
-                                                      .withOpacity(0.6),
-                                                  borderRadius:
-                                                      BorderRadius.circular(
-                                                          50)),
-                                              child: Center(
-                                                child: Text(
-                                                  currentNetwork.name
-                                                      .substring(0, 2),
-                                                  style: GoogleFonts.roboto(
-                                                      color:
-                                                          colors.primaryColor,
-                                                      fontWeight:
-                                                          FontWeight.bold,
-                                                      fontSize: 18),
-                                                ),
-                                              ),
-                                            )
-                                          : Image.asset(
-                                              currentNetwork.icon ?? "",
-                                              width: 30,
-                                              height: 30,
-                                            ),
-                                    ),
-                                  ),
-                                ),
-                              )
-                            ],
-                          ),
-                        ),
-                        ConstrainedBox(
-                          constraints:
-                              BoxConstraints(maxWidth: 190, maxHeight: 70),
-                          child: Container(
-                            height: 40,
-                            padding: const EdgeInsets.only(left: 7),
-                            margin: const EdgeInsets.only(top: 10),
-                            decoration: BoxDecoration(
-                                color: colors.themeColor.withOpacity(0.1),
-                                borderRadius: BorderRadius.circular(30)),
-                            child: Material(
-                              color: Colors.transparent,
-                              child: InkWell(
-                                borderRadius: BorderRadius.circular(20),
-                                onTap: () {
-                                  Clipboard.setData(
-                                      ClipboardData(text: currentUrl));
-                                },
-                                child: Row(
-                                  children: [
-                                    ConstrainedBox(
-                                      constraints:
-                                          BoxConstraints(maxWidth: 140),
-                                      child: Text(
-                                        currentUrl,
-                                        style: GoogleFonts.roboto(
-                                          color:
-                                              colors.textColor.withOpacity(0.8),
-                                          fontSize: 14,
-                                        ),
-                                        maxLines: 1,
-                                        overflow: TextOverflow.ellipsis,
-                                      ),
-                                    ),
-                                    SizedBox(
-                                      width: 5,
-                                    ),
-                                    Icon(
-                                      FeatherIcons.copy,
-                                      color: colors.themeColor,
-                                    )
-                                  ],
-                                ),
-                              ),
-                            ),
-                          ),
-                        )
-                      ],
-                    ),
-                  ),
-                  Divider(
-                    color: colors.textColor.withOpacity(0.05),
-                  ),
-                  Column(
-                    children: List.generate(options.length, (index) {
-                      final option = options[index];
-                      return Material(
-                        color: Colors.transparent,
-                        child: ListTile(
-                          onTap: () {
-                            if (index == 0) {
-                              _reload();
-                              Navigator.pop(context);
-                            } else if (index == 1) {
-                              showChangeNetworkModal(
-                                  colors: colors,
-                                  changeNetwork: changeNetwork,
-                                  height: height,
-                                  context: context,
-                                  darkNavigatorColor: darkNavigatorColor,
-                                  textColor: colors.textColor,
-                                  chainId: _chainId);
-                            } else if (index == 2) {
-                              toggleShowAppBar();
-                              Navigator.pop(context);
-                            } else if (index == 3) {
-                              toggleShowAppBar();
-                              Navigator.pop(context);
-                            }
-                          },
-                          title: Row(
-                            children: [
-                              Text(
-                                option["name"],
-                                style: GoogleFonts.roboto(
-                                  color: colors.textColor,
-                                ),
-                              ),
-                              SizedBox(
-                                width: 7,
-                              ),
-                              if (index == 1)
-                                Container(
-                                  padding: const EdgeInsets.all(5),
-                                  decoration: BoxDecoration(
-                                      borderRadius: BorderRadius.circular(10),
-                                      color: colors.primaryColor),
-                                  child: Text(
-                                    currentNetwork.name,
-                                    style: GoogleFonts.roboto(
-                                      color: colors.textColor,
-                                    ),
-                                  ),
-                                )
-                            ],
-                          ),
-                          trailing: Icon(
-                            option["icon"],
-                            color: colors.textColor.withOpacity(0.6),
-                          ),
-                        ),
-                      );
-                    }),
-                  )
-                ],
-              ),
-            );
-          });
-    } catch (e) {
-      logError(e.toString());
-    }
-  }
-
   @override
   Widget build(BuildContext context) {
     final width = MediaQuery.of(context).size.width;
+    if (isPageLoading) {
+      return Center(
+        child: SizedBox(
+          width: 40,
+          height: 40,
+          child: CircularProgressIndicator(
+            color: colors.themeColor,
+          ),
+        ),
+      );
+    }
     return Scaffold(
         backgroundColor: darkNavigatorColor,
         floatingActionButton: !canShowAppBarOptions
@@ -607,121 +419,86 @@ class Web3BrowserScreenState extends State<Web3BrowserScreen> {
                       Icons.more_vert,
                       color: colors.textColor.withOpacity(0.8),
                     ),
-                    onPressed: openModalBottomSheet,
+                    onPressed: () {
+                      showBrowserBottomOptions(
+                          context: context,
+                          darkNavigatorColor: darkNavigatorColor,
+                          colors: colors,
+                          title: _title,
+                          networks: networks,
+                          manualChangeNetwork: manualChangeNetwork,
+                          currentNetwork: currentNetwork,
+                          chainId: _chainId,
+                          currentUrl: currentUrl,
+                          reload: _reload,
+                          toggleShowAppBar: toggleShowAppBar);
+                    },
                   )
                 ],
               ),
         body: SafeArea(
             child: Column(
           children: [
-            if (isPageLoading)
-              LinearProgressIndicator(
-                minHeight: 2,
-                value: progress,
-                color: colors.themeColor,
-              ),
             Expanded(
-                child: Web3Webview(
-              onCreateWindow: (controller, createWindowRequest) async {
-                log("Received create window request");
-                try {
-                  log("request ${createWindowRequest.request.mainDocumentURL}");
-                  if (createWindowRequest.request.url != null) {
-                    final newUrl = createWindowRequest.request.url;
-                    controller.loadUrl(urlRequest: URLRequest(url: newUrl));
-                    return true;
-                  } else {
-                    logError("The url is NULL");
-                    return false;
-                  }
-                } catch (e) {
-                  logError(e.toString());
-                  return false;
-                }
-              },
-              onLoadStart: (InAppWebViewController controller, Uri? url) {
-                setState(() {
-                  isPageLoading = true;
-                });
-              },
-              onLoadStop: (crl, webUrl) {
-                setState(() {
-                  isPageLoading = false;
-                  progress = 0;
-                });
-                crl.evaluateJavascript(source: """
-     window.open = function(url, name, features) {
-     window.flutter_inappwebview.callHandler('handleWindowOpen', url);
-  };
-""");
-              },
-              onProgressChanged: (controller, prog) {
-                setState(() {
-                  progress = prog / 100;
-                });
-              },
-              onWebViewCreated: (crl) {
-                _webViewController = crl;
-                crl.addJavaScriptHandler(
-                    handlerName: "handleWindowOpen",
-                    callback: (args) {
-                      final url = args[0].toString();
-                      setState(() {
-                        currentUrl = url;
-                      });
-                      crl.loadUrl(urlRequest: URLRequest(url: WebUri(url)));
-                    });
-              },
-              onConsoleMessage: (controller, msg) {
-                log("The console message : ${(msg.message)}");
-              },
-              initialUrlRequest: URLRequest(url: WebUri(currentUrl)),
-              settings: Web3Settings(
-                  eth: Web3EthSettings(
-                      chainId: _chainId, rdns: 'com.opennode.moonwallet')),
-              shouldOverrideUrlLoading: (p0, action) async =>
-                  NavigationActionPolicy.ALLOW,
-              onTitleChanged: _onTitleChanged,
-              ethAccounts: _ethAccounts,
-              ethChainId: _ethChainId,
-              walletSwitchEthereumChain: _walletSwitchEthereumChain,
-              ethSendTransaction: (data) async {
-                try {} catch (e) {
-                  logError(e.toString());
-                  Navigator.pop(context);
-                  final snackBar = SnackBar(
-                    /// need to set following properties for best effect of awesome_snackbar_content
-                    elevation: 0,
-                    behavior: SnackBarBehavior.floating,
-                    backgroundColor: Colors.transparent,
-                    content: AwesomeSnackbarContent(
-                      title: 'Ho Ho!',
-                      message: '${e.toString()}!',
-
-                      /// change contentType to ContentType.success, ContentType.warning or ContentType.help for variants
-                      contentType: ContentType.failure,
-                    ),
-                  );
-
-                  ScaffoldMessenger.of(context)
-                    ..hideCurrentSnackBar()
-                    ..showSnackBar(snackBar);
-                }
-                return await web3IntManager.sendEthTransaction(
-                    crypto: currentNetwork,
-                    colors: colors,
-                    data: data,
-                    mounted: mounted,
-                    context: context,
-                    currentAccount: currentAccount,
-                    currentNetwork: currentNetwork,
-                    primaryColor: colors.primaryColor,
-                    textColor: colors.textColor,
-                    secondaryColor: colors.themeColor,
-                    actionsColor: colors.grayColor,
-                    operationType: 0);
-              },
-            ))
+                child: currentAccount == null
+                    ? Center(
+                        child: SizedBox(
+                          width: 40,
+                          height: 40,
+                          child: CircularProgressIndicator(
+                            color: colors.themeColor,
+                          ),
+                        ),
+                      )
+                    : Web3WebView(
+                        key: webViewKey,
+                        onChangeNetwork: (chainId) async {
+                          for (final net in networks) {
+                            if (chainId == net.chainId) {
+                              await changeNetwork(net);
+                            }
+                          }
+                        },
+                        onTitleChanged: _onTitleChanged,
+                        colors: colors,
+                        onConsoleMessage: (crt, msg) {
+                          log("console message : $msg");
+                        },
+                        onWebViewCreated: (crt) {
+                          _webViewController = crt;
+                        },
+                        web3WalletConfig: Web3WalletConfig(
+                            currentAccount: currentAccount!,
+                            name: "Moon Wallet",
+                            icon: "https://moonbnb.pro/moon.png",
+                            address: currentAccount?.address,
+                            currentNetwork: NetworkConfig(
+                                blockExplorerUrls: [
+                                  currentNetwork.explorer ?? ""
+                                ],
+                                chainId:
+                                    "0x${(currentNetwork.chainId ?? 1).toRadixString(16)}",
+                                chainName: currentNetwork.name,
+                                rpcUrls: [currentNetwork.rpc ?? ""]),
+                            supportNetworks:
+                                List.generate(networks.length, (i) {
+                              return NetworkConfig(
+                                  chainId:
+                                      "0x${networks[i].chainId?.toRadixString(16)}",
+                                  chainName: networks[i].name,
+                                  rpcUrls: [
+                                    networks[i].rpc ?? ""
+                                  ],
+                                  blockExplorerUrls: [
+                                    networks[i].explorer ?? ""
+                                  ]);
+                            })),
+                        initialUrlRequest: URLRequest(
+                          url: WebUri(
+                            currentUrl, // Replace your dapp domain
+                          ),
+                        ),
+                      ))
           ],
         )));
   }
