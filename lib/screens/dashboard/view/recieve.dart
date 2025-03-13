@@ -16,6 +16,7 @@ import 'package:moonwallet/utils/constant.dart';
 import 'package:moonwallet/utils/crypto.dart';
 import 'package:moonwallet/utils/prefs.dart';
 import 'package:moonwallet/utils/themes.dart';
+import 'package:moonwallet/widgets/crypto_picture.dart';
 import 'package:qr_flutter/qr_flutter.dart';
 
 class ReceiveScreen extends StatefulWidget {
@@ -213,50 +214,8 @@ class _ReceiveScreenState extends State<ReceiveScreen> {
                   mainAxisAlignment: MainAxisAlignment.center,
                   crossAxisAlignment: CrossAxisAlignment.center,
                   children: [
-                    Stack(
-                      children: [
-                        ClipRRect(
-                          borderRadius: BorderRadius.circular(50),
-                          child: currentNetwork.icon == null
-                              ? Container(
-                                  width: 30,
-                                  height: 30,
-                                  decoration: BoxDecoration(
-                                      color: colors.textColor.withOpacity(0.6),
-                                      borderRadius: BorderRadius.circular(50)),
-                                  child: Center(
-                                    child: Text(
-                                      currentNetwork.symbol.length > 2
-                                          ? currentNetwork.symbol
-                                              .substring(0, 2)
-                                          : currentNetwork.symbol,
-                                      style: GoogleFonts.roboto(
-                                          color: colors.primaryColor,
-                                          fontWeight: FontWeight.bold,
-                                          fontSize: 18),
-                                    ),
-                                  ),
-                                )
-                              : Image.asset(
-                                  currentNetwork.icon ?? "",
-                                  width: 30,
-                                  height: 30,
-                                ),
-                        ),
-                        if (currentNetwork.type == CryptoType.token)
-                          Positioned(
-                              top: 20,
-                              left: 20,
-                              child: ClipRRect(
-                                borderRadius: BorderRadius.circular(50),
-                                child: Image.asset(
-                                  currentNetwork.network?.icon ?? "",
-                                  width: 8,
-                                  height: 8,
-                                ),
-                              ))
-                      ],
-                    ),
+                    CryptoPicture(
+                        crypto: currentNetwork, size: 30, colors: colors),
                     SizedBox(
                       width: 10,
                     ),
@@ -293,8 +252,14 @@ class _ReceiveScreenState extends State<ReceiveScreen> {
                             version: 3,
                             size: width * 0.8,
                             gapless: false,
-                            embeddedImage:
-                                AssetImage(currentNetwork.icon ?? ""),
+                            embeddedImage: currentNetwork.icon != null &&
+                                    currentNetwork.icon!
+                                        .toLowerCase()
+                                        .startsWith("http")
+                                ? NetworkImage(
+                                    currentNetwork.icon ?? "",
+                                  )
+                                : AssetImage(currentNetwork.icon ?? ""),
                             embeddedImageStyle: QrEmbeddedImageStyle(
                               size: Size(40, 40),
                             ),
@@ -335,6 +300,8 @@ class _ReceiveScreenState extends State<ReceiveScreen> {
               child: Container(
                 width: width * 0.85,
                 child: ElevatedButton.icon(
+                  style: ElevatedButton.styleFrom(
+                      elevation: 0, backgroundColor: colors.themeColor),
                   onPressed: () {
                     Clipboard.setData(
                         ClipboardData(text: currentAccount.address.trim()));
@@ -343,7 +310,10 @@ class _ReceiveScreenState extends State<ReceiveScreen> {
                     Icons.copy,
                     color: colors.primaryColor,
                   ),
-                  label: Text("Copy the address"),
+                  label: Text(
+                    "Copy the address",
+                    style: GoogleFonts.roboto(color: colors.primaryColor),
+                  ),
                 ),
               ))
         ],

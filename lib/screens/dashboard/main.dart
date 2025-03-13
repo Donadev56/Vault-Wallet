@@ -3,11 +3,12 @@
 import 'dart:async';
 import 'dart:convert';
 import 'dart:io';
+import 'package:moonwallet/custom/web3_webview/lib/widgets/custom_modal.dart';
 import 'package:moonwallet/service/crypto_storage_manager.dart';
 import 'package:moonwallet/service/network.dart';
 import 'package:moonwallet/service/wallet_saver.dart';
 import 'package:moonwallet/utils/colors.dart';
-import 'package:moonwallet/widgets/barre.dart';
+import 'package:moonwallet/widgets/crypto_picture.dart';
 import 'package:moonwallet/widgets/func/show_crypto_modal.dart';
 import 'package:moonwallet/widgets/text.dart';
 import 'package:path/path.dart' as path;
@@ -32,7 +33,6 @@ import 'package:moonwallet/widgets/drawer.dart';
 import 'package:moonwallet/widgets/snackbar.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:url_launcher/url_launcher.dart';
-import 'package:internet_connection_checker_plus/internet_connection_checker_plus.dart';
 
 class MainDashboardScreen extends StatefulWidget {
   const MainDashboardScreen({super.key});
@@ -275,6 +275,7 @@ class _MainDashboardScreenState extends State<MainDashboardScreen>
       if (result) {
         if (mounted) {
           showCustomSnackBar(
+              icon: Icons.check,
               colors: colors,
               primaryColor: colors.primaryColor,
               context: context,
@@ -284,6 +285,7 @@ class _MainDashboardScreenState extends State<MainDashboardScreen>
       } else {
         if (mounted) {
           showCustomSnackBar(
+              icon: Icons.check,
               colors: colors,
               primaryColor: colors.primaryColor,
               context: context,
@@ -320,6 +322,7 @@ class _MainDashboardScreenState extends State<MainDashboardScreen>
       if (result) {
         if (mounted) {
           showCustomSnackBar(
+              icon: Icons.check,
               colors: colors,
               primaryColor: colors.primaryColor,
               context: context,
@@ -329,6 +332,7 @@ class _MainDashboardScreenState extends State<MainDashboardScreen>
       } else {
         if (mounted) {
           showCustomSnackBar(
+              icon: Icons.check,
               colors: colors,
               primaryColor: colors.primaryColor,
               context: context,
@@ -817,69 +821,47 @@ class _MainDashboardScreenState extends State<MainDashboardScreen>
         route: Routes.sendScreen);
   }
 
-  void showOptionsModal() {
-    showModalBottomSheet(
-        shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.only(
-              topLeft: Radius.circular(30), topRight: Radius.circular(30)),
-        ),
-        isScrollControlled: true,
+  void showOptionsModal() async {
+    await showDialogWithBar(
         context: context,
-        builder: (BuildContext btmCtx) {
-          return Container(
-            height: MediaQuery.of(context).size.height * 0.34,
-            width: MediaQuery.of(context).size.width,
-            padding: const EdgeInsets.all(15),
-            decoration: BoxDecoration(
-                color: colors.primaryColor,
-                borderRadius: BorderRadius.only(
-                    topLeft: Radius.circular(30),
-                    topRight: Radius.circular(30))),
-            child: Column(
-              children: [
-                DraggableBar(colors: colors),
-                SizedBox(
-                  height: MediaQuery.of(btmCtx).size.height * 0.26,
-                  child: ListView.builder(
-                      itemCount: options.length,
-                      itemBuilder: (BuildContext lisCryptoCtx, int index) {
-                        final opt = options[index];
-                        return Material(
-                          color: Colors.transparent,
-                          child: ListTile(
-                            shape: RoundedRectangleBorder(
-                                borderRadius: BorderRadius.circular(10)),
-                            onTap: () {
-                              if (index == options.length - 1) {
-                                Navigator.pushNamed(context, Routes.settings);
-                              } else if (index == 1) {
-                                launchUrl(
-                                    Uri.parse("https://t.me/eternalprotocol"));
-                              } else if (index == 2) {
-                                launchUrl(Uri.parse(
-                                    "https://www.whatsapp.com/channel/0029Vb2TpR9HrDZWVEkhWz21"));
-                              } else if (index == 0) {
-                                toggleHidden();
-                              }
-                            },
-                            leading: Icon(
-                              opt["icon"],
-                              color: colors.textColor,
-                            ),
-                            title: Text(
-                              opt["name"],
-                              style: customTextStyle(
-                                  color: colors.textColor,
-                                  fontWeight: FontWeight.bold),
-                            ),
-                          ),
-                        );
-                      }),
-                ),
-              ],
-            ),
-          );
-        });
+        enableDrag: true,
+        builder: (ctx) {
+          return ListView.builder(
+              shrinkWrap: true,
+              itemCount: options.length,
+              itemBuilder: (BuildContext lisCryptoCtx, int index) {
+                final opt = options[index];
+                return Material(
+                  color: Colors.transparent,
+                  child: ListTile(
+                    shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(10)),
+                    onTap: () {
+                      if (index == options.length - 1) {
+                        Navigator.pushNamed(context, Routes.settings);
+                      } else if (index == 1) {
+                        launchUrl(Uri.parse("https://t.me/eternalprotocol"));
+                      } else if (index == 2) {
+                        launchUrl(Uri.parse(
+                            "https://www.whatsapp.com/channel/0029Vb2TpR9HrDZWVEkhWz21"));
+                      } else if (index == 0) {
+                        toggleHidden();
+                      }
+                    },
+                    leading: Icon(
+                      opt["icon"],
+                      color: colors.textColor,
+                    ),
+                    title: Text(
+                      opt["name"],
+                      style: customTextStyle(
+                          color: colors.textColor, fontWeight: FontWeight.bold),
+                    ),
+                  ),
+                );
+              });
+        },
+        colors: colors);
   }
 
   @override
@@ -930,6 +912,8 @@ class _MainDashboardScreenState extends State<MainDashboardScreen>
           textColor: colors.textColor,
           surfaceTintColor: colors.secondaryColor),
       appBar: CustomAppBar(
+          totalBalanceUsd: totalBalanceUsd,
+          availableCryptos: reorganizedCrypto,
           isTotalBalanceUpdated: isTotalBalanceUpdated,
           editVisualData: editVisualData,
           colors: colors,
@@ -1155,62 +1139,10 @@ class _MainDashboardScreenState extends State<MainDashboardScreen>
                                             "id": crypto.crypto.cryptoId
                                           }));
                                     },
-                                    leading: Stack(
-                                      children: [
-                                        ClipRRect(
-                                          borderRadius:
-                                              BorderRadius.circular(50),
-                                          child: crypto.crypto.icon == null
-                                              ? Container(
-                                                  width: 40,
-                                                  height: 40,
-                                                  decoration: BoxDecoration(
-                                                      color: colors.textColor
-                                                          .withOpacity(0.6),
-                                                      borderRadius:
-                                                          BorderRadius.circular(
-                                                              50)),
-                                                  child: Center(
-                                                    child: Text(
-                                                      crypto.crypto.symbol
-                                                                  .length >
-                                                              2
-                                                          ? crypto.crypto.symbol
-                                                              .substring(0, 2)
-                                                          : crypto
-                                                              .crypto.symbol,
-                                                      style: customTextStyle(
-                                                          color: colors
-                                                              .primaryColor,
-                                                          fontWeight:
-                                                              FontWeight.bold,
-                                                          fontSize: 18),
-                                                    ),
-                                                  ),
-                                                )
-                                              : Image.asset(
-                                                  crypto.crypto.icon ?? "",
-                                                  width: 40,
-                                                  height: 40,
-                                                ),
-                                        ),
-                                        if (crypto.crypto.type ==
-                                            CryptoType.token)
-                                          Positioned(
-                                              top: 25,
-                                              left: 25,
-                                              child: ClipRRect(
-                                                borderRadius:
-                                                    BorderRadius.circular(50),
-                                                child: Image.asset(
-                                                  crypto.crypto.network?.icon ??
-                                                      "",
-                                                  width: 15,
-                                                  height: 15,
-                                                ),
-                                              ))
-                                      ],
-                                    ),
+                                    leading: CryptoPicture(
+                                        crypto: crypto.crypto,
+                                        size: 40,
+                                        colors: colors),
                                     title: Row(
                                       spacing: 10,
                                       children: [

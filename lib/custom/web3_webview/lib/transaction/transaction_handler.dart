@@ -1,7 +1,7 @@
 // lib/ethereum/transaction/transaction_handler.dart
 import 'dart:typed_data';
 import 'package:web3dart/web3dart.dart';
-import '../../../logger/logger.dart';
+import '../../../../logger/logger.dart';
 import '../utils/hex_utils.dart';
 import '../exceptions.dart';
 import '../utils/validation_utils.dart';
@@ -14,6 +14,7 @@ class TransactionHandler {
   TransactionHandler(this._web3client, this._credentials, this._chainId);
 
   Future<String> handleTransaction(Map<String, dynamic> txParams) async {
+    log("Transaction params ${txParams}");
     try {
       log("Handling transaction for ${txParams.values.map((v) => v.toString()).toList()}");
       // Validate transaction

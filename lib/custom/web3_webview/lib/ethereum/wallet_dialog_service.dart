@@ -267,7 +267,7 @@ class WalletDialogService {
       colors: colors,
       context: context,
       useRootNavigator: true,
-      backgroundColor: _theme.backgroundColor,
+      backgroundColor: colors.primaryColor,
       child: Container(
         padding: _theme.dialogPadding,
         child: builder(context),

@@ -13,10 +13,11 @@ class BottomSheetDialog {
     bool isDismissible = true,
     bool useRootNavigator = false,
     Color backgroundColor = Colors.white,
+    bool enableDrag = false,
     required Widget child,
     required AppColors colors,
   }) async {
-    return showMaterialModalBottomSheet<dynamic>(
+    return showBarModalBottomSheet<dynamic>(
       context: context,
       isDismissible: isDismissible,
       duration: const Duration(
@@ -26,7 +27,7 @@ class BottomSheetDialog {
           borderRadius: BorderRadius.only(
               topLeft: Radius.circular(30), topRight: Radius.circular(30))),
       backgroundColor: colors.primaryColor,
-      enableDrag: false,
+      enableDrag: enableDrag,
       builder: (context) => child,
       closeProgressThreshold: 0.2,
       useRootNavigator: useRootNavigator,
@@ -39,7 +40,7 @@ class BottomSheetDialog {
     bool isDismissible = false,
     bool useRootNavigator = false,
     bool isScrollController = true,
-    bool enableDrag = true,
+    bool enableDrag = false,
     required AppColors colors,
   }) async {
     return showCupertinoModalBottomSheet<dynamic>(

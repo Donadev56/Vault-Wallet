@@ -5,12 +5,13 @@ import 'dart:ui';
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:lucide_icons_flutter/lucide_icons.dart';
+import 'package:modal_bottom_sheet/modal_bottom_sheet.dart';
 import 'package:moonwallet/main.dart';
 import 'package:moonwallet/service/crypto_storage_manager.dart';
 import 'package:moonwallet/service/token_manager.dart';
 import 'package:moonwallet/types/types.dart';
 import 'package:moonwallet/utils/constant.dart';
-import 'package:moonwallet/widgets/barre.dart';
+import 'package:moonwallet/widgets/crypto_picture.dart';
 import 'package:moonwallet/widgets/snackbar.dart';
 import 'package:ulid/ulid.dart';
 
@@ -27,8 +28,7 @@ void showAddToken(
   final tokenManager = TokenManager();
   final cryptoStorageManager = CryptoStorageManager();
   SearchingContractInfo? searchingContractInfo;
-  showModalBottomSheet(
-      isScrollControlled: true,
+  showCupertinoModalBottomSheet(
       backgroundColor: colors.primaryColor,
       context: context,
       builder: (ctx) {
@@ -301,7 +301,7 @@ void showAddToken(
                     children: [
                       ListTile(
                         onTap: () {
-                          showModalBottomSheet(
+                          showBarModalBottomSheet(
                               shape: RoundedRectangleBorder(
                                   borderRadius: BorderRadius.only(
                                       topLeft: Radius.circular(30),
@@ -309,48 +309,41 @@ void showAddToken(
                               backgroundColor: colors.primaryColor,
                               context: context,
                               builder: (ctx) {
-                                return SingleChildScrollView(
-                                    child: Column(
-                                        children: List.generate(
-                                            reorganizedCrypto
-                                                    .where((crypto) =>
-                                                        crypto.type ==
-                                                        CryptoType.network)
-                                                    .length +
-                                                1, (index) {
-                                  if (index == 0) {
-                                    return DraggableBar(colors: colors);
-                                  }
-
-                                  final crypto = reorganizedCrypto
-                                      .where((crypto) =>
-                                          crypto.type == CryptoType.network)
-                                      .toList()[index - 1];
-                                  return ListTile(
-                                    leading: ClipRRect(
-                                      borderRadius: BorderRadius.circular(50),
-                                      child: Image.asset(
-                                        crypto.icon ?? "",
-                                        fit: BoxFit.cover,
-                                        width: 30,
-                                        height: 30,
-                                      ),
-                                    ),
-                                    title: Text(crypto.name,
-                                        style: GoogleFonts.roboto(
-                                            color: colors.textColor)),
-                                    onTap: () {
-                                      setModalState(() {
-                                        selectedNetwork = crypto;
-                                      });
-                                      Navigator.pop(context);
-                                    },
-                                    trailing: Icon(
-                                      LucideIcons.chevronRight,
-                                      color: colors.textColor,
-                                    ),
-                                  );
-                                })));
+                                return Material(
+                                    color: Colors.transparent,
+                                    child: ListView.builder(
+                                      shrinkWrap: true,
+                                      itemCount: reorganizedCrypto
+                                          .where((crypto) =>
+                                              crypto.type == CryptoType.network)
+                                          .length,
+                                      itemBuilder: (ctx, i) {
+                                        final crypto = reorganizedCrypto
+                                            .where((crypto) =>
+                                                crypto.type ==
+                                                CryptoType.network)
+                                            .toList()[i];
+                                        return ListTile(
+                                          leading: CryptoPicture(
+                                              crypto: crypto,
+                                              size: 30,
+                                              colors: colors),
+                                          title: Text(crypto.name,
+                                              style: GoogleFonts.roboto(
+                                                  color: colors.textColor)),
+                                          onTap: () {
+                                            setModalState(() {
+                                              selectedNetwork = crypto;
+                                            });
+                                            Navigator.pop(context);
+                                          },
+                                          trailing: Icon(
+                                            LucideIcons.chevronRight,
+                                            color: colors.textColor,
+                                          ),
+                                        );
+                                      },
+                                    ));
                               });
                         },
                         title: Text(

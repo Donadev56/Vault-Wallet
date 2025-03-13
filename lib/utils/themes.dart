@@ -27,7 +27,7 @@ class Themes {
       };
   AppColors darkGrayColor = AppColors(
     primaryColor: Color(0XFF1B1B1B),
-    themeColor: Colors.greenAccent,
+    themeColor: const Color.fromARGB(255, 83, 250, 170),
     greenColor: Colors.greenAccent,
     secondaryColor: Color(0XFF454545),
     grayColor: Color(0XFF353535),
@@ -37,7 +37,7 @@ class Themes {
 
   AppColors darkColors = AppColors(
     primaryColor: Color(0XFF0D0D0D),
-    themeColor: Colors.greenAccent,
+    themeColor: const Color.fromARGB(255, 83, 250, 170),
     greenColor: Colors.greenAccent,
     secondaryColor: Color(0XFF121212),
     grayColor: Color(0XFF353535),
@@ -68,7 +68,7 @@ class Themes {
   AppColors lightColors = AppColors(
     primaryColor: Color(0XFFFFFFFF),
     themeColor: Colors.lightBlueAccent,
-    greenColor: Colors.lightGreenAccent,
+    greenColor: const Color.fromARGB(255, 3, 244, 127),
     secondaryColor: Color(0XFFF0F0F0),
     grayColor: Color(0XFFBDBDBD),
     textColor: Colors.black,

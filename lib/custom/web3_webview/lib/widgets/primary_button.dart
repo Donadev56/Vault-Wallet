@@ -41,7 +41,7 @@ class PrimaryButton extends StatelessWidget {
       case ButtonMode.confirm:
         return ButtonConfig(
           backgroundColor: style?.backgroundColor ?? colors.themeColor,
-          textColor: style?.textColor ?? colors.textColor,
+          textColor: style?.textColor ?? colors.primaryColor,
           borderRadius: style?.borderRadius ?? 10.0,
           padding: style?.padding ?? const EdgeInsets.all(10),
           fontSize: style?.fontSize ?? 16.0,

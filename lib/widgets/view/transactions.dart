@@ -5,6 +5,7 @@ import 'package:flutter/services.dart';
 import 'package:flutter_feather_icons/flutter_feather_icons.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:lucide_icons_flutter/lucide_icons.dart';
+import 'package:modal_bottom_sheet/modal_bottom_sheet.dart';
 import 'package:moonwallet/logger/logger.dart';
 import 'package:moonwallet/types/types.dart';
 import 'package:moonwallet/utils/constant.dart';
@@ -36,46 +37,28 @@ class TransactionsListElement extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final height = MediaQuery.of(context).size.height;
     return Material(
       color: Colors.transparent,
       child: ListTile(
         onTap: () {
-          showModalBottomSheet(
+          showBarModalBottomSheet(
               shape: RoundedRectangleBorder(
                   borderRadius: BorderRadius.only(
                       topLeft: Radius.circular(30),
                       topRight: Radius.circular(30))),
-              isScrollControlled: true,
               context: context,
               builder: (BuildContext ctx) {
                 return Container(
-                  padding: const EdgeInsets.all(15),
-                  height: height * 0.7,
+                  padding: const EdgeInsets.all(20),
                   decoration: BoxDecoration(
                     color: primaryColor,
                     borderRadius: BorderRadius.only(
                         topLeft: Radius.circular(30),
                         topRight: Radius.circular(30)),
                   ),
-                  child: Column(
+                  child: ListView(
+                    shrinkWrap: true,
                     children: [
-                      Align(
-                        alignment: Alignment.center,
-                        child: Container(
-                          margin: const EdgeInsets.all(10),
-                          height: 10,
-                          width: 80,
-                          decoration: BoxDecoration(
-                              color: isFrom
-                                  ? colors.redColor.withOpacity(0.8)
-                                  : colors.greenColor.withOpacity(0.8),
-                              borderRadius: BorderRadius.circular(50)),
-                        ),
-                      ),
-                      SizedBox(
-                        height: 15,
-                      ),
                       Container(
                         decoration: BoxDecoration(
                             borderRadius: BorderRadius.circular(20),

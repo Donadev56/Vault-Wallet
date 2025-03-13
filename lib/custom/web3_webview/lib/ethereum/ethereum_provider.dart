@@ -12,8 +12,8 @@ import 'package:moonwallet/service/known_host_manager.dart';
 import 'package:moonwallet/service/web3_interaction.dart';
 import 'package:moonwallet/types/types.dart';
 import 'package:moonwallet/utils/id_manager.dart';
-import 'package:moonwallet/web3_webview/lib/utils/loading.dart';
-import 'package:moonwallet/web3_webview/lib/widgets/alert.dart';
+import 'package:moonwallet/custom/web3_webview/lib/utils/loading.dart';
+import 'package:moonwallet/custom/web3_webview/lib/widgets/alert.dart';
 import 'package:web3dart/web3dart.dart';
 
 import '../json_rpc_method.dart';

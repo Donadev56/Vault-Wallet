@@ -13,8 +13,9 @@ final List<Map<String, dynamic>> options = [
   {"name": 'Share', "icon": LucideIcons.share},
 ];
 final opBNbNetwork = Crypto(
+  isNetworkIcon: false,
   symbol: "OpBNB",
-  apiBaseUrl: "api-opbnb.bscscan.com",
+  apiBaseUrl: "api-opbnb.bscscan.com/api",
   apiKey: "6VUMQRRIHQEFKSEU1GH4WWNU1Q9ZYG2KRZ",
   canDisplay: true,
   valueUsd: 0,
@@ -29,8 +30,9 @@ final opBNbNetwork = Crypto(
   cryptoId: "a6717b9f-a1a9-4b48-82ed-d01c7d251794",
 );
 final binanceNetwork = Crypto(
+    isNetworkIcon: false,
     symbol: "BNB",
-    apiBaseUrl: "api.bscscan.com",
+    apiBaseUrl: "api.bscscan.com/api",
     apiKey: "UKDSYXSDA8BJFT6QWP1IH161UQICTTJHHX",
     canDisplay: true,
     valueUsd: 0,
@@ -45,8 +47,9 @@ final binanceNetwork = Crypto(
     cryptoId: "a2e6b128-616b-4702-af5f-453c9231cea8");
 
 final polygonNetwork = Crypto(
+    isNetworkIcon: false,
     symbol: "POL",
-    apiBaseUrl: "api.polygonscan.com",
+    apiBaseUrl: "api.polygonscan.com/api",
     apiKey: "BUVQC2CWQXGZTPARK1215KQ7Y6CQ6A47QJ",
     canDisplay: false,
     valueUsd: 0,
@@ -61,8 +64,9 @@ final polygonNetwork = Crypto(
     cryptoId: "a2e6b376-7263-4502-af5f-453c92316262");
 
 final ethereumNetwork = Crypto(
+    isNetworkIcon: false,
     symbol: "ETH",
-    apiBaseUrl: "api.etherscan.io",
+    apiBaseUrl: "api.etherscan.io/api",
     apiKey: "5IABWY62PY3RMGR9WT6547X7VW6CQIG1CN",
     canDisplay: false,
     valueUsd: 0,
@@ -76,12 +80,105 @@ final ethereumNetwork = Crypto(
     color: Colors.grey,
     cryptoId: "42e6b336-616b-4502-af5f-453c9231ce09");
 
+final moonbeamNetwork = Crypto(
+    isNetworkIcon: false,
+    symbol: "GLMR",
+    apiBaseUrl: "api.moonscan.io", // API fictive pour l'exemple
+    canDisplay: false,
+    valueUsd: 0,
+    type: CryptoType.network,
+    explorer: "https://moonbeam.moonscan.io/",
+    rpc: "https://rpc.api.moonbeam.network/",
+    name: "Moonbeam",
+    binanceSymbol: "GLMRUSDT",
+    chainId: 1284,
+    color: Colors.amber,
+    cryptoId: "42e6b336-616b-4502-af5f-453792319e09");
+final celoNetwork = Crypto(
+    isNetworkIcon: false,
+    symbol: "CELO",
+    apiBaseUrl: "api.celoexplorer.com", // API fictive pour l'exemple
+    canDisplay: false,
+    valueUsd: 0,
+    type: CryptoType.network,
+    explorer: "https://explorer.celo.org/",
+    rpc: "https://forno.celo.org/",
+    name: "Celo",
+    binanceSymbol: "CELOUSDT",
+    chainId: 42220,
+    color: Colors.teal,
+    cryptoId: "42e88336-616b-4502-af5f-453799919e09");
+final gnosisNetwork = Crypto(
+    isNetworkIcon: false,
+    symbol: "xDAI",
+    apiBaseUrl: "api.gnosisscan.io", // API fictive pour l'exemple
+    canDisplay: false,
+    valueUsd: 0,
+    type: CryptoType.network,
+    explorer: "https://blockscout.com/xdai/mainnet/",
+    rpc: "https://rpc.gnosischain.com/",
+    name: "Gnosis Chain",
+    binanceSymbol: "xDAIUSDT",
+    chainId: 100,
+    color: Colors.green,
+    cryptoId: "42e88336-7636-4502-af5f-499799919e09");
+
+final optimismNetwork = Crypto(
+    isNetworkIcon: false,
+    symbol: "ETH",
+    apiBaseUrl: "api-optimistic.etherscan.io",
+    canDisplay: false,
+    valueUsd: 0,
+    type: CryptoType.network,
+    explorer: "https://optimistic.etherscan.io/",
+    rpc: "https://mainnet.optimism.io",
+    name: "Optimism",
+    binanceSymbol: "ETHUSDT",
+    chainId: 10,
+    color: Colors.pinkAccent,
+    cryptoId: "4828376-7636-4502-af5f-49339919e09");
+
+final arbitrumNetwork = Crypto(
+    isNetworkIcon: false,
+    symbol: "ETH",
+    apiBaseUrl: "api.arbiscan.io",
+    canDisplay: false,
+    valueUsd: 0,
+    type: CryptoType.network,
+    explorer: "https://arbiscan.io/",
+    rpc: "https://arb1.arbitrum.io/rpc",
+    name: "Arbitrum One",
+    binanceSymbol: "ETHUSDT",
+    chainId: 42161,
+    color: Colors.orange,
+    cryptoId: "26363736-7636-4502-af5f-49339919e09");
+
+final avalancheNetwork = Crypto(
+  symbol: "AVAX",
+  apiBaseUrl: "api.routescan.io/v2/network/mainnet/evm/",
+  canDisplay: false,
+  valueUsd: 0,
+  type: CryptoType.network,
+  explorer: "https://snowtrace.io/",
+  rpc: "https://api.avax.network/ext/bc/C/rpc",
+  name: "Avalanche C-Chain",
+  binanceSymbol: "AVAXUSDT",
+  apiKey: "YourApiKeyToken",
+  chainId: 43114,
+  color: Colors.red,
+  cryptoId: "33377736-7636-4502-af5f-49339919e09",
+  isNetworkIcon: true,
+  icon: "https://cryptologos.cc/logos/avalanche-avax-logo.png?v=040",
+);
+
 final List<Crypto> cryptos = [
   opBNbNetwork,
   binanceNetwork,
   polygonNetwork,
   ethereumNetwork,
+  avalancheNetwork,
   Crypto(
+      isNetworkIcon: false,
       symbol: "USDT",
       canDisplay: true,
       network: opBNbNetwork,
@@ -97,6 +194,7 @@ final List<Crypto> cryptos = [
       color: Colors.greenAccent,
       cryptoId: "405909bc-9776-4296-8ef7-09ab8ce3741e"),
   Crypto(
+      isNetworkIcon: false,
       symbol: "BTCB",
       canDisplay: true,
       network: binanceNetwork,
@@ -112,6 +210,7 @@ final List<Crypto> cryptos = [
       color: Colors.orange,
       cryptoId: "76a6dd5a-31b7-4033-b192-b44ca8d34d48"),
   Crypto(
+    isNetworkIcon: false,
     symbol: "MOON",
     canDisplay: true,
     network: opBNbNetwork,
@@ -127,6 +226,7 @@ final List<Crypto> cryptos = [
     color: Colors.orange,
   ),
   Crypto(
+    isNetworkIcon: false,
     symbol: "USDT",
     contractAddress: "0xc2132D05D31c914a87C6611C10748AEb04B58e8F",
     canDisplay: false,
@@ -143,6 +243,7 @@ final List<Crypto> cryptos = [
     color: Colors.greenAccent,
   ),
   Crypto(
+    isNetworkIcon: false,
     symbol: "USDT",
     contractAddress: "0xdAC17F958D2ee523a2206206994597C13D831ec7",
     canDisplay: false,
@@ -159,6 +260,7 @@ final List<Crypto> cryptos = [
     color: Colors.greenAccent,
   ),
   Crypto(
+    isNetworkIcon: false,
     symbol: "USDT",
     contractAddress: "0x55d398326f99059ff775485246999027b3197955",
     canDisplay: true,

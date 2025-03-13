@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_web3_webview/flutter_web3_webview.dart';
+import 'package:moonwallet/custom/web3_webview/lib/utils/loading.dart';
 import 'package:moonwallet/logger/logger.dart';
 import 'package:moonwallet/service/price_manager.dart';
 import 'package:moonwallet/service/web3.dart';
@@ -299,40 +300,20 @@ class TokenManager {
           if (!mounted) {
             throw Exception("Internal error");
           }
-          showDialog(
-              context: context,
-              builder: (BuildContext context) {
-                return Center(
-                  child: Container(
-                    padding: const EdgeInsets.all(30),
-                    width: 100,
-                    height: 100,
-                    decoration: BoxDecoration(
-                      borderRadius: BorderRadius.circular(20),
-                      border: Border.all(color: secondaryColor, width: 0.5),
-                      color: primaryColor,
-                    ),
-                    child: SizedBox(
-                      width: 50,
-                      height: 50,
-                      child: CircularProgressIndicator(
-                        color: textColor,
-                      ),
-                    ),
-                  ),
-                );
-              });
+
           if (userPassword.isEmpty) {
             log("No password");
             throw Exception("No password provided");
           }
-          final result = await web3InteractionManager.sendTransaction(
-              transaction: transaction,
-              chainId: currentNetwork.network?.chainId ?? 204,
-              rpcUrl: currentNetwork.network?.rpc ??
-                  "https://opbnb-mainnet-rpc.bnbchain.org",
-              password: userPassword,
-              address: data.from ?? "");
+          final result = await web3InteractionManager
+              .sendTransaction(
+                  transaction: transaction,
+                  chainId: currentNetwork.network?.chainId ?? 204,
+                  rpcUrl: currentNetwork.network?.rpc ??
+                      "https://opbnb-mainnet-rpc.bnbchain.org",
+                  password: userPassword,
+                  address: data.from ?? "")
+              .withLoading(context, colors);
 
           if (!mounted) {
             throw Exception("Internal error");

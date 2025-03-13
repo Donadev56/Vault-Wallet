@@ -1,0 +1,85 @@
+import 'package:flutter/material.dart';
+import 'package:modal_bottom_sheet/modal_bottom_sheet.dart';
+import 'package:moonwallet/types/types.dart';
+import 'package:moonwallet/widgets/barre.dart';
+
+class CustomBottomSheetDialog {
+  static final instance = CustomBottomSheetDialog._();
+
+  CustomBottomSheetDialog._();
+
+  Future<dynamic> showView({
+    required BuildContext context,
+    bool isDismissible = true,
+    bool useRootNavigator = false,
+    Color backgroundColor = Colors.white,
+    bool enableDrag = false,
+    required Widget child,
+    required AppColors colors,
+  }) async {
+    return showBarModalBottomSheet<dynamic>(
+      context: context,
+      isDismissible: isDismissible,
+      duration: const Duration(
+        milliseconds: 200,
+      ),
+      shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.only(
+              topLeft: Radius.circular(30), topRight: Radius.circular(30))),
+      backgroundColor: colors.primaryColor,
+      enableDrag: enableDrag,
+      builder: (context) {
+        return SizedBox(
+          child: child,
+        );
+      },
+      closeProgressThreshold: 0.2,
+      useRootNavigator: useRootNavigator,
+    );
+  }
+
+  Future<dynamic> showViewWithModalStyle(
+    Widget widget, {
+    required BuildContext context,
+    bool isDismissible = false,
+    bool useRootNavigator = false,
+    bool isScrollController = true,
+    bool enableDrag = false,
+    required AppColors colors,
+  }) async {
+    return showCupertinoModalBottomSheet<dynamic>(
+      context: context,
+      isDismissible: isDismissible,
+      backgroundColor: Colors.transparent,
+      duration: const Duration(milliseconds: 200),
+      topRadius: Radius.circular(30),
+      enableDrag: enableDrag,
+      builder: (context) => SafeArea(
+        bottom: false,
+        child: Material(
+          child: Column(
+            children: [DraggableBar(colors: colors), widget],
+          ),
+        ),
+      ),
+      useRootNavigator: useRootNavigator,
+    );
+  }
+}
+
+Future showDialogWithBar({
+  required BuildContext context,
+  required Widget Function(BuildContext) builder,
+  required AppColors colors,
+  EdgeInsetsGeometry padding =
+      const EdgeInsets.symmetric(vertical: 7, horizontal: 7),
+  enableDrag = true,
+}) {
+  return CustomBottomSheetDialog.instance.showView(
+    enableDrag: enableDrag,
+    colors: colors,
+    context: context,
+    useRootNavigator: true,
+    child: Container(padding: padding, child: builder(context)),
+  );
+}

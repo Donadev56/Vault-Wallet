@@ -4,9 +4,9 @@ import 'package:flutter_feather_icons/flutter_feather_icons.dart';
 import 'package:flutter_web3_webview/flutter_web3_webview.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:lucide_icons_flutter/lucide_icons.dart';
+import 'package:modal_bottom_sheet/modal_bottom_sheet.dart';
 import 'package:moonwallet/logger/logger.dart';
 import 'package:moonwallet/types/types.dart';
-import 'package:moonwallet/widgets/barre.dart';
 
 Future<UserRequestResponse> askUserForConfirmation(
     {Crypto? crypto,
@@ -36,7 +36,7 @@ Future<UserRequestResponse> askUserForConfirmation(
   }
 
   CurrencyFormat formatterSettings = CurrencyFormat(
-    symbol: crypto?.symbol ?? "",
+    symbol: "",
     symbolSide: SymbolSide.right,
     thousandSeparator: ',',
     decimalSeparator: '.',
@@ -88,9 +88,8 @@ Future<UserRequestResponse> askUserForConfirmation(
     return formatted;
   }
 
-  final result = await showModalBottomSheet<UserRequestResponse>(
+  final result = await showBarModalBottomSheet<UserRequestResponse>(
     context: context,
-    isScrollControlled: true,
     shape: RoundedRectangleBorder(
       borderRadius: BorderRadius.only(
         topLeft: Radius.circular(30),
@@ -99,11 +98,9 @@ Future<UserRequestResponse> askUserForConfirmation(
     ),
     builder: (BuildContext confirmationCtx) {
       final width = MediaQuery.of(confirmationCtx).size.width;
-      final height = MediaQuery.of(confirmationCtx).size.height;
       return StatefulBuilder(
         builder: (BuildContext ctx, StateSetter setModalState) {
           return Container(
-            height: height * 0.9,
             decoration: BoxDecoration(
               color: primaryColor,
               borderRadius: BorderRadius.only(
@@ -111,19 +108,9 @@ Future<UserRequestResponse> askUserForConfirmation(
                 topRight: Radius.circular(30),
               ),
             ),
-            child: Column(
+            child: ListView(
+              shrinkWrap: true,
               children: [
-                Align(
-                  alignment: Alignment.center,
-                  child: Container(
-                    margin: const EdgeInsets.all(10),
-                    height: 7,
-                    width: 80,
-                    decoration: BoxDecoration(
-                        color: secondaryColor,
-                        borderRadius: BorderRadius.circular(50)),
-                  ),
-                ),
                 Padding(
                   padding: const EdgeInsets.all(10),
                   child: Row(
@@ -184,23 +171,34 @@ Future<UserRequestResponse> askUserForConfirmation(
                     margin: const EdgeInsets.all(10),
                     width: width,
                     decoration: BoxDecoration(
-                      color: actionsColor.withOpacity(0.7),
+                      color: actionsColor.withOpacity(0.4),
                       borderRadius: BorderRadius.circular(10),
                     ),
                     child: Align(
-                      alignment: Alignment.center,
-                      child: Text(
-                        txData.value != null
-                            ? "${getValue()} "
-                            : "0  ${crypto != null ? crypto.symbol : ""}",
-                        overflow: TextOverflow.clip,
-                        maxLines: 1,
-                        style: GoogleFonts.roboto(
-                            color: textColor,
-                            fontWeight: FontWeight.bold,
-                            fontSize: 25),
-                      ),
-                    ),
+                        alignment: Alignment.center,
+                        child: Row(
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          children: [
+                            Text(
+                              txData.value != null ? getValue() : "0 ",
+                              overflow: TextOverflow.clip,
+                              maxLines: 1,
+                              style: GoogleFonts.roboto(
+                                  color: textColor,
+                                  fontWeight: FontWeight.bold,
+                                  fontSize: 25),
+                            ),
+                            Text(
+                              crypto != null ? crypto.symbol.toUpperCase() : "",
+                              overflow: TextOverflow.clip,
+                              maxLines: 1,
+                              style: GoogleFonts.roboto(
+                                  color: textColor.withOpacity(0.5),
+                                  fontWeight: FontWeight.bold,
+                                  fontSize: 25),
+                            ),
+                          ],
+                        )),
                   ),
                 ),
                 Align(
@@ -219,7 +217,7 @@ Future<UserRequestResponse> askUserForConfirmation(
                   padding: const EdgeInsets.all(10),
                   decoration: BoxDecoration(
                     borderRadius: BorderRadius.circular(10),
-                    color: actionsColor.withOpacity(0.7),
+                    color: actionsColor.withOpacity(0.4),
                   ),
                   child: Column(
                     children: [
@@ -278,7 +276,7 @@ Future<UserRequestResponse> askUserForConfirmation(
                   padding: const EdgeInsets.all(10),
                   decoration: BoxDecoration(
                     borderRadius: BorderRadius.circular(10),
-                    color: actionsColor.withOpacity(0.7),
+                    color: actionsColor.withOpacity(0.4),
                   ),
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
@@ -314,140 +312,159 @@ Future<UserRequestResponse> askUserForConfirmation(
                       if (index == 3) {
                         return InkWell(
                           onTap: () {
-                            showModalBottomSheet(
-                              isScrollControlled: true,
+                            showCupertinoModalBottomSheet(
                               context: context,
                               builder: (BuildContext editCtx) {
-                                return Container(
-                                  height: height * 0.95,
-                                  padding: const EdgeInsets.all(10),
-                                  alignment: Alignment.center,
-                                  decoration: BoxDecoration(
-                                    color: primaryColor,
-                                  ),
-                                  child: Column(
-                                    children: [
-                                      Container(
-                                        padding: const EdgeInsets.all(10),
-                                        child: Row(
-                                          mainAxisAlignment:
-                                              MainAxisAlignment.spaceBetween,
-                                          children: [
-                                            Text(
-                                              "Customize gas",
-                                              style: GoogleFonts.roboto(
-                                                  color: textColor,
-                                                  fontWeight: FontWeight.bold,
-                                                  fontSize: 22),
-                                            ),
-                                            IconButton(
-                                              icon: Icon(
-                                                FeatherIcons.xCircle,
-                                                color: Colors.pinkAccent,
+                                return SafeArea(
+                                  child: Material(
+                                      color: Colors.transparent,
+                                      child: Container(
+                                          padding: const EdgeInsets.all(10),
+                                          decoration: BoxDecoration(
+                                            color: primaryColor,
+                                          ),
+                                          child: ListView(
+                                            children: [
+                                              Container(
+                                                padding:
+                                                    const EdgeInsets.all(10),
+                                                child: Row(
+                                                  mainAxisAlignment:
+                                                      MainAxisAlignment
+                                                          .spaceBetween,
+                                                  children: [
+                                                    Text(
+                                                      "Customize gas",
+                                                      style: GoogleFonts.roboto(
+                                                          color: textColor,
+                                                          fontWeight:
+                                                              FontWeight.bold,
+                                                          fontSize: 22),
+                                                    ),
+                                                    IconButton(
+                                                      icon: Icon(
+                                                        FeatherIcons.xCircle,
+                                                        color:
+                                                            Colors.pinkAccent,
+                                                      ),
+                                                      onPressed: () {
+                                                        Navigator.pop(editCtx);
+                                                      },
+                                                    )
+                                                  ],
+                                                ),
                                               ),
-                                              onPressed: () {
-                                                Navigator.pop(editCtx);
-                                              },
-                                            )
-                                          ],
-                                        ),
-                                      ),
-                                      TextField(
-                                        onChanged: (value) {
-                                          setModalState(() {
-                                            customGasLimit =
-                                                BigInt.from(int.parse(value));
-                                            log("New custom gas limit $customGasLimit ");
-                                          });
-                                        },
-                                        keyboardType: TextInputType.number,
-                                        style: GoogleFonts.roboto(
-                                            color: textColor),
-                                        decoration: InputDecoration(
-                                          enabledBorder: OutlineInputBorder(
-                                            borderSide: BorderSide(
-                                                width: 1,
-                                                color:
-                                                    textColor.withOpacity(0.1)),
-                                          ),
-                                          focusedBorder: OutlineInputBorder(
-                                            borderSide: BorderSide(
-                                                width: 1,
-                                                color: secondaryColor
-                                                    .withOpacity(0.1)),
-                                          ),
-                                          labelText: "Gas Limit",
-                                          border: InputBorder.none,
-                                          suffixText: "Gwei",
-                                        ),
-                                      ),
-                                      SizedBox(height: 20),
-                                      TextField(
-                                        style: GoogleFonts.roboto(
-                                            color: textColor),
-                                        keyboardType: TextInputType.number,
-                                        onChanged: (value) {
-                                          setModalState(() {
-                                            customGasPrice =
-                                                BigInt.from(int.parse(value));
-                                            log("New custom gas price $customGasPrice ");
-                                          });
-                                        },
-                                        decoration: InputDecoration(
-                                          enabledBorder: OutlineInputBorder(
-                                            borderSide: BorderSide(
-                                                width: 1,
-                                                color:
-                                                    textColor.withOpacity(0.1)),
-                                          ),
-                                          focusedBorder: OutlineInputBorder(
-                                            borderSide: BorderSide(
-                                                width: 1,
-                                                color: secondaryColor
-                                                    .withOpacity(0.1)),
-                                          ),
-                                          labelText: "Gas Price",
-                                          border: InputBorder.none,
-                                          suffixText: "Gwei",
-                                        ),
-                                      ),
-                                      SizedBox(height: 20, width: width * 0.8),
-                                      Container(
-                                        width: width,
-                                        decoration: BoxDecoration(
-                                          borderRadius:
-                                              BorderRadius.circular(10),
-                                          color: textColor,
-                                        ),
-                                        child: Material(
-                                          color: Colors.transparent,
-                                          child: InkWell(
-                                            borderRadius:
-                                                BorderRadius.circular(10),
-                                            onTap: () {
-                                              setModalState(() {
-                                                canUseCustomGas = true;
-                                              });
-                                              Navigator.pop(editCtx);
-                                            },
-                                            child: Container(
-                                              padding: const EdgeInsets.all(10),
-                                              child: Center(
-                                                child: Text(
-                                                  "Confirm",
-                                                  style: GoogleFonts.roboto(
-                                                    color: primaryColor,
-                                                    fontWeight: FontWeight.bold,
-                                                    fontSize: 16,
+                                              TextField(
+                                                onChanged: (value) {
+                                                  setModalState(() {
+                                                    customGasLimit =
+                                                        BigInt.from(
+                                                            int.parse(value));
+                                                    log("New custom gas limit $customGasLimit ");
+                                                  });
+                                                },
+                                                keyboardType:
+                                                    TextInputType.number,
+                                                style: GoogleFonts.roboto(
+                                                    color: textColor),
+                                                decoration: InputDecoration(
+                                                  enabledBorder:
+                                                      OutlineInputBorder(
+                                                    borderSide: BorderSide(
+                                                        width: 1,
+                                                        color: textColor
+                                                            .withOpacity(0.1)),
+                                                  ),
+                                                  focusedBorder:
+                                                      OutlineInputBorder(
+                                                    borderSide: BorderSide(
+                                                        width: 1,
+                                                        color: secondaryColor
+                                                            .withOpacity(0.1)),
+                                                  ),
+                                                  labelText: "Gas Limit",
+                                                  border: InputBorder.none,
+                                                  suffixText: "Gwei",
+                                                ),
+                                              ),
+                                              SizedBox(height: 20),
+                                              TextField(
+                                                style: GoogleFonts.roboto(
+                                                    color: textColor),
+                                                keyboardType:
+                                                    TextInputType.number,
+                                                onChanged: (value) {
+                                                  setModalState(() {
+                                                    customGasPrice =
+                                                        BigInt.from(
+                                                            int.parse(value));
+                                                    log("New custom gas price $customGasPrice ");
+                                                  });
+                                                },
+                                                decoration: InputDecoration(
+                                                  enabledBorder:
+                                                      OutlineInputBorder(
+                                                    borderSide: BorderSide(
+                                                        width: 1,
+                                                        color: textColor
+                                                            .withOpacity(0.1)),
+                                                  ),
+                                                  focusedBorder:
+                                                      OutlineInputBorder(
+                                                    borderSide: BorderSide(
+                                                        width: 1,
+                                                        color: secondaryColor
+                                                            .withOpacity(0.1)),
+                                                  ),
+                                                  labelText: "Gas Price",
+                                                  border: InputBorder.none,
+                                                  suffixText: "Gwei",
+                                                ),
+                                              ),
+                                              SizedBox(
+                                                  height: 20,
+                                                  width: width * 0.8),
+                                              Container(
+                                                width: width,
+                                                decoration: BoxDecoration(
+                                                  borderRadius:
+                                                      BorderRadius.circular(10),
+                                                  color: textColor,
+                                                ),
+                                                child: Material(
+                                                  color: Colors.transparent,
+                                                  child: InkWell(
+                                                    borderRadius:
+                                                        BorderRadius.circular(
+                                                            10),
+                                                    onTap: () {
+                                                      setModalState(() {
+                                                        canUseCustomGas = true;
+                                                      });
+                                                      Navigator.pop(editCtx);
+                                                    },
+                                                    child: Container(
+                                                      padding:
+                                                          const EdgeInsets.all(
+                                                              10),
+                                                      child: Center(
+                                                        child: Text(
+                                                          "Confirm",
+                                                          style: GoogleFonts
+                                                              .roboto(
+                                                            color: primaryColor,
+                                                            fontWeight:
+                                                                FontWeight.bold,
+                                                            fontSize: 16,
+                                                          ),
+                                                        ),
+                                                      ),
+                                                    ),
                                                   ),
                                                 ),
                                               ),
-                                            ),
-                                          ),
-                                        ),
-                                      ),
-                                    ],
-                                  ),
+                                            ],
+                                          ))),
                                 );
                               },
                             );
@@ -541,7 +558,7 @@ Future<UserRequestResponse> askUserForConfirmation(
                   margin:
                       const EdgeInsets.only(bottom: 20, left: 10, right: 10),
                   decoration: BoxDecoration(
-                    borderRadius: BorderRadius.circular(30),
+                    borderRadius: BorderRadius.circular(8),
                     color: textColor,
                   ),
                   child: Material(

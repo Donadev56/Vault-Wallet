@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:moonwallet/types/types.dart';
+import 'package:moonwallet/widgets/crypto_picture.dart';
 
 typedef ChangeNetworkType = Future<void> Function(Crypto network);
 void showChangeNetworkModal(
@@ -65,32 +66,8 @@ void showChangeNetworkModal(
                                     width: 1,
                                     color: network.color ?? Colors.white),
                                 borderRadius: BorderRadius.circular(50)),
-                            child: ClipRRect(
-                              borderRadius: BorderRadius.circular(50),
-                              child: network.icon == null
-                                  ? Container(
-                                      width: 30,
-                                      height: 30,
-                                      decoration: BoxDecoration(
-                                          color: textColor.withOpacity(0.6),
-                                          borderRadius:
-                                              BorderRadius.circular(50)),
-                                      child: Center(
-                                        child: Text(
-                                          network.name.substring(0, 2),
-                                          style: GoogleFonts.roboto(
-                                              color: darkNavigatorColor,
-                                              fontWeight: FontWeight.bold,
-                                              fontSize: 18),
-                                        ),
-                                      ),
-                                    )
-                                  : Image.asset(
-                                      network.icon ?? "",
-                                      width: 30,
-                                      height: 30,
-                                    ),
-                            ),
+                            child: CryptoPicture(
+                                crypto: network, size: 30, colors: colors),
                           ),
                           title: Text(
                             network.name,

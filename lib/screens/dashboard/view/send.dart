@@ -13,6 +13,7 @@ import 'package:google_fonts/google_fonts.dart';
 import 'package:intl/intl.dart';
 import 'package:lucide_icons_flutter/lucide_icons.dart';
 import 'package:mobile_scanner/mobile_scanner.dart';
+import 'package:moonwallet/custom/web3_webview/lib/utils/loading.dart';
 import 'package:moonwallet/logger/logger.dart';
 import 'package:moonwallet/main.dart';
 import 'package:moonwallet/service/crypto_storage_manager.dart';
@@ -27,6 +28,7 @@ import 'package:moonwallet/utils/constant.dart';
 import 'package:moonwallet/utils/crypto.dart';
 import 'package:moonwallet/utils/prefs.dart';
 import 'package:moonwallet/utils/themes.dart';
+import 'package:moonwallet/widgets/crypto_picture.dart';
 import 'package:moonwallet/widgets/func/show_select_account.dart';
 import 'package:moonwallet/widgets/func/show_select_last_addr.dart';
 import 'package:permission_handler/permission_handler.dart';
@@ -129,6 +131,32 @@ class _SendTransactionScreenState extends State<SendTransactionScreen> {
     super.dispose();
   }
 
+  void showLoader() {
+    showDialog(
+        context: context,
+        builder: (BuildContext context) {
+          return Center(
+            child: Container(
+              padding: const EdgeInsets.all(30),
+              width: 80,
+              height: 80,
+              decoration: BoxDecoration(
+                borderRadius: BorderRadius.circular(10),
+                color: colors.primaryColor,
+              ),
+              child: SizedBox(
+                width: 65,
+                height: 65,
+                child: CircularProgressIndicator(
+                  strokeWidth: 2,
+                  color: colors.themeColor,
+                ),
+              ),
+            ),
+          );
+        });
+  }
+
   Future<void> askCamera() async {
     try {
       final status = await Permission.camera.status;
@@ -146,30 +174,8 @@ class _SendTransactionScreenState extends State<SendTransactionScreen> {
       if (userBalance <= double.parse(_amountController.text)) {
         throw Exception("Insufficient balance");
       }
-      showDialog(
-          context: context,
-          builder: (BuildContext context) {
-            return Center(
-              child: Container(
-                padding: const EdgeInsets.all(30),
-                width: 100,
-                height: 100,
-                decoration: BoxDecoration(
-                  borderRadius: BorderRadius.circular(20),
-                  border: Border.all(color: colors.themeColor, width: 0.5),
-                  color: colors.primaryColor,
-                ),
-                child: SizedBox(
-                  width: 50,
-                  height: 50,
-                  child: CircularProgressIndicator(
-                    color: colors.textColor,
-                  ),
-                ),
-              ),
-            );
-          });
 
+      showLoader();
       final to = _addressController.text;
       final from = currentAccount.address;
 
@@ -276,29 +282,7 @@ class _SendTransactionScreenState extends State<SendTransactionScreen> {
             "Insufficient ${currentNetwork.network?.symbol} balance , add ${(transactionFee - nativeTokenBalance).toStringAsFixed(8)}");
       }
 
-      showDialog(
-          context: context,
-          builder: (BuildContext context) {
-            return Center(
-              child: Container(
-                padding: const EdgeInsets.all(30),
-                width: 100,
-                height: 100,
-                decoration: BoxDecoration(
-                  borderRadius: BorderRadius.circular(20),
-                  border: Border.all(color: colors.themeColor, width: 0.5),
-                  color: colors.primaryColor,
-                ),
-                child: SizedBox(
-                  width: 50,
-                  height: 50,
-                  child: CircularProgressIndicator(
-                    color: colors.textColor,
-                  ),
-                ),
-              ),
-            );
-          });
+      showLoader();
 
       final to = _addressController.text;
       final from = currentAccount.address;
@@ -610,43 +594,18 @@ class _SendTransactionScreenState extends State<SendTransactionScreen> {
                       width: width * 0.53,
                       padding: const EdgeInsets.all(5),
                       decoration: BoxDecoration(
-                        color: colors.grayColor.withOpacity(0.4),
+                        color: colors.secondaryColor,
                         borderRadius: BorderRadius.circular(15),
                       ),
                       child: Row(
                         mainAxisAlignment: MainAxisAlignment.center,
                         spacing: 10,
                         children: [
-                          ClipRRect(
-                            borderRadius: BorderRadius.circular(50),
-                            child: currentNetwork.icon == null
-                                ? Container(
-                                    width: 20,
-                                    height: 20,
-                                    decoration: BoxDecoration(
-                                        color:
-                                            colors.textColor.withOpacity(0.6),
-                                        borderRadius:
-                                            BorderRadius.circular(50)),
-                                    child: Center(
-                                      child: Text(
-                                        currentNetwork.symbol.length > 2
-                                            ? currentNetwork.symbol
-                                                .substring(0, 2)
-                                            : currentNetwork.symbol,
-                                        style: GoogleFonts.roboto(
-                                            color: colors.primaryColor,
-                                            fontWeight: FontWeight.bold,
-                                            fontSize: 18),
-                                      ),
-                                    ),
-                                  )
-                                : Image.asset(
-                                    currentNetwork.icon ?? "",
-                                    width: 20,
-                                    height: 20,
-                                    fit: BoxFit.cover,
-                                  ),
+                          CryptoPicture(
+                            crypto: currentNetwork,
+                            size: 20,
+                            colors: colors,
+                            primaryColor: colors.secondaryColor,
                           ),
                           Text(
                             currentAccount.address.isNotEmpty
@@ -675,7 +634,7 @@ class _SendTransactionScreenState extends State<SendTransactionScreen> {
                         width: width * 0.35,
                         padding: const EdgeInsets.all(5),
                         decoration: BoxDecoration(
-                          color: colors.grayColor.withOpacity(0.4),
+                          color: colors.secondaryColor,
                           borderRadius: BorderRadius.circular(15),
                         ),
                         child: Center(
@@ -692,55 +651,17 @@ class _SendTransactionScreenState extends State<SendTransactionScreen> {
               Container(
                 padding: const EdgeInsets.all(8),
                 decoration: BoxDecoration(
-                  color: colors.grayColor.withOpacity(0.4),
+                  color: colors.secondaryColor,
                   borderRadius: BorderRadius.circular(15),
                 ),
                 child: Row(
                   spacing: 10,
                   children: [
-                    Stack(
-                      children: [
-                        ClipRRect(
-                          borderRadius: BorderRadius.circular(50),
-                          child: currentNetwork.icon == null
-                              ? Container(
-                                  width: 30,
-                                  height: 30,
-                                  decoration: BoxDecoration(
-                                      color: colors.textColor.withOpacity(0.6),
-                                      borderRadius: BorderRadius.circular(50)),
-                                  child: Center(
-                                    child: Text(
-                                      currentNetwork.symbol.length > 2
-                                          ? currentNetwork.symbol
-                                              .substring(0, 2)
-                                          : currentNetwork.symbol,
-                                      style: GoogleFonts.roboto(
-                                          color: colors.primaryColor,
-                                          fontWeight: FontWeight.bold,
-                                          fontSize: 18),
-                                    ),
-                                  ),
-                                )
-                              : Image.asset(
-                                  currentNetwork.icon ?? "",
-                                  width: 30,
-                                  height: 30,
-                                ),
-                        ),
-                        if (currentNetwork.type == CryptoType.token)
-                          Positioned(
-                              top: 20,
-                              left: 20,
-                              child: ClipRRect(
-                                borderRadius: BorderRadius.circular(50),
-                                child: Image.asset(
-                                  currentNetwork.network?.icon ?? "",
-                                  width: 8,
-                                  height: 8,
-                                ),
-                              ))
-                      ],
+                    CryptoPicture(
+                      crypto: currentNetwork,
+                      size: 30,
+                      colors: colors,
+                      primaryColor: colors.secondaryColor,
                     ),
                     Column(
                       spacing: 10,
@@ -995,7 +916,7 @@ class _SendTransactionScreenState extends State<SendTransactionScreen> {
                       color: colors.textColor.withOpacity(0.3)),
                   focusedBorder: OutlineInputBorder(
                     borderRadius: BorderRadius.circular(5),
-                    borderSide: BorderSide(color: colors.textColor),
+                    borderSide: BorderSide(color: colors.themeColor),
                   ),
                   enabledBorder: OutlineInputBorder(
                     borderRadius: BorderRadius.circular(5),

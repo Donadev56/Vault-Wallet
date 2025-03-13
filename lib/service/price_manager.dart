@@ -1,6 +1,6 @@
 import 'dart:convert';
 
-import 'package:candlesticks/candlesticks.dart';
+import 'package:moonwallet/custom/candlesticks/lib/candlesticks.dart';
 import 'package:moonwallet/logger/logger.dart';
 import 'package:http/http.dart' as http;
 
@@ -33,7 +33,7 @@ class PriceManager {
 
     try {
       final result = await http.get(Uri.parse(
-          "https://api.binance.com/api/v3/klines?symbol=$symbol&interval=$interval&limit=100"));
+          "https://api.binance.com/api/v3/klines?symbol=$symbol&interval=$interval&limit=500"));
       if (result.statusCode == 200) {
         final data = json.decode(result.body) as List<dynamic>;
 

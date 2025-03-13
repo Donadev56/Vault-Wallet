@@ -6,7 +6,6 @@ import 'package:moonwallet/service/price_manager.dart';
 import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
-import 'package:flutter_feather_icons/flutter_feather_icons.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:lucide_icons_flutter/lucide_icons.dart';
 import 'package:moonwallet/logger/logger.dart';
@@ -18,10 +17,10 @@ import 'package:moonwallet/utils/constant.dart';
 import 'package:moonwallet/utils/crypto.dart';
 import 'package:moonwallet/utils/prefs.dart';
 import 'package:moonwallet/utils/themes.dart';
-import 'package:moonwallet/web3_webview/lib/models/network_config.dart';
-import 'package:moonwallet/web3_webview/lib/models/web3_wallet_config.dart';
-import 'package:moonwallet/web3_webview/lib/web3_webview.dart';
-import 'package:moonwallet/web3_webview/lib/web3_webview_eip1193.dart';
+import 'package:moonwallet/custom/web3_webview/lib/models/network_config.dart';
+import 'package:moonwallet/custom/web3_webview/lib/models/web3_wallet_config.dart';
+import 'package:moonwallet/custom/web3_webview/lib/web3_webview.dart';
+import 'package:moonwallet/custom/web3_webview/lib/web3_webview_eip1193.dart';
 import 'package:moonwallet/widgets/func/browser/show_bottom_options.dart';
 
 class Web3BrowserScreen extends StatefulWidget {

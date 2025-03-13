@@ -7,7 +7,7 @@ import 'package:moonwallet/service/wallet_saver.dart';
 import 'package:moonwallet/utils/colors.dart';
 import 'package:moonwallet/utils/crypto.dart';
 import 'package:moonwallet/utils/themes.dart';
-import 'package:moonwallet/widgets/barre.dart';
+import 'package:moonwallet/widgets/crypto_picture.dart';
 import 'package:moonwallet/widgets/func/show_add_token.dart';
 import 'package:ulid/ulid.dart';
 
@@ -18,9 +18,7 @@ import 'package:moonwallet/logger/logger.dart';
 import 'package:moonwallet/service/crypto_storage_manager.dart';
 import 'package:moonwallet/service/token_manager.dart';
 import 'package:moonwallet/types/types.dart';
-import 'package:moonwallet/utils/constant.dart';
 import 'package:moonwallet/utils/prefs.dart';
-import 'package:moonwallet/widgets/snackbar.dart';
 
 class AddCryptoView extends StatefulWidget {
   const AddCryptoView({super.key});
@@ -256,51 +254,8 @@ class _AddCryptoViewState extends State<AddCryptoView> {
                         contentPadding: const EdgeInsets.symmetric(
                             vertical: 8, horizontal: 20),
                         onTap: () {},
-                        leading: Stack(
-                          children: [
-                            ClipRRect(
-                              borderRadius: BorderRadius.circular(50),
-                              child: crypto.icon == null
-                                  ? Container(
-                                      width: 40,
-                                      height: 40,
-                                      decoration: BoxDecoration(
-                                          color:
-                                              colors.textColor.withOpacity(0.6),
-                                          borderRadius:
-                                              BorderRadius.circular(50)),
-                                      child: Center(
-                                        child: Text(
-                                          crypto.symbol.length > 2
-                                              ? crypto.symbol.substring(0, 2)
-                                              : crypto.symbol,
-                                          style: GoogleFonts.roboto(
-                                              color: colors.primaryColor,
-                                              fontWeight: FontWeight.bold,
-                                              fontSize: 18),
-                                        ),
-                                      ),
-                                    )
-                                  : Image.asset(
-                                      crypto.icon ?? "",
-                                      width: 40,
-                                      height: 40,
-                                    ),
-                            ),
-                            if (crypto.type == CryptoType.token)
-                              Positioned(
-                                  top: 25,
-                                  left: 25,
-                                  child: ClipRRect(
-                                    borderRadius: BorderRadius.circular(50),
-                                    child: Image.asset(
-                                      crypto.network?.icon ?? "",
-                                      width: 15,
-                                      height: 15,
-                                    ),
-                                  ))
-                          ],
-                        ),
+                        leading: CryptoPicture(
+                            crypto: crypto, size: 40, colors: colors),
                         title: Text(
                           crypto.symbol,
                           style: GoogleFonts.roboto(

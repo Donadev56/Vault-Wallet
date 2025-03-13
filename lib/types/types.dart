@@ -256,7 +256,7 @@ class Crypto {
   final String? apiKey;
   final String? apiBaseUrl;
   final String symbol;
-  final bool? isNetworkIcon;
+  final bool isNetworkIcon;
 
   Crypto(
       {required this.name,
@@ -276,7 +276,7 @@ class Crypto {
       this.apiKey,
       this.apiBaseUrl,
       required this.symbol,
-      this.isNetworkIcon});
+      this.isNetworkIcon = false});
 
   factory Crypto.fromJson(Map<String, dynamic> cryptoJson) {
     return Crypto(
@@ -301,7 +301,7 @@ class Crypto {
         explorer: cryptoJson["explorer"],
         valueUsd: cryptoJson["valueUsd"],
         symbol: cryptoJson["symbol"],
-        isNetworkIcon: cryptoJson["isNetworkIcon"]);
+        isNetworkIcon: cryptoJson["isNetworkIcon"] ?? false);
   }
 
   Map<String, dynamic> toJson() {
@@ -608,5 +608,55 @@ class AppColors {
   @override
   String toString() {
     return 'AppColors(primaryColor: $primaryColor, themeColor: $themeColor, greenColor: $greenColor, secondaryColor: $secondaryColor, grayColor: $grayColor, textColor: $textColor, redColor: $redColor)';
+  }
+}
+
+class Option {
+  final String title;
+  final Widget icon;
+  final Widget trailing;
+  final Widget? subtitle;
+  final Color color;
+  final TextStyle? titleStyle;
+  final Color? tileColor;
+  final Color? splashColor;
+
+  Option({
+    required this.title,
+    required this.icon,
+    required this.trailing,
+    required this.color,
+    this.titleStyle,
+    this.tileColor,
+    this.subtitle,
+    this.splashColor,
+  });
+
+  Map<String, dynamic> toJson() {
+    return {
+      'title': title,
+      'icon': icon.runtimeType.toString(),
+      'trailing': trailing.runtimeType.toString(),
+      'color': color.value,
+      'titleStyle': titleStyle?.toString(),
+      'tileColor': tileColor?.value,
+      'subtitle': subtitle?.runtimeType.toString(),
+    };
+  }
+
+  factory Option.fromJson(Map<String, dynamic> json) {
+    return Option(
+      title: json['title'],
+      icon: json['icon'] == 'Icon' ? Icon(Icons.home) : SizedBox(),
+      trailing: json['trailing'] == ' SizedBox' ? SizedBox() : SizedBox(),
+      color: Color(json['color']),
+      tileColor: json['tileColor'] != null ? Color(json['tileColor']) : null,
+      subtitle: json['subtitle'] == ' SizedBox' ? SizedBox() : SizedBox(),
+    );
+  }
+
+  @override
+  String toString() {
+    return 'Option(title: $title, icon: $icon, trailing: $trailing, color: $color )';
   }
 }

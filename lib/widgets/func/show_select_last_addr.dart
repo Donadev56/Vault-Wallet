@@ -8,6 +8,7 @@ import 'package:lucide_icons_flutter/lucide_icons.dart';
 import 'package:moonwallet/types/types.dart';
 import 'package:moonwallet/utils/prefs.dart';
 import 'package:moonwallet/widgets/barre.dart';
+import 'package:moonwallet/widgets/crypto_picture.dart';
 
 import '../../logger/logger.dart';
 
@@ -76,45 +77,10 @@ void showSelectLastAddr(
                                             addressController.text = addr;
                                             Navigator.pop(context);
                                           },
-                                          leading: ClipRRect(
-                                            borderRadius:
-                                                BorderRadius.circular(50),
-                                            child: currentNetwork.icon == null
-                                                ? Container(
-                                                    width: 25,
-                                                    height: 25,
-                                                    decoration: BoxDecoration(
-                                                        color: colors.textColor
-                                                            .withOpacity(0.6),
-                                                        borderRadius:
-                                                            BorderRadius
-                                                                .circular(50)),
-                                                    child: Center(
-                                                      child: Text(
-                                                        currentNetwork.symbol
-                                                                    .length >
-                                                                2
-                                                            ? currentNetwork
-                                                                .symbol
-                                                                .substring(0, 2)
-                                                            : currentNetwork
-                                                                .symbol,
-                                                        style: GoogleFonts.roboto(
-                                                            color: colors
-                                                                .primaryColor,
-                                                            fontWeight:
-                                                                FontWeight.bold,
-                                                            fontSize: 18),
-                                                      ),
-                                                    ),
-                                                  )
-                                                : Image.asset(
-                                                    currentNetwork.icon ?? "",
-                                                    width: 25,
-                                                    height: 25,
-                                                    fit: BoxFit.cover,
-                                                  ),
-                                          ),
+                                          leading: CryptoPicture(
+                                              crypto: currentNetwork,
+                                              size: 30,
+                                              colors: colors),
                                           title: Text(
                                             "${(addr as String).substring(0, 10)}...${(addr).substring(addr.length - 10, addr.length)}",
                                             style: GoogleFonts.roboto(
