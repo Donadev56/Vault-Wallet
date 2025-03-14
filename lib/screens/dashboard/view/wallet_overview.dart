@@ -32,7 +32,8 @@ import 'package:moonwallet/widgets/view/view_button_action.dart';
 import 'package:url_launcher/url_launcher.dart';
 
 class WalletViewScreen extends StatefulWidget {
-  const WalletViewScreen({super.key});
+  final String cryptoId;
+  const WalletViewScreen({super.key, required this.cryptoId});
 
   @override
   State<WalletViewScreen> createState() => _WalletViewScreenState();
@@ -74,7 +75,6 @@ class _WalletViewScreenState extends State<WalletViewScreen>
     '1M',
   ];
   double totalBalanceUsd = 0;
-  bool _isInitialized = false;
   Crypto currentCrypto = cryptos[0];
   double userLastBalance = 0;
   double balance = 0;
@@ -212,6 +212,32 @@ class _WalletViewScreenState extends State<WalletViewScreen>
 
     return formatted;
   }
+ CurrencyFormat formatterSettingsUsd = CurrencyFormat(
+    symbol: "\$",
+    symbolSide: SymbolSide.left,
+    thousandSeparator: ',',
+    decimalSeparator: '.',
+    symbolSeparator: ' ',
+  );
+
+ String formatUsd(String value) {
+    String formatted =
+        CurrencyFormatter.format(value, formatterSettingsUsd, decimal: 2);
+
+    formatted = formatted.replaceAll(RegExp(r'(\.\d*?[1-9])0+$'), r'$1');
+    formatted = formatted.replaceAll(RegExp(r'\.0+$'), '');
+
+    return formatted;
+  }
+ String formatCryptoValue(String value) {
+  String formatted =
+      CurrencyFormatter.format(value, formatterSettings, decimal: 8);
+  if (formatted.contains('.')) {
+    formatted = formatted.replaceAll(RegExp(r'0+$'), '');
+    formatted = formatted.replaceAll(RegExp(r'\.$'), '');  
+  }
+  return formatted;
+}
 
   Future<void> getTransactions() async {
     try {
@@ -236,11 +262,20 @@ class _WalletViewScreenState extends State<WalletViewScreen>
         trUrl =
             "https://$baseUrl?module=account&action=txlist&address=${currentAccount.address.trim()}&startblock=0&endblock=latest&page=1&offset=200&sort=desc&apikey=$key";
       }
-      final results = await Future.wait([
+      List<dynamic> results = [] ;
+      try {
+        
+        results   = await Future.wait([
         http.get(Uri.parse(trUrl)),
         if (currentCrypto.type == CryptoType.network)
           http.get(Uri.parse(internalUrl))
       ]);
+        
+      } catch (e) {
+        logError("Error getting transaction: $e");
+        
+      }
+    
       final trRequest = results[0];
       if (internalUrl.isNotEmpty && currentCrypto.type != CryptoType.token) {
         final internalTrResult = results[1];
@@ -277,7 +312,7 @@ class _WalletViewScreenState extends State<WalletViewScreen>
             });
           }
         } else {
-          logError("Error getting internal transactions");
+          logError("Error getting transactions");
         }
       }
       if (trUrl.isNotEmpty) {
@@ -358,6 +393,29 @@ class _WalletViewScreenState extends State<WalletViewScreen>
     getSavedTheme();
     reorganizeCrypto();
     _tabController = TabController(length: 3, vsync: this);
+    init();
+  }
+
+  Future<void> init() async {
+    try {
+      await getSavedWallets();
+      final savedCrypto =
+          await cryptoStorageManager.getSavedCryptos(wallet: currentAccount);
+      if (savedCrypto != null) {
+        for (final crypto in savedCrypto) {
+          if (crypto.cryptoId == widget.cryptoId) {
+            setState(() {
+              currentCrypto = crypto;
+            });
+            await getBalanceOfUser(account: currentAccount, crypto: crypto);
+          }
+        }
+      }
+
+      getTransactions();
+    } catch (e) {
+      logError('Error initializing: $e');
+    }
   }
 
   @override
@@ -385,35 +443,6 @@ class _WalletViewScreenState extends State<WalletViewScreen>
       setState(() {
         reorganizedCrypto = savedCrypto;
       });
-    }
-  }
-
-  @override
-  void didChangeDependencies() async {
-    super.didChangeDependencies();
-    if (!_isInitialized) {
-      final data = ModalRoute.of(context)?.settings.arguments;
-      if (data != null && (data as Map<String, dynamic>)["id"] != null) {
-        final id = data["id"];
-        await getSavedWallets();
-        final savedCrypto =
-            await cryptoStorageManager.getSavedCryptos(wallet: currentAccount);
-        if (savedCrypto != null) {
-          for (final crypto in savedCrypto) {
-            if (crypto.cryptoId == id) {
-              setState(() {
-                currentCrypto = crypto;
-              });
-              await getBalanceOfUser(account: currentAccount, crypto: crypto);
-            }
-          }
-        }
-
-        await getTransactions();
-
-        log("Network sets to ${currentCrypto.binanceSymbol}");
-      }
-      _isInitialized = true;
     }
   }
 
@@ -819,7 +848,7 @@ class _WalletViewScreenState extends State<WalletViewScreen>
                           width: width * 0.5,
                           child: Center(
                               child: Text(
-                            (formatter.format(balance)),
+                            (formatCryptoValue(balance.toString())),
                             overflow: TextOverflow.clip,
                             maxLines: 1,
                             style: GoogleFonts.roboto(
@@ -835,7 +864,7 @@ class _WalletViewScreenState extends State<WalletViewScreen>
                           builder: (BuildContext ctx, AsyncSnapshot result) {
                             if (result.hasData) {
                               return Text(
-                                "= \$${(result.data as double).toStringAsFixed(2)} ",
+                                "= ${formatUsd((result.data as double).toString())}",
                                 style: GoogleFonts.roboto(
                                     color: colors.textColor.withOpacity(0.5),
                                     fontSize: 14),

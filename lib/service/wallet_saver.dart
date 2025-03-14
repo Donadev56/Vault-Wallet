@@ -2,6 +2,7 @@ import 'dart:convert';
 
 import 'package:bip39/bip39.dart' as bip39;
 import 'package:bip32/bip32.dart' as bip32;
+import 'package:flutter/material.dart';
 import 'package:moonwallet/logger/logger.dart';
 
 import 'package:hex/hex.dart';
@@ -172,6 +173,53 @@ class WalletSaver {
     }
   }
 
+  Future<bool> changePassword(String oldPassword, String newPassword) async {
+    try {
+      final dataJson = await getDecryptedData(oldPassword);
+      if (dataJson == null) {
+        logError("Decrypted data is null");
+        throw Exception("Incorrect password ");
+      }
+      final String jsonDataArray = json.encode(dataJson);
+      final encryptedData =
+          await encryptService.encryptJson(jsonDataArray, newPassword);
+
+      if (encryptedData != null) {
+        await documentStorage.saveFile(
+            data: encryptedData, filePath: privateDataPath);
+        await secureService.saveDataInFSS(newPassword, passwordName);
+        return true;
+      } else {
+        logError("An error occurred");
+        return false;
+      }
+    } catch (e) {
+      logError(e.toString());
+      return false;
+    }
+  }
+
+  Future<List<PublicData>> getSavedWallets() async {
+    try {
+      List<PublicData> accounts = [];
+      final savedData = await getPublicData();
+
+      final lastAccount = await encryptService.getLastConnectedAddress();
+
+      if (savedData != null && lastAccount != null) {
+        for (final account in savedData) {
+          final newAccount = PublicData.fromJson(account);
+          accounts.add(newAccount);
+        }
+      }
+
+      return accounts;
+    } catch (e) {
+      logError('Error getting saved wallets: $e');
+      return [];
+    }
+  }
+
   Future<List<dynamic>?> getPublicData() async {
     try {
       List<dynamic> savedPublicDataJson;
@@ -190,6 +238,23 @@ class WalletSaver {
     }
   }
 
+  Future<bool> saveListPublicData(List<PublicData> publicDataJson) async {
+    try {
+      final String jsonDataArray =
+          json.encode(publicDataJson.map((d) => d.toJson()).toList());
+      final res = await documentStorage.saveFile(
+          data: jsonDataArray, filePath: publicDataPath);
+      if (res != null) {
+        return true;
+      } else {
+        return false;
+      }
+    } catch (e) {
+      logError(e.toString());
+      return false;
+    }
+  }
+
   Future<bool> saveListPublicDataJson(List<dynamic> publicDataJson) async {
     try {
       final String jsonDataArray = json.encode(publicDataJson);
@@ -203,6 +268,40 @@ class WalletSaver {
     } catch (e) {
       logError(e.toString());
       return false;
+    }
+  }
+
+  Future<PublicData?> editWallet(
+      {required PublicData account,
+      String? newName,
+      IconData? icon,
+      Color? color}) async {
+    try {
+      List<PublicData> savedAccounts = await getSavedWallets();
+
+      final PublicData newWallet = PublicData(
+          walletColor: color ?? account.walletColor,
+          walletIcon: icon ?? account.walletIcon,
+          isWatchOnly: account.isWatchOnly,
+          address: account.address,
+          walletName: newName ?? account.walletName,
+          creationDate: account.creationDate,
+          keyId: account.keyId);
+
+      for (final acc in savedAccounts) {
+        if (acc.address.trim().toLowerCase() ==
+            account.address.trim().toLowerCase()) {
+          final index = savedAccounts.indexOf(acc);
+          savedAccounts[index] = newWallet;
+          await saveListPublicData(savedAccounts);
+          return newWallet;
+        }
+      }
+
+      return null;
+    } catch (e) {
+      logError(e.toString());
+      return null;
     }
   }
 
@@ -233,26 +332,6 @@ class WalletSaver {
       return null;
     }
   }
-
-  // decrypt saved data using password
-  /* Future<List<Map<String, dynamic>>> loadPrivatekeysFromStorage(
-      String password) async {
-    final encryptedData = await secureService.loadDataFromFSS(encName);
-
-    if (encryptedData == null) {
-      return [];
-    }
-
-    final decryptedData =
-        await encryptService.decryptJson(encryptedData, password);
-    if (decryptedData == null) {
-      return [];
-    }
-
-    final List<Map<String, dynamic>> dataList = json.decode(decryptedData);
-    return dataList;
-  }
-*/
 
   Future<bool> saveObservationWalletInStorage(
       String walletName, String address) async {

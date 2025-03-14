@@ -13,7 +13,6 @@ import 'package:moonwallet/types/types.dart';
 import 'package:moonwallet/widgets/askUserforconf.dart';
 import 'package:moonwallet/widgets/bottom_pin_copy.dart';
 import 'package:moonwallet/widgets/func/ask_password.dart';
-import 'package:web3dart/crypto.dart';
 import 'package:web3dart/web3dart.dart';
 import 'package:http/http.dart';
 

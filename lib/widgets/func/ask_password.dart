@@ -1,10 +1,12 @@
 import 'package:flutter/material.dart';
 import 'package:moonwallet/service/web3.dart';
 import 'package:moonwallet/types/types.dart';
-import 'package:moonwallet/widgets/bottom_pin.dart';
+import 'package:moonwallet/widgets/bottom_pin_copy.dart';
 
 Future<String> askPassword(
-    {required BuildContext context, required AppColors colors}) async {
+    {required BuildContext context,
+    required AppColors colors,
+    String title = "Enter Password"}) async {
   String userPassword = "";
   final res = await showPinModalBottomSheet(
       colors: colors,
@@ -25,7 +27,7 @@ Future<String> askPassword(
           return PinSubmitResult(success: true, repeat: false);
         }
       },
-      title: "Enter Password");
+      title: title);
   if (res && userPassword.isNotEmpty) {
     return userPassword;
   }

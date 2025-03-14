@@ -12,7 +12,7 @@ class CryptoStorageManager {
 
   Future<List<Crypto>?> getSavedCryptos({required PublicData wallet}) async {
     try {
-      final filePath = "${wallet.keyId}/test13/wallet.json";
+      final filePath = "${wallet.keyId}/test17/wallet.json";
 
       final cryptoDataString =
           await documentStorage.readData(filePath: filePath);
@@ -44,7 +44,7 @@ class CryptoStorageManager {
   Future<bool> saveListCrypto(
       {required List<Crypto> cryptos, required PublicData wallet}) async {
     try {
-      final filePath = "${wallet.keyId}/test13/wallet.json";
+      final filePath = "${wallet.keyId}/test17/wallet.json";
 
       List<dynamic> cryptoJson = [];
       for (final crypto in cryptos) {

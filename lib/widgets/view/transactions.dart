@@ -42,6 +42,7 @@ class TransactionsListElement extends StatelessWidget {
       child: ListTile(
         onTap: () {
           showBarModalBottomSheet(
+              backgroundColor: Colors.transparent,
               shape: RoundedRectangleBorder(
                   borderRadius: BorderRadius.only(
                       topLeft: Radius.circular(30),
@@ -104,14 +105,14 @@ class TransactionsListElement extends StatelessWidget {
                             isFrom
                                 ? "- ${BigInt.parse(tr.value).toDouble() / 1e18}"
                                 : "+ ${BigInt.parse(tr.value).toDouble() / 1e18}",
-                            style: GoogleFonts.roboto(
+                            style: GoogleFonts.manrope(
                                 color: textColor,
                                 fontWeight: FontWeight.bold,
                                 fontSize: 21),
                           ),
                           subtitle: Text(
                             currentNetwork.symbol,
-                            style: GoogleFonts.roboto(
+                            style: GoogleFonts.manrope(
                                 color: textColor.withOpacity(0.3),
                                 fontSize: 15,
                                 fontWeight: FontWeight.normal),
@@ -131,7 +132,7 @@ class TransactionsListElement extends StatelessWidget {
                               children: [
                                 Text(
                                   "From",
-                                  style: GoogleFonts.roboto(
+                                  style: GoogleFonts.manrope(
                                       color: textColor, fontSize: 14),
                                 ),
                                 Row(
@@ -140,7 +141,7 @@ class TransactionsListElement extends StatelessWidget {
                                       tr.from.length > 6
                                           ? "${tr.from.substring(0, 6)}...${tr.from.substring(tr.from.length - 6)}"
                                           : "...",
-                                      style: GoogleFonts.roboto(
+                                      style: GoogleFonts.manrope(
                                           color: textColor, fontSize: 14),
                                     ),
                                     SizedBox(
@@ -167,7 +168,7 @@ class TransactionsListElement extends StatelessWidget {
                               children: [
                                 Text(
                                   "To",
-                                  style: GoogleFonts.roboto(
+                                  style: GoogleFonts.manrope(
                                       color: textColor, fontSize: 14),
                                 ),
                                 Row(
@@ -176,7 +177,7 @@ class TransactionsListElement extends StatelessWidget {
                                       tr.to.length > 6
                                           ? "${tr.to.substring(0, 6)}...${tr.to.substring(tr.to.length - 6)}"
                                           : "...",
-                                      style: GoogleFonts.roboto(
+                                      style: GoogleFonts.manrope(
                                           color: textColor, fontSize: 14),
                                     ),
                                     SizedBox(
@@ -214,7 +215,7 @@ class TransactionsListElement extends StatelessWidget {
                               children: [
                                 Text(
                                   "Hash",
-                                  style: GoogleFonts.roboto(
+                                  style: GoogleFonts.manrope(
                                       color: textColor, fontSize: 14),
                                 ),
                                 Row(
@@ -223,7 +224,7 @@ class TransactionsListElement extends StatelessWidget {
                                       tr.hash.length > 6
                                           ? "${tr.hash.substring(0, 6)}...${tr.hash.substring(tr.hash.length - 6)}"
                                           : "...",
-                                      style: GoogleFonts.roboto(
+                                      style: GoogleFonts.manrope(
                                           color: textColor, fontSize: 14),
                                     ),
                                     SizedBox(
@@ -250,14 +251,14 @@ class TransactionsListElement extends StatelessWidget {
                               children: [
                                 Text(
                                   "Block",
-                                  style: GoogleFonts.roboto(
+                                  style: GoogleFonts.manrope(
                                       color: textColor, fontSize: 14),
                                 ),
                                 Row(
                                   children: [
                                     Text(
                                       tr.blockNumber,
-                                      style: GoogleFonts.roboto(
+                                      style: GoogleFonts.manrope(
                                           color: textColor, fontSize: 14),
                                     ),
                                     SizedBox(
@@ -303,7 +304,7 @@ class TransactionsListElement extends StatelessWidget {
                             child: Center(
                               child: Text(
                                 "View on Blockchain explorer",
-                                style: GoogleFonts.roboto(color: textColor),
+                                style: GoogleFonts.manrope(color: textColor),
                               ),
                             ),
                           ),

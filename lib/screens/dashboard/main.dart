@@ -3,7 +3,10 @@
 import 'dart:async';
 import 'dart:convert';
 import 'dart:io';
+import 'package:currency_formatter/currency_formatter.dart';
+import 'package:moonwallet/custom/web3_webview/lib/utils/loading.dart';
 import 'package:moonwallet/custom/web3_webview/lib/widgets/custom_modal.dart';
+import 'package:moonwallet/screens/dashboard/view/wallet_overview.dart';
 import 'package:moonwallet/service/crypto_storage_manager.dart';
 import 'package:moonwallet/service/network.dart';
 import 'package:moonwallet/service/wallet_saver.dart';
@@ -302,6 +305,30 @@ class _MainDashboardScreenState extends State<MainDashboardScreen>
     }
   }
 
+  Future<bool> editWallet(
+      {required PublicData account,
+      String? name,
+      IconData? icon,
+      Color? color}) async {
+    try {
+      final res = await web3Manager.editWallet(
+          account: account, newName: name, icon: icon, color: color);
+      if (res != null) {
+        setState(() {
+          accounts.clear();
+        });
+        await getSavedWallets();
+
+        return true;
+      }
+
+      return false;
+    } catch (e) {
+      logError(e.toString());
+      return false;
+    }
+  }
+
   Future<void> editVisualData(
       {Color? color, required int index, IconData? icon}) async {
     try {
@@ -349,54 +376,80 @@ class _MainDashboardScreenState extends State<MainDashboardScreen>
     }
   }
 
-  Future<void> deleteWallet(int index) async {
+  Future<bool> deleteWallet(String walletId,  BuildContext? ctx)  async{
     try {
-      showPinModalBottomSheet(
+      final result = await showPinModalBottomSheet(
           colors: colors,
           context: context,
           handleSubmit: (password) async {
             final savedPassword = await web3Manager.getSavedPassword();
+            PublicData? accountToRemove;
 
-            if (password.trim() == savedPassword!.trim()) {
-              final currentList = accounts;
-              if (currentList[index].keyId == currentAccount?.keyId &&
-                  index > 0) {
-                setState(() {
-                  currentAccount = accounts[0];
-                });
+            for (final account in accounts) {
+              if (account.keyId == walletId) {
+                accountToRemove = account;
+                break;
               }
-              currentList.removeAt(index);
-              final result =
-                  await web3Manager.saveListPublicDataJson(currentList);
-              if (result) {
-                if (mounted) {
-                  showCustomSnackBar(
-                      colors: colors,
-                      primaryColor: colors.primaryColor,
-                      context: context,
-                      message: "Wallet deleted successfully",
-                      icon: Icons.check_circle,
-                      iconColor: Colors.greenAccent);
+            }
+
+            if (accountToRemove != null) {
+              if (password.trim() == savedPassword!.trim()) {
+                final currentList = accounts;
+                final index = currentList.indexOf(accountToRemove);
+                if (currentList[index].keyId == currentAccount?.keyId &&
+                    index > 0) {
+                   await getCryptoData(account:  accounts[index - 1]).withLoading(context, colors, "Processing...");
 
                   setState(() {
-                    accounts = currentList;
-                  });
-                  Navigator.pop(context);
+                    currentAccount = accounts[index - 1];
 
-                  return PinSubmitResult(success: true, repeat: false);
+                  });
                 }
-                return PinSubmitResult(success: false, repeat: false);
-              } else {
-                if (mounted) {
-                  showCustomSnackBar(
-                      colors: colors,
-                      primaryColor: colors.primaryColor,
-                      context: context,
-                      message: "Wallet deletion failed",
-                      iconColor: Colors.pinkAccent);
-                  Navigator.pop(context);
+                currentList.removeAt(index);
+                setState(() {
+                  accounts = currentList;
+                });
+                final result =
+                    await web3Manager.saveListPublicDataJson(currentList);
+                if (result) {
+                  if (mounted) {
+                    showCustomSnackBar(
+                        colors: colors,
+                        primaryColor: colors.primaryColor,
+                        context: context,
+                        message: "Wallet deleted successfully",
+                        icon: Icons.check_circle,
+                        iconColor: Colors.greenAccent);
+
+                    setState(() {
+                      accounts = currentList;
+                    });
+                    Navigator.pop(context);
+
+                    return PinSubmitResult(success: true, repeat: false);
+                  }
+                  return PinSubmitResult(success: false, repeat: false);
+                } else {
+                  if (mounted) {
+                    showCustomSnackBar(
+                        colors: colors,
+                        primaryColor: colors.primaryColor,
+                        context: context,
+                        message: "Wallet deletion failed",
+                        iconColor: Colors.pinkAccent);
+                    Navigator.pop(context);
+                    return PinSubmitResult(success: false, repeat: false);
+                  }
                   return PinSubmitResult(success: false, repeat: false);
                 }
+              } else {
+                showCustomSnackBar(
+                    colors: colors,
+                    primaryColor: colors.primaryColor,
+                    context: context,
+                    message: "Incorrect password",
+                    iconColor: Colors.pinkAccent);
+                Navigator.pop(context);
                 return PinSubmitResult(success: false, repeat: false);
               }
             } else {
@@ -404,15 +457,33 @@ class _MainDashboardScreenState extends State<MainDashboardScreen>
                   colors: colors,
                   primaryColor: colors.primaryColor,
                   context: context,
-                  message: "Incorrect password",
+                  message: "Wallet not found",
                   iconColor: Colors.pinkAccent);
               Navigator.pop(context);
               return PinSubmitResult(success: false, repeat: false);
             }
           },
           title: "Enter your password");
+
+          if (ctx != null) {
+          Navigator.of(ctx).pop();
+
+          } else {
+          }
+
+      if (result) {
+        return true;
+      } else {
+        return false;
+      }
     } catch (e) {
       logError(e.toString());
+      showCustomSnackBar(
+          context: context,
+          message: e.toString(),
+          primaryColor: colors.primaryColor,
+          colors: colors);
+      return false;
     }
   }
 
@@ -704,6 +775,40 @@ class _MainDashboardScreenState extends State<MainDashboardScreen>
     }
   }
 
+  CurrencyFormat formatterSettings = CurrencyFormat(
+    symbol: "\$",
+    symbolSide: SymbolSide.left,
+    thousandSeparator: ',',
+    decimalSeparator: '.',
+    symbolSeparator: ' ',
+  );
+
+  CurrencyFormat formatterSettingsCrypto = CurrencyFormat(
+    symbol: "",
+    symbolSide: SymbolSide.right,
+    thousandSeparator: ',',
+    decimalSeparator: '.',
+    symbolSeparator: ' ',
+  );
+ String formatUsd(String value) {
+    String formatted =
+        CurrencyFormatter.format(value, formatterSettings, decimal: 2);
+
+    formatted = formatted.replaceAll(RegExp(r'(\.\d*?[1-9])0+$'), r'$1');
+    formatted = formatted.replaceAll(RegExp(r'\.0+$'), '');
+
+    return formatted;
+  }
+   String formatCryptoValue(String value) {
+  String formatted =
+      CurrencyFormatter.format(value, formatterSettingsCrypto, decimal: 8);
+  if (formatted.contains('.')) {
+    formatted = formatted.replaceAll(RegExp(r'0+$'), '');
+    formatted = formatted.replaceAll(RegExp(r'\.$'), '');  
+  }
+  return formatted;
+}
+
   Future<void> getCryptoData({required PublicData account}) async {
     try {
       final dataName = "cryptoAndBalance/${account.address}";
@@ -743,6 +848,8 @@ class _MainDashboardScreenState extends State<MainDashboardScreen>
       } else {
         cryptosList = savedCrypto;
       }
+
+
       if (cryptosList.isNotEmpty) {
         enabledCryptos =
             cryptosList.where((c) => c.canDisplay == true).toList();
@@ -912,6 +1019,12 @@ class _MainDashboardScreenState extends State<MainDashboardScreen>
           textColor: colors.textColor,
           surfaceTintColor: colors.secondaryColor),
       appBar: CustomAppBar(
+          refreshProfile: (f) async {
+            setState(() {
+              _profileImage = f;
+            });
+          },
+          editWallet: editWallet,
           totalBalanceUsd: totalBalanceUsd,
           availableCryptos: reorganizedCrypto,
           isTotalBalanceUpdated: isTotalBalanceUpdated,
@@ -987,7 +1100,7 @@ class _MainDashboardScreenState extends State<MainDashboardScreen>
                                   text: TextSpan(
                                     text: isHidden
                                         ? "***"
-                                        : "\$ ${totalBalanceUsd.toStringAsFixed(2)}",
+                                        : formatUsd(totalBalanceUsd.toString()),
                                     style: GoogleFonts.roboto(
                                         color: colors.textColor,
                                         fontSize: 30,
@@ -1133,11 +1246,14 @@ class _MainDashboardScreenState extends State<MainDashboardScreen>
                                         colors.textColor.withOpacity(0.05),
                                     onTap: () {
                                       log("Crypto id ${crypto.crypto.cryptoId}");
-                                      Navigator.pushNamed(
-                                          context, Routes.walletOverview,
-                                          arguments: ({
-                                            "id": crypto.crypto.cryptoId
-                                          }));
+                                      Navigator.push(
+                                          context,
+                                          MaterialPageRoute(
+                                            builder: (context) =>
+                                                WalletViewScreen(
+                                              cryptoId: crypto.crypto.cryptoId,
+                                            ),
+                                          ));
                                     },
                                     leading: CryptoPicture(
                                         crypto: crypto.crypto,
@@ -1179,7 +1295,7 @@ class _MainDashboardScreenState extends State<MainDashboardScreen>
                                     subtitle: Row(
                                       spacing: 10,
                                       children: [
-                                        Text("\$${crypto.cryptoPrice}",
+                                        Text(formatUsd(crypto.cryptoPrice.toString()),
                                             style: customTextStyle(
                                               color: colors.textColor
                                                   .withOpacity(0.6),
@@ -1210,7 +1326,7 @@ class _MainDashboardScreenState extends State<MainDashboardScreen>
                                           child: Text(
                                               isHidden
                                                   ? "***"
-                                                  : "${formatter.format(crypto.balanceCrypto).split('0').length - 1 > 6 ? 0 : formatter.format(crypto.balanceCrypto)}",
+                                                  : "${formatCryptoValue(crypto.balanceCrypto.toString())}",
                                               overflow: TextOverflow.clip,
                                               maxLines: 1,
                                               style: customTextStyle(
@@ -1221,7 +1337,7 @@ class _MainDashboardScreenState extends State<MainDashboardScreen>
                                         Text(
                                             isHidden
                                                 ? "***"
-                                                : "\$ ${crypto.balanceUsd.toStringAsFixed(3)}",
+                                                : formatUsd(crypto.balanceUsd.toString()),
                                             style: customTextStyle(
                                                 color: colors.textColor
                                                     .withOpacity(0.6),

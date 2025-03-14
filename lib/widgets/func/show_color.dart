@@ -9,6 +9,7 @@ void showColorPicker(
     required BuildContext context,
     required AppColors colors}) {
   showFloatingModalBottomSheet(
+      backgroundColor: Colors.transparent,
       context: context,
       builder: (BuildContext ctx) {
         return Container(

@@ -15,6 +15,9 @@ import 'package:moonwallet/widgets/crypto_picture.dart';
 import 'package:moonwallet/widgets/snackbar.dart';
 import 'package:ulid/ulid.dart';
 
+typedef ActionWithIndexType = void Function(int index);
+typedef ActionWithCryptoId = void Function(String cryptoId);
+
 void showAddToken(
     {required BuildContext context,
     required AppColors colors,

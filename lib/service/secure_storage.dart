@@ -19,7 +19,6 @@ class SecureStorageService {
 
   Future<void> saveDataInFSS(String value, String name) async {
     try {
-      log("saving $name with value $value to FSS...");
       await _secureStorage.write(key: name, value: value);
       log("Data saved to FSS: $name");
     } catch (e) {

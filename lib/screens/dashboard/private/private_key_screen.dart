@@ -16,7 +16,9 @@ import 'package:moonwallet/utils/themes.dart';
 import 'package:moonwallet/widgets/snackbar.dart';
 
 class PrivateKeyScreen extends StatefulWidget {
-  const PrivateKeyScreen({super.key});
+  final String? password;
+  final String? walletId;
+  const PrivateKeyScreen({super.key, this.password, this.walletId});
 
   @override
   State<PrivateKeyScreen> createState() => _PrivateKeyScreenState();
@@ -69,6 +71,14 @@ class _PrivateKeyScreenState extends State<PrivateKeyScreen> {
     WidgetsBinding.instance.addPostFrameCallback((_) {
       showWarn();
     });
+    if (widget.password != null) {
+      setState(() {
+        password = widget.password!;
+      });
+    }
+    if (widget.walletId != null) {
+      walletKeyId = widget.walletId!;
+    }
   }
 
   Future<void> getDecryptedData() async {
@@ -282,6 +292,8 @@ class _PrivateKeyScreenState extends State<PrivateKeyScreen> {
                 ConstrainedBox(
                   constraints: BoxConstraints(minWidth: width * 0.35),
                   child: ElevatedButton.icon(
+                    style: ElevatedButton.styleFrom(
+                        backgroundColor: colors.themeColor),
                     onPressed: () {
                       if (_mnemonicController.text.isEmpty) {
                         showCustomSnackBar(
@@ -289,13 +301,16 @@ class _PrivateKeyScreenState extends State<PrivateKeyScreen> {
                             primaryColor: colors.primaryColor,
                             context: context,
                             message: "No Mnemonic found",
-                            iconColor: Colors.pinkAccent);
+                            iconColor: colors.redColor);
                         return;
                       }
                       Clipboard.setData(
                           ClipboardData(text: _mnemonicController.text));
                     },
-                    label: Text('Mnemonic'),
+                    label: Text(
+                      'Mnemonic',
+                      style: GoogleFonts.roboto(color: colors.primaryColor),
+                    ),
                     icon: Icon(
                       Icons.copy,
                       color: colors.primaryColor,
@@ -305,6 +320,8 @@ class _PrivateKeyScreenState extends State<PrivateKeyScreen> {
                 ConstrainedBox(
                   constraints: BoxConstraints(minWidth: width * 0.35),
                   child: ElevatedButton.icon(
+                    style: ElevatedButton.styleFrom(
+                        backgroundColor: colors.themeColor),
                     onPressed: () {
                       if (_privateKeyController.text.isEmpty) {
                         showCustomSnackBar(
@@ -312,13 +329,16 @@ class _PrivateKeyScreenState extends State<PrivateKeyScreen> {
                             primaryColor: colors.primaryColor,
                             context: context,
                             message: "No Private Key found",
-                            iconColor: Colors.pinkAccent);
+                            iconColor: colors.redColor);
                         return;
                       }
                       Clipboard.setData(
                           ClipboardData(text: _privateKeyController.text));
                     },
-                    label: Text('PrivateKey'),
+                    label: Text(
+                      'PrivateKey',
+                      style: GoogleFonts.roboto(color: colors.primaryColor),
+                    ),
                     icon: Icon(
                       Icons.copy,
                       color: colors.primaryColor,
@@ -338,7 +358,7 @@ class _PrivateKeyScreenState extends State<PrivateKeyScreen> {
                       children: [
                         Icon(
                           LucideIcons.circleAlert,
-                          color: Colors.pinkAccent,
+                          color: colors.redColor,
                         ),
                         SizedBox(
                           width: 5,
@@ -346,7 +366,7 @@ class _PrivateKeyScreenState extends State<PrivateKeyScreen> {
                         Text("Important :",
                             style: GoogleFonts.exo(
                                 fontSize: 16,
-                                color: Colors.white,
+                                color: colors.textColor,
                                 decoration: TextDecoration.none)),
                       ],
                     )),
@@ -357,7 +377,7 @@ class _PrivateKeyScreenState extends State<PrivateKeyScreen> {
                           "The private key and Mnemonic are secret and is the only way to access your funds. Never share your private key or Mnemonic with anyone.",
                           style: GoogleFonts.exo(
                               fontSize: 16,
-                              color: Colors.white.withOpacity(0.5),
+                              color: colors.textColor.withOpacity(0.5),
                               decoration: TextDecoration.none),
                         ),
                       ),

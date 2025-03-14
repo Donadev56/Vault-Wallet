@@ -55,7 +55,6 @@ class Routes {
   static const String home = '/home';
   static const String addPrivateKey = '/addPrivateKey';
   static const String pinAuth = '/pinAuth';
-  static const String walletOverview = '/walletOverview';
   static const String addObservationWallet = '/addObservationWallet';
   static const String privateDataScreen = '/privateDataScreen';
   static const String receiveScreen = '/receiveScreen';
@@ -188,6 +187,7 @@ class _MyAppState extends State<MyApp> {
                 debugShowCheckedModeBanner: false,
                 title: 'Moon Wallet',
                 theme: ThemeData(
+                  splashFactory: InkRipple.splashFactory,
                   primaryColor: colors.primaryColor,
                   dividerColor: colors.textColor,
                   pageTransitionsTheme: PageTransitionsTheme(
@@ -230,7 +230,6 @@ class _MyAppState extends State<MyApp> {
                   Routes.importWalletMain: (context) => AddPrivateKeyInMain(),
                   Routes.createPrivateKeyMain: (context) =>
                       CreatePrivateKeyMain(),
-                  Routes.walletOverview: (context) => WalletViewScreen(),
                   Routes.createAccountFromSed: (context) => AddMnemonicScreen(),
                   Routes.addObservationWallet: (context) =>
                       AddObservationWallet(),

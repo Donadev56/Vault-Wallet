@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:moonwallet/service/vibration.dart';
 import 'package:moonwallet/types/types.dart';
 
 typedef OnTapWithIndex = void Function(int index);
@@ -81,6 +82,8 @@ class CustomOptionWidget extends StatelessWidget {
                             splashColor: splashColor ?? option.splashColor,
                             shape: shapeBorder,
                             onTap: () {
+                              vibrate();
+
                               onTap(i);
                             },
                             subtitle: option.subtitle,

@@ -9,7 +9,7 @@ import 'package:moonwallet/types/types.dart';
 import 'package:moonwallet/utils/colors.dart';
 import 'package:moonwallet/utils/prefs.dart';
 import 'package:moonwallet/utils/themes.dart';
-import 'package:moonwallet/widgets/bottom_pin.dart';
+import 'package:moonwallet/widgets/bottom_pin_copy.dart';
 import 'package:moonwallet/widgets/snackbar.dart';
 
 class CreatePrivateKeyMain extends StatefulWidget {
@@ -321,10 +321,10 @@ class _CreatePrivateKeyState extends State<CreatePrivateKeyMain> {
                         bottom: 20, right: 20), // Optional padding
                     child: ElevatedButton(
                       style: ElevatedButton.styleFrom(
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(30),
-                        ),
-                      ),
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(30),
+                          ),
+                          backgroundColor: colors.themeColor),
                       onPressed: () {
                         showPinModalBottomSheet(
                             colors: colors,

@@ -47,8 +47,6 @@ class _AddCryptoViewState extends State<AddCryptoView> {
       address: "",
       isWatchOnly: false);
   final TextEditingController _searchController = TextEditingController();
-  final TextEditingController _contractAddressController =
-      TextEditingController();
 
   final publicDataManager = PublicDataManager();
   AppColors colors = AppColors(

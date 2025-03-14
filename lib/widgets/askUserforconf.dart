@@ -81,14 +81,24 @@ Future<UserRequestResponse> askUserForConfirmation(
     final double tokenAmount = double.parse(valueInWei.toString()) / 1e18;
     String formatted =
         CurrencyFormatter.format(tokenAmount, formatterSettings, decimal: 8);
+          if (formatted.contains('.')) {
+    formatted = formatted.replaceAll(RegExp(r'0+$'), '');
+    formatted = formatted.replaceAll(RegExp(r'\.$'), '');  
+  }
 
-    formatted = formatted.replaceAll(RegExp(r'(\.\d*?[1-9])0+$'), r'$1');
-    formatted = formatted.replaceAll(RegExp(r'\.0+$'), '');
 
     return formatted;
   }
-
+  CurrencyFormat formatterSettingsCrypto = CurrencyFormat(
+    symbol: "",
+    symbolSide: SymbolSide.right,
+    thousandSeparator: ',',
+    decimalSeparator: '.',
+    symbolSeparator: ' ',
+  );
+ 
   final result = await showBarModalBottomSheet<UserRequestResponse>(
+    backgroundColor: Colors.transparent,
     context: context,
     shape: RoundedRectangleBorder(
       borderRadius: BorderRadius.only(
@@ -552,7 +562,6 @@ Future<UserRequestResponse> askUserForConfirmation(
                     }),
                   ),
                 ),
-                Spacer(),
                 Container(
                   width: width,
                   margin:

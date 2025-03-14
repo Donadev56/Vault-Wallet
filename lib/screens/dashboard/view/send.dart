@@ -4,6 +4,7 @@ import 'dart:convert';
 import 'dart:io';
 import 'dart:ui';
 import 'package:awesome_snackbar_content/awesome_snackbar_content.dart';
+import 'package:currency_formatter/currency_formatter.dart';
 
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
@@ -13,7 +14,6 @@ import 'package:google_fonts/google_fonts.dart';
 import 'package:intl/intl.dart';
 import 'package:lucide_icons_flutter/lucide_icons.dart';
 import 'package:mobile_scanner/mobile_scanner.dart';
-import 'package:moonwallet/custom/web3_webview/lib/utils/loading.dart';
 import 'package:moonwallet/logger/logger.dart';
 import 'package:moonwallet/main.dart';
 import 'package:moonwallet/service/crypto_storage_manager.dart';
@@ -551,7 +551,22 @@ class _SendTransactionScreenState extends State<SendTransactionScreen> {
       _isInitialized = true;
     }
   }
-
+    CurrencyFormat formatterSettingsCrypto = CurrencyFormat(
+    symbol: "",
+    symbolSide: SymbolSide.right,
+    thousandSeparator: ',',
+    decimalSeparator: '.',
+    symbolSeparator: ' ',
+  );
+  String formatCryptoValue(String value) {
+  String formatted =
+      CurrencyFormatter.format(value, formatterSettingsCrypto, decimal: 8);
+  if (formatted.contains('.')) {
+    formatted = formatted.replaceAll(RegExp(r'0+$'), '');
+    formatted = formatted.replaceAll(RegExp(r'\.$'), '');  
+  }
+  return formatted;
+}
   @override
   Widget build(BuildContext context) {
     final width = MediaQuery.of(context).size.width;
@@ -853,9 +868,7 @@ class _SendTransactionScreenState extends State<SendTransactionScreen> {
                         height: 5,
                         decoration: BoxDecoration(
                             borderRadius: BorderRadius.circular(10),
-                            border: Border.all(
-                                width: 1,
-                                color: colors.textColor.withOpacity(0.3))),
+                        ),
                         child: Center(
                           child: Text(
                             "Max",
@@ -927,7 +940,7 @@ class _SendTransactionScreenState extends State<SendTransactionScreen> {
               Align(
                 alignment: Alignment.topLeft,
                 child: Text(
-                  "Balance : ${formatter.format(userBalance)} ${currentNetwork.symbol}",
+                  "Balance : ${formatCryptoValue(userBalance.toString())} ${currentNetwork.symbol}",
                   style: GoogleFonts.roboto(
                       color: colors.textColor.withOpacity(0.7)),
                 ),

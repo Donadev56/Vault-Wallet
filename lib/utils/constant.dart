@@ -81,23 +81,28 @@ final ethereumNetwork = Crypto(
     cryptoId: "42e6b336-616b-4502-af5f-453c9231ce09");
 
 final moonbeamNetwork = Crypto(
+    icon: "https://cryptologos.cc/logos/moonbeam-glmr-logo.png?v=040",
+    
+   apiKey: "FBDH47RQPNYSV29NGND73D8SJ2N1USCDWK",
     isNetworkIcon: false,
     symbol: "GLMR",
-    apiBaseUrl: "api.moonscan.io", // API fictive pour l'exemple
+    apiBaseUrl: "api-moonbeam.moonscan.io/api", // API fictive pour l'exemple
     canDisplay: false,
     valueUsd: 0,
     type: CryptoType.network,
     explorer: "https://moonbeam.moonscan.io/",
-    rpc: "https://rpc.api.moonbeam.network/",
+    rpc: "https://rpc.api.moonbeam.network",
     name: "Moonbeam",
     binanceSymbol: "GLMRUSDT",
     chainId: 1284,
     color: Colors.amber,
     cryptoId: "42e6b336-616b-4502-af5f-453792319e09");
 final celoNetwork = Crypto(
-    isNetworkIcon: false,
+   icon: "https://cryptologos.cc/logos/celo-celo-logo.png?v=040",
+    apiKey: "HQ3SHXHI1B2W6HCW8F82FGTMEYVT8MS1H4",
+    isNetworkIcon: true,
     symbol: "CELO",
-    apiBaseUrl: "api.celoexplorer.com", // API fictive pour l'exemple
+    apiBaseUrl: "api.celoscan.io/api", // API fictive pour l'exemple
     canDisplay: false,
     valueUsd: 0,
     type: CryptoType.network,
@@ -106,27 +111,31 @@ final celoNetwork = Crypto(
     name: "Celo",
     binanceSymbol: "CELOUSDT",
     chainId: 42220,
-    color: Colors.teal,
+    color: Colors.yellow,
     cryptoId: "42e88336-616b-4502-af5f-453799919e09");
 final gnosisNetwork = Crypto(
-    isNetworkIcon: false,
+   icon: "https://altcoinsbox.com/wp-content/uploads/2023/03/gnosis-logo-600x600.webp",
+  apiKey: "Q39BRD8Y43D2XIJHCNTGNBRURQ8A5M4CBQ",
+    isNetworkIcon: true,
     symbol: "xDAI",
-    apiBaseUrl: "api.gnosisscan.io", // API fictive pour l'exemple
+    apiBaseUrl: "api.gnosisscan.io/api", // API fictive pour l'exemple
     canDisplay: false,
     valueUsd: 0,
     type: CryptoType.network,
     explorer: "https://blockscout.com/xdai/mainnet/",
     rpc: "https://rpc.gnosischain.com/",
     name: "Gnosis Chain",
-    binanceSymbol: "xDAIUSDT",
+    binanceSymbol: "USDCUSDT",
     chainId: 100,
     color: Colors.green,
     cryptoId: "42e88336-7636-4502-af5f-499799919e09");
 
 final optimismNetwork = Crypto(
-    isNetworkIcon: false,
+  icon : "https://cryptologos.cc/logos/optimism-ethereum-op-logo.png?v=040",
+  apiKey: "GC1XFZI399Z713ZHAA5B6GF9C5YQJP2WF6",
+    isNetworkIcon: true,
     symbol: "ETH",
-    apiBaseUrl: "api-optimistic.etherscan.io",
+    apiBaseUrl: "api-optimistic.etherscan.io/api",
     canDisplay: false,
     valueUsd: 0,
     type: CryptoType.network,
@@ -139,9 +148,11 @@ final optimismNetwork = Crypto(
     cryptoId: "4828376-7636-4502-af5f-49339919e09");
 
 final arbitrumNetwork = Crypto(
-    isNetworkIcon: false,
+  icon: "https://cryptologos.cc/logos/arbitrum-arb-logo.png?v=040",
+  apiKey: "5ZFPH1J554X4X7TUFHVTZ4CRYXYNFBTK9F",
+    isNetworkIcon: true,
     symbol: "ETH",
-    apiBaseUrl: "api.arbiscan.io",
+    apiBaseUrl: "api.arbiscan.io/api",
     canDisplay: false,
     valueUsd: 0,
     type: CryptoType.network,
@@ -176,7 +187,12 @@ final List<Crypto> cryptos = [
   binanceNetwork,
   polygonNetwork,
   ethereumNetwork,
+  moonbeamNetwork ,
   avalancheNetwork,
+  optimismNetwork,
+  gnosisNetwork,
+  celoNetwork,
+  arbitrumNetwork,
   Crypto(
       isNetworkIcon: false,
       symbol: "USDT",
