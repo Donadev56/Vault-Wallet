@@ -217,12 +217,14 @@ class _AddPrivateKeyState extends State<AddObservationWallet> {
                         maxLines: 5,
                         controller: _textController,
                         decoration: InputDecoration(
+                          filled: true,
+                          fillColor: colors.secondaryColor,
                           enabledBorder: OutlineInputBorder(
                               borderSide: BorderSide(
-                                  width: 1, color: colors.themeColor)),
+                                  width: 0, color: Colors.transparent)),
                           focusedBorder: OutlineInputBorder(
                               borderSide: BorderSide(
-                                  width: 1, color: colors.themeColor)),
+                                  width: 0, color: Colors.transparent)),
                           labelText: 'Address',
                           labelStyle: TextStyle(color: colors.textColor),
                           border: OutlineInputBorder(

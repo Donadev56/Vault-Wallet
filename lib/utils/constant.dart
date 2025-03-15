@@ -82,8 +82,7 @@ final ethereumNetwork = Crypto(
 
 final moonbeamNetwork = Crypto(
     icon: "https://cryptologos.cc/logos/moonbeam-glmr-logo.png?v=040",
-    
-   apiKey: "FBDH47RQPNYSV29NGND73D8SJ2N1USCDWK",
+    apiKey: "FBDH47RQPNYSV29NGND73D8SJ2N1USCDWK",
     isNetworkIcon: false,
     symbol: "GLMR",
     apiBaseUrl: "api-moonbeam.moonscan.io/api", // API fictive pour l'exemple
@@ -98,7 +97,7 @@ final moonbeamNetwork = Crypto(
     color: Colors.amber,
     cryptoId: "42e6b336-616b-4502-af5f-453792319e09");
 final celoNetwork = Crypto(
-   icon: "https://cryptologos.cc/logos/celo-celo-logo.png?v=040",
+    icon: "https://cryptologos.cc/logos/celo-celo-logo.png?v=040",
     apiKey: "HQ3SHXHI1B2W6HCW8F82FGTMEYVT8MS1H4",
     isNetworkIcon: true,
     symbol: "CELO",
@@ -114,8 +113,9 @@ final celoNetwork = Crypto(
     color: Colors.yellow,
     cryptoId: "42e88336-616b-4502-af5f-453799919e09");
 final gnosisNetwork = Crypto(
-   icon: "https://altcoinsbox.com/wp-content/uploads/2023/03/gnosis-logo-600x600.webp",
-  apiKey: "Q39BRD8Y43D2XIJHCNTGNBRURQ8A5M4CBQ",
+    icon:
+        "https://altcoinsbox.com/wp-content/uploads/2023/03/gnosis-logo-600x600.webp",
+    apiKey: "Q39BRD8Y43D2XIJHCNTGNBRURQ8A5M4CBQ",
     isNetworkIcon: true,
     symbol: "xDAI",
     apiBaseUrl: "api.gnosisscan.io/api", // API fictive pour l'exemple
@@ -131,8 +131,8 @@ final gnosisNetwork = Crypto(
     cryptoId: "42e88336-7636-4502-af5f-499799919e09");
 
 final optimismNetwork = Crypto(
-  icon : "https://cryptologos.cc/logos/optimism-ethereum-op-logo.png?v=040",
-  apiKey: "GC1XFZI399Z713ZHAA5B6GF9C5YQJP2WF6",
+    icon: "https://cryptologos.cc/logos/optimism-ethereum-op-logo.png?v=040",
+    apiKey: "GC1XFZI399Z713ZHAA5B6GF9C5YQJP2WF6",
     isNetworkIcon: true,
     symbol: "ETH",
     apiBaseUrl: "api-optimistic.etherscan.io/api",
@@ -148,8 +148,8 @@ final optimismNetwork = Crypto(
     cryptoId: "4828376-7636-4502-af5f-49339919e09");
 
 final arbitrumNetwork = Crypto(
-  icon: "https://cryptologos.cc/logos/arbitrum-arb-logo.png?v=040",
-  apiKey: "5ZFPH1J554X4X7TUFHVTZ4CRYXYNFBTK9F",
+    icon: "https://cryptologos.cc/logos/arbitrum-arb-logo.png?v=040",
+    apiKey: "5ZFPH1J554X4X7TUFHVTZ4CRYXYNFBTK9F",
     isNetworkIcon: true,
     symbol: "ETH",
     apiBaseUrl: "api.arbiscan.io/api",
@@ -187,7 +187,7 @@ final List<Crypto> cryptos = [
   binanceNetwork,
   polygonNetwork,
   ethereumNetwork,
-  moonbeamNetwork ,
+  moonbeamNetwork,
   avalancheNetwork,
   optimismNetwork,
   gnosisNetwork,

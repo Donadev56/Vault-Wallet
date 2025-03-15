@@ -17,6 +17,7 @@ import 'package:mobile_scanner/mobile_scanner.dart';
 import 'package:moonwallet/logger/logger.dart';
 import 'package:moonwallet/main.dart';
 import 'package:moonwallet/service/crypto_storage_manager.dart';
+import 'package:moonwallet/service/number_formatter.dart';
 import 'package:moonwallet/service/price_manager.dart';
 import 'package:moonwallet/service/token_manager.dart';
 import 'package:moonwallet/service/vibration.dart';
@@ -551,22 +552,15 @@ class _SendTransactionScreenState extends State<SendTransactionScreen> {
       _isInitialized = true;
     }
   }
-    CurrencyFormat formatterSettingsCrypto = CurrencyFormat(
-    symbol: "",
-    symbolSide: SymbolSide.right,
-    thousandSeparator: ',',
-    decimalSeparator: '.',
-    symbolSeparator: ' ',
-  );
-  String formatCryptoValue(String value) {
-  String formatted =
-      CurrencyFormatter.format(value, formatterSettingsCrypto, decimal: 8);
-  if (formatted.contains('.')) {
-    formatted = formatted.replaceAll(RegExp(r'0+$'), '');
-    formatted = formatted.replaceAll(RegExp(r'\.$'), '');  
+
+  String formatUsd(String value) {
+    return NumberFormatter().formatUsd(value: value);
   }
-  return formatted;
-}
+
+  String formatCryptoValue(String value) {
+    return NumberFormatter().formatCrypto(value: value);
+  }
+
   @override
   Widget build(BuildContext context) {
     final width = MediaQuery.of(context).size.width;
@@ -867,7 +861,7 @@ class _SendTransactionScreenState extends State<SendTransactionScreen> {
                         width: 50,
                         height: 5,
                         decoration: BoxDecoration(
-                            borderRadius: BorderRadius.circular(10),
+                          borderRadius: BorderRadius.circular(10),
                         ),
                         child: Center(
                           child: Text(

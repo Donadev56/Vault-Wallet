@@ -175,9 +175,11 @@ class WalletDialogService {
             color: backgroundColor ?? colors.secondaryColor,
             borderRadius: BorderRadius.circular(10),
           ),
-          child: SingleChildScrollView(
-            child: child,
-          ),
+          child: SelectableRegion(
+              selectionControls: materialTextSelectionControls,
+              child: SingleChildScrollView(
+                child: child,
+              )),
         ),
       ),
     );

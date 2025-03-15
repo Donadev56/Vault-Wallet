@@ -9,6 +9,7 @@ import 'package:modal_bottom_sheet/modal_bottom_sheet.dart';
 import 'package:moonwallet/logger/logger.dart';
 import 'package:moonwallet/types/types.dart';
 import 'package:moonwallet/utils/constant.dart';
+import 'package:moonwallet/widgets/crypto_picture.dart';
 import 'package:url_launcher/url_launcher.dart';
 
 class TransactionsListElement extends StatelessWidget {
@@ -68,38 +69,10 @@ class TransactionsListElement extends StatelessWidget {
                           shape: RoundedRectangleBorder(
                               borderRadius: BorderRadius.circular(20)),
                           leading: SizedBox(
-                            width: 50,
-                            height: 50,
-                            child: ClipRRect(
-                              borderRadius: BorderRadius.circular(50),
-                              child: currentNetwork.icon == null
-                                  ? Container(
-                                      width: 50,
-                                      height: 50,
-                                      decoration: BoxDecoration(
-                                          color: textColor.withOpacity(0.6),
-                                          borderRadius:
-                                              BorderRadius.circular(50)),
-                                      child: Center(
-                                        child: Text(
-                                          currentNetwork.symbol.length > 2
-                                              ? currentNetwork.symbol
-                                                  .substring(0, 2)
-                                              : currentNetwork.symbol,
-                                          style: GoogleFonts.roboto(
-                                              color: primaryColor,
-                                              fontWeight: FontWeight.bold,
-                                              fontSize: 18),
-                                        ),
-                                      ),
-                                    )
-                                  : Image.asset(
-                                      currentNetwork.icon ?? "",
-                                      width: 50,
-                                      height: 50,
-                                      fit: BoxFit.cover,
-                                    ),
-                            ),
+                            child: CryptoPicture(
+                                crypto: currentNetwork,
+                                size: 50,
+                                colors: colors),
                           ),
                           title: Text(
                             isFrom

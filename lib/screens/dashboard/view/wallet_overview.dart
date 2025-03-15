@@ -3,6 +3,7 @@
 import 'dart:convert';
 import 'dart:ui';
 import 'package:currency_formatter/currency_formatter.dart';
+import 'package:flutter/rendering.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_feather_icons/flutter_feather_icons.dart';
 // ignore: depend_on_referenced_packages
@@ -17,6 +18,7 @@ import 'package:moonwallet/custom/candlesticks/lib/candlesticks.dart';
 import 'package:moonwallet/logger/logger.dart';
 import 'package:moonwallet/main.dart';
 import 'package:moonwallet/service/crypto_storage_manager.dart';
+import 'package:moonwallet/service/number_formatter.dart';
 import 'package:moonwallet/service/price_manager.dart';
 import 'package:moonwallet/service/wallet_saver.dart';
 import 'package:moonwallet/service/web3_interaction.dart';
@@ -54,6 +56,7 @@ class _WalletViewScreenState extends State<WalletViewScreen>
   String cryptoId = "";
 
   final web3Manager = WalletSaver();
+  bool isScrollingToTheBottom = false;
   final encryptService = EncryptService();
   final priceManager = PriceManager();
   final web3InteractManager = Web3InteractionManager();
@@ -61,6 +64,8 @@ class _WalletViewScreenState extends State<WalletViewScreen>
   final formatter = NumberFormat("0.##############", "en_US");
   bool isDarkMode = false;
   final cryptoStorageManager = CryptoStorageManager();
+  final ScrollController _scrollController = ScrollController();
+  final ScrollController _pageScrollController = ScrollController();
 
   List<Candle> cryptoData = [];
   int currentIndex = 0;
@@ -195,49 +200,13 @@ class _WalletViewScreenState extends State<WalletViewScreen>
     }
   }
 
-  CurrencyFormat formatterSettings = CurrencyFormat(
-    symbol: "",
-    symbolSide: SymbolSide.right,
-    thousandSeparator: ',',
-    decimalSeparator: '.',
-    symbolSeparator: ' ',
-  );
-
-  String getValue(double value) {
-    String formatted =
-        CurrencyFormatter.format(value, formatterSettings, decimal: 8);
-
-    formatted = formatted.replaceAll(RegExp(r'(\.\d*?[1-9])0+$'), r'$1');
-    formatted = formatted.replaceAll(RegExp(r'\.0+$'), '');
-
-    return formatted;
+  String formatUsd(String value) {
+    return NumberFormatter().formatUsd(value: value);
   }
- CurrencyFormat formatterSettingsUsd = CurrencyFormat(
-    symbol: "\$",
-    symbolSide: SymbolSide.left,
-    thousandSeparator: ',',
-    decimalSeparator: '.',
-    symbolSeparator: ' ',
-  );
 
- String formatUsd(String value) {
-    String formatted =
-        CurrencyFormatter.format(value, formatterSettingsUsd, decimal: 2);
-
-    formatted = formatted.replaceAll(RegExp(r'(\.\d*?[1-9])0+$'), r'$1');
-    formatted = formatted.replaceAll(RegExp(r'\.0+$'), '');
-
-    return formatted;
+  String formatCryptoValue(String value) {
+    return NumberFormatter().formatCrypto(value: value);
   }
- String formatCryptoValue(String value) {
-  String formatted =
-      CurrencyFormatter.format(value, formatterSettings, decimal: 8);
-  if (formatted.contains('.')) {
-    formatted = formatted.replaceAll(RegExp(r'0+$'), '');
-    formatted = formatted.replaceAll(RegExp(r'\.$'), '');  
-  }
-  return formatted;
-}
 
   Future<void> getTransactions() async {
     try {
@@ -262,20 +231,17 @@ class _WalletViewScreenState extends State<WalletViewScreen>
         trUrl =
             "https://$baseUrl?module=account&action=txlist&address=${currentAccount.address.trim()}&startblock=0&endblock=latest&page=1&offset=200&sort=desc&apikey=$key";
       }
-      List<dynamic> results = [] ;
+      List<dynamic> results = [];
       try {
-        
-        results   = await Future.wait([
-        http.get(Uri.parse(trUrl)),
-        if (currentCrypto.type == CryptoType.network)
-          http.get(Uri.parse(internalUrl))
-      ]);
-        
+        results = await Future.wait([
+          http.get(Uri.parse(trUrl)),
+          if (currentCrypto.type == CryptoType.network)
+            http.get(Uri.parse(internalUrl))
+        ]);
       } catch (e) {
         logError("Error getting transaction: $e");
-        
       }
-    
+
       final trRequest = results[0];
       if (internalUrl.isNotEmpty && currentCrypto.type != CryptoType.token) {
         final internalTrResult = results[1];
@@ -393,7 +359,32 @@ class _WalletViewScreenState extends State<WalletViewScreen>
     getSavedTheme();
     reorganizeCrypto();
     _tabController = TabController(length: 3, vsync: this);
+    _scrollController.addListener(_onScroll);
     init();
+  }
+
+  @override
+  void dispose() {
+    super.dispose();
+
+    _scrollController.dispose();
+    _tabController.dispose();
+  }
+
+  void _onScroll() {
+    if (_scrollController.position.userScrollDirection ==
+        ScrollDirection.forward) {
+      log("scroll direction is forward");
+      setState(() {
+        isScrollingToTheBottom = false;
+      });
+    } else if (_scrollController.position.userScrollDirection ==
+        ScrollDirection.reverse) {
+      setState(() {
+        isScrollingToTheBottom = true;
+      });
+      log("scroll direction is reverse");
+    }
   }
 
   Future<void> init() async {
@@ -416,13 +407,6 @@ class _WalletViewScreenState extends State<WalletViewScreen>
     } catch (e) {
       logError('Error initializing: $e');
     }
-  }
-
-  @override
-  void dispose() {
-    super.dispose();
-
-    _tabController.dispose();
   }
 
   List<BscScanTransaction> getFilteredTransactions() {
@@ -452,6 +436,19 @@ class _WalletViewScreenState extends State<WalletViewScreen>
     double height = MediaQuery.of(context).size.height;
     return Scaffold(
       backgroundColor: colors.primaryColor,
+      floatingActionButton: !isScrollingToTheBottom
+          ? FloatingActionButton(
+              backgroundColor: colors.themeColor,
+              onPressed: () {
+                _scrollController.jumpTo(0);
+                _pageScrollController.jumpTo(0);
+              },
+              child: Icon(
+                Icons.arrow_upward,
+                color: colors.primaryColor,
+              ),
+            )
+          : null,
       appBar: AppBar(
         surfaceTintColor: colors.primaryColor,
         backgroundColor: colors.primaryColor,
@@ -827,6 +824,7 @@ class _WalletViewScreenState extends State<WalletViewScreen>
               account: currentAccount, crypto: currentCrypto);
         },
         child: SingleChildScrollView(
+          controller: _pageScrollController,
           child: Column(
             children: [
               Align(
@@ -864,7 +862,7 @@ class _WalletViewScreenState extends State<WalletViewScreen>
                           builder: (BuildContext ctx, AsyncSnapshot result) {
                             if (result.hasData) {
                               return Text(
-                                "= ${formatUsd((result.data as double).toString())}",
+                                "= \$ ${formatUsd((result.data as double).toString())}",
                                 style: GoogleFonts.roboto(
                                     color: colors.textColor.withOpacity(0.5),
                                     fontSize: 14),
@@ -976,6 +974,7 @@ class _WalletViewScreenState extends State<WalletViewScreen>
                           )
                         : ListView.builder(
                             itemCount: getFilteredTransactions().length,
+                            controller: _scrollController,
                             itemBuilder: (BuildContext listCtx, index) {
                               final transaction =
                                   getFilteredTransactions()[index];
@@ -997,42 +996,46 @@ class _WalletViewScreenState extends State<WalletViewScreen>
                             }),
                   )),
                   SingleChildScrollView(
+                      controller: _scrollController,
                       child: SizedBox(
-                    height: height * 0.82,
-                    child: ListView.builder(
-                        itemCount: getFilteredTransactions()
-                            .where((tr) =>
-                                tr.from.toLowerCase().trim() !=
-                                currentAccount.address.toLowerCase().trim())
-                            .toList()
-                            .length,
-                        itemBuilder: (BuildContext listCtx, index) {
-                          final trx = getFilteredTransactions();
-                          final trIn = trx
-                              .where((tr) =>
-                                  tr.from.toLowerCase().trim() !=
-                                  currentAccount.address.toLowerCase().trim())
-                              .toList();
-                          final tr = trIn[index];
-                          final isFrom = tr.from.trim().toLowerCase() ==
-                              currentAccount.address.trim().toLowerCase();
-                          return TransactionsListElement(
-                            colors: colors,
-                            surfaceTintColor: colors.grayColor,
-                            isFrom: isFrom,
-                            tr: tr,
-                            textColor: colors.textColor,
-                            secondaryColor: colors.themeColor,
-                            darkColor: colors.primaryColor,
-                            primaryColor: colors.primaryColor,
-                            currentNetwork: currentCrypto,
-                          );
-                        }),
-                  )),
+                        height: height * 0.82,
+                        child: ListView.builder(
+                            itemCount: getFilteredTransactions()
+                                .where((tr) =>
+                                    tr.from.toLowerCase().trim() !=
+                                    currentAccount.address.toLowerCase().trim())
+                                .toList()
+                                .length,
+                            itemBuilder: (BuildContext listCtx, index) {
+                              final trx = getFilteredTransactions();
+                              final trIn = trx
+                                  .where((tr) =>
+                                      tr.from.toLowerCase().trim() !=
+                                      currentAccount.address
+                                          .toLowerCase()
+                                          .trim())
+                                  .toList();
+                              final tr = trIn[index];
+                              final isFrom = tr.from.trim().toLowerCase() ==
+                                  currentAccount.address.trim().toLowerCase();
+                              return TransactionsListElement(
+                                colors: colors,
+                                surfaceTintColor: colors.grayColor,
+                                isFrom: isFrom,
+                                tr: tr,
+                                textColor: colors.textColor,
+                                secondaryColor: colors.themeColor,
+                                darkColor: colors.primaryColor,
+                                primaryColor: colors.primaryColor,
+                                currentNetwork: currentCrypto,
+                              );
+                            }),
+                      )),
                   SingleChildScrollView(
                       child: SizedBox(
                           height: height * 0.82,
                           child: ListView.builder(
+                              controller: _scrollController,
                               itemCount: getFilteredTransactions()
                                   .where((tr) =>
                                       tr.from.toLowerCase().trim() ==

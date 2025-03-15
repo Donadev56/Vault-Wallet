@@ -204,12 +204,14 @@ class _CreatePrivateKeyState extends State<CreatePrivateKeyMain> {
                     maxLines: 5,
                     controller: _textController,
                     decoration: InputDecoration(
+                      filled: true,
+                      fillColor: colors.secondaryColor,
                       enabledBorder: OutlineInputBorder(
                           borderSide:
-                              BorderSide(width: 1, color: colors.themeColor)),
+                              BorderSide(width: 0, color: Colors.transparent)),
                       focusedBorder: OutlineInputBorder(
                           borderSide:
-                              BorderSide(width: 1, color: colors.themeColor)),
+                              BorderSide(width: 0, color: Colors.transparent)),
                       labelText: 'Private Key',
                       labelStyle: TextStyle(color: colors.textColor),
                       border: OutlineInputBorder(

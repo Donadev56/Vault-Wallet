@@ -9,6 +9,7 @@ import 'package:moonwallet/custom/web3_webview/lib/widgets/custom_modal.dart';
 import 'package:moonwallet/screens/dashboard/view/wallet_overview.dart';
 import 'package:moonwallet/service/crypto_storage_manager.dart';
 import 'package:moonwallet/service/network.dart';
+import 'package:moonwallet/service/number_formatter.dart';
 import 'package:moonwallet/service/wallet_saver.dart';
 import 'package:moonwallet/utils/colors.dart';
 import 'package:moonwallet/widgets/crypto_picture.dart';
@@ -86,6 +87,7 @@ class _MainDashboardScreenState extends State<MainDashboardScreen>
   final publicDataManager = PublicDataManager();
   final cryptoStorageManager = CryptoStorageManager();
   final connectivityManager = ConnectivityManager();
+  bool canUseBio = false;
 
   final nullAccount = PublicData(
       keyId: "",
@@ -124,6 +126,7 @@ class _MainDashboardScreenState extends State<MainDashboardScreen>
 
     loadData();
     super.initState();
+    checkCanUseBio();
 
     _tabController = TabController(length: 2, vsync: this);
   }
@@ -131,6 +134,20 @@ class _MainDashboardScreenState extends State<MainDashboardScreen>
   @override
   void dispose() {
     super.dispose();
+  }
+
+  Future<void> checkCanUseBio() async {
+    try {
+      final prefs = PublicDataManager();
+      final biometryStatus = await prefs.getDataFromPrefs(key: "BioStatus");
+      if (biometryStatus == "on") {
+        canUseBio = true;
+      } else {
+        canUseBio = false;
+      }
+    } catch (e) {
+      log("Error checking biometry status: $e");
+    }
   }
 
   Future<void> getSavedTheme() async {
@@ -376,7 +393,7 @@ class _MainDashboardScreenState extends State<MainDashboardScreen>
     }
   }
 
-  Future<bool> deleteWallet(String walletId,  BuildContext? ctx)  async{
+  Future<bool> deleteWallet(String walletId, BuildContext? ctx) async {
     try {
       final result = await showPinModalBottomSheet(
           colors: colors,
@@ -398,11 +415,11 @@ class _MainDashboardScreenState extends State<MainDashboardScreen>
                 final index = currentList.indexOf(accountToRemove);
                 if (currentList[index].keyId == currentAccount?.keyId &&
                     index > 0) {
-                   await getCryptoData(account:  accounts[index - 1]).withLoading(context, colors, "Processing...");
+                  await getCryptoData(account: accounts[index - 1])
+                      .withLoading(context, colors, "Processing...");
 
                   setState(() {
                     currentAccount = accounts[index - 1];
-
                   });
                 }
                 currentList.removeAt(index);
@@ -465,11 +482,9 @@ class _MainDashboardScreenState extends State<MainDashboardScreen>
           },
           title: "Enter your password");
 
-          if (ctx != null) {
-          Navigator.of(ctx).pop();
-
-          } else {
-          }
+      if (ctx != null) {
+        Navigator.of(ctx).pop();
+      } else {}
 
       if (result) {
         return true;
@@ -790,24 +805,13 @@ class _MainDashboardScreenState extends State<MainDashboardScreen>
     decimalSeparator: '.',
     symbolSeparator: ' ',
   );
- String formatUsd(String value) {
-    String formatted =
-        CurrencyFormatter.format(value, formatterSettings, decimal: 2);
-
-    formatted = formatted.replaceAll(RegExp(r'(\.\d*?[1-9])0+$'), r'$1');
-    formatted = formatted.replaceAll(RegExp(r'\.0+$'), '');
-
-    return formatted;
+  String formatUsd(String value) {
+    return NumberFormatter().formatUsd(value: value);
   }
-   String formatCryptoValue(String value) {
-  String formatted =
-      CurrencyFormatter.format(value, formatterSettingsCrypto, decimal: 8);
-  if (formatted.contains('.')) {
-    formatted = formatted.replaceAll(RegExp(r'0+$'), '');
-    formatted = formatted.replaceAll(RegExp(r'\.$'), '');  
+
+  String formatCryptoValue(String value) {
+    return NumberFormatter().formatCrypto(value: value);
   }
-  return formatted;
-}
 
   Future<void> getCryptoData({required PublicData account}) async {
     try {
@@ -848,7 +852,6 @@ class _MainDashboardScreenState extends State<MainDashboardScreen>
       } else {
         cryptosList = savedCrypto;
       }
-
 
       if (cryptosList.isNotEmpty) {
         enabledCryptos =
@@ -1019,6 +1022,12 @@ class _MainDashboardScreenState extends State<MainDashboardScreen>
           textColor: colors.textColor,
           surfaceTintColor: colors.secondaryColor),
       appBar: CustomAppBar(
+        updateBioState: (state) async {
+          setState(() {
+            canUseBio = state;
+          });
+        },
+          canUseBio: canUseBio,
           refreshProfile: (f) async {
             setState(() {
               _profileImage = f;
@@ -1100,7 +1109,7 @@ class _MainDashboardScreenState extends State<MainDashboardScreen>
                                   text: TextSpan(
                                     text: isHidden
                                         ? "***"
-                                        : formatUsd(totalBalanceUsd.toString()),
+                                        : "\$ ${formatUsd(totalBalanceUsd.toString())}",
                                     style: GoogleFonts.roboto(
                                         color: colors.textColor,
                                         fontSize: 30,
@@ -1295,7 +1304,9 @@ class _MainDashboardScreenState extends State<MainDashboardScreen>
                                     subtitle: Row(
                                       spacing: 10,
                                       children: [
-                                        Text(formatUsd(crypto.cryptoPrice.toString()),
+                                        Text(
+                                            formatUsd(
+                                                crypto.cryptoPrice.toString()),
                                             style: customTextStyle(
                                               color: colors.textColor
                                                   .withOpacity(0.6),
@@ -1337,7 +1348,7 @@ class _MainDashboardScreenState extends State<MainDashboardScreen>
                                         Text(
                                             isHidden
                                                 ? "***"
-                                                : formatUsd(crypto.balanceUsd.toString()),
+                                                : "\$ ${formatUsd(crypto.balanceUsd.toString())}",
                                             style: customTextStyle(
                                                 color: colors.textColor
                                                     .withOpacity(0.6),

@@ -6,12 +6,15 @@ import 'package:currency_formatter/currency_formatter.dart';
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:image_picker/image_picker.dart';
+import 'package:local_auth/local_auth.dart';
 import 'package:lucide_icons_flutter/lucide_icons.dart';
 import 'package:moonwallet/screens/dashboard/private/private_key_screen.dart';
 import 'package:moonwallet/screens/dashboard/settings/change_colors.dart';
+import 'package:moonwallet/service/number_formatter.dart';
 import 'package:moonwallet/service/profile_image_manager.dart';
 import 'package:moonwallet/service/wallet_saver.dart';
 import 'package:moonwallet/types/types.dart';
+import 'package:moonwallet/utils/prefs.dart';
 import 'package:moonwallet/widgets/avatar_modal.dart';
 import 'package:moonwallet/widgets/bottom_pin_copy.dart';
 import 'package:moonwallet/widgets/crypto_picture.dart';
@@ -30,6 +33,8 @@ void showCustomDrawer(
     required double totalBalanceUsd,
     required PublicData account,
     required Future<void> Function(PublicData account) deleteWallet,
+    required bool canUseBio,
+    required Future<void> Function(bool state) updateBioState,
     required Future Function(
             {required PublicData account,
             String? name,
@@ -45,22 +50,13 @@ void showCustomDrawer(
   final ImageStorageManager storageManager = ImageStorageManager();
   String newPassword = "";
   String confirmPassword = "";
-CurrencyFormat formatterSettingsCrypto = CurrencyFormat(
-    symbol: "",
-    symbolSide: SymbolSide.right,
-    thousandSeparator: ',',
-    decimalSeparator: '.',
-    symbolSeparator: ' ',
-  );
-  String formatCryptoValue(String value) {
-  String formatted =
-      CurrencyFormatter.format(value, formatterSettingsCrypto, decimal: 2);
-  if (formatted.contains('.')) {
-    formatted = formatted.replaceAll(RegExp(r'0+$'), '');
-    formatted = formatted.replaceAll(RegExp(r'\.$'), '');  
+  bool useBio = canUseBio;
+
+  String formatUsd(String value) {
+    return NumberFormatter().formatUsd(value: value);
   }
-  return formatted;
-}
+
+ 
   Future<File?> pickImage() async {
     final XFile? image = await picker.pickImage(source: ImageSource.gallery);
     if (image != null) {
@@ -225,7 +221,7 @@ CurrencyFormat formatterSettingsCrypto = CurrencyFormat(
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
                             Text(
-                              "\$${(formatCryptoValue(totalBalanceUsd.toString()))}",
+                              "\$${(formatUsd(totalBalanceUsd.toString()))}",
                               style: GoogleFonts.roboto(
                                   color: colors.textColor,
                                   fontSize: 30,
@@ -612,6 +608,80 @@ CurrencyFormat formatterSettingsCrypto = CurrencyFormat(
                         ),
                         options: [
                           Option(
+                              title: "Enable biometric",
+                              icon: Icon(
+                                LucideIcons.fingerprint,
+                                color: colors.textColor.withOpacity(0.7),
+                                size: 20,
+                              ),
+                              trailing: Switch(
+                                  value: canUseBio,
+                                  onChanged: (v) async {
+                                    if (v) {
+                                      final LocalAuthentication auth =
+                                          LocalAuthentication();
+                                      final bool canAuthenticateWithBiometrics =
+                                          await auth.canCheckBiometrics;
+                                      final bool canAuthenticate =
+                                          canAuthenticateWithBiometrics ||
+                                              await auth.isDeviceSupported();
+
+                                      if (canAuthenticate) {
+                                        try {
+                                          final bool didAuthenticate =
+                                              await auth.authenticate(
+                                                  localizedReason:
+                                                      "Enabled to use biometric authentication");
+                                          if (didAuthenticate) {
+                                            final res =
+                                                await PublicDataManager()
+                                                    .saveDataInPrefs(
+                                                        data: v ? "on" : "off",
+                                                        key: "BioStatus");
+                                          showCustomSnackBar(context: context, message: "Enabled", primaryColor: colors.primaryColor, colors: colors, icon: Icons.check_circle, iconColor: colors.themeColor);
+
+                                            if (res) {
+
+                                              st(() {
+                                                canUseBio = v;
+                                              });
+                                            await  updateBioState(v);
+
+                                            }
+                                          }
+                                        } catch (e) {
+                                          showCustomSnackBar(
+                                            colors: colors,
+                                            primaryColor: colors.primaryColor,
+                                            icon: Icons.error,
+                                            iconColor: Colors.red,
+                                            context: context,
+                                            message: "Failed : $e",
+                                          );
+                                          logError(e.toString());
+                                        }
+                                      }
+                                    } else {
+                                      final res =
+                                              await PublicDataManager()
+                                                  .saveDataInPrefs(
+                                                        data:  "off",
+                                                        key: "BioStatus");
+                                          if (res) {
+                                              st(() {
+                                                canUseBio = v;
+                                              });
+
+                                            await  updateBioState(v);
+                                          }
+                                        }
+  
+                                    
+                                  }),
+                              color: colors.textColor,
+                              titleStyle: GoogleFonts.roboto(
+                                  color: colors.textColor, fontSize: 14)),
+                          Option(
                               tileColor: colors.redColor.withOpacity(0.1),
                               title: "Delete wallet",
                               icon: Icon(
@@ -628,7 +698,7 @@ CurrencyFormat formatterSettingsCrypto = CurrencyFormat(
                                   color: colors.redColor, fontSize: 14))
                         ],
                         onTap: (i) {
-                          if (i == 0) {
+                          if (i == 1) {
                             deleteWallet(account);
                           }
                         })

@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_feather_icons/flutter_feather_icons.dart';
 import 'package:flutter_web3_webview/flutter_web3_webview.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:intl/intl.dart';
 import 'package:lucide_icons_flutter/lucide_icons.dart';
 import 'package:modal_bottom_sheet/modal_bottom_sheet.dart';
 import 'package:moonwallet/logger/logger.dart';
@@ -34,14 +35,6 @@ Future<UserRequestResponse> askUserForConfirmation(
     log("Conversion: $wei wei correspond to $tokenAmount token(s)  $price USD");
     return price;
   }
-
-  CurrencyFormat formatterSettings = CurrencyFormat(
-    symbol: "",
-    symbolSide: SymbolSide.right,
-    thousandSeparator: ',',
-    decimalSeparator: '.',
-    symbolSeparator: ' ',
-  );
 
   final BigInt baseCost = (estimatedGas == BigInt.zero)
       ? gasLimit * gasPrice
@@ -79,24 +72,10 @@ Future<UserRequestResponse> askUserForConfirmation(
     final valueInWei =
         BigInt.parse(txData.value!.replaceFirst("0x", ""), radix: 16);
     final double tokenAmount = double.parse(valueInWei.toString()) / 1e18;
-    String formatted =
-        CurrencyFormatter.format(tokenAmount, formatterSettings, decimal: 8);
-          if (formatted.contains('.')) {
-    formatted = formatted.replaceAll(RegExp(r'0+$'), '');
-    formatted = formatted.replaceAll(RegExp(r'\.$'), '');  
+
+    return NumberFormat().format(tokenAmount);
   }
 
-
-    return formatted;
-  }
-  CurrencyFormat formatterSettingsCrypto = CurrencyFormat(
-    symbol: "",
-    symbolSide: SymbolSide.right,
-    thousandSeparator: ',',
-    decimalSeparator: '.',
-    symbolSeparator: ' ',
-  );
- 
   final result = await showBarModalBottomSheet<UserRequestResponse>(
     backgroundColor: Colors.transparent,
     context: context,
@@ -111,6 +90,7 @@ Future<UserRequestResponse> askUserForConfirmation(
       return StatefulBuilder(
         builder: (BuildContext ctx, StateSetter setModalState) {
           return Container(
+            padding: const EdgeInsets.all(13),
             decoration: BoxDecoration(
               color: primaryColor,
               borderRadius: BorderRadius.only(
@@ -190,7 +170,7 @@ Future<UserRequestResponse> askUserForConfirmation(
                           mainAxisAlignment: MainAxisAlignment.center,
                           children: [
                             Text(
-                              txData.value != null ? getValue() : "0 ",
+                              txData.value != null ? "${getValue()} " : "0 ",
                               overflow: TextOverflow.clip,
                               maxLines: 1,
                               style: GoogleFonts.roboto(
@@ -329,7 +309,7 @@ Future<UserRequestResponse> askUserForConfirmation(
                                   child: Material(
                                       color: Colors.transparent,
                                       child: Container(
-                                          padding: const EdgeInsets.all(10),
+                                          padding: const EdgeInsets.all(20),
                                           decoration: BoxDecoration(
                                             color: primaryColor,
                                           ),
@@ -489,7 +469,7 @@ Future<UserRequestResponse> askUserForConfirmation(
                                     : Colors.grey.withOpacity(0.3),
                               ),
                             ),
-                            width: width / 4.5,
+                            width: width / 5,
                             height: 70,
                             child: Column(
                               mainAxisAlignment: MainAxisAlignment.center,
@@ -497,7 +477,7 @@ Future<UserRequestResponse> askUserForConfirmation(
                                 Text(
                                   "${gas["name"]}",
                                   style: GoogleFonts.roboto(
-                                      color: textColor, fontSize: 12),
+                                      color: textColor, fontSize: 10),
                                 ),
                                 SizedBox(height: 2),
                                 Icon(Icons.edit, color: textColor),
@@ -531,7 +511,7 @@ Future<UserRequestResponse> askUserForConfirmation(
                                         ? Colors.greenAccent
                                         : Colors.grey.withOpacity(0.3)),
                               ),
-                              width: width / 4.5,
+                              width: width / 5,
                               height: 70,
                               child: Column(
                                 mainAxisAlignment: MainAxisAlignment.center,
@@ -539,19 +519,19 @@ Future<UserRequestResponse> askUserForConfirmation(
                                   Text(
                                     "${gas["name"]}",
                                     style: GoogleFonts.roboto(
-                                        color: textColor, fontSize: 12),
+                                        color: textColor, fontSize: 10),
                                   ),
                                   SizedBox(height: 2),
                                   Text(
                                     "\$ ${calculatePrice(gas["wei"]).toStringAsFixed(4)}",
                                     style: GoogleFonts.roboto(
-                                        color: textColor, fontSize: 12),
+                                        color: textColor, fontSize: 10),
                                   ),
                                   SizedBox(height: 2),
                                   Text(
                                     "${(gas["gwei"] as BigInt).toString()} GWEI",
                                     style: GoogleFonts.roboto(
-                                        color: textColor, fontSize: 12),
+                                        color: textColor, fontSize: 10),
                                   ),
                                 ],
                               ),

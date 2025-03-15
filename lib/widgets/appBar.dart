@@ -17,7 +17,8 @@ import 'package:url_launcher/url_launcher.dart';
 
 typedef EditWalletNameType = void Function(String newName, int index);
 typedef ActionWithIndexType = void Function(int index);
-typedef ActionWithCryptoId = Future<bool> Function(String cryptoId, BuildContext? context);
+typedef ActionWithCryptoId = Future<bool> Function(
+    String cryptoId, BuildContext? context);
 
 typedef ReorderList = Future<void> Function(int oldIndex, int newIndex);
 typedef SearchWallet = void Function(String query);
@@ -44,7 +45,10 @@ class CustomAppBar extends StatelessWidget implements PreferredSizeWidget {
   final bool isHidden;
   final AppColors colors;
   final bool isTotalBalanceUpdated;
+  final Future<void> Function(bool state) updateBioState;
+
   final Future<void> Function(File image) refreshProfile;
+  final bool canUseBio;
   final Future<bool> Function(
       {required PublicData account,
       String? name,
@@ -53,6 +57,7 @@ class CustomAppBar extends StatelessWidget implements PreferredSizeWidget {
 
   const CustomAppBar(
       {super.key,
+      required this.canUseBio,
       required this.totalBalanceUsd,
       required this.primaryColor,
       required this.textColor,
@@ -74,7 +79,8 @@ class CustomAppBar extends StatelessWidget implements PreferredSizeWidget {
       required this.availableCryptos,
       required this.profileImage,
       required this.editWallet,
-      required this.refreshProfile});
+      required this.refreshProfile ,
+      required this.updateBioState});
 
   @override
   Widget build(BuildContext context) {
@@ -86,6 +92,8 @@ class CustomAppBar extends StatelessWidget implements PreferredSizeWidget {
       leading: IconButton(
           onPressed: () {
             showCustomDrawer(
+              updateBioState: updateBioState,
+                canUseBio: canUseBio,
                 deleteWallet: (acc) async {
                   deleteWallet(acc.keyId, null);
                 },
@@ -125,8 +133,8 @@ class CustomAppBar extends StatelessWidget implements PreferredSizeWidget {
                   currentAccount: currentAccount,
                   editWalletName: editWalletName,
                   deleteWallet: (id) async {
-                 final res = await  deleteWallet(id, context);
-                 return res ;
+                    final res = await deleteWallet(id, context);
+                    return res;
                   },
                   changeAccount: changeAccount,
                   showPrivateData: showPrivateData,

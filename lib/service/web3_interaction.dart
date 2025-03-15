@@ -448,41 +448,20 @@ class Web3InteractionManager {
           data: transData.isEmpty ? null : hexToUint8List(transData),
         );
 
-        String userPassword = "";
+      
 
         if (!mounted) {
           throw Exception("Internal error");
         }
 
-        final response = await showPinModalBottomSheet(
-            colors: colors,
-            // ignore: use_build_context_synchronously
-            context: context,
-            handleSubmit: (password) async {
-              final savedPassword = await web3Manager.getSavedPassword();
-              if (password.trim() != savedPassword) {
-                return PinSubmitResult(
-                    success: false,
-                    repeat: true,
-                    error: "Invalid password",
-                    newTitle: "Try again");
-              } else {
-                userPassword = password.trim();
+       String  userPassword = await askPassword(context: context, colors: colors);
 
-                return PinSubmitResult(success: true, repeat: false);
-              }
-            },
-            title: "Enter Password");
-
-        if (response) {
+          if (userPassword.isNotEmpty) {
           if (!mounted) {
-            throw Exception("Internal error");
-          }
-
-          if (userPassword.isEmpty) {
-            log("No password");
             throw Exception("No password provided");
           }
+
+         
           final result = await sendTransaction(
                   transaction: transaction,
                   chainId: currentNetwork.chainId ?? 204,
