@@ -1,12 +1,11 @@
-import 'package:currency_formatter/currency_formatter.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_feather_icons/flutter_feather_icons.dart';
 import 'package:flutter_web3_webview/flutter_web3_webview.dart';
 import 'package:google_fonts/google_fonts.dart';
-import 'package:intl/intl.dart';
 import 'package:lucide_icons_flutter/lucide_icons.dart';
 import 'package:modal_bottom_sheet/modal_bottom_sheet.dart';
 import 'package:moonwallet/logger/logger.dart';
+import 'package:moonwallet/service/number_formatter.dart';
 import 'package:moonwallet/types/types.dart';
 
 Future<UserRequestResponse> askUserForConfirmation(
@@ -73,7 +72,7 @@ Future<UserRequestResponse> askUserForConfirmation(
         BigInt.parse(txData.value!.replaceFirst("0x", ""), radix: 16);
     final double tokenAmount = double.parse(valueInWei.toString()) / 1e18;
 
-    return NumberFormat().format(tokenAmount);
+   return NumberFormatter().formatCrypto(value: tokenAmount.toString());
   }
 
   final result = await showBarModalBottomSheet<UserRequestResponse>(

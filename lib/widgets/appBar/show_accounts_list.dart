@@ -449,8 +449,9 @@ void showAccountList({
                 LayoutBuilder(builder: (ctx, c) {
                   return SizedBox(
                     width: width * 0.9,
-                    child: Padding(
+                    child: Container(
                       padding: const EdgeInsets.symmetric(horizontal: 20),
+                    
                       child: ElevatedButton.icon(
                         onPressed: () {
                           vibrate();

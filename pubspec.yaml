@@ -78,6 +78,8 @@ dependencies:
   pointycastle: ^3.9.1
   modal_bottom_sheet: ^3.0.0
   local_auth: ^2.3.0
+  flutter_native_splash: ^2.4.5
+  eth_sig_util: ^0.0.9
 
 
 
@@ -109,6 +111,24 @@ flutter_launcher_icons:
   ios: true
   image_path: "assets/icon/icon1.png"
   min_sdk_android: 21 # android min sdk min:16, default 21
+
+
+flutter_native_splash:
+ color: "#5271ff"
+ image: "assets/icon/icon4.png"
+ color_dark: "#5271ff"
+ image_dark: "assets/icon/icon4.png"
+ android_12:
+  image: "assets/icon/icon4.png"
+  image_dark: "assets/icon/icon4.png"
+
+
+  color: "#5271ff"
+  icon_background_color: "#5271ff"
+  color_dark: "#5271ff"
+
+
+
 
 
 # The following section is specific to Flutter packages.

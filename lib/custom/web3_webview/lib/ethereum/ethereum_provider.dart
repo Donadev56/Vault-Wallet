@@ -129,6 +129,7 @@ class EthereumProvider {
     if (_context == null) {
       throw WalletException('Provider context not set');
     }
+    log("Method : $method");
     try {
       switch (JsonRpcMethod.fromString(method)) {
         case JsonRpcMethod.ETH_REQUEST_ACCOUNTS:
@@ -164,7 +165,7 @@ class EthereumProvider {
             throw WalletException('Transaction handler error');
           }
 
-          return await txHandler.handleTransaction(params?.first);
+          return await txHandler.handleTransaction(params?.first, context, colors);
 
         case JsonRpcMethod.ETH_SEND_TRANSACTION:
           if (currentAccount != null && currentAccount!.isWatchOnly) {
@@ -337,6 +338,8 @@ class EthereumProvider {
   Future<String> _handleSignMessage(String method, List<dynamic> params,
       AppColors colors, BuildContext context, NetworkConfig network) async {
     try {
+      log("Params : ${params.map((p)=> p.toString()).toList()}");
+
       var message = params.first;
       String from = params[1];
       String password = params.length > 2 ? params[2] : '';
@@ -368,9 +371,12 @@ class EthereumProvider {
         throw WalletException("credentials error");
       }
 
-      return await signingHandler
+      final result = await signingHandler
           .signMessage(method, from, message, password)
           .withLoading(_context!, colors, 'Waiting for signature');
+          log("Data $method , from $from , message $message , password $password");
+          log("result :  $result");
+          return result ;
     } catch (e) {
       throw WalletException('Failed to sign message: $e');
     }
@@ -405,7 +411,7 @@ class EthereumProvider {
         log("TransactionHandler ${txHandler.toString()}");
         if (txHandler != null) {
           return await txHandler
-              .handleTransaction(params)
+              .handleTransaction(params, context , colors)
               .withLoading(_context!, colors, 'Waiting for transaction');
         }
         log("Invalid credentials");

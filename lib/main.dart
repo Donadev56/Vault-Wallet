@@ -41,8 +41,9 @@ void main() async {
   WidgetsFlutterBinding.ensureInitialized();
 
   await FastCachedImageConfig.init(clearCacheAfter: const Duration(days: 15));
-  runApp(const MyApp());
-}
+ Future.delayed(Duration(seconds: 2), () {
+    runApp(MyApp());
+  });}
 
 class Routes {
   static const String main = '/dashboard';

@@ -2,11 +2,14 @@
 import 'dart:convert';
 import 'dart:typed_data';
 import 'package:hex/hex.dart';
+import 'package:moonwallet/service/web3_interaction.dart';
 import 'package:web3dart/crypto.dart';
 import 'package:web3dart/web3dart.dart';
+import '../../../../logger/logger.dart';
 import '../json_rpc_method.dart';
 import '../utils/hex_utils.dart';
 import '../exceptions.dart';
+import 'package:eth_sig_util/eth_sig_util.dart';
 
 class SigningHandler {
   final Credentials _credentials;
@@ -23,6 +26,7 @@ class SigningHandler {
         case JsonRpcMethod.PERSONAL_SIGN:
         case JsonRpcMethod.ETH_SIGN:
           return await _personalSign(message);
+
         case JsonRpcMethod.ETH_SIGN_TYPED_DATA:
           return await _signTypedData(message[0]);
         case JsonRpcMethod.ETH_SIGN_TYPED_DATA_V1:
@@ -46,6 +50,8 @@ class SigningHandler {
     }
   }
 
+  // do not edit 
+
   Future<String> _personalSign(dynamic message) async {
     try {
       Uint8List messageBytes;
@@ -58,8 +64,7 @@ class SigningHandler {
         // Nếu là hex string, decode trực tiếp thành bytes
         messageBytes = HexUtils.hexToBytes(message);
         // Thêm prefix sau khi decode hex
-        // final prefix = '\x19Ethereum Signed Message:\n${messageBytes.length}';
-        const prefix = ''; // Không cần prefix cho hex string
+       final prefix = '\x19Ethereum Signed Message:\n${messageBytes.length}';
         messageBytes =
             Uint8List.fromList([...utf8.encode(prefix), ...messageBytes]);
       } else {
@@ -94,6 +99,38 @@ class SigningHandler {
     }
   }
 
+
+
+
+ Future<String> _signTypedDataV1(dynamic message) async {
+    try {
+      
+  final privateKey = await Web3InteractionManager().getPrivateKey(address: _credentials.address.hex);
+  log("Message : $message");
+  String? signature ;
+  try {
+ 
+  signature = EthSigUtil.signTypedData(privateKey: privateKey, jsonData: message == String ? message : json.encode(message) , version: TypedDataVersion.V1);
+
+  } catch (e) {
+    logError(e.toString());
+    
+  }
+   log("Signature : $signature");
+   if (signature != null) {
+     return signature;
+  
+   } else {
+     throw WalletException('Typed data v4 sign failed: Signature is null');
+   }
+
+     } catch (e) {
+      logError(e.toString());
+      throw WalletException('Typed data v4 sign failed: $e');
+    }
+  }
+
+/*
   Future<String> _signTypedDataV1(dynamic message) async {
     try {
       if (message is! List) {
@@ -108,6 +145,9 @@ class SigningHandler {
       throw WalletException('Typed data v1 sign failed: $e');
     }
   }
+
+  
+  
 
   Future<String> _signTypedDataV3(dynamic message) async {
     try {
@@ -134,9 +174,67 @@ class SigningHandler {
       throw WalletException('Typed data v3 sign failed: $e');
     }
   }
+*/
+ Future<String> _signTypedDataV3(dynamic message) async {
+    try {
+      
+  final privateKey = await Web3InteractionManager().getPrivateKey(address: _credentials.address.hex);
+  log("Message : $message");
+  String? signature ;
+  try {
+ 
+  signature = EthSigUtil.signTypedData(privateKey: privateKey, jsonData: message == String ? message : json.encode(message) , version: TypedDataVersion.V3);
+
+  } catch (e) {
+    logError(e.toString());
+    
+  }
+   log("Signature : $signature");
+   if (signature != null) {
+     return signature;
+  
+   } else {
+     throw WalletException('Typed data v4 sign failed: Signature is null');
+   }
+
+     } catch (e) {
+      logError(e.toString());
+      throw WalletException('Typed data v4 sign failed: $e');
+    }
+  }
 
   Future<String> _signTypedDataV4(dynamic message) async {
     try {
+      
+  final privateKey = await Web3InteractionManager().getPrivateKey(address: _credentials.address.hex);
+  log("Message : $message");
+  String? signature ;
+  try {
+ 
+  signature = EthSigUtil.signTypedData(privateKey: privateKey, jsonData: message == String ? message : json.encode(message) , version: TypedDataVersion.V4);
+
+  } catch (e) {
+    logError(e.toString());
+    
+  }
+   log("Signature : $signature");
+   if (signature != null) {
+     return signature;
+  
+   } else {
+     throw WalletException('Typed data v4 sign failed: Signature is null');
+   }
+
+     } catch (e) {
+      logError(e.toString());
+      throw WalletException('Typed data v4 sign failed: $e');
+    }
+  }
+
+/*
+  Future<String> _signTypedDataV4(dynamic message) async {
+    try {
+
       if (message is! Map<String, dynamic>) {
         throw WalletException('Invalid typed data v4 format');
       }
@@ -165,7 +263,7 @@ class SigningHandler {
       throw WalletException('Typed data v4 sign failed: $e');
     }
   }
-
+*/
   Uint8List _encodeTypedDataV3(TypedData typedData) {
     // Implement EIP-712 encoding for v3
     // This should encode domain separator and message following EIP-712 spec
@@ -228,9 +326,7 @@ class SigningHandler {
         messageBytes = Uint8List.fromList(utf8.encode(message));
       }
 
-      // Tạo prefix theo chuẩn Ethereum
-      // final prefix = '\u0019Ethereum Signed Message:\n${messageBytes.length}';
-      const prefix = '';
+       final prefix = '\x19Ethereum Signed Message:\n${messageBytes.length}';
       final prefixBytes = Uint8List.fromList(utf8.encode(prefix));
 
       // Kết hợp prefix và message
@@ -406,16 +502,27 @@ class SigningHandler {
 
     seen[type] = false;
   }
-
-  Uint8List _hashStruct(String primaryType, Map<String, dynamic> data,
+ Uint8List _hashStruct(String primaryType, Map<String, dynamic> data,
       Map<String, dynamic> types) {
     final encodedType = _encodeType(primaryType, types);
     final encodedData = _encodeData(primaryType, data, types);
+
     return keccak256(Uint8List.fromList([
       ...keccak256(encodedType),
       ...encodedData,
     ]));
   }
+/*
+  Uint8List _hashStruct(String primaryType, Map<String, dynamic> data,
+      Map<String, dynamic> types) {
+    final encodedType = _encodeType(primaryType, types);
+    final encodedData = _encodeData(primaryType, data, types);
+
+    return keccak256(Uint8List.fromList([
+      ...keccak256(encodedType),
+      ...encodedData,
+    ]));
+  } */
 
   Uint8List _encodeType(String primaryType, Map<String, dynamic> types) {
     // Implement type encoding according to EIP-712

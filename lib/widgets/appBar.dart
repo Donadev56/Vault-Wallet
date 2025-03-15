@@ -11,8 +11,8 @@ import 'package:google_fonts/google_fonts.dart';
 import 'package:lucide_icons_flutter/lucide_icons.dart';
 import 'package:moonwallet/service/vibration.dart';
 import 'package:moonwallet/types/types.dart';
-import 'package:moonwallet/widgets/func/show_accounts_list.dart';
-import 'package:moonwallet/widgets/func/show_custom_drawer.dart';
+import 'package:moonwallet/widgets/appBar/show_accounts_list.dart';
+import 'package:moonwallet/widgets/appBar/show_custom_drawer.dart';
 import 'package:url_launcher/url_launcher.dart';
 
 typedef EditWalletNameType = void Function(String newName, int index);
