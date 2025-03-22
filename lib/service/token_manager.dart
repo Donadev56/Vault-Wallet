@@ -8,6 +8,7 @@ import 'package:moonwallet/service/web3_interaction.dart';
 import 'package:moonwallet/types/types.dart';
 import 'package:moonwallet/widgets/askUserforconf.dart';
 import 'package:moonwallet/widgets/bottom_pin_copy.dart';
+import 'package:moonwallet/widgets/func/ask_password.dart';
 import 'package:web3dart/web3dart.dart';
 import 'package:http/http.dart';
 
@@ -276,35 +277,13 @@ class TokenManager {
           throw Exception("Internal error");
         }
 
-        final response = await showPinModalBottomSheet(
-            colors: colors,
-            // ignore: use_build_context_synchronously
-            context: context,
-            handleSubmit: (password) async {
-              final savedPassword = await web3manager.getSavedPassword();
-              if (password.trim() != savedPassword) {
-                return PinSubmitResult(
-                    success: false,
-                    repeat: true,
-                    error: "Invalid password",
-                    newTitle: "Try again");
-              } else {
-                userPassword = password.trim();
+        userPassword = await askPassword(context: context, colors: colors);
 
-                return PinSubmitResult(success: true, repeat: false);
-              }
-            },
-            title: "Enter Password");
-
-        if (response) {
+        if (userPassword.isNotEmpty) {
           if (!mounted) {
             throw Exception("Internal error");
           }
 
-          if (userPassword.isEmpty) {
-            log("No password");
-            throw Exception("No password provided");
-          }
           final result = await web3InteractionManager
               .sendTransaction(
                   transaction: transaction,

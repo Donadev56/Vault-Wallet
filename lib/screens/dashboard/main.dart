@@ -188,6 +188,7 @@ class _MainDashboardScreenState extends State<MainDashboardScreen>
   Future<void> getSavedWallets() async {
     try {
       final savedData = await web3Manager.getPublicData();
+      log("Saved data : $savedData");
 
       final lastAccount = await encryptService.getLastConnectedAddress();
 
@@ -211,10 +212,12 @@ class _MainDashboardScreenState extends State<MainDashboardScreen>
           break;
         }
       }
-      if (currentAccount == null) {
-        log("No account found");
-        currentAccount = accounts[0];
-        getCryptoData(account: accounts[0]);
+      if (accounts.isNotEmpty) {
+        if (currentAccount == null) {
+          log("No account found");
+          currentAccount = accounts[0];
+          getCryptoData(account: accounts[0]);
+        }
       }
     } catch (e) {
       logError('Error getting saved wallets: $e');
@@ -291,7 +294,7 @@ class _MainDashboardScreenState extends State<MainDashboardScreen>
         accounts[index] = newWallet;
         currentAccount = newWallet;
       });
-      final result = await web3Manager.saveListPublicDataJson(accounts);
+      final result = await web3Manager.saveListPublicData(accounts);
       if (result) {
         if (mounted) {
           showCustomSnackBar(
@@ -362,7 +365,7 @@ class _MainDashboardScreenState extends State<MainDashboardScreen>
         accounts[index] = newWallet;
         currentAccount = newWallet;
       });
-      final result = await web3Manager.saveListPublicDataJson(accounts);
+      final result = await web3Manager.saveListPublicData(accounts);
       if (result) {
         if (mounted) {
           showCustomSnackBar(
@@ -427,7 +430,7 @@ class _MainDashboardScreenState extends State<MainDashboardScreen>
                   accounts = currentList;
                 });
                 final result =
-                    await web3Manager.saveListPublicDataJson(currentList);
+                    await web3Manager.saveListPublicData(currentList);
                 if (result) {
                   if (mounted) {
                     showCustomSnackBar(
@@ -685,7 +688,7 @@ class _MainDashboardScreenState extends State<MainDashboardScreen>
       setState(() {
         accounts.insert(newIndex, removedAccount);
       });
-      final result = await web3Manager.saveListPublicDataJson(accounts);
+      final result = await web3Manager.saveListPublicData(accounts);
       if (result) {
       } else {
         if (mounted) {
@@ -1022,11 +1025,11 @@ class _MainDashboardScreenState extends State<MainDashboardScreen>
           textColor: colors.textColor,
           surfaceTintColor: colors.secondaryColor),
       appBar: CustomAppBar(
-        updateBioState: (state) async {
-          setState(() {
-            canUseBio = state;
-          });
-        },
+          updateBioState: (state) async {
+            setState(() {
+              canUseBio = state;
+            });
+          },
           canUseBio: canUseBio,
           refreshProfile: (f) async {
             setState(() {

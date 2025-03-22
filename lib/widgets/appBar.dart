@@ -79,7 +79,7 @@ class CustomAppBar extends StatelessWidget implements PreferredSizeWidget {
       required this.availableCryptos,
       required this.profileImage,
       required this.editWallet,
-      required this.refreshProfile ,
+      required this.refreshProfile,
       required this.updateBioState});
 
   @override
@@ -92,7 +92,7 @@ class CustomAppBar extends StatelessWidget implements PreferredSizeWidget {
       leading: IconButton(
           onPressed: () {
             showCustomDrawer(
-              updateBioState: updateBioState,
+                updateBioState: updateBioState,
                 canUseBio: canUseBio,
                 deleteWallet: (acc) async {
                   deleteWallet(acc.keyId, null);

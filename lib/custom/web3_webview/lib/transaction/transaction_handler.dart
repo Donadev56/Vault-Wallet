@@ -16,7 +16,8 @@ class TransactionHandler {
 
   TransactionHandler(this._web3client, this._credentials, this._chainId);
 
-  Future<String> handleTransaction(Map<String, dynamic> txParams , BuildContext context, AppColors colors ) async {
+  Future<String> handleTransaction(Map<String, dynamic> txParams,
+      BuildContext context, AppColors colors) async {
     log("Transaction params ${txParams}");
     try {
       log("Handling transaction for ${txParams.values.map((v) => v.toString()).toList()}");
@@ -35,13 +36,25 @@ class TransactionHandler {
       // Monitor transaction
       await _monitorTransaction(txHash);
       if (txHash.isNotEmpty) {
-        showCustomSnackBar(context: context, message: "Hash : $txHash", primaryColor: colors.primaryColor, colors: colors, iconColor: colors.greenColor, icon: Icons.check_circle);
+        showCustomSnackBar(
+            context: context,
+            message: "Hash : $txHash",
+            primaryColor: colors.primaryColor,
+            colors: colors,
+            iconColor: colors.greenColor,
+            icon: Icons.check_circle);
       }
 
       return txHash;
     } catch (e) {
       logError(e.toString());
-      showCustomSnackBar(context: context, message: "$e", primaryColor: colors.redColor, colors: colors, iconColor: colors.redColor, icon: Icons.error);
+      showCustomSnackBar(
+          context: context,
+          message: "$e",
+          primaryColor: colors.redColor,
+          colors: colors,
+          iconColor: colors.redColor,
+          icon: Icons.error);
       throw WalletException('Transaction failed: $e');
     }
   }

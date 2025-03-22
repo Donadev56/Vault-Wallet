@@ -225,7 +225,7 @@ final List<Crypto> cryptos = [
       chainId: 0,
       color: Colors.orange,
       cryptoId: "76a6dd5a-31b7-4033-b192-b44ca8d34d48"),
-      Crypto(
+  Crypto(
       isNetworkIcon: false,
       symbol: "BTCB",
       canDisplay: true,

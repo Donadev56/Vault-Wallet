@@ -72,7 +72,7 @@ Future<UserRequestResponse> askUserForConfirmation(
         BigInt.parse(txData.value!.replaceFirst("0x", ""), radix: 16);
     final double tokenAmount = double.parse(valueInWei.toString()) / 1e18;
 
-   return NumberFormatter().formatCrypto(value: tokenAmount.toString());
+    return NumberFormatter().formatCrypto(value: tokenAmount.toString());
   }
 
   final result = await showBarModalBottomSheet<UserRequestResponse>(

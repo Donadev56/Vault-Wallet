@@ -50,7 +50,7 @@ class SigningHandler {
     }
   }
 
-  // do not edit 
+  // do not edit
 
   Future<String> _personalSign(dynamic message) async {
     try {
@@ -64,7 +64,7 @@ class SigningHandler {
         // Nếu là hex string, decode trực tiếp thành bytes
         messageBytes = HexUtils.hexToBytes(message);
         // Thêm prefix sau khi decode hex
-       final prefix = '\x19Ethereum Signed Message:\n${messageBytes.length}';
+        final prefix = '\x19Ethereum Signed Message:\n${messageBytes.length}';
         messageBytes =
             Uint8List.fromList([...utf8.encode(prefix), ...messageBytes]);
       } else {
@@ -99,32 +99,27 @@ class SigningHandler {
     }
   }
 
-
-
-
- Future<String> _signTypedDataV1(dynamic message) async {
+  Future<String> _signTypedDataV1(dynamic message) async {
     try {
-      
-  final privateKey = await Web3InteractionManager().getPrivateKey(address: _credentials.address.hex);
-  log("Message : $message");
-  String? signature ;
-  try {
- 
-  signature = EthSigUtil.signTypedData(privateKey: privateKey, jsonData: message == String ? message : json.encode(message) , version: TypedDataVersion.V1);
-
-  } catch (e) {
-    logError(e.toString());
-    
-  }
-   log("Signature : $signature");
-   if (signature != null) {
-     return signature;
-  
-   } else {
-     throw WalletException('Typed data v4 sign failed: Signature is null');
-   }
-
-     } catch (e) {
+      final privateKey = await Web3InteractionManager()
+          .getPrivateKey(address: _credentials.address.hex);
+      log("Message : $message");
+      String? signature;
+      try {
+        signature = EthSigUtil.signTypedData(
+            privateKey: privateKey,
+            jsonData: message == String ? message : json.encode(message),
+            version: TypedDataVersion.V1);
+      } catch (e) {
+        logError(e.toString());
+      }
+      log("Signature : $signature");
+      if (signature != null) {
+        return signature;
+      } else {
+        throw WalletException('Typed data v4 sign failed: Signature is null');
+      }
+    } catch (e) {
       logError(e.toString());
       throw WalletException('Typed data v4 sign failed: $e');
     }
@@ -175,29 +170,27 @@ class SigningHandler {
     }
   }
 */
- Future<String> _signTypedDataV3(dynamic message) async {
+  Future<String> _signTypedDataV3(dynamic message) async {
     try {
-      
-  final privateKey = await Web3InteractionManager().getPrivateKey(address: _credentials.address.hex);
-  log("Message : $message");
-  String? signature ;
-  try {
- 
-  signature = EthSigUtil.signTypedData(privateKey: privateKey, jsonData: message == String ? message : json.encode(message) , version: TypedDataVersion.V3);
-
-  } catch (e) {
-    logError(e.toString());
-    
-  }
-   log("Signature : $signature");
-   if (signature != null) {
-     return signature;
-  
-   } else {
-     throw WalletException('Typed data v4 sign failed: Signature is null');
-   }
-
-     } catch (e) {
+      final privateKey = await Web3InteractionManager()
+          .getPrivateKey(address: _credentials.address.hex);
+      log("Message : $message");
+      String? signature;
+      try {
+        signature = EthSigUtil.signTypedData(
+            privateKey: privateKey,
+            jsonData: message == String ? message : json.encode(message),
+            version: TypedDataVersion.V3);
+      } catch (e) {
+        logError(e.toString());
+      }
+      log("Signature : $signature");
+      if (signature != null) {
+        return signature;
+      } else {
+        throw WalletException('Typed data v4 sign failed: Signature is null');
+      }
+    } catch (e) {
       logError(e.toString());
       throw WalletException('Typed data v4 sign failed: $e');
     }
@@ -205,27 +198,25 @@ class SigningHandler {
 
   Future<String> _signTypedDataV4(dynamic message) async {
     try {
-      
-  final privateKey = await Web3InteractionManager().getPrivateKey(address: _credentials.address.hex);
-  log("Message : $message");
-  String? signature ;
-  try {
- 
-  signature = EthSigUtil.signTypedData(privateKey: privateKey, jsonData: message == String ? message : json.encode(message) , version: TypedDataVersion.V4);
-
-  } catch (e) {
-    logError(e.toString());
-    
-  }
-   log("Signature : $signature");
-   if (signature != null) {
-     return signature;
-  
-   } else {
-     throw WalletException('Typed data v4 sign failed: Signature is null');
-   }
-
-     } catch (e) {
+      final privateKey = await Web3InteractionManager()
+          .getPrivateKey(address: _credentials.address.hex);
+      log("Message : $message");
+      String? signature;
+      try {
+        signature = EthSigUtil.signTypedData(
+            privateKey: privateKey,
+            jsonData: message == String ? message : json.encode(message),
+            version: TypedDataVersion.V4);
+      } catch (e) {
+        logError(e.toString());
+      }
+      log("Signature : $signature");
+      if (signature != null) {
+        return signature;
+      } else {
+        throw WalletException('Typed data v4 sign failed: Signature is null');
+      }
+    } catch (e) {
       logError(e.toString());
       throw WalletException('Typed data v4 sign failed: $e');
     }
@@ -326,7 +317,7 @@ class SigningHandler {
         messageBytes = Uint8List.fromList(utf8.encode(message));
       }
 
-       final prefix = '\x19Ethereum Signed Message:\n${messageBytes.length}';
+      final prefix = '\x19Ethereum Signed Message:\n${messageBytes.length}';
       final prefixBytes = Uint8List.fromList(utf8.encode(prefix));
 
       // Kết hợp prefix và message
@@ -502,7 +493,8 @@ class SigningHandler {
 
     seen[type] = false;
   }
- Uint8List _hashStruct(String primaryType, Map<String, dynamic> data,
+
+  Uint8List _hashStruct(String primaryType, Map<String, dynamic> data,
       Map<String, dynamic> types) {
     final encodedType = _encodeType(primaryType, types);
     final encodedData = _encodeData(primaryType, data, types);

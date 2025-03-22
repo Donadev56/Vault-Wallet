@@ -85,6 +85,7 @@ class _AddPrivateKeyState extends State<AddPrivateKey> {
       }
       final result = await web3Manager.savePrivatekeyInStorage(
           key, firstPassword, "MoonWallet-1", null);
+
       if (result) {
         if (!mounted) return;
         showCustomSnackBar(

@@ -448,20 +448,18 @@ class Web3InteractionManager {
           data: transData.isEmpty ? null : hexToUint8List(transData),
         );
 
-      
-
         if (!mounted) {
           throw Exception("Internal error");
         }
 
-       String  userPassword = await askPassword(context: context, colors: colors);
+        String userPassword =
+            await askPassword(context: context, colors: colors);
 
-          if (userPassword.isNotEmpty) {
+        if (userPassword.isNotEmpty) {
           if (!mounted) {
             throw Exception("No password provided");
           }
 
-         
           final result = await sendTransaction(
                   transaction: transaction,
                   chainId: currentNetwork.chainId ?? 204,

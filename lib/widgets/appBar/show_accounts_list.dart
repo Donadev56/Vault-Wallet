@@ -258,7 +258,10 @@ void showAccountList({
                                                             availableAccounts)[index]
                                                     .isWatchOnly ==
                                                 true
-                                            ? Icon(LucideIcons.eye, color: colors.textColor)
+                                            ? Icon(
+                                                LucideIcons.eye,
+                                                color: colors.textColor,
+                                              )
                                             : Icon(
                                                 filteredList(
                                                             query: searchQuery,
@@ -277,6 +280,18 @@ void showAccountList({
                                           style: GoogleFonts.roboto(
                                               color: colors.textColor),
                                         ),
+                                        subtitle: Text(
+                                          filteredList(
+                                                  query: searchQuery,
+                                                  accts:
+                                                      availableAccounts)[index]
+                                              .address,
+                                          maxLines: 1,
+                                          overflow: TextOverflow.ellipsis,
+                                          style: GoogleFonts.roboto(
+                                              color: colors.textColor
+                                                  .withOpacity(0.4)),
+                                        ),
                                         trailing: IconButton(
                                             onPressed: () async {
                                               showFloatingModalBottomSheet(
@@ -291,6 +306,7 @@ void showAccountList({
                                                         itemBuilder: (ctx, i) {
                                                           final opt =
                                                               options[i];
+
                                                           return Material(
                                                               color: Colors
                                                                   .transparent,
@@ -379,7 +395,9 @@ void showAccountList({
                                                                               colors);
                                                                     } else if (i ==
                                                                         1) {
-                                                                      if (currentAccount
+                                                                      if (filteredList(
+                                                                              query: searchQuery,
+                                                                              accts: availableAccounts)[index]
                                                                           .isWatchOnly) {
                                                                         showDialog(
                                                                             context:
@@ -451,7 +469,6 @@ void showAccountList({
                     width: width * 0.9,
                     child: Container(
                       padding: const EdgeInsets.symmetric(horizontal: 20),
-                    
                       child: ElevatedButton.icon(
                         onPressed: () {
                           vibrate();

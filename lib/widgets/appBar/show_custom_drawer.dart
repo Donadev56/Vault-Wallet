@@ -13,6 +13,7 @@ import 'package:moonwallet/screens/dashboard/settings/change_colors.dart';
 import 'package:moonwallet/service/number_formatter.dart';
 import 'package:moonwallet/service/profile_image_manager.dart';
 import 'package:moonwallet/service/wallet_saver.dart';
+import 'package:moonwallet/service/web3.dart';
 import 'package:moonwallet/types/types.dart';
 import 'package:moonwallet/utils/prefs.dart';
 import 'package:moonwallet/widgets/avatar_modal.dart';
@@ -56,7 +57,6 @@ void showCustomDrawer(
     return NumberFormatter().formatUsd(value: value);
   }
 
- 
   Future<File?> pickImage() async {
     final XFile? image = await picker.pickImage(source: ImageSource.gallery);
     if (image != null) {
@@ -628,25 +628,91 @@ void showCustomDrawer(
 
                                       if (canAuthenticate) {
                                         try {
-                                          final bool didAuthenticate =
-                                              await auth.authenticate(
-                                                  localizedReason:
-                                                      "Enabled to use biometric authentication");
-                                          if (didAuthenticate) {
-                                            final res =
-                                                await PublicDataManager()
-                                                    .saveDataInPrefs(
-                                                        data: v ? "on" : "off",
-                                                        key: "BioStatus");
-                                          showCustomSnackBar(context: context, message: "Enabled", primaryColor: colors.primaryColor, colors: colors, icon: Icons.check_circle, iconColor: colors.themeColor);
+                                          final web3manager = Web3Manager();
 
-                                            if (res) {
+                                          String userPassword = "";
+                                          int attempts = 0;
 
-                                              st(() {
-                                                canUseBio = v;
-                                              });
-                                            await  updateBioState(v);
+                                          final result =
+                                              await showPinModalBottomSheet(
+                                                  colors: colors,
+                                                  context: context,
+                                                  handleSubmit:
+                                                      (password) async {
+                                                    final savedPassword =
+                                                        await web3manager
+                                                            .getSavedPassword();
+                                                    if (password.trim() !=
+                                                        savedPassword) {
+                                                      attempts++;
+                                                      if (attempts >= 3) {
+                                                        showCustomSnackBar(
+                                                            context: context,
+                                                            message:
+                                                                "Too many attempts",
+                                                            primaryColor: colors
+                                                                .primaryColor,
+                                                            colors: colors,
+                                                            icon: Icons.error,
+                                                            iconColor:
+                                                                Colors.red);
+                                                        attempts = 0;
+                                                        return PinSubmitResult(
+                                                          success: false,
+                                                          repeat: false,
+                                                        );
+                                                      }
+                                                      return PinSubmitResult(
+                                                          success: false,
+                                                          repeat: true,
+                                                          error:
+                                                              "Invalid password",
+                                                          newTitle:
+                                                              "Try again");
+                                                    } else {
+                                                      userPassword =
+                                                          password.trim();
 
+                                                      return PinSubmitResult(
+                                                          success: true,
+                                                          repeat: false);
+                                                    }
+                                                  },
+                                                  title: "Enter Password");
+                                          if (result) {
+                                            final data = await WalletSaver()
+                                                .getDecryptedData(userPassword);
+                                            if (data == null || data.isEmpty) {
+                                              throw Exception("Wrong password");
+                                            }
+                                            final bool didAuthenticate =
+                                                await auth.authenticate(
+                                                    localizedReason:
+                                                        "Enabled to use biometric authentication");
+
+                                            if (didAuthenticate) {
+                                              final res =
+                                                  await PublicDataManager()
+                                                      .saveDataInPrefs(
+                                                          data:
+                                                              v ? "on" : "off",
+                                                          key: "BioStatus");
+
+                                              showCustomSnackBar(
+                                                  context: context,
+                                                  message: "Enabled",
+                                                  primaryColor:
+                                                      colors.primaryColor,
+                                                  colors: colors,
+                                                  icon: Icons.check_circle,
+                                                  iconColor: colors.themeColor);
+
+                                              if (res) {
+                                                st(() {
+                                                  canUseBio = v;
+                                                });
+                                                await updateBioState(v);
+                                              }
                                             }
                                           }
                                         } catch (e) {
@@ -662,21 +728,17 @@ void showCustomDrawer(
                                         }
                                       }
                                     } else {
-                                      final res =
-                                              await PublicDataManager()
-                                                  .saveDataInPrefs(
-                                                        data:  "off",
-                                                        key: "BioStatus");
-                                          if (res) {
-                                              st(() {
-                                                canUseBio = v;
-                                              });
+                                      final res = await PublicDataManager()
+                                          .saveDataInPrefs(
+                                              data: "off", key: "BioStatus");
+                                      if (res) {
+                                        st(() {
+                                          canUseBio = v;
+                                        });
 
-                                            await  updateBioState(v);
-                                          }
-                                        }
-  
-                                    
+                                        await updateBioState(v);
+                                      }
+                                    }
                                   }),
                               color: colors.textColor,
                               titleStyle: GoogleFonts.roboto(

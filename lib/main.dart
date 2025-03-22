@@ -30,6 +30,7 @@ import 'package:moonwallet/service/web3.dart';
 import 'package:moonwallet/types/types.dart';
 import 'package:moonwallet/utils/colors.dart';
 import 'package:moonwallet/utils/prefs.dart';
+import 'package:moonwallet/widgets/snackbar.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -41,9 +42,10 @@ void main() async {
   WidgetsFlutterBinding.ensureInitialized();
 
   await FastCachedImageConfig.init(clearCacheAfter: const Duration(days: 15));
- Future.delayed(Duration(seconds: 2), () {
+  Future.delayed(Duration(seconds: 2), () {
     runApp(MyApp());
-  });}
+  });
+}
 
 class Routes {
   static const String main = '/dashboard';
@@ -115,7 +117,7 @@ class _MyAppState extends State<MyApp> {
       final prefs = PublicDataManager();
 
       final hasAlreadyUpgraded =
-          await prefs.getDataFromPrefs(key: "hasAlreadyUpgraded");
+          await prefs.getDataFromPrefs(key: "alreadyUpgraded");
       if (hasAlreadyUpgraded == null) {
         await upgradeDatabase();
       }
@@ -123,6 +125,12 @@ class _MyAppState extends State<MyApp> {
       return lastConnected != null;
     } catch (e) {
       logError(e.toString());
+      showCustomSnackBar(
+          context: context,
+          message: e.toString(),
+          primaryColor: colors.primaryColor,
+          colors: colors);
+
       return false;
     }
   }
@@ -154,13 +162,18 @@ class _MyAppState extends State<MyApp> {
           }
         }
         if (savedTimes > 0) {
-          final saved = await prefs.saveDataInPrefs(
-              data: "true", key: "hasAlreadyUpgraded");
+          final saved =
+              await prefs.saveDataInPrefs(data: "true", key: "alreadyUpgraded");
           log("Data saved $saved");
         }
       }
     } catch (e) {
       logError(e.toString());
+      showCustomSnackBar(
+          context: context,
+          message: e.toString(),
+          primaryColor: colors.primaryColor,
+          colors: colors);
     }
   }
 

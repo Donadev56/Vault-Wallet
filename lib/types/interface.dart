@@ -1,4 +1,5 @@
 // ignore_for_file: deprecated_member_use
+import 'package:objectbox/objectbox.dart';
 
 import 'package:flutter/material.dart';
 import 'package:lucide_icons_flutter/lucide_icons.dart';
@@ -8,7 +9,7 @@ enum CryptoType { network, token }
 enum SignatureRequestType { ethPersonalSign, ethSign, ethSignTypedData }
 
 extension IconJson on IconData {
-  Map<dynamic, dynamic> toJson() => {
+  Map<String, dynamic> toJson() => {
         'codePoint': codePoint,
         'fontFamily': fontFamily,
         'fontPackage': fontPackage,
@@ -16,7 +17,9 @@ extension IconJson on IconData {
       };
 }
 
+@Entity()
 class SecureData {
+  @Id()
   int id;
   final String privateKey;
   final String keyId;
@@ -35,7 +38,7 @@ class SecureData {
     required this.address,
   });
 
-  factory SecureData.fromJson(Map<dynamic, dynamic> json) {
+  factory SecureData.fromJson(Map<String, dynamic> json) {
     return SecureData(
       privateKey: json['privatekey'] as String,
       keyId: json['keyId'] as String,
@@ -60,75 +63,18 @@ class SecureData {
   }
 }
 
-class SearchingContractInfo {
-  final String name;
-  final BigInt decimals;
-  final String symbol;
-
-  SearchingContractInfo({
-    required this.name,
-    required this.decimals,
-    required this.symbol,
-  });
-
-  factory SearchingContractInfo.fromMap(Map<dynamic, dynamic> map) {
-    return SearchingContractInfo(
-      name: map['name'] as String,
-      decimals: BigInt.parse(map['decimals'] as String),
-      symbol: map['symbol'] as String,
-    );
-  }
-
-  Map<String, dynamic> toJson() {
-    return {
-      'name': name,
-      'decimals': decimals.toString(),
-      'symbol': symbol,
-    };
-  }
-}
-
-class PinSubmitResult {
-  final bool success;
-  final bool repeat;
-  final String? error;
-  final String? newTitle;
-
-  PinSubmitResult({
-    required this.success,
-    required this.repeat,
-    this.error,
-    this.newTitle,
-  });
-
-  factory PinSubmitResult.fromMap(Map<dynamic, dynamic> map) {
-    return PinSubmitResult(
-      success: map['success'] as bool,
-      repeat: map['repeat'] as bool,
-      error: map['error'] as String?,
-      newTitle: map['newTitle'] as String?,
-    );
-  }
-
-  Map<String, dynamic> toMap() {
-    return {
-      'success': success,
-      'repeat': repeat,
-      'error': error,
-      'newTitle': newTitle,
-    };
-  }
-}
-
+@Entity()
 class PublicData {
+  @Id()
   int id;
-  final String keyId;
-  final int creationDate;
-  final String walletName;
-  final String address;
-  final bool isWatchOnly;
-  final IconData? walletIcon;
-  final Color? walletColor;
+  String keyId;
+  int creationDate;
+  String walletName;
+  String address;
+  bool isWatchOnly;
+  IconData? walletIcon;
+  Color walletColor;
+  // Color? walletColor;
 
   PublicData(
       {required this.keyId,
@@ -140,7 +86,7 @@ class PublicData {
       this.walletColor = Colors.transparent,
       this.id = 0});
 
-  factory PublicData.fromJson(Map<dynamic, dynamic> json) {
+  factory PublicData.fromJson(Map<String, dynamic> json) {
     return PublicData(
       keyId: json['keyId'] as String,
       creationDate: json['creationDate'] as int,
@@ -174,7 +120,9 @@ class PublicData {
   }
 }
 
+@Entity()
 class DApp {
+  @Id()
   int id;
   final String name;
   final String icon;
@@ -214,7 +162,9 @@ class DApp {
   }
 }
 
+@Entity()
 class EthTransaction {
+  @Id()
   int id;
   final String from;
   final String to;
@@ -254,7 +204,9 @@ class EthTransaction {
   }
 }
 
+@Entity()
 class Crypto {
+  @Id()
   int id;
   final String name;
   final String? icon;
@@ -367,7 +319,9 @@ class Cryptos {
   }
 }
 
+@Entity()
 class HistoryItem {
+  @Id()
   int id;
   final String link;
   final String title;
@@ -445,7 +399,9 @@ class UserRequestResponse {
   }
 }
 
+@Entity()
 class BscScanTransaction {
+  @Id()
   int id;
   final String blockNumber;
   final String timeStamp;
@@ -556,7 +512,9 @@ class TransactionListResponseType {
   }
 }
 
+@Entity()
 class Balance {
+  @Id()
   int id;
   final Crypto crypto;
   final double balanceUsd;
@@ -598,7 +556,9 @@ class Balance {
   }
 }
 
+@Entity()
 class AppColors {
+  @Id()
   int id;
   final Color primaryColor;
   final Color themeColor;
