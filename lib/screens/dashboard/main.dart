@@ -6,6 +6,7 @@ import 'dart:io';
 import 'package:currency_formatter/currency_formatter.dart';
 import 'package:moonwallet/custom/web3_webview/lib/utils/loading.dart';
 import 'package:moonwallet/custom/web3_webview/lib/widgets/custom_modal.dart';
+import 'package:moonwallet/screens/dashboard/auth/home.dart';
 import 'package:moonwallet/screens/dashboard/view/wallet_overview.dart';
 import 'package:moonwallet/service/crypto_storage_manager.dart';
 import 'package:moonwallet/service/network.dart';
@@ -204,6 +205,14 @@ class _MainDashboardScreenState extends State<MainDashboardScreen>
       }
 
       log("Retrieved $count wallets");
+      if (count == 0) {
+        showCustomSnackBar(
+            context: context,
+            message: "No wallet found",
+            primaryColor: colors.primaryColor,
+            colors: colors);
+        goToHome();
+      }
 
       for (final account in accounts) {
         if (account.address == lastAccount) {
@@ -222,6 +231,11 @@ class _MainDashboardScreenState extends State<MainDashboardScreen>
     } catch (e) {
       logError('Error getting saved wallets: $e');
     }
+  }
+
+  void goToHome() {
+    Navigator.push(
+        context, MaterialPageRoute(builder: (context) => HomeScreen()));
   }
 
   Future<bool> loadData() async {
@@ -444,6 +458,9 @@ class _MainDashboardScreenState extends State<MainDashboardScreen>
                     setState(() {
                       accounts = currentList;
                     });
+                    if (accounts.isEmpty) {
+                      goToHome();
+                    }
                     Navigator.pop(context);
 
                     return PinSubmitResult(success: true, repeat: false);

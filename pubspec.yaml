@@ -145,6 +145,8 @@ flutter:
   - assets/image.png
   - assets/g2.gif
   - assets/blur1.png
+  - assets/blur/blur.png
+
   - assets/i1.png
   - assets/bnb.png
   - assets/bg/i2.png

@@ -33,7 +33,7 @@ class _HomeScreenState extends State<HomeScreen> {
               color: Color(0XFF0D0D0D),
               image: DecorationImage(
                   image: AssetImage(
-                    "assets/i1.png",
+                    "assets/blur/blur.png",
                   ),
                   fit: BoxFit.cover)),
           child: SingleChildScrollView(
