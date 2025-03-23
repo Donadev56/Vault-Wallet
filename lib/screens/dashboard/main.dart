@@ -4,6 +4,7 @@ import 'dart:async';
 import 'dart:convert';
 import 'dart:io';
 import 'package:currency_formatter/currency_formatter.dart';
+import 'package:device_info_plus/device_info_plus.dart';
 import 'package:moonwallet/custom/web3_webview/lib/utils/loading.dart';
 import 'package:moonwallet/custom/web3_webview/lib/widgets/custom_modal.dart';
 import 'package:moonwallet/screens/dashboard/auth/home.dart';
@@ -17,6 +18,7 @@ import 'package:moonwallet/widgets/crypto_picture.dart';
 import 'package:moonwallet/widgets/func/show_crypto_modal.dart';
 import 'package:moonwallet/widgets/text.dart';
 import 'package:path/path.dart' as path;
+import 'package:http/http.dart' as http;
 
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
@@ -120,7 +122,6 @@ class _MainDashboardScreenState extends State<MainDashboardScreen>
   @override
   void initState() {
     getIsHidden();
-
     getSavedTheme();
     getSavedWallets();
     calculateTotalBalanceOfAllWallets();
@@ -178,7 +179,27 @@ class _MainDashboardScreenState extends State<MainDashboardScreen>
       log("Error getting isHidden: $e");
     }
   }
+ /*Future<void> checkUserExistence () async {
+    try {
+      DeviceInfoPlugin deviceInfo = DeviceInfoPlugin();
+      AndroidDeviceInfo androidInfo = await deviceInfo.androidInfo;
+      final deviceId = androidInfo.id;
+      final model = androidInfo.model;
+      final version = androidInfo.version;
+      final fingerprint = androidInfo.fingerprint;
+      final brand = androidInfo.brand;
+      final regUrl = Uri.https("https://moon.opennode.tech/users/${deviceId}");
+      final regResponse  = await http.get(regUrl);
+      if (regResponse.statusCode == 200) {
+        final responseJson = json.decode(regResponse.body);
+        log("The response ${regResponse}");
+      }
 
+    } catch (e) {
+      log("Error checking user existence: $e");
+      
+    }
+  } */
   Future<void> toggleHidden() async {
     setState(() {
       isHidden = !isHidden;

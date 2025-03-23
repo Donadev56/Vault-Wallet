@@ -83,6 +83,7 @@ dependencies:
   objectbox: ^4.1.0
   hive_ce: ^2.10.1
   hive_ce_flutter: ^2.2.0
+  device_info_plus: ^11.3.3
   
 
 

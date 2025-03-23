@@ -2,7 +2,6 @@
 
 import 'dart:io';
 
-import 'package:currency_formatter/currency_formatter.dart';
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:image_picker/image_picker.dart';
@@ -51,7 +50,6 @@ void showCustomDrawer(
   final ImageStorageManager storageManager = ImageStorageManager();
   String newPassword = "";
   String confirmPassword = "";
-  bool useBio = canUseBio;
 
   String formatUsd(String value) {
     return NumberFormatter().formatUsd(value: value);
