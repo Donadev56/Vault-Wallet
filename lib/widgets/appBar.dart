@@ -45,9 +45,9 @@ class CustomAppBar extends StatelessWidget implements PreferredSizeWidget {
   final bool isHidden;
   final AppColors colors;
   final bool isTotalBalanceUpdated;
-  final Future<void> Function(bool state) updateBioState;
+  final void Function(bool state) updateBioState;
 
-  final Future<void> Function(File image) refreshProfile;
+  final void Function(File image) refreshProfile;
   final bool canUseBio;
   final Future<bool> Function(
       {required PublicData account,
@@ -88,7 +88,7 @@ class CustomAppBar extends StatelessWidget implements PreferredSizeWidget {
 
     return AppBar(
       backgroundColor: primaryColor,
-      surfaceTintColor: primaryColor,
+      surfaceTintColor: colors.grayColor.withOpacity(0.1),
       leading: IconButton(
           onPressed: () {
             showCustomDrawer(

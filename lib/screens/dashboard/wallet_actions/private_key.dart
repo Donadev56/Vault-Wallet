@@ -10,7 +10,7 @@ import 'package:moonwallet/utils/colors.dart';
 import 'package:moonwallet/utils/prefs.dart';
 import 'package:moonwallet/utils/themes.dart';
 import 'package:moonwallet/widgets/bottom_pin_copy.dart';
-import 'package:moonwallet/widgets/snackbar.dart';
+import 'package:moonwallet/widgets/func/snackbar.dart';
 
 class CreatePrivateKeyMain extends StatefulWidget {
   const CreatePrivateKeyMain({super.key});

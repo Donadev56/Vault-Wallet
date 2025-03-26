@@ -1,6 +1,7 @@
 // ignore_for_file: deprecated_member_use, use_build_context_synchronously
 
 import 'dart:io';
+import 'dart:ui';
 
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
@@ -21,7 +22,8 @@ import 'package:moonwallet/widgets/crypto_picture.dart';
 import 'package:moonwallet/widgets/custom_options.dart';
 import 'package:moonwallet/widgets/flowting_modat.dart';
 import 'package:moonwallet/widgets/func/ask_password.dart';
-import 'package:moonwallet/widgets/snackbar.dart';
+import 'package:moonwallet/widgets/func/snackbar.dart';
+import 'package:simple_gesture_detector/simple_gesture_detector.dart';
 
 import '../../logger/logger.dart';
 
@@ -34,14 +36,14 @@ void showCustomDrawer(
     required PublicData account,
     required Future<void> Function(PublicData account) deleteWallet,
     required bool canUseBio,
-    required Future<void> Function(bool state) updateBioState,
+    required void Function(bool state) updateBioState,
     required Future Function(
             {required PublicData account,
             String? name,
             IconData? icon,
             Color? color})
         editWallet,
-    required Future<void> Function(File file) refreshProfile}) {
+    required void Function(File file) refreshProfile}) {
   bool canEditWalletName = false;
   TextEditingController textController = TextEditingController();
   String walletName = account.walletName;
@@ -91,12 +93,24 @@ void showCustomDrawer(
       profileImage: currentImage,
       builder: (ctx) {
         return StatefulBuilder(builder: (ctx, st) {
-          return Material(
+          return SimpleGestureDetector(
+            onHorizontalSwipe: (direction) {
+              if (direction == SwipeDirection.left) {
+                 Navigator.pop(ctx);
+              }
+            },
+            swipeConfig: SimpleSwipeConfig(
+            verticalThreshold: 40.0,
+            horizontalThreshold: 40.0,
+            swipeDetectionBehavior: SwipeDetectionBehavior.continuousDistinct,
+          ),
+            child:  Material(
               color: colors.primaryColor,
               child: Padding(
                 padding: const EdgeInsets.all(15),
                 child: ListView(
                   shrinkWrap: true,
+                  physics: BouncingScrollPhysics(),
                   children: [
                     canEditWalletName == false
                         ? Row(
@@ -318,7 +332,7 @@ void showCustomDrawer(
                                                 await pickProfileImage();
                                                 setFState(() {});
                                                 st(() {});
-                                                await refreshProfile(
+                                                 refreshProfile(
                                                     currentImage!);
                                               },
                                               child: Padding(
@@ -351,13 +365,33 @@ void showCustomDrawer(
                                                                 ),
                                                         ),
                                                         Positioned(
-                                                          left: 25,
-                                                          top: 25,
-                                                          child: Icon(
-                                                            Icons.camera,
-                                                            color: Colors.white,
-                                                          ),
-                                                        )
+                                                            left: 16,
+                                                            top: 16,
+                                                            child: SizedBox(
+                                                              width: 40,
+                                                              height: 40,
+                                                              child: ClipRRect(
+                                                                borderRadius:
+                                                                    BorderRadius
+                                                                        .circular(
+                                                                            50),
+                                                                child:
+                                                                    BackdropFilter(
+                                                                  filter: ImageFilter
+                                                                      .blur(
+                                                                          sigmaX:
+                                                                              8,
+                                                                          sigmaY:
+                                                                              8),
+                                                                  child: Icon(
+                                                                    LucideIcons
+                                                                        .camera,
+                                                                    color: Colors
+                                                                        .white,
+                                                                  ),
+                                                                ),
+                                                              ),
+                                                            ))
                                                       ],
                                                     )),
                                               ),
@@ -709,7 +743,7 @@ void showCustomDrawer(
                                                 st(() {
                                                   canUseBio = v;
                                                 });
-                                                await updateBioState(v);
+                                                 updateBioState(v);
                                               }
                                             }
                                           }
@@ -734,7 +768,7 @@ void showCustomDrawer(
                                           canUseBio = v;
                                         });
 
-                                        await updateBioState(v);
+                                         updateBioState(v);
                                       }
                                     }
                                   }),
@@ -764,7 +798,8 @@ void showCustomDrawer(
                         })
                   ],
                 ),
-              ));
+              )))
+              ;
         });
       });
 }

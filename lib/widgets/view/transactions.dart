@@ -10,6 +10,7 @@ import 'package:moonwallet/logger/logger.dart';
 import 'package:moonwallet/types/types.dart';
 import 'package:moonwallet/utils/constant.dart';
 import 'package:moonwallet/widgets/crypto_picture.dart';
+import 'package:timer_builder/timer_builder.dart';
 import 'package:url_launcher/url_launcher.dart';
 
 class TransactionsListElement extends StatelessWidget {
@@ -326,10 +327,15 @@ class TransactionsListElement extends StatelessWidget {
               style: GoogleFonts.roboto(
                   color: textColor, fontWeight: FontWeight.bold),
             ),
-            Text(
-              formatTimeElapsed(int.parse(tr.timeStamp)),
-              style: GoogleFonts.roboto(
-                  color: textColor.withOpacity(0.5), fontSize: 12),
+            TimerBuilder.periodic(
+              Duration(seconds: 5),
+              builder: (ctx) {
+                return Text(
+                  formatTimeElapsed(int.parse(tr.timeStamp)),
+                  style: GoogleFonts.roboto(
+                      color: textColor.withOpacity(0.5), fontSize: 12),
+                );
+              },
             )
           ],
         ),

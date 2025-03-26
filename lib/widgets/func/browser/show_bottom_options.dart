@@ -6,7 +6,7 @@ import 'package:moonwallet/logger/logger.dart';
 import 'package:moonwallet/types/types.dart';
 import 'package:moonwallet/utils/constant.dart';
 import 'package:moonwallet/widgets/barre.dart';
-import 'package:moonwallet/widgets/change_network.dart';
+import 'package:moonwallet/widgets/func/change_network.dart';
 
 void showBrowserBottomOptions({
   required BuildContext context,

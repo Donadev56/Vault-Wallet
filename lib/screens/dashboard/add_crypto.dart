@@ -234,6 +234,7 @@ class _AddCryptoViewState extends State<AddCryptoView> {
           ),
           Expanded(
               child: ListView.builder(
+                  physics: BouncingScrollPhysics(),
                   itemCount: reorganizedCrypto
                       .where((c) => c.symbol
                           .toLowerCase()

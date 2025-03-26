@@ -7,7 +7,7 @@ import 'package:moonwallet/main.dart';
 import 'package:moonwallet/service/wallet_saver.dart';
 import 'package:moonwallet/types/types.dart';
 import 'package:moonwallet/widgets/bottom_pin_copy.dart';
-import 'package:moonwallet/widgets/snackbar.dart';
+import 'package:moonwallet/widgets/func/snackbar.dart';
 
 class CreatePrivateKey extends StatefulWidget {
   const CreatePrivateKey({super.key});

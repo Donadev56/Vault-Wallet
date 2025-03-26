@@ -13,7 +13,7 @@ import 'package:moonwallet/utils/colors.dart';
 import 'package:moonwallet/utils/crypto.dart';
 import 'package:moonwallet/utils/prefs.dart';
 import 'package:moonwallet/utils/themes.dart';
-import 'package:moonwallet/widgets/snackbar.dart';
+import 'package:moonwallet/widgets/func/snackbar.dart';
 
 class PrivateKeyScreen extends StatefulWidget {
   final String? password;

@@ -6,7 +6,7 @@ import 'package:moonwallet/service/price_manager.dart';
 import 'package:moonwallet/service/web3.dart';
 import 'package:moonwallet/service/web3_interaction.dart';
 import 'package:moonwallet/types/types.dart';
-import 'package:moonwallet/widgets/askUserforconf.dart';
+import 'package:moonwallet/widgets/func/askUserforconf.dart';
 import 'package:moonwallet/widgets/bottom_pin_copy.dart';
 import 'package:moonwallet/widgets/func/ask_password.dart';
 import 'package:web3dart/web3dart.dart';

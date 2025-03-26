@@ -446,7 +446,6 @@ class UserRequestResponse {
 }
 
 class BscScanTransaction {
-  int id;
   final String blockNumber;
   final String timeStamp;
   final String hash;
@@ -479,10 +478,9 @@ class BscScanTransaction {
     this.contractAddress,
     this.methodId,
     this.functionName,
-    this.id = 0,
   });
 
-  factory BscScanTransaction.fromJson(Map<String, dynamic> json) {
+  factory BscScanTransaction.fromJson(Map<dynamic, dynamic> json) {
     return BscScanTransaction(
       blockNumber: json['blockNumber'] ?? '',
       timeStamp: json['timeStamp'] ?? '',
@@ -499,11 +497,10 @@ class BscScanTransaction {
       contractAddress: json['contractAddress'] ?? '',
       methodId: json['methodId'] ?? '',
       functionName: json['functionName'] ?? '',
-      id: json['id'] ?? 0,
     );
   }
 
-  Map<String, dynamic> toJson() {
+  Map<dynamic, dynamic> toJson() {
     return {
       'blockNumber': blockNumber,
       'timeStamp': timeStamp,
@@ -520,7 +517,6 @@ class BscScanTransaction {
       'contractAddress': contractAddress,
       'methodId': methodId,
       'functionName': functionName,
-      'id': id,
     };
   }
 }

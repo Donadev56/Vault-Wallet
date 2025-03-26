@@ -2,7 +2,7 @@
 import 'dart:typed_data';
 import 'package:flutter/material.dart';
 import 'package:moonwallet/types/types.dart';
-import 'package:moonwallet/widgets/snackbar.dart';
+import 'package:moonwallet/widgets/func/snackbar.dart';
 import 'package:web3dart/web3dart.dart';
 import '../../../../logger/logger.dart';
 import '../utils/hex_utils.dart';

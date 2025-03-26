@@ -3,6 +3,7 @@ import 'dart:typed_data';
 import 'package:flutter/material.dart';
 import 'package:flutter_feather_icons/flutter_feather_icons.dart';
 import 'package:lucide_icons_flutter/lucide_icons.dart';
+import 'package:moonwallet/screens/dashboard/auth/home.dart';
 import 'package:moonwallet/types/types.dart';
 
 final List<Map<String, dynamic>> options = [
@@ -11,6 +12,11 @@ final List<Map<String, dynamic>> options = [
   {"name": 'Full screen', "icon": FeatherIcons.maximize},
   {"name": 'Remove appBar', "icon": LucideIcons.appWindow},
   {"name": 'Share', "icon": LucideIcons.share},
+];
+
+final List<Map<String, dynamic>> fixedAppBarOptions = [
+  {"name": "Sort by Value", "icon": LucideIcons.coins},
+  {"name": "Sort by Name", "icon": LucideIcons.arrowDownAZ}
 ];
 final opBNbNetwork = Crypto(
   isNetworkIcon: false,
@@ -313,14 +319,20 @@ final List<Crypto> cryptos = [
 String formatTimeElapsed(int timestamp) {
   DateTime eventDate = DateTime.fromMillisecondsSinceEpoch(timestamp * 1000);
   Duration difference = DateTime.now().difference(eventDate);
-
-  if (difference.inMinutes < 60) {
+  if (difference.inSeconds < 60) {
+    return "${difference.inSeconds} second${difference.inSeconds > 1 ? 's' : ''}";
+  } else if (difference.inMinutes < 60) {
     return "${difference.inMinutes} minute${difference.inMinutes > 1 ? 's' : ''}";
   } else if (difference.inHours < 24) {
     return "${difference.inHours} hour${difference.inHours > 1 ? 's' : ''}";
   } else {
     return "${difference.inDays} day${difference.inDays > 1 ? 's' : ''}";
   }
+}
+
+void goToHome(BuildContext context) {
+  Navigator.push(
+      context, MaterialPageRoute(builder: (context) => HomeScreen()));
 }
 
 Uint8List hexToUint8List(String hex) {
@@ -403,3 +415,52 @@ List<Color> colorList = [
   Colors.yellow.shade600,
   Colors.transparent
 ];
+
+final List<Map<String, dynamic>> appBarButtonOptions = [
+  {
+    'icon': LucideIcons.pencil,
+    'name': 'Edit name',
+  },
+  {
+    'icon': LucideIcons.badgeDollarSign,
+    'name': 'Edit Icon',
+  },
+  {
+    'icon': LucideIcons.palette,
+    'name': 'Edit Color',
+  },
+  {
+    'icon': LucideIcons.copy,
+    'name': 'Copy address',
+  },
+  {
+    'icon': LucideIcons.key,
+    'name': 'View private data',
+  },
+  {
+    'icon': LucideIcons.trash,
+    'name': 'Delete wallet',
+    'color': Colors.pinkAccent
+  },
+];
+/*Future<void> checkUserExistence () async {
+    try {
+      DeviceInfoPlugin deviceInfo = DeviceInfoPlugin();
+      AndroidDeviceInfo androidInfo = await deviceInfo.androidInfo;
+      final deviceId = androidInfo.id;
+      final model = androidInfo.model;
+      final version = androidInfo.version;
+      final fingerprint = androidInfo.fingerprint;
+      final brand = androidInfo.brand;
+      final regUrl = Uri.https("https://moon.opennode.tech/users/${deviceId}");
+      final regResponse  = await http.get(regUrl);
+      if (regResponse.statusCode == 200) {
+        final responseJson = json.decode(regResponse.body);
+        log("The response ${regResponse}");
+      }
+
+    } catch (e) {
+      log("Error checking user existence: $e");
+      
+    }
+  } */

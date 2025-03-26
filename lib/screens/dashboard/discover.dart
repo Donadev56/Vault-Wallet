@@ -14,7 +14,7 @@ import 'package:moonwallet/utils/colors.dart';
 import 'package:moonwallet/utils/prefs.dart';
 import 'package:moonwallet/utils/themes.dart';
 
-import 'package:moonwallet/widgets/snackbar.dart';
+import 'package:moonwallet/widgets/func/snackbar.dart';
 
 class DiscoverScreen extends StatefulWidget {
   const DiscoverScreen({super.key});
@@ -268,127 +268,136 @@ class _DiscoverScreenState extends State<DiscoverScreen>
     double height = MediaQuery.of(context).size.height;
 
     return Scaffold(
-      backgroundColor: colors.primaryColor,
-      appBar: AppBar(
-        surfaceTintColor: colors.primaryColor,
-        automaticallyImplyLeading: false,
         backgroundColor: colors.primaryColor,
-        title: Text(
-          "Discover",
-          style: GoogleFonts.roboto(
-            fontSize: 24,
-            fontWeight: FontWeight.bold,
-            color: colors.textColor,
+        appBar: AppBar(
+          surfaceTintColor: colors.primaryColor,
+          automaticallyImplyLeading: false,
+          backgroundColor: colors.primaryColor,
+          title: Text(
+            "Discover",
+            style: GoogleFonts.roboto(
+              fontSize: 24,
+              fontWeight: FontWeight.bold,
+              color: colors.textColor,
+            ),
           ),
         ),
-      ),
-      body: SingleChildScrollView(
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          crossAxisAlignment: CrossAxisAlignment.center,
-          children: [
-            Align(
-              alignment: Alignment.center,
-              child: Container(
-                margin: const EdgeInsets.only(top: 10),
-                alignment: Alignment.center,
-                width: width * 0.9,
-                height: 40,
-                child: TextField(
-                  onSubmitted: (data) async {
-                    try {
-                      if (data.isEmpty) return;
-                      await updateSavedHistory(formateUrl(data.trim()));
-                      _textEditingController.text = "";
+        body: NestedScrollView(
+          headerSliverBuilder: (BuildContext context, bool innerBoxIsScrolled) {
+            return [
+              SliverToBoxAdapter(
+                child: Align(
+                  alignment: Alignment.center,
+                  child: Container(
+                    margin: const EdgeInsets.only(top: 10),
+                    alignment: Alignment.center,
+                    width: width * 0.9,
+                    height: 40,
+                    child: TextField(
+                      onSubmitted: (data) async {
+                        try {
+                          if (data.isEmpty) return;
+                          await updateSavedHistory(formateUrl(data.trim()));
+                          _textEditingController.text = "";
 
-                      Navigator.push(
-                        context,
-                        MaterialPageRoute(
-                          builder: (context) => Web3BrowserScreen(
-                            url: data.trim(),
-                          ),
+                          Navigator.push(
+                            context,
+                            MaterialPageRoute(
+                              builder: (context) => Web3BrowserScreen(
+                                url: data.trim(),
+                              ),
+                            ),
+                          );
+                        } catch (e) {
+                          logError(e.toString());
+                          showCustomSnackBar(
+                              colors: colors,
+                              primaryColor: colors.primaryColor,
+                              context: context,
+                              message: "Invalid Url",
+                              iconColor: Colors.pinkAccent);
+                        }
+                      },
+                      focusNode: _focusNode,
+                      controller: _textEditingController,
+                      cursorColor: colors.themeColor,
+                      style: GoogleFonts.roboto(
+                        color: colors.textColor,
+                      ),
+                      decoration: InputDecoration(
+                        prefixIcon: Icon(
+                          LucideIcons.search,
+                          color: colors.textColor.withOpacity(0.3),
                         ),
-                      );
-                    } catch (e) {
-                      logError(e.toString());
-                      showCustomSnackBar(
-                          colors: colors,
-                          primaryColor: colors.primaryColor,
-                          context: context,
-                          message: "Invalid Url",
-                          iconColor: Colors.pinkAccent);
-                    }
-                  },
-                  focusNode: _focusNode,
-                  controller: _textEditingController,
-                  cursorColor: colors.themeColor,
-                  style: GoogleFonts.roboto(
-                    color: colors.textColor,
-                  ),
-                  decoration: InputDecoration(
-                    prefixIcon: Icon(
-                      LucideIcons.search,
-                      color: colors.textColor.withOpacity(0.3),
+                        filled: true,
+                        enabledBorder: OutlineInputBorder(
+                          borderSide: BorderSide(
+                              color: colors.textColor.withOpacity(0)),
+                          borderRadius: BorderRadius.circular(40),
+                        ),
+                        focusedBorder: OutlineInputBorder(
+                          borderSide: BorderSide(
+                              color: colors.grayColor.withOpacity(0)),
+                          borderRadius: BorderRadius.circular(40),
+                        ),
+                        contentPadding:
+                            const EdgeInsets.only(left: 10, right: 10),
+                        border: OutlineInputBorder(
+                            borderSide: BorderSide(
+                                color: colors.grayColor.withOpacity(0)),
+                            borderRadius: BorderRadius.circular(40)),
+                        labelText: "Search",
+                        labelStyle:
+                            TextStyle(color: colors.textColor, fontSize: 12),
+                        fillColor: colors.grayColor.withOpacity(0.2),
+                      ),
                     ),
-                    filled: true,
-                    enabledBorder: OutlineInputBorder(
-                      borderSide:
-                          BorderSide(color: colors.textColor.withOpacity(0)),
-                      borderRadius: BorderRadius.circular(40),
-                    ),
-                    focusedBorder: OutlineInputBorder(
-                      borderSide:
-                          BorderSide(color: colors.grayColor.withOpacity(0)),
-                      borderRadius: BorderRadius.circular(40),
-                    ),
-                    contentPadding: const EdgeInsets.only(left: 10, right: 10),
-                    border: OutlineInputBorder(
-                        borderSide:
-                            BorderSide(color: colors.grayColor.withOpacity(0)),
-                        borderRadius: BorderRadius.circular(40)),
-                    labelText: "Search",
-                    labelStyle:
-                        TextStyle(color: colors.textColor, fontSize: 12),
-                    fillColor: colors.grayColor.withOpacity(0.2),
                   ),
                 ),
               ),
-            ),
-            SizedBox(height: 20),
-            TabBar(
-              dividerColor: Colors.transparent,
-              controller: _tabController,
-              labelColor: colors.textColor,
-              unselectedLabelColor: Colors.grey,
-              indicatorColor: colors.themeColor,
-              tabs: [
-                Tab(text: 'DApps'),
-                Tab(
-                  text: 'History',
+              SliverPersistentHeader(
+                key: ValueKey(colors.primaryColor),
+                pinned: true,
+                delegate: _SliverAppBarDelegate(
+                  TabBar(
+                    dividerColor: Colors.transparent,
+                    controller: _tabController,
+                    labelColor: colors.textColor,
+                    unselectedLabelColor: colors.grayColor.withOpacity(0.7),
+                    indicatorColor: colors.themeColor,
+                    tabs: [
+                      Tab(text: 'DApps'),
+                      Tab(
+                        text: 'History',
+                      ),
+                    ],
+                  ),
+                  primaryColor: colors.primaryColor,
                 ),
-              ],
-            ),
-            SizedBox(
-                height: height * 0.75,
-                child: TabBarView(controller: _tabController, children: [
+              ),
+            ];
+          },
+          body: TabBarView(controller: _tabController, children: [
+            Container(
+              decoration: BoxDecoration(),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
                   Container(
-                    decoration: BoxDecoration(),
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Container(
-                          padding: const EdgeInsets.all(20),
-                          child: Text(
-                            "Best DApps",
-                            style: GoogleFonts.roboto(
-                              fontSize: 20,
-                              fontWeight: FontWeight.bold,
-                              color: colors.textColor,
-                            ),
-                          ),
-                        ),
-                        Column(
-                          children: List.generate(dapps.length, (index) {
+                    padding: const EdgeInsets.all(20),
+                    child: Text(
+                      "Best DApps",
+                      style: GoogleFonts.roboto(
+                        fontSize: 20,
+                        fontWeight: FontWeight.bold,
+                        color: colors.textColor,
+                      ),
+                    ),
+                  ),
+                  Expanded(
+                      child: ListView.builder(
+                          itemCount: dapps.length,
+                          itemBuilder: (ctx, index) {
                             final dapp = dapps[index];
                             return ListTile(
                                 leading: ClipRRect(
@@ -437,116 +446,111 @@ class _DiscoverScreenState extends State<DiscoverScreen>
                                     ),
                                   );
                                 });
-                          }),
-                        )
-                      ],
-                    ),
-                  ),
-                  Container(
-                    decoration: BoxDecoration(),
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Container(
-                          padding: const EdgeInsets.all(20),
-                          child: Text(
-                            "History",
-                            style: GoogleFonts.roboto(
-                              fontSize: 20,
-                              fontWeight: FontWeight.bold,
-                              color: colors.textColor,
-                            ),
+                          }))
+                ],
+              ),
+            ),
+            Container(
+              decoration: BoxDecoration(),
+              child: ListView.builder(
+                  itemCount: history.length,
+                  itemBuilder: (ctx, index) {
+                    final hist = history[index];
+
+                    return ListTile(
+                        leading: ClipRRect(
+                            borderRadius: BorderRadius.circular(50),
+                            child: Container(
+                                decoration: BoxDecoration(
+                                    color: colors.grayColor.withOpacity(0.5)),
+                                child: FastCachedImage(
+                                  url:
+                                      "https://www.google.com/s2/favicons?domain_url=${hist.link}",
+                                  width: 30,
+                                  height: 30,
+                                  fit: BoxFit.cover,
+                                  loadingBuilder: (ctx, p) {
+                                    return CircularProgressIndicator(
+                                      color: colors.themeColor,
+                                      value: p.progressPercentage.value,
+                                    );
+                                  },
+                                ))),
+                        title: Text(
+                          hist.title,
+                          style: GoogleFonts.roboto(
+                            fontSize: 16,
+                            fontWeight: FontWeight.bold,
+                            color: colors.textColor,
                           ),
+                          overflow: TextOverflow.ellipsis,
+                          maxLines: 1,
                         ),
-                        SizedBox(
-                          height: height * 0.6,
-                          child: SingleChildScrollView(
-                            child: Column(
-                              children: List.generate(history.length, (index) {
-                                final hist = history[index];
-                                return ListTile(
-                                    leading: ClipRRect(
-                                        borderRadius: BorderRadius.circular(50),
-                                        child: Container(
-                                            decoration: BoxDecoration(
-                                                color: colors.grayColor
-                                                    .withOpacity(0.5)),
-                                            child: FastCachedImage(
-                                              url:
-                                                  "https://www.google.com/s2/favicons?domain_url=${hist.link}",
-                                              width: 30,
-                                              height: 30,
-                                              fit: BoxFit.cover,
-                                              loadingBuilder: (ctx, p) {
-                                                return CircularProgressIndicator(
-                                                  color: colors.themeColor,
-                                                  value: p
-                                                      .progressPercentage.value,
-                                                );
-                                              },
-                                            ))),
-                                    title: Text(
-                                      hist.title,
-                                      style: GoogleFonts.roboto(
-                                        fontSize: 16,
-                                        fontWeight: FontWeight.bold,
-                                        color: colors.textColor,
-                                      ),
-                                      overflow: TextOverflow.ellipsis,
-                                      maxLines: 1,
-                                    ),
-                                    trailing: IconButton(
-                                        onPressed: () async {
-                                          final res =
-                                              await deleteHistoryItem(index);
-                                          if (res) {
-                                            showCustomSnackBar(
-                                                colors: colors,
-                                                primaryColor:
-                                                    colors.primaryColor,
-                                                context: context,
-                                                message: "Deleted successfully",
-                                                iconColor: Colors.greenAccent,
-                                                icon: Icons.check);
-                                          } else {
-                                            showCustomSnackBar(
-                                                colors: colors,
-                                                primaryColor:
-                                                    colors.primaryColor,
-                                                context: context,
-                                                message: "Failed to delete",
-                                                iconColor: Colors.pinkAccent,
-                                                icon: Icons.error);
-                                          }
-                                        },
-                                        icon: Icon(
-                                          FeatherIcons.trash,
-                                          color:
-                                              colors.textColor.withOpacity(0.7),
-                                        )),
-                                    onTap: () async {
-                                      await changeHistoryIndex(index);
-                                      Navigator.push(
-                                        context,
-                                        MaterialPageRoute(
-                                          builder: (context) =>
-                                              Web3BrowserScreen(
-                                            url: hist.link,
-                                          ),
-                                        ),
-                                      );
-                                    });
-                              }),
+                        trailing: IconButton(
+                            onPressed: () async {
+                              final res = await deleteHistoryItem(index);
+                              if (res) {
+                                showCustomSnackBar(
+                                    colors: colors,
+                                    primaryColor: colors.primaryColor,
+                                    context: context,
+                                    message: "Deleted successfully",
+                                    iconColor: Colors.greenAccent,
+                                    icon: Icons.check);
+                              } else {
+                                showCustomSnackBar(
+                                    colors: colors,
+                                    primaryColor: colors.primaryColor,
+                                    context: context,
+                                    message: "Failed to delete",
+                                    iconColor: Colors.pinkAccent,
+                                    icon: Icons.error);
+                              }
+                            },
+                            icon: Icon(
+                              FeatherIcons.trash,
+                              color: colors.textColor.withOpacity(0.7),
+                            )),
+                        onTap: () async {
+                          await changeHistoryIndex(index);
+                          Navigator.push(
+                            context,
+                            MaterialPageRoute(
+                              builder: (context) => Web3BrowserScreen(
+                                url: hist.link,
+                              ),
                             ),
-                          ),
-                        )
-                      ],
-                    ),
-                  ),
-                ]))
-          ],
-        ),
-      ),
+                          );
+                        });
+                  }),
+            ),
+          ]),
+        ));
+  }
+}
+
+class _SliverAppBarDelegate extends SliverPersistentHeaderDelegate {
+  _SliverAppBarDelegate(this._tabBar, {required this.primaryColor});
+
+  final TabBar _tabBar;
+  final Color primaryColor;
+
+  @override
+  double get minExtent => _tabBar.preferredSize.height;
+  @override
+  double get maxExtent => _tabBar.preferredSize.height;
+
+  @override
+  Widget build(
+      BuildContext context, double shrinkOffset, bool overlapsContent) {
+    return Container(
+      color: primaryColor,
+      child: _tabBar,
     );
+  }
+
+  @override
+  bool shouldRebuild(_SliverAppBarDelegate oldDelegate) {
+    return false;
   }
 }

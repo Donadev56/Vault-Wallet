@@ -8,12 +8,14 @@ class WalletViewButtonAction extends StatelessWidget {
   final OnTapType onTap;
   final String bottomText;
   final IconData icon;
+  final double fontSize;
   const WalletViewButtonAction(
       {super.key,
       required this.textColor,
       required this.onTap,
       required this.bottomText,
-      required this.icon});
+      required this.icon,
+      this.fontSize = 15});
 
   @override
   Widget build(BuildContext context) {
@@ -44,7 +46,7 @@ class WalletViewButtonAction extends StatelessWidget {
         ),
         Text(
           bottomText,
-          style: GoogleFonts.roboto(color: textColor, fontSize: 17),
+          style: GoogleFonts.roboto(color: textColor, fontSize: fontSize),
         )
       ],
     );
