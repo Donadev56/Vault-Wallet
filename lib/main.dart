@@ -11,7 +11,7 @@ import 'package:moonwallet/screens/dashboard/auth/add_private_key.dart';
 import 'package:moonwallet/screens/dashboard/auth/home.dart';
 import 'package:moonwallet/screens/dashboard/auth/pinManager.dart';
 import 'package:moonwallet/screens/dashboard/auth/private_key.dart';
-import 'package:moonwallet/screens/dashboard/browser.dart';
+import 'package:moonwallet/screens/dashboard/discover/browser.dart';
 import 'package:moonwallet/screens/dashboard/discover.dart';
 import 'package:moonwallet/screens/dashboard/main.dart';
 import 'package:moonwallet/screens/dashboard/page_manager.dart';
@@ -184,14 +184,14 @@ class _MyAppState extends State<MyApp> {
         builder: (BuildContext ctx, AsyncSnapshot<bool> snapshot) {
           if (snapshot.connectionState == ConnectionState.waiting) {
             return Container(
-              decoration: BoxDecoration(color: const Color(0XFF0D0D0D)),
+              decoration: BoxDecoration(color: colors.primaryColor),
               child: Center(
                 child: Container(
                   padding: const EdgeInsets.all(10),
                   width: 40,
                   height: 40,
                   decoration: BoxDecoration(
-                      color: const Color(0XFF212121),
+                      color:  colors.secondaryColor,
                       borderRadius: BorderRadius.circular(50)),
                 ),
               ),

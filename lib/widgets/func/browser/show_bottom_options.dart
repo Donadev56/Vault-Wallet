@@ -2,11 +2,13 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_feather_icons/flutter_feather_icons.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:modal_bottom_sheet/modal_bottom_sheet.dart';
 import 'package:moonwallet/logger/logger.dart';
 import 'package:moonwallet/types/types.dart';
 import 'package:moonwallet/utils/constant.dart';
 import 'package:moonwallet/widgets/barre.dart';
-import 'package:moonwallet/widgets/func/change_network.dart';
+import 'package:moonwallet/widgets/crypto_picture.dart';
+import 'package:moonwallet/widgets/func/browser/change_network.dart';
 
 void showBrowserBottomOptions({
   required BuildContext context,
@@ -22,25 +24,21 @@ void showBrowserBottomOptions({
   required VoidCallback toggleShowAppBar,
 }) async {
   try {
-    showModalBottomSheet(
+    showMaterialModalBottomSheet(
+      backgroundColor: darkNavigatorColor,
+
         context: context,
         builder: (BuildContext context) {
           double width = MediaQuery.of(context).size.width;
-          double height = MediaQuery.of(context).size.height;
 
           return StatefulBuilder(builder: (ctx, st) {
-            return Container(
-              width: width,
-              decoration: BoxDecoration(
-                color: darkNavigatorColor,
-              ),
-              child: Column(
-                mainAxisAlignment: MainAxisAlignment.start,
-                crossAxisAlignment: CrossAxisAlignment.start,
+            return SafeArea(
+           
+              child: ListView(
+                shrinkWrap: true,
+            
                 children: [
-                  DraggableBar(colors: colors),
                   Container(
-                    margin: const EdgeInsets.all(10),
                     padding: const EdgeInsets.all(10),
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
@@ -70,7 +68,7 @@ void showBrowserBottomOptions({
                                     borderRadius: BorderRadius.circular(50),
                                     border: Border.all(
                                         width: 1,
-                                        color: Colors.orange.withOpacity(0.8))),
+                                        color: currentNetwork.color ?? Colors.orange.withOpacity(0.8))),
                                 child: ClipRRect(
                                   borderRadius: BorderRadius.circular(50),
                                   child: Material(
@@ -82,41 +80,13 @@ void showBrowserBottomOptions({
                                             networks: networks,
                                             colors: colors,
                                             changeNetwork: manualChangeNetwork,
-                                            height: height,
                                             context: context,
                                             darkNavigatorColor:
                                                 darkNavigatorColor,
                                             textColor: colors.textColor,
                                             chainId: chainId);
                                       },
-                                      child: currentNetwork.icon == null
-                                          ? Container(
-                                              width: 25,
-                                              height: 25,
-                                              decoration: BoxDecoration(
-                                                  color: colors.textColor
-                                                      .withOpacity(0.6),
-                                                  borderRadius:
-                                                      BorderRadius.circular(
-                                                          50)),
-                                              child: Center(
-                                                child: Text(
-                                                  currentNetwork.name
-                                                      .substring(0, 2),
-                                                  style: GoogleFonts.roboto(
-                                                      color:
-                                                          colors.primaryColor,
-                                                      fontWeight:
-                                                          FontWeight.bold,
-                                                      fontSize: 18),
-                                                ),
-                                              ),
-                                            )
-                                          : Image.asset(
-                                              currentNetwork.icon ?? "",
-                                              width: 30,
-                                              height: 30,
-                                            ),
+                                      child: CryptoPicture(crypto: currentNetwork, size: 30, colors: colors)
                                     ),
                                   ),
                                 ),
@@ -126,7 +96,7 @@ void showBrowserBottomOptions({
                         ),
                         ConstrainedBox(
                           constraints:
-                              BoxConstraints(maxWidth: 190, maxHeight: 70),
+                              BoxConstraints(maxWidth: width, maxHeight: 70),
                           child: Container(
                             height: 40,
                             padding: const EdgeInsets.only(left: 7),
@@ -146,12 +116,12 @@ void showBrowserBottomOptions({
                                   children: [
                                     ConstrainedBox(
                                       constraints:
-                                          BoxConstraints(maxWidth: 140),
+                                          BoxConstraints(maxWidth: width),
                                       child: Text(
                                         currentUrl,
                                         style: GoogleFonts.roboto(
                                           color:
-                                              colors.textColor.withOpacity(0.8),
+                                              colors.themeColor.withOpacity(0.8),
                                           fontSize: 14,
                                         ),
                                         maxLines: 1,
@@ -178,8 +148,9 @@ void showBrowserBottomOptions({
                     color: colors.textColor.withOpacity(0.05),
                   ),
                   Column(
-                    children: List.generate(options.length, (index) {
-                      final option = options[index];
+                    children:
+                        List.generate(browserModalOptions.length, (index) {
+                      final option = browserModalOptions[index];
                       return Material(
                         color: Colors.transparent,
                         child: ListTile(
@@ -192,7 +163,6 @@ void showBrowserBottomOptions({
                                   networks: networks,
                                   colors: colors,
                                   changeNetwork: manualChangeNetwork,
-                                  height: height,
                                   context: context,
                                   darkNavigatorColor: darkNavigatorColor,
                                   textColor: colors.textColor,

@@ -68,7 +68,7 @@ void showAddToken(
                               await tokenManager.getCryptoInfo(
                                   address:
                                       _contractAddressController.text.trim(),
-                                  network: selectedNetwork ?? cryptos[0]);
+                                  network: selectedNetwork!);
                           setModalState(() {
                             searchingContractInfo = tokenFoundedData;
                           });

@@ -5,8 +5,10 @@ import 'dart:convert';
 import 'dart:io';
 import 'package:currency_formatter/currency_formatter.dart';
 import 'package:liquid_pull_to_refresh/liquid_pull_to_refresh.dart';
+import 'package:loading_animation_widget/loading_animation_widget.dart';
 import 'package:moonwallet/custom/web3_webview/lib/utils/loading.dart';
 import 'package:moonwallet/screens/dashboard/view/wallet_overview.dart';
+import 'package:moonwallet/service/crypto_request_manager.dart';
 import 'package:moonwallet/service/crypto_storage_manager.dart';
 import 'package:moonwallet/service/network.dart';
 import 'package:moonwallet/service/number_formatter.dart';
@@ -204,7 +206,10 @@ class _MainDashboardScreenState extends State<MainDashboardScreen>
         if (currentAccount == null) {
           log("No account found");
           currentAccount = accounts[0];
-          getCryptoData(account: accounts[0]);
+          await Future.wait([
+            getCryptoData(account: accounts[0]),
+            checkCryptoUpdate(account: accounts[0])
+          ]);
         }
       }
     } catch (e) {
@@ -540,6 +545,8 @@ class _MainDashboardScreenState extends State<MainDashboardScreen>
     try {
       final savedData = await web3Manager.getPublicData();
       List<PublicData> wallets = [];
+      final List<Crypto> standardCrypto =
+          await CryptoRequestManager().getAllCryptos();
 
       final lastAccount = await encryptService.getLastConnectedAddress();
 
@@ -568,10 +575,22 @@ class _MainDashboardScreenState extends State<MainDashboardScreen>
 
           if (savedCrypto == null) {
             await cryptoStorageManager.saveListCrypto(
-                cryptos: cryptos, wallet: wallet);
-            cryptosList = cryptos;
+                cryptos: standardCrypto, wallet: wallet);
+            cryptosList = standardCrypto;
           } else {
             cryptosList = savedCrypto;
+          }
+
+          for (final crypto in cryptosList) {
+            for (int i = 0; i < standardCrypto.length; i++) {
+              final stCrypto = standardCrypto[i];
+              if (stCrypto.cryptoId == crypto.cryptoId) {
+                break;
+              }
+              if (i == standardCrypto.length - 1) {
+                cryptosList.add(stCrypto);
+              }
+            }
           }
 
           if (cryptosList.isNotEmpty) {
@@ -714,16 +733,7 @@ class _MainDashboardScreenState extends State<MainDashboardScreen>
         if (mounted) {
           await Future.wait([
             getCryptoData(account: wallet),
-            calculateTotalBalanceOfAllWallets(),
           ]);
-
-          /*  showCustomSnackBar(
-              context: context,
-              icon: Icons.check_circle,
-              message: "Wallet changed successfully",
-              iconColor: Colors.greenAccent);
-          getTotalBalance();
-          Navigator.pop(context); */
         }
       } else {
         if (mounted) {
@@ -808,17 +818,56 @@ class _MainDashboardScreenState extends State<MainDashboardScreen>
     return NumberFormatter().formatCrypto(value: value);
   }
 
+  Future<void> checkCryptoUpdate({required PublicData account}) async {
+    try {
+      final List<Crypto> standardCrypto =
+          await CryptoRequestManager().getAllCryptos();
+      final savedCrypto =
+          await cryptoStorageManager.getSavedCryptos(wallet: account);
+      List<Crypto> cryptosList = [];
+      if (savedCrypto != null && savedCrypto.isNotEmpty) {
+        cryptosList = savedCrypto;
+
+        Set<String> savedCryptoIds =
+            savedCrypto.map((crypto) => crypto.cryptoId).toSet();
+
+        for (final stCrypto in standardCrypto) {
+          if (!savedCryptoIds.contains(stCrypto.cryptoId)) {
+            cryptosList.add(stCrypto);
+          }
+        }
+
+        if (cryptosList.length > savedCrypto.length) {
+          log("${cryptosList.length - savedCrypto.length} new Crypto(s) found");
+          await cryptoStorageManager.saveListCrypto(
+              wallet: account, cryptos: cryptosList);
+        } else {
+          log("No new Crypto founded");
+        }
+      }
+    } catch (e) {
+      logError(e.toString());
+    }
+  }
+
   Future<void> getCryptoData({required PublicData account}) async {
     try {
       final dataName = "cryptoAndBalance/${account.address}";
-      final List<Crypto> standardCrypto = cryptos;
+      final savedDataResult = await Future.wait([
+        CryptoRequestManager().getAllCryptos(),
+        publicDataManager.getDataFromPrefs(key: dataName),
+        cryptoStorageManager.getSavedCryptos(wallet: account)
+      ]);
+      final List<Crypto> standardCrypto = (savedDataResult[0] as List<Crypto>);
+      final savedData = (savedDataResult[1] as String?);
+      final savedCrypto = (savedDataResult[2] as List<Crypto>?);
+
       List<Crypto> cryptosList = [];
       List<Crypto> enabledCryptos = [];
       List<Balance> cryptoBalance = [];
       List<Crypto> availableCryptos = [];
       double userBalanceUsd = 0;
 
-      final savedData = await publicDataManager.getDataFromPrefs(key: dataName);
       if (savedData != null) {
         List<Balance> balances = [];
         List<dynamic> savedDataString = json.decode(savedData);
@@ -837,12 +886,7 @@ class _MainDashboardScreenState extends State<MainDashboardScreen>
           }
         }
       }
-      final savedCrypto =
-          await cryptoStorageManager.getSavedCryptos(wallet: account);
-
-      if (savedCrypto == null) {
-        await cryptoStorageManager.saveListCrypto(
-            cryptos: standardCrypto, wallet: account);
+      if (savedCrypto == null || savedCrypto.isEmpty) {
         cryptosList = standardCrypto;
       } else {
         cryptosList = savedCrypto;
@@ -896,8 +940,13 @@ class _MainDashboardScreenState extends State<MainDashboardScreen>
 
         final cryptoListString = cryptoBalance.map((c) => c.toJson()).toList();
 
-        await publicDataManager.saveDataInPrefs(
-            data: json.encode(cryptoListString), key: dataName);
+     await  Future.wait([
+          publicDataManager.saveDataInPrefs(
+              data: json.encode(cryptoListString), key: dataName),
+           cryptoStorageManager.saveListCrypto(
+              cryptos: cryptosList, wallet: account),
+       ])   ;
+              
       }
     } catch (e) {
       logError(e.toString());
@@ -935,16 +984,14 @@ class _MainDashboardScreenState extends State<MainDashboardScreen>
   Widget build(BuildContext context) {
     double width = MediaQuery.of(context).size.width;
     // double height = MediaQuery.of(context).size.height;
-    if (reorganizedCrypto.isEmpty) {
+   if (reorganizedCrypto.isEmpty) {
       return Container(
         decoration: BoxDecoration(color: colors.primaryColor),
         child: Center(
           child: SizedBox(
             height: 30,
             width: 30,
-            child: CircularProgressIndicator(
-              color: colors.themeColor,
-            ),
+            child: LoadingAnimationWidget.hexagonDots(color: colors.themeColor, size: 40),
           ),
         ),
       );
@@ -985,18 +1032,18 @@ class _MainDashboardScreenState extends State<MainDashboardScreen>
           .toList();
     }
 
-   void  updateBioState(bool state)  {
+    void updateBioState(bool state) {
       setState(() {
         canUseBio = state;
       });
     }
 
     void refreshProfile(File f) {
-        setState(() {
-                _profileImage = f;
-              });
+      setState(() {
+        _profileImage = f;
+      });
     }
- 
+
     void onHorizontalSwipe(SwipeDirection direction) {
       setState(() {
         if (direction == SwipeDirection.right) {
@@ -1034,7 +1081,7 @@ class _MainDashboardScreenState extends State<MainDashboardScreen>
             textColor: colors.textColor,
             surfaceTintColor: colors.secondaryColor),
         appBar: CustomAppBar(
-            updateBioState: updateBioState ,
+            updateBioState: updateBioState,
             canUseBio: canUseBio,
             refreshProfile: refreshProfile,
             editWallet: editWallet,

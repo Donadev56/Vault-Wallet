@@ -12,7 +12,6 @@ import 'package:moonwallet/service/price_manager.dart';
 import 'package:moonwallet/service/wallet_saver.dart';
 import 'package:moonwallet/types/types.dart';
 import 'package:moonwallet/utils/colors.dart';
-import 'package:moonwallet/utils/constant.dart';
 import 'package:moonwallet/utils/crypto.dart';
 import 'package:moonwallet/utils/prefs.dart';
 import 'package:moonwallet/utils/themes.dart';
@@ -44,7 +43,14 @@ class _ReceiveScreenState extends State<ReceiveScreen> {
   final encryptService = EncryptService();
   final priceManager = PriceManager();
   final publicDataManager = PublicDataManager();
-  Crypto currentNetwork = cryptos[0];
+  Crypto currentNetwork = Crypto(
+      name: "",
+      color: Colors.transparent,
+      type: CryptoType.network,
+      valueUsd: 0,
+      cryptoId: "",
+      canDisplay: false,
+      symbol: "");
 
   @override
   void initState() {

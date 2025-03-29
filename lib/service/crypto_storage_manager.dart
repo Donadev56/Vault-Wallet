@@ -3,21 +3,22 @@
 import 'dart:convert';
 
 import 'package:moonwallet/logger/logger.dart';
+import 'package:moonwallet/service/wallet_saver.dart';
 import 'package:moonwallet/types/types.dart';
-import 'package:moonwallet/utils/document_manager.dart';
 
 class CryptoStorageManager {
-  final documentStorage = DocumentManager();
-  final path = "/db/crypto/accounts";
+  final saver = WalletSaver();
 
   Future<List<Crypto>?> getSavedCryptos({required PublicData wallet}) async {
     try {
-      final filePath = "${wallet.keyId}/test19/wallet.json";
+      final name = "savedCrypto/${wallet.address}";
+      log("getting crypto for address ${wallet.address}");
 
-      final cryptoDataString =
-          await documentStorage.readData(filePath: filePath);
+      final String? cryptoDataString =
+          await saver.getDynamicData(name: name);
       if (cryptoDataString == null || cryptoDataString.isEmpty) {
-        throw Exception("Crypto data not found");
+       logError("Crypto data not found");
+       return [];
       }
 
       final List<dynamic> savedCryptosJson = json.decode(cryptoDataString);
@@ -44,15 +45,14 @@ class CryptoStorageManager {
   Future<bool> saveListCrypto(
       {required List<Crypto> cryptos, required PublicData wallet}) async {
     try {
-      final filePath = "${wallet.keyId}/test19/wallet.json";
 
-      List<dynamic> cryptoJson = [];
-      for (final crypto in cryptos) {
-        cryptoJson.add(crypto.toJson());
-      }
+      final name = "savedCrypto/${wallet.address}";
+      log("Saving crypto for address ${wallet.address}");
+
+      List<dynamic> cryptoJson = cryptos.map((c) => c.toJson()).toList();
+     
       if (cryptoJson.isNotEmpty) {
-        await documentStorage.saveFile(
-            filePath: filePath, data: json.encode(cryptoJson));
+        await saver.saveDynamicData(boxName: name, data :json.encode(cryptoJson) );
         return true;
       } else {
         logError("No crypto to save");
@@ -80,7 +80,7 @@ class CryptoStorageManager {
         if (cryptoToEdit != null) {
           final index = savedCryptos.indexOf(cryptoToEdit);
           final newCrypto = Crypto(
-              isNetworkIcon: cryptoToEdit.isNetworkIcon ?? false,
+              isNetworkIcon: cryptoToEdit.isNetworkIcon,
               symbol: cryptoToEdit.symbol,
               name: cryptoToEdit.name,
               color: cryptoToEdit.color,
@@ -95,8 +95,6 @@ class CryptoStorageManager {
               explorer: cryptoToEdit.explorer,
               rpc: cryptoToEdit.rpc,
               binanceSymbol: cryptoToEdit.binanceSymbol,
-              apiBaseUrl: cryptoToEdit.apiBaseUrl,
-              apiKey: cryptoToEdit.apiKey,
               decimals: cryptoToEdit.decimals);
           savedCryptos[index] = newCrypto;
           return await saveListCrypto(cryptos: savedCryptos, wallet: wallet);

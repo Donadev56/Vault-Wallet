@@ -46,7 +46,14 @@ class Web3BrowserScreenState extends State<Web3BrowserScreen> {
   int _chainId = 204;
   double progress = 0;
   bool isPageLoading = true;
-  Crypto currentNetwork = cryptos[0];
+  Crypto currentNetwork = Crypto(
+      name: "",
+      color: Colors.transparent,
+      type: CryptoType.network,
+      valueUsd: 0,
+      cryptoId: "",
+      canDisplay: false,
+      symbol: "");
   InAppWebViewController? _webViewController;
   bool _isInitialized = false;
   bool isFullScreen = false;

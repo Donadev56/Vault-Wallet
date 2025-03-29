@@ -17,7 +17,7 @@ class TransactionsListElement extends StatelessWidget {
   final Color surfaceTintColor;
 
   final bool isFrom;
-  final BscScanTransaction tr;
+  final EsTransaction tr;
   final AppColors colors;
   final Color textColor;
   final Color secondaryColor;

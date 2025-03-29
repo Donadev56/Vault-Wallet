@@ -94,712 +94,752 @@ void showCustomDrawer(
       builder: (ctx) {
         return StatefulBuilder(builder: (ctx, st) {
           return SimpleGestureDetector(
-            onHorizontalSwipe: (direction) {
-              if (direction == SwipeDirection.left) {
-                 Navigator.pop(ctx);
-              }
-            },
-            swipeConfig: SimpleSwipeConfig(
-            verticalThreshold: 40.0,
-            horizontalThreshold: 40.0,
-            swipeDetectionBehavior: SwipeDetectionBehavior.continuousDistinct,
-          ),
-            child:  Material(
-              color: colors.primaryColor,
-              child: Padding(
-                padding: const EdgeInsets.all(15),
-                child: ListView(
-                  shrinkWrap: true,
-                  physics: BouncingScrollPhysics(),
-                  children: [
-                    canEditWalletName == false
-                        ? Row(
-                            spacing: 8,
-                            children: [
-                              Text(
-                                walletName,
-                                style: GoogleFonts.roboto(
-                                    color: colors.textColor.withOpacity(0.7),
-                                    fontSize: 17,
-                                    fontWeight: FontWeight.bold),
-                              ),
-                              IconButton(
-                                  onPressed: () {
-                                    st(() {
-                                      textController.text = walletName;
-                                      canEditWalletName = true;
-                                    });
-                                  },
-                                  icon: Icon(
-                                    LucideIcons.pencilLine,
-                                    color: colors.textColor.withOpacity(0.7),
-                                  ))
-                            ],
-                          )
-                        : LayoutBuilder(builder: (ctx, c) {
-                            final maxWidth = c.maxWidth;
-                            return Row(
-                              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                              children: [
-                                SizedBox(
-                                  width: maxWidth * 0.6,
-                                  child: TextField(
+              onHorizontalSwipe: (direction) {
+                if (direction == SwipeDirection.left) {
+                  Navigator.pop(ctx);
+                }
+              },
+              swipeConfig: SimpleSwipeConfig(
+                verticalThreshold: 40.0,
+                horizontalThreshold: 40.0,
+                swipeDetectionBehavior:
+                    SwipeDetectionBehavior.continuousDistinct,
+              ),
+              child: Material(
+                  color: colors.primaryColor,
+                  child: Padding(
+                    padding: const EdgeInsets.all(15),
+                    child: ListView(
+                      shrinkWrap: true,
+                      physics: BouncingScrollPhysics(),
+                      children: [
+                        canEditWalletName == false
+                            ? Row(
+                                spacing: 8,
+                                children: [
+                                  Text(
+                                    walletName,
                                     style: GoogleFonts.roboto(
                                         color:
-                                            colors.textColor.withOpacity(0.8)),
-                                    controller: textController,
+                                            colors.textColor.withOpacity(0.7),
+                                        fontSize: 17,
+                                        fontWeight: FontWeight.bold),
                                   ),
-                                ),
-                                Row(
+                                  IconButton(
+                                      onPressed: () {
+                                        st(() {
+                                          textController.text = walletName;
+                                          canEditWalletName = true;
+                                        });
+                                      },
+                                      icon: Icon(
+                                        LucideIcons.pencilLine,
+                                        color:
+                                            colors.textColor.withOpacity(0.7),
+                                      ))
+                                ],
+                              )
+                            : LayoutBuilder(builder: (ctx, c) {
+                                final maxWidth = c.maxWidth;
+                                return Row(
                                   mainAxisAlignment:
                                       MainAxisAlignment.spaceBetween,
                                   children: [
-                                    IconButton(
-                                      onPressed: () async {
-                                        final res = await editWallet(
-                                            account: account,
-                                            name: textController.text);
-                                        if (res) {
-                                          st(() {
-                                            canEditWalletName = false;
-                                            walletName = textController.text;
-                                          });
-                                        } else {
-                                          showCustomSnackBar(
-                                              context: context,
-                                              message: "Can't edit the wallet",
-                                              primaryColor: colors.primaryColor,
-                                              colors: colors);
-                                        }
-                                      },
-                                      icon: Icon(
-                                        Icons.check,
-                                        color: colors.textColor,
+                                    SizedBox(
+                                      width: maxWidth * 0.6,
+                                      child: TextField(
+                                        style: GoogleFonts.roboto(
+                                            color: colors.textColor
+                                                .withOpacity(0.8)),
+                                        controller: textController,
                                       ),
                                     ),
-                                    IconButton(
-                                      icon: Icon(
-                                        LucideIcons.x,
-                                        color: colors.redColor,
-                                      ),
-                                      onPressed: () {
-                                        st(() {
-                                          textController.clear();
-                                          canEditWalletName = false;
-                                        });
-                                      },
+                                    Row(
+                                      mainAxisAlignment:
+                                          MainAxisAlignment.spaceBetween,
+                                      children: [
+                                        IconButton(
+                                          onPressed: () async {
+                                            final res = await editWallet(
+                                                account: account,
+                                                name: textController.text);
+                                            if (res) {
+                                              st(() {
+                                                canEditWalletName = false;
+                                                walletName =
+                                                    textController.text;
+                                              });
+                                            } else {
+                                              showCustomSnackBar(
+                                                  context: context,
+                                                  message:
+                                                      "Can't edit the wallet",
+                                                  primaryColor:
+                                                      colors.primaryColor,
+                                                  colors: colors);
+                                            }
+                                          },
+                                          icon: Icon(
+                                            Icons.check,
+                                            color: colors.textColor,
+                                          ),
+                                        ),
+                                        IconButton(
+                                          icon: Icon(
+                                            LucideIcons.x,
+                                            color: colors.redColor,
+                                          ),
+                                          onPressed: () {
+                                            st(() {
+                                              textController.clear();
+                                              canEditWalletName = false;
+                                            });
+                                          },
+                                        )
+                                      ],
                                     )
                                   ],
-                                )
-                              ],
-                            );
-                          }),
-                    SizedBox(
-                      height: 10,
-                    ),
-                    SizedBox(
-                      height: 50,
-                      child: Stack(
-                        clipBehavior: Clip.none,
-                        children: availableCryptos
-                            .asMap()
-                            .entries
-                            .map((entry) {
-                              int index = entry.key;
-                              var crypto = entry.value;
-                              return Positioned(
-                                  left: index * 18.0,
-                                  child: Container(
-                                    padding: const EdgeInsets.all(3),
-                                    decoration: BoxDecoration(
-                                        color: colors.primaryColor,
-                                        borderRadius:
-                                            BorderRadius.circular(20)),
-                                    child: CryptoPicture(
-                                        crypto: crypto,
-                                        size: 24,
-                                        colors: colors),
-                                  ));
-                            })
-                            .toList()
-                            .reversed
-                            .toList(),
-                      ),
-                    ),
-                    Align(
-                        alignment: Alignment.centerLeft,
-                        child: Column(
-                          mainAxisAlignment: MainAxisAlignment.start,
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            Text(
-                              "\$${(formatUsd(totalBalanceUsd.toString()))}",
-                              style: GoogleFonts.roboto(
-                                  color: colors.textColor,
-                                  fontSize: 30,
-                                  fontWeight: FontWeight.bold),
-                            ),
-                            Text(
-                              "Balance",
-                              style: GoogleFonts.robotoMono(
-                                color: colors.textColor.withOpacity(0.6),
-                                fontSize: 16,
-                              ),
-                            ),
-                          ],
-                        )),
-                    SizedBox(
-                      height: 10,
-                    ),
-                    Divider(
-                      color: colors.textColor.withOpacity(0.05),
-                    ),
-                    Align(
-                      alignment: Alignment.centerLeft,
-                      child: Text(
-                        "Settings",
-                        style: GoogleFonts.roboto(
-                            color: colors.textColor.withOpacity(0.8),
-                            fontSize: 20,
-                            fontWeight: FontWeight.bold),
-                      ),
-                    ),
-                    SizedBox(
-                      height: 10,
-                    ),
-                    CustomOptionWidget(
-                        splashColor: colors.themeColor.withOpacity(0.1),
-                        containerRadius: BorderRadius.circular(10),
-                        spaceName: "Appearance",
-                        internalElementSpacing: 10,
-                        shapeBorder: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(10)),
-                        backgroundColor: Colors.transparent,
-                        spaceNameStyle: GoogleFonts.roboto(
-                          color: colors.textColor,
+                                );
+                              }),
+                        SizedBox(
+                          height: 10,
                         ),
-                        options: [
-                          Option(
-                              tileColor: colors.secondaryColor.withOpacity(0.5),
-                              title: "Change App Theme",
-                              icon: Icon(
-                                LucideIcons.palette,
-                                color: colors.textColor.withOpacity(0.7),
-                                size: 20,
-                              ),
-                              trailing: Icon(Icons.chevron_right,
-                                  color: colors.textColor.withOpacity(0.5)),
-                              color: colors.secondaryColor,
-                              titleStyle: GoogleFonts.roboto(
-                                  color: colors.textColor, fontSize: 14)),
-                          Option(
-                              tileColor: colors.secondaryColor.withOpacity(0.5),
-                              title: "Edit profile picture",
-                              icon: Icon(
-                                LucideIcons.user,
-                                color: colors.textColor.withOpacity(0.7),
-                                size: 20,
-                              ),
-                              trailing: Icon(
-                                Icons.chevron_right,
-                                color: colors.textColor.withOpacity(0.5),
-                              ),
-                              color: colors.secondaryColor,
-                              titleStyle: GoogleFonts.roboto(
-                                  color: colors.textColor, fontSize: 14))
-                        ],
-                        onTap: (i) {
-                          if (i == 0) {
-                            Navigator.push(
-                                context,
-                                MaterialPageRoute(
-                                  builder: (context) => ChangeThemeView(),
-                                ));
-                          } else if (i == 1) {
-                            showFloatingModalBottomSheet(
-                                backgroundColor: colors.primaryColor,
-                                context: context,
-                                builder: (ctx) {
-                                  return StatefulBuilder(
-                                      builder: (ctx, setFState) {
-                                    return ListView(
-                                      shrinkWrap: true,
-                                      children: [
-                                        Material(
-                                            color: Colors.transparent,
-                                            child: InkWell(
-                                              onTap: () async {
-                                                await pickProfileImage();
-                                                setFState(() {});
-                                                st(() {});
-                                                 refreshProfile(
-                                                    currentImage!);
-                                              },
-                                              child: Padding(
-                                                padding:
-                                                    const EdgeInsets.all(10),
-                                                child: Align(
-                                                    alignment: Alignment.center,
-                                                    child: Stack(
-                                                      children: [
-                                                        ClipRRect(
-                                                          borderRadius:
-                                                              BorderRadius
-                                                                  .circular(50),
-                                                          child: currentImage !=
-                                                                  null
-                                                              ? Image.file(
-                                                                  currentImage ??
-                                                                      File(""),
-                                                                  width: 70,
-                                                                  height: 70,
-                                                                  fit: BoxFit
-                                                                      .cover,
-                                                                )
-                                                              : Image.asset(
-                                                                  "assets/pro/image.png",
-                                                                  width: 70,
-                                                                  height: 70,
-                                                                  fit: BoxFit
-                                                                      .cover,
-                                                                ),
-                                                        ),
-                                                        Positioned(
-                                                            left: 16,
-                                                            top: 16,
-                                                            child: SizedBox(
-                                                              width: 40,
-                                                              height: 40,
-                                                              child: ClipRRect(
-                                                                borderRadius:
-                                                                    BorderRadius
-                                                                        .circular(
+                        SizedBox(
+                          height: 50,
+                          child: Stack(
+                            clipBehavior: Clip.none,
+                            children: availableCryptos
+                                .asMap()
+                                .entries
+                                .map((entry) {
+                                  int index = entry.key;
+                                  var crypto = entry.value;
+                                  return Positioned(
+                                      left: index * 18.0,
+                                      child: Container(
+                                        padding: const EdgeInsets.all(3),
+                                        decoration: BoxDecoration(
+                                            color: colors.primaryColor,
+                                            borderRadius:
+                                                BorderRadius.circular(20)),
+                                        child: CryptoPicture(
+                                            crypto: crypto,
+                                            size: 24,
+                                            colors: colors),
+                                      ));
+                                })
+                                .toList()
+                                .reversed
+                                .toList(),
+                          ),
+                        ),
+                        Align(
+                            alignment: Alignment.centerLeft,
+                            child: Column(
+                              mainAxisAlignment: MainAxisAlignment.start,
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Text(
+                                  "\$${(formatUsd(totalBalanceUsd.toString()))}",
+                                  style: GoogleFonts.roboto(
+                                      color: colors.textColor,
+                                      fontSize: 30,
+                                      fontWeight: FontWeight.bold),
+                                ),
+                                Text(
+                                  "Balance",
+                                  style: GoogleFonts.robotoMono(
+                                    color: colors.textColor.withOpacity(0.6),
+                                    fontSize: 16,
+                                  ),
+                                ),
+                              ],
+                            )),
+                        SizedBox(
+                          height: 10,
+                        ),
+                        Divider(
+                          color: colors.textColor.withOpacity(0.05),
+                        ),
+                        Align(
+                          alignment: Alignment.centerLeft,
+                          child: Text(
+                            "Settings",
+                            style: GoogleFonts.roboto(
+                                color: colors.textColor.withOpacity(0.8),
+                                fontSize: 20,
+                                fontWeight: FontWeight.bold),
+                          ),
+                        ),
+                        SizedBox(
+                          height: 10,
+                        ),
+                        CustomOptionWidget(
+                            splashColor: colors.themeColor.withOpacity(0.1),
+                            containerRadius: BorderRadius.circular(10),
+                            spaceName: "Appearance",
+                            internalElementSpacing: 10,
+                            shapeBorder: RoundedRectangleBorder(
+                                borderRadius: BorderRadius.circular(10)),
+                            backgroundColor: Colors.transparent,
+                            spaceNameStyle: GoogleFonts.roboto(
+                              color: colors.textColor,
+                            ),
+                            options: [
+                              Option(
+                                  tileColor:
+                                      colors.secondaryColor.withOpacity(0.5),
+                                  title: "Change App Theme",
+                                  icon: Icon(
+                                    LucideIcons.palette,
+                                    color: colors.textColor.withOpacity(0.7),
+                                    size: 20,
+                                  ),
+                                  trailing: Icon(Icons.chevron_right,
+                                      color: colors.textColor.withOpacity(0.5)),
+                                  color: colors.secondaryColor,
+                                  titleStyle: GoogleFonts.roboto(
+                                      color: colors.textColor, fontSize: 14)),
+                              Option(
+                                  tileColor:
+                                      colors.secondaryColor.withOpacity(0.5),
+                                  title: "Edit profile picture",
+                                  icon: Icon(
+                                    LucideIcons.user,
+                                    color: colors.textColor.withOpacity(0.7),
+                                    size: 20,
+                                  ),
+                                  trailing: Icon(
+                                    Icons.chevron_right,
+                                    color: colors.textColor.withOpacity(0.5),
+                                  ),
+                                  color: colors.secondaryColor,
+                                  titleStyle: GoogleFonts.roboto(
+                                      color: colors.textColor, fontSize: 14))
+                            ],
+                            onTap: (i) {
+                              if (i == 0) {
+                                Navigator.push(
+                                    context,
+                                    MaterialPageRoute(
+                                      builder: (context) => ChangeThemeView(),
+                                    ));
+                              } else if (i == 1) {
+                                showFloatingModalBottomSheet(
+                                    backgroundColor: colors.primaryColor,
+                                    context: context,
+                                    builder: (ctx) {
+                                      return StatefulBuilder(
+                                          builder: (ctx, setFState) {
+                                        return ListView(
+                                          shrinkWrap: true,
+                                          children: [
+                                            Material(
+                                                color: Colors.transparent,
+                                                child: InkWell(
+                                                  onTap: () async {
+                                                    await pickProfileImage();
+                                                    setFState(() {});
+                                                    st(() {});
+                                                    refreshProfile(
+                                                        currentImage!);
+                                                  },
+                                                  child: Padding(
+                                                    padding:
+                                                        const EdgeInsets.all(
+                                                            10),
+                                                    child: Align(
+                                                        alignment:
+                                                            Alignment.center,
+                                                        child: Stack(
+                                                          children: [
+                                                            ClipRRect(
+                                                              borderRadius:
+                                                                  BorderRadius
+                                                                      .circular(
+                                                                          50),
+                                                              child:
+                                                                  currentImage !=
+                                                                          null
+                                                                      ? Image
+                                                                          .file(
+                                                                          currentImage ??
+                                                                              File(""),
+                                                                          width:
+                                                                              70,
+                                                                          height:
+                                                                              70,
+                                                                          fit: BoxFit
+                                                                              .cover,
+                                                                        )
+                                                                      : Image
+                                                                          .asset(
+                                                                          "assets/pro/image.png",
+                                                                          width:
+                                                                              70,
+                                                                          height:
+                                                                              70,
+                                                                          fit: BoxFit
+                                                                              .cover,
+                                                                        ),
+                                                            ),
+                                                            Positioned(
+                                                                left: 16,
+                                                                top: 16,
+                                                                child: SizedBox(
+                                                                  width: 40,
+                                                                  height: 40,
+                                                                  child:
+                                                                      ClipRRect(
+                                                                    borderRadius:
+                                                                        BorderRadius.circular(
                                                                             50),
-                                                                child:
-                                                                    BackdropFilter(
-                                                                  filter: ImageFilter
-                                                                      .blur(
+                                                                    child:
+                                                                        BackdropFilter(
+                                                                      filter: ImageFilter.blur(
                                                                           sigmaX:
                                                                               8,
                                                                           sigmaY:
                                                                               8),
-                                                                  child: Icon(
-                                                                    LucideIcons
-                                                                        .camera,
-                                                                    color: Colors
-                                                                        .white,
+                                                                      child:
+                                                                          Icon(
+                                                                        LucideIcons
+                                                                            .camera,
+                                                                        color: Colors
+                                                                            .white,
+                                                                      ),
+                                                                    ),
                                                                   ),
-                                                                ),
-                                                              ),
-                                                            ))
-                                                      ],
-                                                    )),
-                                              ),
-                                            )),
-                                        LayoutBuilder(builder: (ctx, c) {
-                                          return Align(
-                                            alignment: Alignment.center,
-                                            child: Row(
-                                              mainAxisAlignment:
-                                                  MainAxisAlignment.center,
-                                              spacing: 5,
-                                              children: [
-                                                SizedBox(
-                                                  width: c.maxWidth * 0.55,
-                                                  child: ElevatedButton(
-                                                      onPressed: () async {
-                                                        if (currentImage !=
-                                                            null) {
-                                                          final res =
-                                                              await storageManager
-                                                                  .saveData(
-                                                                      image:
-                                                                          currentImage!);
-                                                          if (res) {
-                                                            setFState(() {});
-                                                            st(() {});
+                                                                ))
+                                                          ],
+                                                        )),
+                                                  ),
+                                                )),
+                                            LayoutBuilder(builder: (ctx, c) {
+                                              return Align(
+                                                alignment: Alignment.center,
+                                                child: Row(
+                                                  mainAxisAlignment:
+                                                      MainAxisAlignment.center,
+                                                  spacing: 5,
+                                                  children: [
+                                                    SizedBox(
+                                                      width: c.maxWidth * 0.55,
+                                                      child: ElevatedButton(
+                                                          onPressed: () async {
+                                                            if (currentImage !=
+                                                                null) {
+                                                              final res =
+                                                                  await storageManager
+                                                                      .saveData(
+                                                                          image:
+                                                                              currentImage!);
+                                                              if (res) {
+                                                                setFState(
+                                                                    () {});
+                                                                st(() {});
+                                                                Navigator.pop(
+                                                                    ctx);
+                                                              }
+                                                            }
+                                                          },
+                                                          style: ElevatedButton.styleFrom(
+                                                              shape: RoundedRectangleBorder(
+                                                                  borderRadius:
+                                                                      BorderRadius
+                                                                          .circular(
+                                                                              8)),
+                                                              padding:
+                                                                  const EdgeInsets
+                                                                      .symmetric(
+                                                                      vertical:
+                                                                          0),
+                                                              backgroundColor:
+                                                                  colors
+                                                                      .themeColor),
+                                                          child: Text(
+                                                            "Save",
+                                                            style: GoogleFonts
+                                                                .roboto(
+                                                                    color: colors
+                                                                        .primaryColor),
+                                                          )),
+                                                    ),
+                                                    SizedBox(
+                                                      width: c.maxWidth * 0.3,
+                                                      child: ElevatedButton(
+                                                          onPressed: () {
                                                             Navigator.pop(ctx);
-                                                          }
-                                                        }
-                                                      },
-                                                      style: ElevatedButton.styleFrom(
-                                                          shape: RoundedRectangleBorder(
-                                                              borderRadius:
-                                                                  BorderRadius
-                                                                      .circular(
-                                                                          8)),
-                                                          padding:
-                                                              const EdgeInsets
-                                                                  .symmetric(
-                                                                  vertical: 0),
-                                                          backgroundColor:
-                                                              colors
-                                                                  .themeColor),
-                                                      child: Text(
-                                                        "Save",
-                                                        style: GoogleFonts.roboto(
-                                                            color: colors
-                                                                .primaryColor),
-                                                      )),
+                                                          },
+                                                          style: ElevatedButton.styleFrom(
+                                                              shape: RoundedRectangleBorder(
+                                                                  borderRadius:
+                                                                      BorderRadius
+                                                                          .circular(
+                                                                              8)),
+                                                              padding:
+                                                                  const EdgeInsets
+                                                                      .symmetric(
+                                                                      vertical:
+                                                                          0),
+                                                              elevation: 0,
+                                                              backgroundColor:
+                                                                  Colors
+                                                                      .transparent,
+                                                              side: BorderSide(
+                                                                  width: 2,
+                                                                  color: colors
+                                                                      .redColor)),
+                                                          child: Text(
+                                                            "Cancel",
+                                                            style: GoogleFonts
+                                                                .roboto(
+                                                                    color: colors
+                                                                        .redColor),
+                                                          )),
+                                                    )
+                                                  ],
                                                 ),
-                                                SizedBox(
-                                                  width: c.maxWidth * 0.3,
-                                                  child: ElevatedButton(
-                                                      onPressed: () {
-                                                        Navigator.pop(ctx);
-                                                      },
-                                                      style: ElevatedButton.styleFrom(
-                                                          shape: RoundedRectangleBorder(
-                                                              borderRadius:
-                                                                  BorderRadius
-                                                                      .circular(
-                                                                          8)),
-                                                          padding:
-                                                              const EdgeInsets
-                                                                  .symmetric(
-                                                                  vertical: 0),
-                                                          elevation: 0,
-                                                          backgroundColor:
-                                                              Colors
-                                                                  .transparent,
-                                                          side: BorderSide(
-                                                              width: 2,
-                                                              color: colors
-                                                                  .redColor)),
-                                                      child: Text(
-                                                        "Cancel",
-                                                        style:
-                                                            GoogleFonts.roboto(
-                                                                color: colors
-                                                                    .redColor),
-                                                      )),
-                                                )
-                                              ],
-                                            ),
-                                          );
-                                        })
-                                      ],
-                                    );
-                                  });
-                                });
-                          }
-                        }),
-                    SizedBox(
-                      height: 10,
-                    ),
-                    CustomOptionWidget(
-                        splashColor: colors.themeColor.withOpacity(0.1),
-                        containerRadius: BorderRadius.circular(10),
-                        spaceName: "Security",
-                        internalElementSpacing: 10,
-                        shapeBorder: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(10)),
-                        backgroundColor: Colors.transparent,
-                        spaceNameStyle: GoogleFonts.roboto(
-                          color: colors.textColor,
-                        ),
-                        options: [
-                          Option(
-                              tileColor: colors.secondaryColor.withOpacity(0.5),
-                              title: "View private data",
-                              icon: Icon(
-                                LucideIcons.key,
-                                color: colors.textColor.withOpacity(0.7),
-                                size: 20,
-                              ),
-                              trailing: Icon(Icons.chevron_right,
-                                  color: colors.textColor.withOpacity(0.5)),
-                              color: colors.secondaryColor,
-                              titleStyle: GoogleFonts.roboto(
-                                  color: colors.textColor, fontSize: 14)),
-                          Option(
-                              tileColor: colors.secondaryColor.withOpacity(0.5),
-                              title: "Change password",
-                              icon: Icon(
-                                LucideIcons.keySquare,
-                                color: colors.textColor.withOpacity(0.7),
-                                size: 20,
-                              ),
-                              trailing: Icon(
-                                Icons.chevron_right,
-                                color: colors.textColor.withOpacity(0.5),
-                              ),
-                              color: colors.secondaryColor,
-                              titleStyle: GoogleFonts.roboto(
-                                  color: colors.textColor, fontSize: 14))
-                        ],
-                        onTap: (i) async {
-                          if (i == 0) {
-                            if (account.isWatchOnly) {
-                              showCustomSnackBar(
-                                  context: context,
-                                  message:
-                                      "A watch-only wallet does not store private data",
-                                  primaryColor: colors.primaryColor,
-                                  colors: colors);
-                              return;
-                            }
-                            final password = await askPassword(
-                                context: context, colors: colors);
-                            if (password.isNotEmpty) {
-                              Navigator.push(
-                                  context,
-                                  MaterialPageRoute(
-                                      builder: (context) => PrivateKeyScreen(
-                                            password: password,
-                                            walletId: account.keyId,
-                                          )));
-                            }
-                          } else if (i == 1) {
-                            final password = await askPassword(
-                                context: context,
-                                colors: colors,
-                                title: "Old Password");
-                            if (password.isEmpty) {
-                              showCustomSnackBar(
-                                  context: context,
-                                  message: "Incorrect password",
-                                  primaryColor: colors.primaryColor,
-                                  colors: colors);
-                              return;
-                            }
-
-                            final res = await showPinModalBottomSheet(
-                                canApplyBlur: true,
-                                context: context,
-                                handleSubmit: (password) async {
-                                  if (newPassword.isEmpty) {
-                                    newPassword = password;
-                                    return PinSubmitResult(
-                                        success: true,
-                                        repeat: true,
-                                        newTitle: "Repeat Password");
-                                  } else {
-                                    if (newPassword.trim() != password.trim()) {
-                                      newPassword = "";
-                                      return PinSubmitResult(
-                                          success: false,
-                                          repeat: true,
-                                          newTitle: "New password",
-                                          error: "Password does not match");
-                                    } else {
-                                      confirmPassword = newPassword;
-                                      return PinSubmitResult(
-                                          success: true, repeat: false);
-                                    }
-                                  }
-                                },
-                                colors: colors,
-                                title: "New password");
-
-                            if (res) {
-                              if (password == confirmPassword) {
-                                showCustomSnackBar(
-                                    context: context,
-                                    message:
-                                        "The old password and the new one are the same",
-                                    primaryColor: colors.primaryColor,
-                                    colors: colors);
-                                newPassword = "";
-                                confirmPassword = "";
-                              } else {
-                                final walletManager = WalletSaver();
-                                final result = await walletManager
-                                    .changePassword(password, confirmPassword);
-                                if (!result) {
-                                  showCustomSnackBar(
-                                      context: context,
-                                      message: "Failed to change password",
-                                      primaryColor: colors.primaryColor,
-                                      colors: colors);
-                                  newPassword = "";
-                                  confirmPassword = "";
-                                } else {
-                                  showCustomSnackBar(
-                                      icon: Icons.check,
-                                      iconColor: colors.greenColor,
-                                      context: context,
-                                      message: "Password changed successfully",
-                                      primaryColor: colors.primaryColor,
-                                      colors: colors);
-                                }
+                                              );
+                                            })
+                                          ],
+                                        );
+                                      });
+                                    });
                               }
-                            }
-                          }
-                        }),
-                    CustomOptionWidget(
-                        splashColor: colors.redColor.withOpacity(0.1),
-                        containerRadius: BorderRadius.circular(10),
-                        spaceName: "Others",
-                        internalElementSpacing: 10,
-                        shapeBorder: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(10)),
-                        backgroundColor: Colors.transparent,
-                        spaceNameStyle: GoogleFonts.roboto(
-                          color: colors.textColor,
+                            }),
+                        SizedBox(
+                          height: 10,
                         ),
-                        options: [
-                          Option(
-                              title: "Enable biometric",
-                              icon: Icon(
-                                LucideIcons.fingerprint,
-                                color: colors.textColor.withOpacity(0.7),
-                                size: 20,
-                              ),
-                              trailing: Switch(
-                                  value: canUseBio,
-                                  onChanged: (v) async {
-                                    if (v) {
-                                      final LocalAuthentication auth =
-                                          LocalAuthentication();
-                                      final bool canAuthenticateWithBiometrics =
-                                          await auth.canCheckBiometrics;
-                                      final bool canAuthenticate =
-                                          canAuthenticateWithBiometrics ||
-                                              await auth.isDeviceSupported();
+                        CustomOptionWidget(
+                            splashColor: colors.themeColor.withOpacity(0.1),
+                            containerRadius: BorderRadius.circular(10),
+                            spaceName: "Security",
+                            internalElementSpacing: 10,
+                            shapeBorder: RoundedRectangleBorder(
+                                borderRadius: BorderRadius.circular(10)),
+                            backgroundColor: Colors.transparent,
+                            spaceNameStyle: GoogleFonts.roboto(
+                              color: colors.textColor,
+                            ),
+                            options: [
+                              Option(
+                                  tileColor:
+                                      colors.secondaryColor.withOpacity(0.5),
+                                  title: "View private data",
+                                  icon: Icon(
+                                    LucideIcons.key,
+                                    color: colors.textColor.withOpacity(0.7),
+                                    size: 20,
+                                  ),
+                                  trailing: Icon(Icons.chevron_right,
+                                      color: colors.textColor.withOpacity(0.5)),
+                                  color: colors.secondaryColor,
+                                  titleStyle: GoogleFonts.roboto(
+                                      color: colors.textColor, fontSize: 14)),
+                              Option(
+                                  tileColor:
+                                      colors.secondaryColor.withOpacity(0.5),
+                                  title: "Change password",
+                                  icon: Icon(
+                                    LucideIcons.keySquare,
+                                    color: colors.textColor.withOpacity(0.7),
+                                    size: 20,
+                                  ),
+                                  trailing: Icon(
+                                    Icons.chevron_right,
+                                    color: colors.textColor.withOpacity(0.5),
+                                  ),
+                                  color: colors.secondaryColor,
+                                  titleStyle: GoogleFonts.roboto(
+                                      color: colors.textColor, fontSize: 14))
+                            ],
+                            onTap: (i) async {
+                              if (i == 0) {
+                                if (account.isWatchOnly) {
+                                  showCustomSnackBar(
+                                      context: context,
+                                      message:
+                                          "A watch-only wallet does not store private data",
+                                      primaryColor: colors.primaryColor,
+                                      colors: colors);
+                                  return;
+                                }
+                                final password = await askPassword(
+                                    context: context, colors: colors);
+                                if (password.isNotEmpty) {
+                                  Navigator.push(
+                                      context,
+                                      MaterialPageRoute(
+                                          builder: (context) =>
+                                              PrivateKeyScreen(
+                                                password: password,
+                                                walletId: account.keyId,
+                                              )));
+                                }
+                              } else if (i == 1) {
+                                final password = await askPassword(
+                                    context: context,
+                                    colors: colors,
+                                    title: "Old Password");
+                                if (password.isEmpty) {
+                                  showCustomSnackBar(
+                                      context: context,
+                                      message: "Incorrect password",
+                                      primaryColor: colors.primaryColor,
+                                      colors: colors);
+                                  return;
+                                }
 
-                                      if (canAuthenticate) {
-                                        try {
-                                          final web3manager = Web3Manager();
-
-                                          String userPassword = "";
-                                          int attempts = 0;
-
-                                          final result =
-                                              await showPinModalBottomSheet(
-                                                  colors: colors,
-                                                  context: context,
-                                                  handleSubmit:
-                                                      (password) async {
-                                                    final savedPassword =
-                                                        await web3manager
-                                                            .getSavedPassword();
-                                                    if (password.trim() !=
-                                                        savedPassword) {
-                                                      attempts++;
-                                                      if (attempts >= 3) {
-                                                        showCustomSnackBar(
-                                                            context: context,
-                                                            message:
-                                                                "Too many attempts",
-                                                            primaryColor: colors
-                                                                .primaryColor,
-                                                            colors: colors,
-                                                            icon: Icons.error,
-                                                            iconColor:
-                                                                Colors.red);
-                                                        attempts = 0;
-                                                        return PinSubmitResult(
-                                                          success: false,
-                                                          repeat: false,
-                                                        );
-                                                      }
-                                                      return PinSubmitResult(
-                                                          success: false,
-                                                          repeat: true,
-                                                          error:
-                                                              "Invalid password",
-                                                          newTitle:
-                                                              "Try again");
-                                                    } else {
-                                                      userPassword =
-                                                          password.trim();
-
-                                                      return PinSubmitResult(
-                                                          success: true,
-                                                          repeat: false);
-                                                    }
-                                                  },
-                                                  title: "Enter Password");
-                                          if (result) {
-                                            final data = await WalletSaver()
-                                                .getDecryptedData(userPassword);
-                                            if (data == null || data.isEmpty) {
-                                              throw Exception("Wrong password");
-                                            }
-                                            final bool didAuthenticate =
-                                                await auth.authenticate(
-                                                    localizedReason:
-                                                        "Enabled to use biometric authentication");
-
-                                            if (didAuthenticate) {
-                                              final res =
-                                                  await PublicDataManager()
-                                                      .saveDataInPrefs(
-                                                          data:
-                                                              v ? "on" : "off",
-                                                          key: "BioStatus");
-
-                                              showCustomSnackBar(
-                                                  context: context,
-                                                  message: "Enabled",
-                                                  primaryColor:
-                                                      colors.primaryColor,
-                                                  colors: colors,
-                                                  icon: Icons.check_circle,
-                                                  iconColor: colors.themeColor);
-
-                                              if (res) {
-                                                st(() {
-                                                  canUseBio = v;
-                                                });
-                                                 updateBioState(v);
-                                              }
-                                            }
-                                          }
-                                        } catch (e) {
-                                          showCustomSnackBar(
-                                            colors: colors,
-                                            primaryColor: colors.primaryColor,
-                                            icon: Icons.error,
-                                            iconColor: Colors.red,
-                                            context: context,
-                                            message: "Failed : $e",
-                                          );
-                                          logError(e.toString());
+                                final res = await showPinModalBottomSheet(
+                                    canApplyBlur: true,
+                                    context: context,
+                                    handleSubmit: (password) async {
+                                      if (newPassword.isEmpty) {
+                                        newPassword = password;
+                                        return PinSubmitResult(
+                                            success: true,
+                                            repeat: true,
+                                            newTitle: "Repeat Password");
+                                      } else {
+                                        if (newPassword.trim() !=
+                                            password.trim()) {
+                                          newPassword = "";
+                                          return PinSubmitResult(
+                                              success: false,
+                                              repeat: true,
+                                              newTitle: "New password",
+                                              error: "Password does not match");
+                                        } else {
+                                          confirmPassword = newPassword;
+                                          return PinSubmitResult(
+                                              success: true, repeat: false);
                                         }
                                       }
-                                    } else {
-                                      final res = await PublicDataManager()
-                                          .saveDataInPrefs(
-                                              data: "off", key: "BioStatus");
-                                      if (res) {
-                                        st(() {
-                                          canUseBio = v;
-                                        });
+                                    },
+                                    colors: colors,
+                                    title: "New password");
 
-                                         updateBioState(v);
-                                      }
+                                if (res) {
+                                  if (password == confirmPassword) {
+                                    showCustomSnackBar(
+                                        context: context,
+                                        message:
+                                            "The old password and the new one are the same",
+                                        primaryColor: colors.primaryColor,
+                                        colors: colors);
+                                    newPassword = "";
+                                    confirmPassword = "";
+                                  } else {
+                                    final walletManager = WalletSaver();
+                                    final result =
+                                        await walletManager.changePassword(
+                                            password, confirmPassword);
+                                    if (!result) {
+                                      showCustomSnackBar(
+                                          context: context,
+                                          message: "Failed to change password",
+                                          primaryColor: colors.primaryColor,
+                                          colors: colors);
+                                      newPassword = "";
+                                      confirmPassword = "";
+                                    } else {
+                                      showCustomSnackBar(
+                                          icon: Icons.check,
+                                          iconColor: colors.greenColor,
+                                          context: context,
+                                          message:
+                                              "Password changed successfully",
+                                          primaryColor: colors.primaryColor,
+                                          colors: colors);
                                     }
-                                  }),
+                                  }
+                                }
+                              }
+                            }),
+                        CustomOptionWidget(
+                            splashColor: colors.redColor.withOpacity(0.1),
+                            containerRadius: BorderRadius.circular(10),
+                            spaceName: "Others",
+                            internalElementSpacing: 10,
+                            shapeBorder: RoundedRectangleBorder(
+                                borderRadius: BorderRadius.circular(10)),
+                            backgroundColor: Colors.transparent,
+                            spaceNameStyle: GoogleFonts.roboto(
                               color: colors.textColor,
-                              titleStyle: GoogleFonts.roboto(
-                                  color: colors.textColor, fontSize: 14)),
-                          Option(
-                              tileColor: colors.redColor.withOpacity(0.1),
-                              title: "Delete wallet",
-                              icon: Icon(
-                                LucideIcons.trash,
-                                color: colors.redColor.withOpacity(0.7),
-                                size: 20,
-                              ),
-                              trailing: Icon(
-                                Icons.chevron_right,
-                                color: colors.redColor,
-                              ),
-                              color: colors.redColor,
-                              titleStyle: GoogleFonts.roboto(
-                                  color: colors.redColor, fontSize: 14))
-                        ],
-                        onTap: (i) {
-                          if (i == 1) {
-                            deleteWallet(account);
-                          }
-                        })
-                  ],
-                ),
-              )))
-              ;
+                            ),
+                            options: [
+                              Option(
+                                  title: "Enable biometric",
+                                  icon: Icon(
+                                    LucideIcons.fingerprint,
+                                    color: colors.textColor.withOpacity(0.7),
+                                    size: 20,
+                                  ),
+                                  trailing: Switch(
+                                      value: canUseBio,
+                                      onChanged: (v) async {
+                                        if (v) {
+                                          final LocalAuthentication auth =
+                                              LocalAuthentication();
+                                          final bool
+                                              canAuthenticateWithBiometrics =
+                                              await auth.canCheckBiometrics;
+                                          final bool canAuthenticate =
+                                              canAuthenticateWithBiometrics ||
+                                                  await auth
+                                                      .isDeviceSupported();
+
+                                          if (canAuthenticate) {
+                                            try {
+                                              final web3manager = Web3Manager();
+
+                                              String userPassword = "";
+                                              int attempts = 0;
+
+                                              final result =
+                                                  await showPinModalBottomSheet(
+                                                      colors: colors,
+                                                      context: context,
+                                                      handleSubmit:
+                                                          (password) async {
+                                                        final savedPassword =
+                                                            await web3manager
+                                                                .getSavedPassword();
+                                                        if (password.trim() !=
+                                                            savedPassword) {
+                                                          attempts++;
+                                                          if (attempts >= 3) {
+                                                            showCustomSnackBar(
+                                                                context:
+                                                                    context,
+                                                                message:
+                                                                    "Too many attempts",
+                                                                primaryColor: colors
+                                                                    .primaryColor,
+                                                                colors: colors,
+                                                                icon:
+                                                                    Icons.error,
+                                                                iconColor:
+                                                                    Colors.red);
+                                                            attempts = 0;
+                                                            return PinSubmitResult(
+                                                              success: false,
+                                                              repeat: false,
+                                                            );
+                                                          }
+                                                          return PinSubmitResult(
+                                                              success: false,
+                                                              repeat: true,
+                                                              error:
+                                                                  "Invalid password",
+                                                              newTitle:
+                                                                  "Try again");
+                                                        } else {
+                                                          userPassword =
+                                                              password.trim();
+
+                                                          return PinSubmitResult(
+                                                              success: true,
+                                                              repeat: false);
+                                                        }
+                                                      },
+                                                      title: "Enter Password");
+                                              if (result) {
+                                                final data = await WalletSaver()
+                                                    .getDecryptedData(
+                                                        userPassword);
+                                                if (data == null ||
+                                                    data.isEmpty) {
+                                                  throw Exception(
+                                                      "Wrong password");
+                                                }
+                                                final bool didAuthenticate =
+                                                    await auth.authenticate(
+                                                        localizedReason:
+                                                            "Enabled to use biometric authentication");
+
+                                                if (didAuthenticate) {
+                                                  final res =
+                                                      await PublicDataManager()
+                                                          .saveDataInPrefs(
+                                                              data: v
+                                                                  ? "on"
+                                                                  : "off",
+                                                              key: "BioStatus");
+
+                                                  showCustomSnackBar(
+                                                      context: context,
+                                                      message: "Enabled",
+                                                      primaryColor:
+                                                          colors.primaryColor,
+                                                      colors: colors,
+                                                      icon: Icons.check_circle,
+                                                      iconColor:
+                                                          colors.themeColor);
+
+                                                  if (res) {
+                                                    st(() {
+                                                      canUseBio = v;
+                                                    });
+                                                    updateBioState(v);
+                                                  }
+                                                }
+                                              }
+                                            } catch (e) {
+                                              showCustomSnackBar(
+                                                colors: colors,
+                                                primaryColor:
+                                                    colors.primaryColor,
+                                                icon: Icons.error,
+                                                iconColor: Colors.red,
+                                                context: context,
+                                                message: "Failed : $e",
+                                              );
+                                              logError(e.toString());
+                                            }
+                                          }
+                                        } else {
+                                          final res = await PublicDataManager()
+                                              .saveDataInPrefs(
+                                                  data: "off",
+                                                  key: "BioStatus");
+                                          if (res) {
+                                            st(() {
+                                              canUseBio = v;
+                                            });
+
+                                            updateBioState(v);
+                                          }
+                                        }
+                                      }),
+                                  color: colors.textColor,
+                                  titleStyle: GoogleFonts.roboto(
+                                      color: colors.textColor, fontSize: 14)),
+                              Option(
+                                  tileColor: colors.redColor.withOpacity(0.1),
+                                  title: "Delete wallet",
+                                  icon: Icon(
+                                    LucideIcons.trash,
+                                    color: colors.redColor.withOpacity(0.7),
+                                    size: 20,
+                                  ),
+                                  trailing: Icon(
+                                    Icons.chevron_right,
+                                    color: colors.redColor,
+                                  ),
+                                  color: colors.redColor,
+                                  titleStyle: GoogleFonts.roboto(
+                                      color: colors.redColor, fontSize: 14))
+                            ],
+                            onTap: (i) {
+                              if (i == 1) {
+                                deleteWallet(account);
+                              }
+                            })
+                      ],
+                    ),
+                  )));
         });
       });
 }

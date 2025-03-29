@@ -73,7 +73,14 @@ class _SendTransactionScreenState extends State<SendTransactionScreen> {
   final encryptService = EncryptService();
   final priceManager = PriceManager();
   final publicDataManager = PublicDataManager();
-  Crypto currentNetwork = cryptos[0];
+  Crypto currentNetwork = Crypto(
+      name: "",
+      color: Colors.transparent,
+      type: CryptoType.network,
+      valueUsd: 0,
+      cryptoId: "",
+      canDisplay: false,
+      symbol: "");
   final web3InteractManager = Web3InteractionManager();
   final TextEditingController _addressController = TextEditingController();
   final TextEditingController _amountController = TextEditingController();

@@ -19,7 +19,6 @@ class WalletSaver {
   final passwordName = "userPassword";
   final secureService = SecureStorageService();
   final encryptService = EncryptService();
-  final documentStorage = DocumentManager();
   final boxName = "usersWallets";
   final publicWalletKey = "publicWallets";
   final privateWalletKey = "privateWallets";

@@ -24,7 +24,7 @@ class TransactionStorage {
     }
   }
 
-  Future<bool> addTransactions(BscScanTransaction transaction) async {
+  Future<bool> addTransactions(EsTransaction transaction) async {
     try {
       final savedTransactions = await getTransactions();
       if (!savedTransactions.any((tr) =>
@@ -41,18 +41,18 @@ class TransactionStorage {
     }
   }
 
-  Future<List<BscScanTransaction>> getTransactions() async {
+  Future<List<EsTransaction>> getTransactions() async {
     try {
-      final List<Map<dynamic, dynamic>> transactions =
+      final List<dynamic> transactions =
           await getDynamicData(name: "$accountKey/$cryptoId");
-      return transactions.map((t) => BscScanTransaction.fromJson(t)).toList();
+      return transactions.map((t) => EsTransaction.fromJson(t)).toList();
     } catch (e) {
       logError('Error getting transactions: $e');
       return [];
     }
   }
 
-  Future<bool> saveTransactions(List<BscScanTransaction> transactions) async {
+  Future<bool> saveTransactions(List<EsTransaction> transactions) async {
     try {
       List<Map<dynamic, dynamic>> jsonTransactions =
           transactions.map((t) => t.toJson()).toList();

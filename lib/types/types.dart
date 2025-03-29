@@ -255,7 +255,6 @@ class EthTransaction {
 }
 
 class Crypto {
-  int id;
   final String name;
   final String? icon;
   final int? chainId;
@@ -270,36 +269,52 @@ class Crypto {
   final double valueUsd;
   final String cryptoId;
   final bool canDisplay;
-  final String? apiKey;
-  final String? apiBaseUrl;
   final String symbol;
   final bool isNetworkIcon;
 
-  Crypto(
-      {required this.name,
-      this.icon,
-      this.chainId,
-      required this.color,
-      this.rpc,
-      this.binanceSymbol,
-      required this.type,
-      this.explorer,
-      this.network,
-      this.contractAddress,
-      this.decimals,
-      required this.valueUsd,
-      required this.cryptoId,
-      required this.canDisplay,
-      this.apiKey,
-      this.apiBaseUrl,
-      required this.symbol,
-      this.isNetworkIcon = false,
-      this.id = 0});
+  Crypto({
+    required this.name,
+    this.icon,
+    this.chainId,
+    required this.color,
+    this.rpc,
+    this.binanceSymbol,
+    required this.type,
+    this.explorer,
+    this.network,
+    this.contractAddress,
+    this.decimals,
+    required this.valueUsd,
+    required this.cryptoId,
+    required this.canDisplay,
+    required this.symbol,
+    this.isNetworkIcon = false,
+  });
+  factory Crypto.fromJsonRequest(Map<String, dynamic> cryptoJson) {
+    return Crypto(
+      canDisplay: cryptoJson["canDisplay"],
+      cryptoId: cryptoJson["cryptoId"],
+      name: cryptoJson["name"],
+      color: Color(cryptoJson["color"] ?? 0x00000000),
+      type: CryptoType.values[cryptoJson["type"]],
+      icon: cryptoJson["icon"],
+      rpc: cryptoJson["rpc"],
+      decimals: cryptoJson["decimals"],
+      chainId: cryptoJson["chainId"],
+      binanceSymbol: cryptoJson["binanceSymbol"],
+      network: cryptoJson["network"] != null
+          ? Crypto.fromJsonRequest(cryptoJson["network"])
+          : null,
+      contractAddress: cryptoJson["contractAddress"],
+      explorer: cryptoJson["explorer"],
+      valueUsd: cryptoJson["valueUsd"],
+      symbol: cryptoJson["symbol"],
+      isNetworkIcon: cryptoJson["isNetworkIcon"] ?? false,
+    );
+  }
 
   factory Crypto.fromJson(Map<String, dynamic> cryptoJson) {
     return Crypto(
-      apiKey: cryptoJson["apiKey"],
-      apiBaseUrl: cryptoJson["apiBaseUrl"],
       canDisplay: cryptoJson["canDisplay"],
       cryptoId: cryptoJson["cryptoId"],
       name: cryptoJson["name"],
@@ -320,14 +335,11 @@ class Crypto {
       valueUsd: cryptoJson["valueUsd"],
       symbol: cryptoJson["symbol"],
       isNetworkIcon: cryptoJson["isNetworkIcon"] ?? false,
-      id: cryptoJson["id"] ?? 0,
     );
   }
 
   Map<String, dynamic> toJson() {
     return {
-      "apiKey": apiKey,
-      "apiBaseUrl": apiBaseUrl,
       "canDisplay": canDisplay,
       "cryptoId": cryptoId,
       "name": name,
@@ -344,7 +356,6 @@ class Crypto {
       "valueUsd": valueUsd,
       "symbol": symbol,
       "isNetworkIcon": isNetworkIcon,
-      "id": id,
     };
   }
 }
@@ -445,7 +456,7 @@ class UserRequestResponse {
   }
 }
 
-class BscScanTransaction {
+class EsTransaction {
   final String blockNumber;
   final String timeStamp;
   final String hash;
@@ -462,7 +473,7 @@ class BscScanTransaction {
   final String? methodId;
   final String? functionName;
 
-  BscScanTransaction({
+  EsTransaction({
     required this.blockNumber,
     required this.timeStamp,
     required this.hash,
@@ -480,8 +491,8 @@ class BscScanTransaction {
     this.functionName,
   });
 
-  factory BscScanTransaction.fromJson(Map<dynamic, dynamic> json) {
-    return BscScanTransaction(
+  factory EsTransaction.fromJson(Map<dynamic, dynamic> json) {
+    return EsTransaction(
       blockNumber: json['blockNumber'] ?? '',
       timeStamp: json['timeStamp'] ?? '',
       hash: json['hash'] ?? '',
@@ -524,7 +535,7 @@ class BscScanTransaction {
 class TransactionListResponseType {
   final String status;
   final String message;
-  final List<BscScanTransaction> result;
+  final List<EsTransaction> result;
 
   TransactionListResponseType({
     required this.status,
@@ -537,7 +548,7 @@ class TransactionListResponseType {
       status: json['status'] ?? '',
       message: json['message'] ?? '',
       result: (json['result'] as List<dynamic>?)
-              ?.map((e) => BscScanTransaction.fromJson(e))
+              ?.map((e) => EsTransaction.fromJson(e))
               .toList() ??
           [],
     );

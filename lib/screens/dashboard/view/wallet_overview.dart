@@ -1,28 +1,28 @@
 // ignore_for_file: deprecated_member_use
 
-import 'dart:convert';
 import 'dart:ui';
 import 'package:flutter/rendering.dart';
 import 'package:flutter/services.dart';
 // ignore: depend_on_referenced_packages
-import 'package:http/http.dart' as http;
 
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:intl/intl.dart';
 import 'package:liquid_pull_to_refresh/liquid_pull_to_refresh.dart';
+import 'package:loading_animation_widget/loading_animation_widget.dart';
 import 'package:moonwallet/custom/candlesticks/lib/candlesticks.dart';
 import 'package:moonwallet/logger/logger.dart';
 import 'package:moonwallet/main.dart';
+import 'package:moonwallet/service/crypto_request_manager.dart';
 import 'package:moonwallet/service/crypto_storage_manager.dart';
 import 'package:moonwallet/service/number_formatter.dart';
 import 'package:moonwallet/service/price_manager.dart';
+import 'package:moonwallet/service/transaction_request_manager.dart';
 import 'package:moonwallet/service/transactions.dart';
 import 'package:moonwallet/service/wallet_saver.dart';
 import 'package:moonwallet/service/web3_interaction.dart';
 import 'package:moonwallet/types/types.dart';
 import 'package:moonwallet/utils/colors.dart';
-import 'package:moonwallet/utils/constant.dart';
 import 'package:moonwallet/utils/crypto.dart';
 import 'package:moonwallet/utils/prefs.dart';
 import 'package:moonwallet/utils/themes.dart';
@@ -45,7 +45,7 @@ class WalletViewScreen extends StatefulWidget {
 class _WalletViewScreenState extends State<WalletViewScreen>
     with SingleTickerProviderStateMixin {
   late TabController _tabController;
-  List<BscScanTransaction> transactions = [];
+  List<EsTransaction> transactions = [];
   PublicData currentAccount = PublicData(
       keyId: "",
       creationDate: 0,
@@ -71,10 +71,19 @@ class _WalletViewScreenState extends State<WalletViewScreen>
   List<Candle> cryptoData = [];
 
   double totalBalanceUsd = 0;
-  Crypto currentCrypto = cryptos[0];
+  Crypto currentCrypto = Crypto(
+      name: "",
+      color: Colors.transparent,
+      type: CryptoType.network,
+      valueUsd: 0,
+      cryptoId: "",
+      canDisplay: false,
+      symbol: "");
+
   double userLastBalance = 0;
   double balance = 0;
   bool isBalanceLoading = true;
+  bool isTransactionLoading = true;
 
   AppColors colors = AppColors(
       primaryColor: Color(0XFF0D0D0D),
@@ -166,142 +175,44 @@ class _WalletViewScreenState extends State<WalletViewScreen>
     return NumberFormatter().formatCrypto(value: value);
   }
 
-  Future<void> getTransactions() async {
-    try {
-      final transactionStorage = TransactionStorage(
-          cryptoId: currentCrypto.cryptoId, accountKey: currentAccount.keyId);
-      final trx = await transactionStorage.getTransactions();
-      setState(() {
-        transactions = trx;
-      });
-      fetchTransactions();
-    } catch (e) {
-      logError(e.toString());
-    }
-  }
-
   Future<void> fetchTransactions() async {
     try {
-      List<BscScanTransaction> allTransactions = [];
-      String key = "";
-      String baseUrl = "";
-      if (currentCrypto.type == CryptoType.token) {
-        key = currentCrypto.network?.apiKey ?? "";
-        baseUrl = currentCrypto.network?.apiBaseUrl ?? "";
-      } else {
-        key = currentCrypto.apiKey ?? "";
-        baseUrl = currentCrypto.apiBaseUrl ?? "";
+      if (currentAccount.keyId.isEmpty || currentCrypto.cryptoId.isEmpty) {
+        logError("Function called before init");
+        return;
       }
-      String internalUrl = "";
-      String trUrl = "";
-      if (currentCrypto.type == CryptoType.token) {
-        trUrl =
-            "https://$baseUrl?module=account&action=tokentx&contractaddress=${currentCrypto.contractAddress}&address=${currentAccount.address.trim()}&startblock=0&endblock=latest&page=1&offset=200&sort=desc&apikey=$key";
-      } else {
-        internalUrl =
-            "https://$baseUrl?module=account&action=txlistinternal&address=${currentAccount.address.trim()}&startblock=0&endblock=latest&page=1&offset=200&sort=desc&apikey=$key";
-        trUrl =
-            "https://$baseUrl?module=account&action=txlist&address=${currentAccount.address.trim()}&startblock=0&endblock=latest&page=1&offset=200&sort=desc&apikey=$key";
-      }
-      List<dynamic> results = [];
-      try {
-        results = await Future.wait([
-          http.get(Uri.parse(trUrl)),
-          if (currentCrypto.type == CryptoType.network)
-            http.get(Uri.parse(internalUrl))
-        ]);
-      } catch (e) {
-        logError("Error getting transaction: $e");
-      }
+      final storage = TransactionStorage(
+          cryptoId: currentCrypto.cryptoId, accountKey: currentAccount.keyId);
+      final savedTransactions = await storage.getTransactions();
+      log("Saved transactions:${savedTransactions.length} ");
 
-      final trRequest = results[0];
-      if (internalUrl.isNotEmpty && currentCrypto.type != CryptoType.token) {
-        final internalTrResult = results[1];
-        log("tr request status : ${trRequest.statusCode}");
-
-        if (internalTrResult.statusCode == 200) {
-          final List<dynamic> dataJson =
-              (json.decode(internalTrResult.body))["result"];
-          log((json.decode(internalTrResult.body))["result"]
-              .runtimeType
-              .toString());
-          List<BscScanTransaction> fTransactions = [];
-          if (dataJson.isNotEmpty) {
-            for (final data in dataJson) {
-              final from = data["from"];
-              final to = data["to"];
-              final value = data["value"];
-              final timeStamp = data["timeStamp"];
-              final transactionHash = data["hash"];
-              final blockNumber = data["blockNumber"];
-              fTransactions.add(BscScanTransaction(
-                  from: from,
-                  to: to,
-                  value: value,
-                  timeStamp: timeStamp,
-                  hash: transactionHash,
-                  blockNumber: blockNumber));
-            }
-            allTransactions.addAll(fTransactions);
-          } else {
-            logError("No transactions found");
-
-            setState(() {
-              transactions = [];
-            });
-          }
-        } else {
-          logError("Error getting transactions");
-        }
-      }
-      if (trUrl.isNotEmpty) {
-        if (trRequest.statusCode == 200) {
-          final List<dynamic> dataJson =
-              (json.decode(trRequest.body))["result"];
-          log("DataJson $dataJson");
-
-          List<BscScanTransaction> fTransactions = [];
-
-          if (dataJson.isNotEmpty) {
-            for (final data in dataJson) {
-              final from = data["from"];
-              final to = data["to"];
-              final value = data["value"];
-              final timeStamp = data["timeStamp"];
-              final transactionHash = data["hash"];
-              final blockNumber = data["blockNumber"];
-
-              fTransactions.add(BscScanTransaction(
-                  from: from,
-                  to: to,
-                  value: value,
-                  timeStamp: timeStamp,
-                  hash: transactionHash,
-                  blockNumber: blockNumber));
-            }
-            allTransactions.addAll(fTransactions);
-          } else {
-            logError("No transactions found");
-          }
-        }
-      }
-
-      if (allTransactions.isNotEmpty) {
-        //  final ts = TransactionStorage(cryptoId: currentCrypto.cryptoId, accountKey: currentAccount.keyId) ;
-        allTransactions.sort((a, b) => b.timeStamp.compareTo(a.timeStamp));
+      if (savedTransactions.isNotEmpty) {
         setState(() {
-          transactions = allTransactions;
+          transactions = savedTransactions;
+          isTransactionLoading = false;
         });
-        /* for (final t in allTransactions) {
-          await ts.addTransactions(t);
-        }
-        final newTransactions = await ts.getTransactions();
+      }
+
+      final userTransactions = await TransactionRequestManager()
+          .getAllTransactions(
+              crypto: currentCrypto, address: currentAccount.address);
+
+      if (userTransactions.isNotEmpty) {
+        userTransactions.sort((a, b) => b.timeStamp.compareTo(a.timeStamp));
         setState(() {
-          transactions = newTransactions;
-        });*/
+          transactions = userTransactions;
+          isTransactionLoading = false;
+        });
+
+        await storage.saveTransactions(transactions);
       }
     } catch (e) {
       logError('Error getting transactions: $e');
+      isTransactionLoading = false;
+    } finally {
+      setState(() {
+        isTransactionLoading = false;
+      });
     }
   }
 
@@ -378,14 +289,15 @@ class _WalletViewScreenState extends State<WalletViewScreen>
     }
   }
 
-  List<BscScanTransaction> getFilteredTransactions() {
-    final List<BscScanTransaction> filteredTransactions = transactions;
+  List<EsTransaction> getFilteredTransactions() {
+    final List<EsTransaction> filteredTransactions = transactions;
     filteredTransactions.sort((a, b) => b.timeStamp.compareTo(a.timeStamp));
     return filteredTransactions;
   }
 
   Future<void> reorganizeCrypto() async {
-    final List<Crypto> standardCrypto = cryptos;
+    final List<Crypto> standardCrypto =
+        await CryptoRequestManager().getAllCryptos();
     final savedCrypto =
         await cryptoStorageManager.getSavedCryptos(wallet: currentAccount);
     if (savedCrypto == null || savedCrypto.isEmpty) {
@@ -399,7 +311,7 @@ class _WalletViewScreenState extends State<WalletViewScreen>
     }
   }
 
-  List<BscScanTransaction> transactionsList(int i) {
+  List<EsTransaction> transactionsList(int i) {
     if (i == 0) {
       return getFilteredTransactions();
     } else if (i == 1) {
@@ -597,6 +509,21 @@ class _WalletViewScreenState extends State<WalletViewScreen>
           body: TabBarView(
             controller: _tabController,
             children: List.generate(3, (i) {
+              if (isTransactionLoading) {
+                return SizedBox(
+                  child: Center(
+                    child: SizedBox(
+                        width: 40,
+                        height: 40,
+                        child: LoadingAnimationWidget.discreteCircle(
+                            color: colors.themeColor,
+                            size:
+                                40) //LoadingAnimationWidget.flickr(leftDotColor: colors.greenColor, rightDotColor: colors.redColor, size: 40),
+                        ),
+                  ),
+                );
+              }
+
               return getFilteredTransactions().isEmpty
                   ? Align(
                       alignment: Alignment.topCenter,
