@@ -47,246 +47,300 @@ class TransactionsListElement extends StatelessWidget {
               backgroundColor: Colors.transparent,
               shape: RoundedRectangleBorder(
                   borderRadius: BorderRadius.only(
-                      topLeft: Radius.circular(30),
-                      topRight: Radius.circular(30))),
+                      topLeft: Radius.circular(20),
+                      topRight: Radius.circular(20))),
               context: context,
               builder: (BuildContext ctx) {
-                return Container(
-                  padding: const EdgeInsets.all(20),
-                  decoration: BoxDecoration(
-                    color: primaryColor,
-                    borderRadius: BorderRadius.only(
-                        topLeft: Radius.circular(30),
-                        topRight: Radius.circular(30)),
-                  ),
-                  child: ListView(
-                    shrinkWrap: true,
-                    children: [
-                      Container(
-                        decoration: BoxDecoration(
-                            borderRadius: BorderRadius.circular(20),
-                            color: surfaceTintColor.withOpacity(0.2)),
-                        child: ListTile(
-                          shape: RoundedRectangleBorder(
-                              borderRadius: BorderRadius.circular(20)),
-                          leading: SizedBox(
-                            child: CryptoPicture(
-                                crypto: currentNetwork,
-                                size: 50,
-                                colors: colors),
+                return SafeArea(
+                    child: ConstrainedBox(
+                        constraints: BoxConstraints(
+                            minHeight:
+                                MediaQuery.of(context).size.height * 0.8),
+                        child: Container(
+                          padding: const EdgeInsets.all(20),
+                          decoration: BoxDecoration(
+                            color: primaryColor,
+                            borderRadius: BorderRadius.only(
+                                topLeft: Radius.circular(30),
+                                topRight: Radius.circular(30)),
                           ),
-                          title: Text(
-                            isFrom
-                                ? "- ${BigInt.parse(tr.value).toDouble() / 1e18}"
-                                : "+ ${BigInt.parse(tr.value).toDouble() / 1e18}",
-                            style: GoogleFonts.manrope(
-                                color: textColor,
-                                fontWeight: FontWeight.bold,
-                                fontSize: 21),
-                          ),
-                          subtitle: Text(
-                            currentNetwork.symbol,
-                            style: GoogleFonts.manrope(
-                                color: textColor.withOpacity(0.3),
-                                fontSize: 15,
-                                fontWeight: FontWeight.normal),
-                          ),
-                        ),
-                      ),
-                      Container(
-                        margin: const EdgeInsets.only(top: 10),
-                        padding: const EdgeInsets.only(left: 20, right: 20),
-                        decoration: BoxDecoration(
-                            borderRadius: BorderRadius.circular(20),
-                            color: surfaceTintColor.withOpacity(0.2)),
-                        child: Column(
-                          children: [
-                            Row(
-                              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                              children: [
-                                Text(
-                                  "From",
-                                  style: GoogleFonts.manrope(
-                                      color: textColor, fontSize: 14),
-                                ),
-                                Row(
-                                  children: [
-                                    Text(
-                                      tr.from.length > 6
-                                          ? "${tr.from.substring(0, 6)}...${tr.from.substring(tr.from.length - 6)}"
-                                          : "...",
-                                      style: GoogleFonts.manrope(
-                                          color: textColor, fontSize: 14),
-                                    ),
-                                    SizedBox(
-                                      width: 10,
-                                    ),
-                                    IconButton(
-                                      onPressed: () {
-                                        Clipboard.setData(
-                                            ClipboardData(text: tr.from));
-                                      },
-                                      icon: Icon(
-                                        LucideIcons.copy,
+                          child: ListView(
+                            children: [
+                              Container(
+                                decoration: BoxDecoration(
+                                    borderRadius: BorderRadius.circular(20),
+                                    color: surfaceTintColor.withOpacity(0.2)),
+                                child: ListTile(
+                                  shape: RoundedRectangleBorder(
+                                      borderRadius: BorderRadius.circular(20)),
+                                  leading: SizedBox(
+                                    child: CryptoPicture(
+                                        crypto: currentNetwork,
+                                        size: 50,
+                                        colors: colors),
+                                  ),
+                                  title: Text(
+                                    isFrom
+                                        ? "- ${BigInt.parse(tr.value).toDouble() / 1e18}"
+                                        : "+ ${BigInt.parse(tr.value).toDouble() / 1e18}",
+                                    style: GoogleFonts.manrope(
                                         color: textColor,
-                                        size: 20,
-                                      ),
-                                      padding: const EdgeInsets.all(0),
-                                    )
-                                  ],
-                                )
-                              ],
-                            ),
-                            Row(
-                              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                              children: [
-                                Text(
-                                  "To",
-                                  style: GoogleFonts.manrope(
-                                      color: textColor, fontSize: 14),
+                                        fontWeight: FontWeight.bold,
+                                        fontSize: 21),
+                                  ),
+                                  subtitle: Text(
+                                    currentNetwork.symbol,
+                                    style: GoogleFonts.manrope(
+                                        color: textColor.withOpacity(0.3),
+                                        fontSize: 15,
+                                        fontWeight: FontWeight.normal),
+                                  ),
                                 ),
-                                Row(
-                                  children: [
-                                    Text(
-                                      tr.to.length > 6
-                                          ? "${tr.to.substring(0, 6)}...${tr.to.substring(tr.to.length - 6)}"
-                                          : "...",
-                                      style: GoogleFonts.manrope(
-                                          color: textColor, fontSize: 14),
-                                    ),
-                                    SizedBox(
-                                      width: 10,
-                                    ),
-                                    IconButton(
-                                      onPressed: () {
-                                        Clipboard.setData(
-                                            ClipboardData(text: tr.to));
-                                      },
-                                      icon: Icon(
-                                        LucideIcons.copy,
-                                        color: textColor,
-                                        size: 20,
-                                      ),
-                                      padding: const EdgeInsets.all(0),
-                                    )
-                                  ],
-                                )
-                              ],
-                            )
-                          ],
-                        ),
-                      ),
-                      Container(
-                        margin: const EdgeInsets.only(top: 10),
-                        padding: const EdgeInsets.only(left: 20, right: 20),
-                        decoration: BoxDecoration(
-                            borderRadius: BorderRadius.circular(20),
-                            color: surfaceTintColor.withOpacity(0.2)),
-                        child: Column(
-                          children: [
-                            Row(
-                              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                              children: [
-                                Text(
-                                  "Hash",
-                                  style: GoogleFonts.manrope(
-                                      color: textColor, fontSize: 14),
-                                ),
-                                Row(
-                                  children: [
-                                    Text(
-                                      tr.hash.length > 6
-                                          ? "${tr.hash.substring(0, 6)}...${tr.hash.substring(tr.hash.length - 6)}"
-                                          : "...",
-                                      style: GoogleFonts.manrope(
-                                          color: textColor, fontSize: 14),
-                                    ),
-                                    SizedBox(
-                                      width: 10,
-                                    ),
-                                    IconButton(
-                                      onPressed: () {
-                                        Clipboard.setData(
-                                            ClipboardData(text: tr.hash));
-                                      },
-                                      icon: Icon(
-                                        LucideIcons.copy,
-                                        color: textColor,
-                                        size: 20,
-                                      ),
-                                      padding: const EdgeInsets.all(0),
-                                    )
-                                  ],
-                                )
-                              ],
-                            ),
-                            Row(
-                              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                              children: [
-                                Text(
-                                  "Block",
-                                  style: GoogleFonts.manrope(
-                                      color: textColor, fontSize: 14),
-                                ),
-                                Row(
-                                  children: [
-                                    Text(
-                                      tr.blockNumber,
-                                      style: GoogleFonts.manrope(
-                                          color: textColor, fontSize: 14),
-                                    ),
-                                    SizedBox(
-                                      width: 10,
-                                    ),
-                                    IconButton(
-                                      onPressed: () {
-                                        Clipboard.setData(ClipboardData(
-                                            text: tr.blockNumber));
-                                      },
-                                      icon: Icon(
-                                        LucideIcons.copy,
-                                        color: textColor,
-                                        size: 20,
-                                      ),
-                                      padding: const EdgeInsets.all(0),
-                                    )
-                                  ],
-                                )
-                              ],
-                            )
-                          ],
-                        ),
-                      ),
-                      SizedBox(
-                        height: 30,
-                      ),
-                      Material(
-                        color: Colors.transparent,
-                        child: InkWell(
-                          borderRadius: BorderRadius.circular(10),
-                          onTap: () async {
-                            final url =
-                                "${currentNetwork.type == CryptoType.token ? currentNetwork.network?.explorer : currentNetwork.explorer}/tx/${tr.hash}";
-                            log("The url is $url");
-                            await launchUrl(Uri.parse(url));
-                          },
-                          child: Container(
-                            padding: const EdgeInsets.all(10),
-                            decoration: BoxDecoration(
-                                color: surfaceTintColor.withOpacity(0.2),
-                                borderRadius: BorderRadius.circular(10)),
-                            child: Center(
-                              child: Text(
-                                "View on Blockchain explorer",
-                                style: GoogleFonts.manrope(color: textColor),
                               ),
-                            ),
+                              Container(
+                                margin: const EdgeInsets.only(top: 10),
+                                padding:
+                                    const EdgeInsets.only(left: 20, right: 20),
+                                decoration: BoxDecoration(
+                                    borderRadius: BorderRadius.circular(20),
+                                    color: surfaceTintColor.withOpacity(0.2)),
+                                child: Column(
+                                  children: [
+                                    Row(
+                                      mainAxisAlignment:
+                                          MainAxisAlignment.spaceBetween,
+                                      children: [
+                                        Text(
+                                          "From",
+                                          style: GoogleFonts.manrope(
+                                              color: textColor, fontSize: 14),
+                                        ),
+                                        Row(
+                                          children: [
+                                            Text(
+                                              tr.from.length > 6
+                                                  ? "${tr.from.substring(0, 6)}...${tr.from.substring(tr.from.length - 6)}"
+                                                  : "...",
+                                              style: GoogleFonts.manrope(
+                                                  color: textColor,
+                                                  fontSize: 14),
+                                            ),
+                                            SizedBox(
+                                              width: 10,
+                                            ),
+                                            IconButton(
+                                              onPressed: () {
+                                                Clipboard.setData(ClipboardData(
+                                                    text: tr.from));
+                                              },
+                                              icon: Icon(
+                                                LucideIcons.copy,
+                                                color: textColor,
+                                                size: 20,
+                                              ),
+                                              padding: const EdgeInsets.all(0),
+                                            )
+                                          ],
+                                        )
+                                      ],
+                                    ),
+                                    Row(
+                                      mainAxisAlignment:
+                                          MainAxisAlignment.spaceBetween,
+                                      children: [
+                                        Text(
+                                          "To",
+                                          style: GoogleFonts.manrope(
+                                              color: textColor, fontSize: 14),
+                                        ),
+                                        Row(
+                                          children: [
+                                            Text(
+                                              tr.to.length > 6
+                                                  ? "${tr.to.substring(0, 6)}...${tr.to.substring(tr.to.length - 6)}"
+                                                  : "...",
+                                              style: GoogleFonts.manrope(
+                                                  color: textColor,
+                                                  fontSize: 14),
+                                            ),
+                                            SizedBox(
+                                              width: 10,
+                                            ),
+                                            IconButton(
+                                              onPressed: () {
+                                                Clipboard.setData(
+                                                    ClipboardData(text: tr.to));
+                                              },
+                                              icon: Icon(
+                                                LucideIcons.copy,
+                                                color: textColor,
+                                                size: 20,
+                                              ),
+                                              padding: const EdgeInsets.all(0),
+                                            )
+                                          ],
+                                        )
+                                      ],
+                                    ),
+                                    Row(
+                                      mainAxisAlignment:
+                                          MainAxisAlignment.spaceBetween,
+                                      children: [
+                                        Text(
+                                          "Time",
+                                          style: GoogleFonts.manrope(
+                                              color: textColor, fontSize: 14),
+                                        ),
+                                        Row(
+                                          children: [
+                                            Text(
+                                              formatTimeElapsed(
+                                                  int.parse(tr.timeStamp)),
+                                              style: GoogleFonts.manrope(
+                                                  color: textColor,
+                                                  fontSize: 14),
+                                            ),
+                                            SizedBox(
+                                              width: 10,
+                                            ),
+                                            IconButton(
+                                              onPressed: () {
+                                                Clipboard.setData(ClipboardData(
+                                                    text: tr.timeStamp));
+                                              },
+                                              icon: Icon(
+                                                LucideIcons.copy,
+                                                color: textColor,
+                                                size: 20,
+                                              ),
+                                              padding: const EdgeInsets.all(0),
+                                            )
+                                          ],
+                                        )
+                                      ],
+                                    )
+                                  ],
+                                ),
+                              ),
+                              Container(
+                                margin: const EdgeInsets.only(top: 10),
+                                padding:
+                                    const EdgeInsets.only(left: 20, right: 20),
+                                decoration: BoxDecoration(
+                                    borderRadius: BorderRadius.circular(20),
+                                    color: surfaceTintColor.withOpacity(0.2)),
+                                child: Column(
+                                  children: [
+                                    Row(
+                                      mainAxisAlignment:
+                                          MainAxisAlignment.spaceBetween,
+                                      children: [
+                                        Text(
+                                          "Hash",
+                                          style: GoogleFonts.manrope(
+                                              color: textColor, fontSize: 14),
+                                        ),
+                                        Row(
+                                          children: [
+                                            Text(
+                                              tr.hash.length > 6
+                                                  ? "${tr.hash.substring(0, 6)}...${tr.hash.substring(tr.hash.length - 6)}"
+                                                  : "...",
+                                              style: GoogleFonts.manrope(
+                                                  color: textColor,
+                                                  fontSize: 14),
+                                            ),
+                                            SizedBox(
+                                              width: 10,
+                                            ),
+                                            IconButton(
+                                              onPressed: () {
+                                                Clipboard.setData(ClipboardData(
+                                                    text: tr.hash));
+                                              },
+                                              icon: Icon(
+                                                LucideIcons.copy,
+                                                color: textColor,
+                                                size: 20,
+                                              ),
+                                              padding: const EdgeInsets.all(0),
+                                            )
+                                          ],
+                                        )
+                                      ],
+                                    ),
+                                    Row(
+                                      mainAxisAlignment:
+                                          MainAxisAlignment.spaceBetween,
+                                      children: [
+                                        Text(
+                                          "Block",
+                                          style: GoogleFonts.manrope(
+                                              color: textColor, fontSize: 14),
+                                        ),
+                                        Row(
+                                          children: [
+                                            Text(
+                                              tr.blockNumber,
+                                              style: GoogleFonts.manrope(
+                                                  color: textColor,
+                                                  fontSize: 14),
+                                            ),
+                                            SizedBox(
+                                              width: 10,
+                                            ),
+                                            IconButton(
+                                              onPressed: () {
+                                                Clipboard.setData(ClipboardData(
+                                                    text: tr.blockNumber));
+                                              },
+                                              icon: Icon(
+                                                LucideIcons.copy,
+                                                color: textColor,
+                                                size: 20,
+                                              ),
+                                              padding: const EdgeInsets.all(0),
+                                            )
+                                          ],
+                                        )
+                                      ],
+                                    )
+                                  ],
+                                ),
+                              ),
+                              SizedBox(
+                                height: 30,
+                              ),
+                              Material(
+                                color: Colors.transparent,
+                                child: InkWell(
+                                  borderRadius: BorderRadius.circular(10),
+                                  onTap: () async {
+                                    final url =
+                                        "${currentNetwork.type == CryptoType.token ? currentNetwork.network?.explorer : currentNetwork.explorer}/tx/${tr.hash}";
+                                    log("The url is $url");
+                                    await launchUrl(Uri.parse(url));
+                                  },
+                                  child: Container(
+                                    padding: const EdgeInsets.all(10),
+                                    decoration: BoxDecoration(
+                                        color:
+                                            surfaceTintColor.withOpacity(0.2),
+                                        borderRadius:
+                                            BorderRadius.circular(10)),
+                                    child: Center(
+                                      child: Text(
+                                        "View on Blockchain explorer",
+                                        style: GoogleFonts.manrope(
+                                            color: textColor),
+                                      ),
+                                    ),
+                                  ),
+                                ),
+                              )
+                            ],
                           ),
-                        ),
-                      )
-                    ],
-                  ),
-                );
+                        )));
               });
         },
         leading: Container(

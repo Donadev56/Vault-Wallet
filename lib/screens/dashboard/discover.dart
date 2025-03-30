@@ -7,6 +7,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_feather_icons/flutter_feather_icons.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:lucide_icons_flutter/lucide_icons.dart';
+import 'package:moonwallet/custom/web3_webview/lib/utils/loading.dart';
 import 'package:moonwallet/logger/logger.dart';
 import 'package:moonwallet/screens/dashboard/discover/browser.dart';
 import 'package:moonwallet/service/crypto_storage_manager.dart';
@@ -38,7 +39,6 @@ class _DiscoverScreenState extends State<DiscoverScreen>
   List<Crypto> networks = [];
   PublicData? currentAccount;
   List<PublicData> accounts = [];
-
 
   final String historyName = "UserHistory";
   FocusNode _focusNode = FocusNode();
@@ -112,9 +112,10 @@ class _DiscoverScreenState extends State<DiscoverScreen>
     getHistoryItem();
     getSavedWallets();
   }
- Future<void> getSavedWallets() async {
+
+  Future<void> getSavedWallets() async {
     try {
-      final web3Manager  = Web3Manager();
+      final web3Manager = Web3Manager();
       final encryptService = EncryptService();
       final savedData = await web3Manager.getPublicData();
 
@@ -138,7 +139,6 @@ class _DiscoverScreenState extends State<DiscoverScreen>
         if (account.address == lastAccount) {
           currentAccount = account;
           await getSavedCrypto(account: account);
-
 
           log("The current wallet is ${json.encode(account.toJson())}");
           break;
@@ -247,12 +247,7 @@ class _DiscoverScreenState extends State<DiscoverScreen>
         log("History found");
         final historyJson = json.decode(savedHistory) as List<dynamic>;
         for (final hist in historyJson) {
-          log("New hist ${json.encode(hist)}");
-          final newHist = HistoryItem.fromJson(hist);
-
-          setState(() {
-            history.add(newHist);
-          });
+          history.add(HistoryItem.fromJson(hist));
         }
       } else {
         log("No History");
@@ -316,10 +311,19 @@ class _DiscoverScreenState extends State<DiscoverScreen>
       final savedCryptos =
           await CryptoStorageManager().getSavedCryptos(wallet: account);
       if (savedCryptos != null) {
+        log("Saved crypto ${savedCryptos.length}");
         setState(() {
           networks =
               savedCryptos.where((c) => c.type == CryptoType.network).toList();
         });
+      } else {
+        logError("No saved cryptos found");
+
+        showCustomSnackBar(
+            context: context,
+            message: "No saved cryptos found",
+            primaryColor: colors.primaryColor,
+            colors: colors);
       }
     } catch (e) {
       logError('Error getting saved crypto: $e');
@@ -328,55 +332,54 @@ class _DiscoverScreenState extends State<DiscoverScreen>
 
   Future<void> openBrowser(String url) async {
     try {
-      
-   
-    if (url.isEmpty) {
-      showCustomSnackBar(
-          context: context,
-          message: "Url cannot be empty",
-          primaryColor: colors.primaryColor,
-          colors: colors);
-      return;
-    }
-    if (networks.isEmpty) {
-      showCustomSnackBar(
-          context: context,
-          message: "No saved cryptos found",
-          primaryColor: colors.primaryColor,
-          colors: colors);
-      return;
-    }
-    Crypto? network;
-    await showChangeNetworkModal(
-      title: "Select a network",
-            networks: networks,
-            colors: colors,
-            changeNetwork: (crypto) async {
-              network = crypto;
-            },
+      await getSavedCrypto(account: currentAccount!)
+          .withLoading(context, colors);
+
+      if (url.isEmpty) {
+        showCustomSnackBar(
             context: context,
-            darkNavigatorColor: colors.primaryColor,
-            textColor: colors.textColor,
-            chainId: networks[0].chainId ?? 204)
-        .then((result) {
-      
-      if (result  && network != null) {
-        Navigator.push(
-          context,
-          MaterialPageRoute(
-            builder: (context) => Web3BrowserScreen(
-              url: url,
-              network: network,
-            ),
-          ),
-        );
-      }  else {
-       logError("No network selected or result is not true");
+            message: "Url cannot be empty",
+            primaryColor: colors.primaryColor,
+            colors: colors);
+        return;
       }
-    });
-     } catch (e) {
+      if (networks.isEmpty) {
+        showCustomSnackBar(
+            context: context,
+            message: "No saved cryptos found",
+            primaryColor: colors.primaryColor,
+            colors: colors);
+        return;
+      }
+      Crypto? network;
+      await showChangeNetworkModal(
+              title: "Select a network",
+              networks: networks,
+              colors: colors,
+              changeNetwork: (crypto) async {
+                network = crypto;
+              },
+              context: context,
+              darkNavigatorColor: colors.primaryColor,
+              textColor: colors.textColor,
+              chainId: networks[0].chainId ?? 204)
+          .then((result) {
+        if (result && network != null) {
+          Navigator.push(
+            context,
+            MaterialPageRoute(
+              builder: (context) => Web3BrowserScreen(
+                url: url,
+                network: network,
+              ),
+            ),
+          );
+        } else {
+          logError("No network selected or result is not true");
+        }
+      });
+    } catch (e) {
       logError(e.toString());
-      
     }
   }
 
@@ -546,7 +549,7 @@ class _DiscoverScreenState extends State<DiscoverScreen>
                                   await updateSavedHistory(
                                       formateUrl(dapp.link.trim()));
 
-                                await openBrowser(dapp.link);
+                                  await openBrowser(dapp.link);
                                 });
                           }))
                 ],
@@ -615,7 +618,7 @@ class _DiscoverScreenState extends State<DiscoverScreen>
                             )),
                         onTap: () async {
                           await changeHistoryIndex(index);
-                         await openBrowser(hist.link);
+                          await openBrowser(hist.link);
                         });
                   }),
             ),

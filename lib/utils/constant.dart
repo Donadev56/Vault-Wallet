@@ -9,13 +9,14 @@ final List<Map<String, dynamic>> browserModalOptions = [
   {"name": 'Refresh', "icon": LucideIcons.refreshCcw},
   {"name": 'Change Network', "icon": LucideIcons.globe},
   {"name": 'Full screen', "icon": FeatherIcons.maximize},
-  {"name": 'Remove appBar', "icon": LucideIcons.appWindow},
   {"name": 'Share', "icon": LucideIcons.share},
+  {"name": 'Close', "icon": Icons.close_fullscreen_outlined},
 ];
 
 final List<Map<String, dynamic>> fixedAppBarOptions = [
   {"name": "Sort by Value", "icon": LucideIcons.coins},
-  {"name": "Sort by Name", "icon": LucideIcons.arrowDownAZ}
+  {"name": "Sort by Name", "icon": LucideIcons.arrowDownAZ},
+  {"name": "Manage crypto", "icon": LucideIcons.settings2}
 ];
 
 String formatTimeElapsed(int timestamp) {
@@ -145,6 +146,7 @@ final List<Map<String, dynamic>> appBarButtonOptions = [
     'color': Colors.pinkAccent
   },
 ];
+
 /*Future<void> checkUserExistence () async {
     try {
       DeviceInfoPlugin deviceInfo = DeviceInfoPlugin();

@@ -286,6 +286,8 @@ class TokenManager {
 
           final result = await web3InteractionManager
               .sendTransaction(
+                  colors: colors,
+                  context: context,
                   transaction: transaction,
                   chainId: currentNetwork.network?.chainId ?? 204,
                   rpcUrl: currentNetwork.network?.rpc ??

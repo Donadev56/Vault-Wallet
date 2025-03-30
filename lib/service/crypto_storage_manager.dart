@@ -11,14 +11,13 @@ class CryptoStorageManager {
 
   Future<List<Crypto>?> getSavedCryptos({required PublicData wallet}) async {
     try {
-      final name = "savedCrypto/${wallet.address}";
+      final name = "savedCrypto/test2/${wallet.address}";
       log("getting crypto for address ${wallet.address}");
 
-      final String? cryptoDataString =
-          await saver.getDynamicData(name: name);
+      final String? cryptoDataString = await saver.getDynamicData(name: name);
       if (cryptoDataString == null || cryptoDataString.isEmpty) {
-       logError("Crypto data not found");
-       return [];
+        logError("Crypto data not found");
+        return [];
       }
 
       final List<dynamic> savedCryptosJson = json.decode(cryptoDataString);
@@ -45,14 +44,14 @@ class CryptoStorageManager {
   Future<bool> saveListCrypto(
       {required List<Crypto> cryptos, required PublicData wallet}) async {
     try {
-
-      final name = "savedCrypto/${wallet.address}";
+      final name = "savedCrypto/test2/${wallet.address}";
       log("Saving crypto for address ${wallet.address}");
 
       List<dynamic> cryptoJson = cryptos.map((c) => c.toJson()).toList();
-     
+
       if (cryptoJson.isNotEmpty) {
-        await saver.saveDynamicData(boxName: name, data :json.encode(cryptoJson) );
+        await saver.saveDynamicData(
+            boxName: name, data: json.encode(cryptoJson));
         return true;
       } else {
         logError("No crypto to save");

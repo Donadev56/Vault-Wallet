@@ -10,9 +10,11 @@ import 'package:moonwallet/service/price_manager.dart';
 import 'package:moonwallet/service/token_manager.dart';
 import 'package:moonwallet/service/wallet_saver.dart';
 import 'package:moonwallet/types/types.dart';
+import 'package:moonwallet/utils/constant.dart';
 import 'package:moonwallet/widgets/func/askUserforconf.dart';
 import 'package:moonwallet/widgets/bottom_pin_copy.dart';
 import 'package:moonwallet/widgets/func/ask_password.dart';
+import 'package:moonwallet/widgets/func/snackbar.dart';
 import 'package:web3dart/web3dart.dart';
 import 'package:http/http.dart';
 
@@ -256,7 +258,9 @@ class Web3InteractionManager {
       required int chainId,
       required String rpcUrl,
       required String password,
-      required String address}) async {
+      required String address,
+      required AppColors colors,
+      required BuildContext context}) async {
     try {
       if (rpcUrl.isEmpty) {
         log("rpc url is empty");
@@ -266,18 +270,37 @@ class Web3InteractionManager {
       final credentials =
           await getCredentials(password: password, address: address);
       if (credentials != null) {
-        return await ethClient.sendTransaction(
+        final hash = await ethClient.sendTransaction(
           credentials,
           transaction,
           chainId: chainId,
         );
+        if (hash.isNotEmpty) {
+          showCustomSnackBar(
+              context: context,
+              message: "Hash : $hash",
+              primaryColor: colors.primaryColor,
+              colors: colors,
+              icon: Icons.check_circle,
+              iconColor: colors.greenColor);
+        }
+
+        return hash;
       } else {
         log("Credentials are null");
         throw Exception("Internal error : Credentials are null");
       }
     } catch (e) {
       logError(e.toString());
-      return ("Internal error : $e");
+      // show error
+      showCustomSnackBar(
+          context: context,
+          message: e.toString(),
+          primaryColor: colors.primaryColor,
+          colors: colors,
+          icon: Icons.error,
+          iconColor: Colors.red);
+      throw ("Internal error : $e");
     }
   }
 
@@ -461,6 +484,8 @@ class Web3InteractionManager {
           }
 
           final result = await sendTransaction(
+                  colors: colors,
+                  context: context,
                   transaction: transaction,
                   chainId: currentNetwork.chainId ?? 204,
                   rpcUrl: currentNetwork.rpc ??

@@ -1,4 +1,6 @@
 // ignore_for_file: deprecated_member_use
+
+import 'package:flutter/cupertino.dart';
 import 'package:http/http.dart' as http;
 import 'package:moonwallet/service/crypto_storage_manager.dart';
 import 'package:moonwallet/service/price_manager.dart';
@@ -13,7 +15,6 @@ import 'package:moonwallet/service/wallet_saver.dart';
 import 'package:moonwallet/service/web3_interaction.dart';
 import 'package:moonwallet/types/types.dart';
 import 'package:moonwallet/utils/colors.dart';
-import 'package:moonwallet/utils/constant.dart';
 import 'package:moonwallet/utils/crypto.dart';
 import 'package:moonwallet/utils/prefs.dart';
 import 'package:moonwallet/utils/themes.dart';
@@ -22,6 +23,7 @@ import 'package:moonwallet/custom/web3_webview/lib/models/web3_wallet_config.dar
 import 'package:moonwallet/custom/web3_webview/lib/web3_webview.dart';
 import 'package:moonwallet/custom/web3_webview/lib/web3_webview_eip1193.dart';
 import 'package:moonwallet/widgets/func/browser/show_bottom_options.dart';
+import 'package:share_plus/share_plus.dart';
 
 class Web3BrowserScreen extends StatefulWidget {
   final String? url;
@@ -45,7 +47,9 @@ class Web3BrowserScreenState extends State<Web3BrowserScreen> {
   bool canShowAppBarOptions = true;
   int _chainId = 204;
   double progress = 0;
-  bool isPageLoading = true;
+  bool isLoading = true;
+  bool isPageLoading = false;
+
   Crypto currentNetwork = Crypto(
       name: "",
       color: Colors.transparent,
@@ -76,6 +80,7 @@ class Web3BrowserScreenState extends State<Web3BrowserScreen> {
       redColor: Colors.pinkAccent);
   Themes themes = Themes();
   String savedThemeName = "";
+
   Future<void> getSavedTheme() async {
     try {
       final manager = ColorsManager();
@@ -89,6 +94,15 @@ class Web3BrowserScreenState extends State<Web3BrowserScreen> {
         darkNavigatorColor = colors.primaryColor;
         darkNavigatorColorMainValue = colors.primaryColor;
       });
+    } catch (e) {
+      logError(e.toString());
+    }
+  }
+
+  Future<void> share() async {
+    try {
+      Share.share('Take a look at this website $currentUrl',
+          subject: "Share Url");
     } catch (e) {
       logError(e.toString());
     }
@@ -249,6 +263,7 @@ class Web3BrowserScreenState extends State<Web3BrowserScreen> {
     getSavedWallets();
     if (widget.network != null) {
       currentNetwork = widget.network!;
+      _chainId = currentNetwork.chainId!;
     }
     if (widget.url != null) {
       String url = widget.url!;
@@ -297,20 +312,20 @@ class Web3BrowserScreenState extends State<Web3BrowserScreen> {
           currentAccount = account;
           await getSavedCrypto(account: account);
 
-          isPageLoading = false;
+          isLoading = false;
 
           log("The current wallet is ${json.encode(account.toJson())}");
           break;
         } else {
           log("Not account found");
-          isPageLoading = false;
+          isLoading = false;
 
           currentAccount = accounts[0];
         }
       }
     } catch (e) {
       logError('Error getting saved wallets: $e');
-      isPageLoading = false;
+      isLoading = false;
     }
   }
 
@@ -337,7 +352,7 @@ class Web3BrowserScreenState extends State<Web3BrowserScreen> {
   @override
   Widget build(BuildContext context) {
     final width = MediaQuery.of(context).size.width;
-    if (isPageLoading) {
+    if (isLoading) {
       return Center(
         child: SizedBox(
           width: 40,
@@ -367,7 +382,12 @@ class Web3BrowserScreenState extends State<Web3BrowserScreen> {
                 title: Row(
                   children: [
                     IconButton(
-                        onPressed: () {
+                        onPressed: () async {
+                          if (_webViewController != null &&
+                              await _webViewController!.canGoBack()) {
+                            _webViewController!.goBack();
+                            return;
+                          }
                           Navigator.pop(context);
                         },
                         icon: Icon(
@@ -427,6 +447,13 @@ class Web3BrowserScreenState extends State<Web3BrowserScreen> {
                     ),
                     onPressed: () {
                       showBrowserBottomOptions(
+                          onClose: () {
+                            // close the first context
+                            Navigator.pop(context);
+                            // close the second context
+                            Navigator.pop(context);
+                          },
+                          onShareClick: share,
                           context: context,
                           darkNavigatorColor: darkNavigatorColor,
                           colors: colors,
@@ -445,6 +472,14 @@ class Web3BrowserScreenState extends State<Web3BrowserScreen> {
         body: SafeArea(
             child: Column(
           children: [
+            if (isPageLoading)
+              LinearProgressIndicator(
+                borderRadius: BorderRadius.circular(10),
+                minHeight: 2,
+                color: colors.themeColor,
+                backgroundColor: colors.secondaryColor,
+                value: (progress / 100),
+              ),
             Expanded(
                 child: currentAccount == null
                     ? Center(
@@ -465,7 +500,24 @@ class Web3BrowserScreenState extends State<Web3BrowserScreen> {
                             }
                           }
                         },
+                        onLoadStart: (c, url) {
+                          setState(() {
+                            isPageLoading = true;
+                            currentUrl = url.toString();
+                          });
+                        },
+                        onLoadStop: (c, url) {
+                          setState(() {
+                            isPageLoading = false;
+                          });
+                          log("onLoadStop : $url");
+                        },
                         onTitleChanged: _onTitleChanged,
+                        onProgressChanged: (c, value) {
+                          setState(() {
+                            progress = value.toDouble();
+                          });
+                        },
                         colors: colors,
                         onConsoleMessage: (crt, msg) {
                           log("console message : $msg");

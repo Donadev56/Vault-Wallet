@@ -81,9 +81,6 @@ void showCryptoModal(
                       return Material(
                         color: Colors.transparent,
                         child: ListTile(
-                          shape: RoundedRectangleBorder(
-                              borderRadius: BorderRadius.circular(10)),
-                          splashColor: Colors.transparent,
                           onTap: () {
                             Navigator.pushNamed(context, route,
                                 arguments: ({"id": net.cryptoId}));

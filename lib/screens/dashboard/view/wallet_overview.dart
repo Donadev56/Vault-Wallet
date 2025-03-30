@@ -421,30 +421,32 @@ class _WalletViewScreenState extends State<WalletViewScreen>
                             SizedBox(
                               height: 5,
                             ),
-                            FutureBuilder(
-                                future: getBalanceUsd(currentCrypto),
-                                builder:
-                                    (BuildContext ctx, AsyncSnapshot result) {
-                                  if (result.hasData) {
-                                    return Text(
-                                      "= \$ ${formatUsd((result.data as double).toString())}",
-                                      style: GoogleFonts.roboto(
-                                          color:
-                                              colors.textColor.withOpacity(0.5),
-                                          fontSize: 14),
-                                    );
-                                  } else {
-                                    return Skeletonizer(
-                                        enabled: isBalanceLoading,
-                                        child: Text(
-                                          " = \$0.00 ",
+                            Skeletonizer(
+                                enabled: isBalanceLoading,
+                                child: FutureBuilder(
+                                    future: getBalanceUsd(currentCrypto),
+                                    builder: (BuildContext ctx,
+                                        AsyncSnapshot result) {
+                                      if (result.hasData) {
+                                        return Text(
+                                          "= \$ ${formatUsd((result.data as double).toString())}",
                                           style: GoogleFonts.roboto(
                                               color: colors.textColor
                                                   .withOpacity(0.5),
                                               fontSize: 14),
-                                        ));
-                                  }
-                                }),
+                                        );
+                                      } else {
+                                        return Skeletonizer(
+                                            enabled: isBalanceLoading,
+                                            child: Text(
+                                              " = \$0.00 ",
+                                              style: GoogleFonts.roboto(
+                                                  color: colors.textColor
+                                                      .withOpacity(0.5),
+                                                  fontSize: 14),
+                                            ));
+                                      }
+                                    })),
                             SizedBox(
                               height: 15,
                             ),

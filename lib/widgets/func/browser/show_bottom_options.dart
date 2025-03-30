@@ -6,37 +6,34 @@ import 'package:modal_bottom_sheet/modal_bottom_sheet.dart';
 import 'package:moonwallet/logger/logger.dart';
 import 'package:moonwallet/types/types.dart';
 import 'package:moonwallet/utils/constant.dart';
-import 'package:moonwallet/widgets/barre.dart';
 import 'package:moonwallet/widgets/crypto_picture.dart';
 import 'package:moonwallet/widgets/func/browser/change_network.dart';
 
-void showBrowserBottomOptions({
-  required BuildContext context,
-  required Color darkNavigatorColor,
-  required AppColors colors,
-  required String title,
-  required List<Crypto> networks,
-  required Future<void> Function(Crypto) manualChangeNetwork,
-  required Crypto currentNetwork,
-  required int chainId,
-  required String currentUrl,
-  required VoidCallback reload,
-  required VoidCallback toggleShowAppBar,
-}) async {
+void showBrowserBottomOptions(
+    {required BuildContext context,
+    required Color darkNavigatorColor,
+    required AppColors colors,
+    required String title,
+    required List<Crypto> networks,
+    required Future<void> Function(Crypto) manualChangeNetwork,
+    required Crypto currentNetwork,
+    required int chainId,
+    required String currentUrl,
+    required VoidCallback reload,
+    required VoidCallback toggleShowAppBar,
+    required VoidCallback onShareClick,
+    required VoidCallback onClose}) async {
   try {
     showMaterialModalBottomSheet(
-      backgroundColor: darkNavigatorColor,
-
+        backgroundColor: darkNavigatorColor,
         context: context,
-        builder: (BuildContext context) {
+        builder: (BuildContext ctx) {
           double width = MediaQuery.of(context).size.width;
 
           return StatefulBuilder(builder: (ctx, st) {
             return SafeArea(
-           
               child: ListView(
                 shrinkWrap: true,
-            
                 children: [
                   Container(
                     padding: const EdgeInsets.all(10),
@@ -68,26 +65,30 @@ void showBrowserBottomOptions({
                                     borderRadius: BorderRadius.circular(50),
                                     border: Border.all(
                                         width: 1,
-                                        color: currentNetwork.color ?? Colors.orange.withOpacity(0.8))),
+                                        color: currentNetwork.color ??
+                                            Colors.orange.withOpacity(0.8))),
                                 child: ClipRRect(
                                   borderRadius: BorderRadius.circular(50),
                                   child: Material(
                                     color: Colors.transparent,
                                     child: InkWell(
-                                      borderRadius: BorderRadius.circular(50),
-                                      onTap: () {
-                                        showChangeNetworkModal(
-                                            networks: networks,
-                                            colors: colors,
-                                            changeNetwork: manualChangeNetwork,
-                                            context: context,
-                                            darkNavigatorColor:
-                                                darkNavigatorColor,
-                                            textColor: colors.textColor,
-                                            chainId: chainId);
-                                      },
-                                      child: CryptoPicture(crypto: currentNetwork, size: 30, colors: colors)
-                                    ),
+                                        borderRadius: BorderRadius.circular(50),
+                                        onTap: () {
+                                          showChangeNetworkModal(
+                                              networks: networks,
+                                              colors: colors,
+                                              changeNetwork:
+                                                  manualChangeNetwork,
+                                              context: ctx,
+                                              darkNavigatorColor:
+                                                  darkNavigatorColor,
+                                              textColor: colors.textColor,
+                                              chainId: chainId);
+                                        },
+                                        child: CryptoPicture(
+                                            crypto: currentNetwork,
+                                            size: 30,
+                                            colors: colors)),
                                   ),
                                 ),
                               )
@@ -116,12 +117,12 @@ void showBrowserBottomOptions({
                                   children: [
                                     ConstrainedBox(
                                       constraints:
-                                          BoxConstraints(maxWidth: width),
+                                          BoxConstraints(maxWidth: width * 0.8),
                                       child: Text(
                                         currentUrl,
                                         style: GoogleFonts.roboto(
-                                          color:
-                                              colors.themeColor.withOpacity(0.8),
+                                          color: colors.themeColor
+                                              .withOpacity(0.8),
                                           fontSize: 14,
                                         ),
                                         maxLines: 1,
@@ -151,36 +152,44 @@ void showBrowserBottomOptions({
                     children:
                         List.generate(browserModalOptions.length, (index) {
                       final option = browserModalOptions[index];
+                      final isLast = index == browserModalOptions.length - 1;
+
                       return Material(
                         color: Colors.transparent,
                         child: ListTile(
                           onTap: () {
                             if (index == 0) {
                               reload();
-                              Navigator.pop(context);
+                              Navigator.pop(ctx);
                             } else if (index == 1) {
                               showChangeNetworkModal(
                                   networks: networks,
                                   colors: colors,
                                   changeNetwork: manualChangeNetwork,
-                                  context: context,
+                                  context: ctx,
                                   darkNavigatorColor: darkNavigatorColor,
                                   textColor: colors.textColor,
                                   chainId: chainId);
                             } else if (index == 2) {
                               toggleShowAppBar();
-                              Navigator.pop(context);
+                              Navigator.pop(ctx);
                             } else if (index == 3) {
-                              toggleShowAppBar();
-                              Navigator.pop(context);
+                              onShareClick();
+                            } else if (index == 4) {
+                              onClose();
                             }
                           },
+                          tileColor: isLast
+                              ? colors.redColor.withOpacity(0.1)
+                              : Colors.transparent,
                           title: Row(
                             children: [
                               Text(
                                 option["name"],
                                 style: GoogleFonts.roboto(
-                                  color: colors.textColor,
+                                  color: isLast
+                                      ? colors.redColor
+                                      : colors.textColor,
                                 ),
                               ),
                               SizedBox(
@@ -195,7 +204,9 @@ void showBrowserBottomOptions({
                                   child: Text(
                                     currentNetwork.name,
                                     style: GoogleFonts.roboto(
-                                      color: colors.textColor,
+                                      color: isLast
+                                          ? colors.redColor
+                                          : colors.textColor,
                                     ),
                                   ),
                                 )
@@ -203,7 +214,9 @@ void showBrowserBottomOptions({
                           ),
                           trailing: Icon(
                             option["icon"],
-                            color: colors.textColor.withOpacity(0.6),
+                            color: isLast
+                                ? colors.redColor
+                                : colors.textColor.withOpacity(0.6),
                           ),
                         ),
                       );

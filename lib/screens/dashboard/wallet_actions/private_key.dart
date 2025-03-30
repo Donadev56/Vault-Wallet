@@ -9,7 +9,7 @@ import 'package:moonwallet/types/types.dart';
 import 'package:moonwallet/utils/colors.dart';
 import 'package:moonwallet/utils/prefs.dart';
 import 'package:moonwallet/utils/themes.dart';
-import 'package:moonwallet/widgets/bottom_pin_copy.dart';
+import 'package:moonwallet/widgets/func/ask_password.dart';
 import 'package:moonwallet/widgets/func/snackbar.dart';
 
 class CreatePrivateKeyMain extends StatefulWidget {
@@ -84,46 +84,24 @@ class _CreatePrivateKeyState extends State<CreatePrivateKeyMain> {
     }
   }
 
-  Future<PinSubmitResult> handleSubmit(String numbers) async {
-    attempt++;
-
-    final password = await manager.getSavedPassword();
-    if (password != null && numbers.trim() == password.trim()) {
-      setState(() {
-        userPassword = numbers.trim();
-      });
-      saveData();
-
-      return PinSubmitResult(success: true, repeat: false);
-    } else if (password != null && numbers.trim() != password.trim()) {
-      if (attempt == 3) {
+  Future<void> handleSubmit() async {
+    try {
+      final password = await askPassword(context: context, colors: colors);
+      if (password.isNotEmpty) {
         setState(() {
-          attempt = 0;
+          userPassword = password;
         });
-        if (mounted) {
-          showCustomSnackBar(
-              colors: colors,
-              primaryColor: colors.primaryColor,
-              context: context,
-              message: "Too many failed attempts. Please try again later.",
-              icon: Icons.error,
-              iconColor: colors.themeColor);
-          return PinSubmitResult(success: false, repeat: false);
-        }
+        saveData();
       }
-
-      return PinSubmitResult(
-          success: false,
-          repeat: true,
-          newTitle: "Enter a correct password",
-          error: "Incorrect password");
-    } else {
-      logError('The password is not defined $password');
-
-      return PinSubmitResult(
-        success: false,
-        repeat: false,
-      );
+    } catch (e) {
+      logError(e.toString());
+      showCustomSnackBar(
+          colors: colors,
+          primaryColor: colors.primaryColor,
+          context: context,
+          message: "Error occurred while creating private key.",
+          icon: Icons.error,
+          iconColor: Colors.redAccent);
     }
   }
 
@@ -296,7 +274,7 @@ class _CreatePrivateKeyState extends State<CreatePrivateKeyMain> {
                   Padding(
                     padding: EdgeInsets.only(
                         bottom: 20, left: 20), // Optional padding
-                    child: ElevatedButton(
+                    child: OutlinedButton(
                       style: ElevatedButton.styleFrom(
                         backgroundColor: colors.primaryColor,
                         side: BorderSide(color: colors.themeColor, width: 1),
@@ -327,12 +305,8 @@ class _CreatePrivateKeyState extends State<CreatePrivateKeyMain> {
                             borderRadius: BorderRadius.circular(30),
                           ),
                           backgroundColor: colors.themeColor),
-                      onPressed: () {
-                        showPinModalBottomSheet(
-                            colors: colors,
-                            handleSubmit: handleSubmit,
-                            context: context,
-                            title: "Enter a secure password");
+                      onPressed: () async {
+                        await handleSubmit();
                       },
                       child: Text(
                         "Next",

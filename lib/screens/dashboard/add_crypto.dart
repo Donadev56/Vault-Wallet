@@ -233,54 +233,57 @@ class _AddCryptoViewState extends State<AddCryptoView> {
             ),
           ),
           Expanded(
-              child: ListView.builder(
-                  physics: BouncingScrollPhysics(),
-                  itemCount: reorganizedCrypto
+              child: GlowingOverscrollIndicator(
+            axisDirection: AxisDirection.down,
+            color: colors.themeColor,
+            child: ListView.builder(
+                itemCount: reorganizedCrypto
+                    .where((c) => c.symbol
+                        .toLowerCase()
+                        .contains(_searchController.text.toLowerCase()))
+                    .length,
+                itemBuilder: (ctx, i) {
+                  final crypto = reorganizedCrypto
                       .where((c) => c.symbol
                           .toLowerCase()
                           .contains(_searchController.text.toLowerCase()))
-                      .length,
-                  itemBuilder: (ctx, i) {
-                    final crypto = reorganizedCrypto
-                        .where((c) => c.symbol
-                            .toLowerCase()
-                            .contains(_searchController.text.toLowerCase()))
-                        .toList()[i];
+                      .toList()[i];
 
-                    return Material(
-                      color: Colors.transparent,
-                      child: ListTile(
-                        contentPadding: const EdgeInsets.symmetric(
-                            vertical: 8, horizontal: 20),
-                        onTap: () {},
-                        leading: CryptoPicture(
-                            crypto: crypto, size: 40, colors: colors),
-                        title: Text(
-                          crypto.symbol,
-                          style: GoogleFonts.roboto(
-                              color: colors.textColor,
-                              fontSize: 16,
-                              fontWeight: FontWeight.bold),
-                        ),
-                        trailing: Switch(
-                            value: crypto.canDisplay,
-                            onChanged: (newVal) async {
-                              final result =
-                                  await cryptoStorageManager.toggleCanDisplay(
-                                      wallet: currentAccount ?? nullAccount,
-                                      cryptoId: crypto.cryptoId,
-                                      value: newVal);
-                              if (result) {
-                                log("State changed successfully");
-                                await reorganizeCrypto(
-                                    account: currentAccount ?? nullAccount);
-                              } else {
-                                log("Error changing state");
-                              }
-                            }),
+                  return Material(
+                    color: Colors.transparent,
+                    child: ListTile(
+                      contentPadding: const EdgeInsets.symmetric(
+                          vertical: 8, horizontal: 20),
+                      onTap: () {},
+                      leading: CryptoPicture(
+                          crypto: crypto, size: 40, colors: colors),
+                      title: Text(
+                        crypto.symbol,
+                        style: GoogleFonts.roboto(
+                            color: colors.textColor,
+                            fontSize: 16,
+                            fontWeight: FontWeight.bold),
                       ),
-                    );
-                  }))
+                      trailing: Switch(
+                          value: crypto.canDisplay,
+                          onChanged: (newVal) async {
+                            final result =
+                                await cryptoStorageManager.toggleCanDisplay(
+                                    wallet: currentAccount ?? nullAccount,
+                                    cryptoId: crypto.cryptoId,
+                                    value: newVal);
+                            if (result) {
+                              log("State changed successfully");
+                              await reorganizeCrypto(
+                                  account: currentAccount ?? nullAccount);
+                            } else {
+                              log("Error changing state");
+                            }
+                          }),
+                    ),
+                  );
+                }),
+          ))
         ],
       ),
     );

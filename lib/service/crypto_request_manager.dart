@@ -4,7 +4,7 @@ import 'package:moonwallet/types/types.dart';
 import 'package:http/http.dart' as http;
 
 class CryptoRequestManager {
-  final baseUrl = "http://46.202.175.219:4000";
+  final baseUrl = "https://api.moonbnb.app";
 
   Future<List<Crypto>> getAllCryptos() async {
     try {

@@ -13,6 +13,7 @@ import 'package:moonwallet/service/vibration.dart';
 import 'package:moonwallet/types/types.dart';
 import 'package:moonwallet/widgets/appBar/show_accounts_list.dart';
 import 'package:moonwallet/widgets/appBar/show_custom_drawer.dart';
+import 'package:moonwallet/widgets/appBar/show_wallet_actions.dart';
 import 'package:url_launcher/url_launcher.dart';
 
 typedef EditWalletNameType = void Function(String newName, int index);
@@ -167,11 +168,10 @@ class CustomAppBar extends StatelessWidget implements PreferredSizeWidget {
       actions: <Widget>[
         IconButton(
             onPressed: () {
-              launchUrl(Uri.parse(
-                  "https://x.com/eternalprotcl?t=m1cADuEKb9tTlngYCrlB3Q&s=09"));
+              showAppBarWalletActions(context: context, colors: colors);
             },
             icon: Icon(
-              LucideIcons.twitter,
+              Icons.add,
               color: textColor,
             )),
       ],

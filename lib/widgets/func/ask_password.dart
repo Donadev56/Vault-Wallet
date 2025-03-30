@@ -5,12 +5,14 @@ import 'package:moonwallet/service/web3.dart';
 import 'package:moonwallet/types/types.dart';
 import 'package:moonwallet/utils/prefs.dart';
 import 'package:moonwallet/widgets/bottom_pin_copy.dart';
+import 'package:moonwallet/widgets/func/snackbar.dart';
 
 Future<String> askPassword(
     {required BuildContext context,
     required AppColors colors,
     String title = "Enter Password"}) async {
   String userPassword = "";
+  int attempt = 0;
   final LocalAuthentication auth = LocalAuthentication();
   bool didAuthenticate = false;
   final manager = Web3Manager();
@@ -41,19 +43,29 @@ Future<String> askPassword(
       // ignore: use_build_context_synchronously
       context: context,
       handleSubmit: (password) async {
-        final savedPassword = await manager.getSavedPassword();
-        if (savedPassword != null) {
-          if (password.trim() != savedPassword.trim()) {
-            return PinSubmitResult(
-                success: false,
-                repeat: true,
-                error: "Invalid password",
-                newTitle: "Try again");
-          } else {
-            userPassword = password;
+        final decryptTest = await manager.getDecryptedData(password);
+        if (attempt >= 3) {
+          showCustomSnackBar(
+              context: context,
+              message: "Too Many attempts",
+              primaryColor: colors.primaryColor,
+              colors: colors);
+          return PinSubmitResult(
+            success: false,
+            repeat: false,
+          );
+        }
+        if (decryptTest != null && decryptTest.isNotEmpty) {
+          userPassword = password;
 
-            return PinSubmitResult(success: true, repeat: false);
-          }
+          return PinSubmitResult(success: true, repeat: false);
+        } else if (decryptTest == null || decryptTest.isEmpty) {
+          attempt++;
+          return PinSubmitResult(
+              success: false,
+              repeat: true,
+              error: "Invalid password",
+              newTitle: "Try again");
         } else {
           return PinSubmitResult(
             success: false,

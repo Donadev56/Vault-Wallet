@@ -260,7 +260,7 @@ class _CreatePrivateKeyState extends State<CreatePrivateKey> {
                   Padding(
                     padding: EdgeInsets.only(
                         bottom: 20, left: 20), // Optional padding
-                    child: ElevatedButton(
+                    child: OutlinedButton(
                       style: ElevatedButton.styleFrom(
                         backgroundColor: Colors.transparent,
                         side: BorderSide(color: Colors.greenAccent, width: 1),

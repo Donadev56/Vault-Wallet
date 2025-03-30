@@ -64,7 +64,6 @@ dependencies:
   path_provider: ^2.1.5
   permission_handler: ^11.0.1
   mobile_scanner: ^6.0.6
-  pull_to_refresh: ^2.0.0
   fast_cached_network_image: ^1.3.3+5
   memory_cache: ^1.2.0
   delightful_toast: ^1.1.0
@@ -91,6 +90,11 @@ dependencies:
   simple_gesture_detector: ^0.2.1
   dio: ^5.8.0+1
   loading_animation_widget: ^1.3.0
+  bottom_sheet_scroll_physics: ^1.0.0
+  smart_alert_dialog: ^4.0.4
+  pull_to_refresh_flutter3: ^2.0.2
+  share_plus: ^10.1.4
+  cronet_http: ^1.3.3
   
 
 

@@ -2,7 +2,7 @@ import 'package:dio/dio.dart';
 import 'package:moonwallet/types/types.dart';
 
 class TransactionRequestManager {
-  final baseUrl = "http://46.202.175.219:4000";
+  final baseUrl = "https://api.moonbnb.app";
   final dio = Dio();
 
   Future<List<EsTransaction>> getAllTransactions(

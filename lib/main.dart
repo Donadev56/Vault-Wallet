@@ -20,7 +20,6 @@ import 'package:moonwallet/screens/dashboard/settings/change_colors.dart';
 import 'package:moonwallet/screens/dashboard/settings/settings.dart';
 import 'package:moonwallet/screens/dashboard/view/recieve.dart';
 import 'package:moonwallet/screens/dashboard/view/send.dart';
-import 'package:moonwallet/screens/dashboard/view/wallet_overview.dart';
 import 'package:moonwallet/screens/dashboard/wallet_actions/add_WO.dart';
 import 'package:moonwallet/screens/dashboard/wallet_actions/add_mnemonic.dart';
 import 'package:moonwallet/screens/dashboard/wallet_actions/add_private_key.dart';
@@ -191,7 +190,7 @@ class _MyAppState extends State<MyApp> {
                   width: 40,
                   height: 40,
                   decoration: BoxDecoration(
-                      color:  colors.secondaryColor,
+                      color: colors.secondaryColor,
                       borderRadius: BorderRadius.circular(50)),
                 ),
               ),

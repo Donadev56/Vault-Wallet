@@ -329,7 +329,7 @@ class _AddPrivateKeyState extends State<AddPrivateKey> {
                       Padding(
                         padding: EdgeInsets.only(
                             bottom: 20, left: 20), // Optional padding
-                        child: ElevatedButton(
+                        child: OutlinedButton(
                           style: ElevatedButton.styleFrom(
                             backgroundColor: Colors.transparent,
                             side:

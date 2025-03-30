@@ -6,27 +6,23 @@ import 'package:moonwallet/types/types.dart';
 import 'package:moonwallet/widgets/appBar/button.dart';
 
 void showAppBarWalletActions(
-    {required BuildContext context,
-    required double height,
-    required double width,
-    required AppColors colors}) {
-  showMaterialModalBottomSheet(
+    {required BuildContext context, required AppColors colors}) {
+  showBarModalBottomSheet(
       backgroundColor: Colors.transparent,
       shape: RoundedRectangleBorder(
           borderRadius: BorderRadius.only(
               topLeft: Radius.circular(15), topRight: Radius.circular(15))),
       context: context,
       builder: (BuildContext btnCtx) {
+        final width = MediaQuery.of(context).size.width;
         return Container(
-          height: height * 0.95,
           width: width,
           decoration: BoxDecoration(
               color: colors.primaryColor,
               borderRadius: BorderRadius.only(
                   topLeft: Radius.circular(15), topRight: Radius.circular(15))),
-          child: Column(
-            mainAxisAlignment: MainAxisAlignment.start,
-            crossAxisAlignment: CrossAxisAlignment.start,
+          child: ListView(
+            shrinkWrap: true,
             children: [
               Container(
                 margin: const EdgeInsets.all(20),

@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:lucide_icons_flutter/lucide_icons.dart';
+import 'package:mobile_scanner/mobile_scanner.dart';
 import 'package:moonwallet/logger/logger.dart';
 import 'package:moonwallet/main.dart';
 import 'package:moonwallet/service/wallet_saver.dart' show WalletSaver;
@@ -9,7 +10,7 @@ import 'package:moonwallet/types/types.dart';
 import 'package:moonwallet/utils/colors.dart';
 import 'package:moonwallet/utils/prefs.dart';
 import 'package:moonwallet/utils/themes.dart';
-import 'package:moonwallet/widgets/bottom_pin_copy.dart';
+import 'package:moonwallet/widgets/func/ask_password.dart';
 import 'package:moonwallet/widgets/func/snackbar.dart';
 import 'package:web3dart/web3dart.dart';
 
@@ -64,54 +65,24 @@ class _AddPrivateKeyState extends State<AddPrivateKeyInMain> {
     super.initState();
   }
 
-  Future<PinSubmitResult> handleSubmit(String numbers) async {
-    attempt++;
-    secAttempt++;
-    final password = await manager.getSavedPassword();
-    if (password != null && numbers.trim() == password.trim()) {
-      setState(() {
-        userPassword = numbers.trim();
-      });
-      saveData();
-
-      return PinSubmitResult(success: true, repeat: false);
-    } else if (password != null && numbers.trim() != password.trim()) {
-      if (secAttempt == 6) {
+  Future<void> handleSubmit() async {
+    try {
+      final password = await askPassword(context: context, colors: colors);
+      if (password.isNotEmpty) {
         setState(() {
-          secAttempt = 0;
+          userPassword = password;
         });
-        if (mounted) {
-          Navigator.pushNamed(context, Routes.pageManager);
-        }
+        saveData();
       }
-      if (attempt == 3) {
-        if (mounted) {
-          setState(() {
-            attempt = 0;
-          });
-          showCustomSnackBar(
-              colors: colors,
-              primaryColor: colors.primaryColor,
-              context: context,
-              message: "Too many failed attempts.",
-              icon: Icons.error,
-              iconColor: Colors.pinkAccent);
-          return PinSubmitResult(success: false, repeat: false);
-        }
-      }
-
-      return PinSubmitResult(
-          success: false,
-          repeat: true,
-          newTitle: "Enter a correct password",
-          error: "Incorrect password");
-    } else {
-      logError('The password is not defined $password');
-
-      return PinSubmitResult(
-        success: false,
-        repeat: false,
-      );
+    } catch (e) {
+      logError(e.toString());
+      showCustomSnackBar(
+          colors: colors,
+          primaryColor: colors.primaryColor,
+          context: context,
+          message: "Error occurred while creating private key.",
+          icon: Icons.error,
+          iconColor: Colors.redAccent);
     }
   }
 
@@ -199,6 +170,9 @@ class _AddPrivateKeyState extends State<AddPrivateKeyInMain> {
       return false;
     }
   }
+
+  final MobileScannerController _mobileScannerController =
+      MobileScannerController();
 
   @override
   Widget build(BuildContext context) {
@@ -313,7 +287,28 @@ class _AddPrivateKeyState extends State<AddPrivateKeyInMain> {
                         child: Padding(
                           padding: const EdgeInsets.symmetric(horizontal: 20),
                           child: OutlinedButton.icon(
-                            onPressed: () {},
+                            onPressed: () {
+                              showModalBottomSheet(
+                                  isScrollControlled: true,
+                                  context: context,
+                                  builder: (BuildContext scanCtx) {
+                                    return StatefulBuilder(builder:
+                                        (BuildContext stateFScanCtx,
+                                            setModalState) {
+                                      return MobileScanner(
+                                        controller: _mobileScannerController,
+                                        onDetect: (barcode) {
+                                          final String code = barcode.barcodes
+                                                  .firstOrNull!.displayValue ??
+                                              "";
+                                          log("The code $code");
+                                          _textController.text = code;
+                                          Navigator.pop(stateFScanCtx);
+                                        },
+                                      );
+                                    });
+                                  });
+                            },
                             icon: Icon(LucideIcons.maximize,
                                 color: colors.themeColor),
                             label: Text(
@@ -384,7 +379,7 @@ class _AddPrivateKeyState extends State<AddPrivateKeyInMain> {
                       Padding(
                         padding: EdgeInsets.only(
                             bottom: 20, left: 20), // Optional padding
-                        child: ElevatedButton(
+                        child: OutlinedButton(
                           style: ElevatedButton.styleFrom(
                             backgroundColor: colors.primaryColor,
                             side:
@@ -416,13 +411,9 @@ class _AddPrivateKeyState extends State<AddPrivateKeyInMain> {
                                 borderRadius: BorderRadius.circular(30),
                               ),
                               backgroundColor: colors.themeColor),
-                          onPressed: () {
+                          onPressed: () async {
                             if (_formKey.currentState?.validate() ?? false) {
-                              showPinModalBottomSheet(
-                                  colors: colors,
-                                  handleSubmit: handleSubmit,
-                                  context: context,
-                                  title: "Enter a secure password");
+                              await handleSubmit();
                             }
                           },
                           child: Text(

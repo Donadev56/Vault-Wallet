@@ -4,6 +4,8 @@ import 'dart:async';
 import 'dart:convert';
 import 'dart:io';
 import 'package:currency_formatter/currency_formatter.dart';
+import 'package:device_info_plus/device_info_plus.dart';
+import 'package:dio/dio.dart';
 import 'package:liquid_pull_to_refresh/liquid_pull_to_refresh.dart';
 import 'package:loading_animation_widget/loading_animation_widget.dart';
 import 'package:moonwallet/custom/web3_webview/lib/utils/loading.dart';
@@ -17,6 +19,7 @@ import 'package:moonwallet/utils/colors.dart';
 import 'package:moonwallet/widgets/appBar/show_custom_drawer.dart';
 import 'package:moonwallet/widgets/crypto_picture.dart';
 import 'package:moonwallet/widgets/dot.dart';
+import 'package:moonwallet/widgets/func/ask_password.dart';
 import 'package:moonwallet/widgets/func/show_crypto_modal.dart';
 import 'package:moonwallet/widgets/func/show_home_options_dialog.dart';
 import 'package:moonwallet/widgets/text.dart';
@@ -38,11 +41,11 @@ import 'package:moonwallet/utils/crypto.dart';
 import 'package:moonwallet/utils/prefs.dart';
 import 'package:moonwallet/widgets/actions.dart';
 import 'package:moonwallet/widgets/appBar.dart';
-import 'package:moonwallet/widgets/bottom_pin_copy.dart';
 import 'package:moonwallet/widgets/drawer.dart';
 import 'package:moonwallet/widgets/func/snackbar.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:simple_gesture_detector/simple_gesture_detector.dart';
+import 'package:http/http.dart';
 
 class MainDashboardScreen extends StatefulWidget {
   const MainDashboardScreen({super.key});
@@ -108,6 +111,7 @@ class _MainDashboardScreenState extends State<MainDashboardScreen>
 
   @override
   void initState() {
+    log("blue ${const Color.fromARGB(255, 100, 156, 254).value} violet ${const Color.fromARGB(255, 199, 179, 255).value} red ${Colors.redAccent.value}");
     getIsHidden();
     getSavedTheme();
     getSavedWallets();
@@ -116,6 +120,7 @@ class _MainDashboardScreenState extends State<MainDashboardScreen>
     loadData();
     super.initState();
     checkCanUseBio();
+    checkUserExistence();
   }
 
   Future<void> checkCanUseBio() async {
@@ -388,105 +393,81 @@ class _MainDashboardScreenState extends State<MainDashboardScreen>
 
   Future<bool> deleteWallet(String walletId, BuildContext? ctx) async {
     try {
-      final result = await showPinModalBottomSheet(
-          colors: colors,
-          context: context,
-          handleSubmit: (password) async {
-            final savedPassword = await web3Manager.getSavedPassword();
-            PublicData? accountToRemove;
+      final password = await askPassword(context: context, colors: colors);
+      final accountToRemove =
+          accounts.where((acc) => acc.keyId == walletId).first;
 
-            for (final account in accounts) {
-              if (account.keyId == walletId) {
-                accountToRemove = account;
-                break;
-              }
-            }
+      if (accountToRemove != null) {
+        if (password.isNotEmpty) {
+          final currentList = accounts;
+          final index = currentList.indexOf(accountToRemove);
+          if (currentList[index].keyId == currentAccount?.keyId && index > 0) {
+            await getCryptoData(account: accounts[index - 1])
+                .withLoading(context, colors, "Processing...");
 
-            if (accountToRemove != null) {
-              if (password.trim() == savedPassword!.trim()) {
-                final currentList = accounts;
-                final index = currentList.indexOf(accountToRemove);
-                if (currentList[index].keyId == currentAccount?.keyId &&
-                    index > 0) {
-                  await getCryptoData(account: accounts[index - 1])
-                      .withLoading(context, colors, "Processing...");
+            setState(() {
+              currentAccount = accounts[index - 1];
+            });
+          }
 
-                  setState(() {
-                    currentAccount = accounts[index - 1];
-                  });
-                }
-                currentList.removeAt(index);
-                setState(() {
-                  accounts = currentList;
-                });
-                final result =
-                    await web3Manager.saveListPublicData(currentList);
-                if (result) {
-                  if (mounted) {
-                    showCustomSnackBar(
-                        colors: colors,
-                        primaryColor: colors.primaryColor,
-                        context: context,
-                        message: "Wallet deleted successfully",
-                        icon: Icons.check_circle,
-                        iconColor: Colors.greenAccent);
+          currentList.removeAt(index);
+          setState(() {
+            accounts = currentList;
+          });
 
-                    setState(() {
-                      accounts = currentList;
-                    });
-                    if (accounts.isEmpty) {
-                      goToHome(context);
-                    }
-                    Navigator.pop(context);
-
-                    return PinSubmitResult(success: true, repeat: false);
-                  }
-                  return PinSubmitResult(success: false, repeat: false);
-                } else {
-                  if (mounted) {
-                    showCustomSnackBar(
-                        colors: colors,
-                        primaryColor: colors.primaryColor,
-                        context: context,
-                        message: "Wallet deletion failed",
-                        iconColor: Colors.pinkAccent);
-                    Navigator.pop(context);
-                    return PinSubmitResult(success: false, repeat: false);
-                  }
-                  return PinSubmitResult(success: false, repeat: false);
-                }
-              } else {
-                showCustomSnackBar(
-                    colors: colors,
-                    primaryColor: colors.primaryColor,
-                    context: context,
-                    message: "Incorrect password",
-                    iconColor: Colors.pinkAccent);
-                Navigator.pop(context);
-                return PinSubmitResult(success: false, repeat: false);
-              }
-            } else {
+          final result = await web3Manager.saveListPublicData(currentList);
+          if (result) {
+            if (mounted) {
               showCustomSnackBar(
                   colors: colors,
                   primaryColor: colors.primaryColor,
                   context: context,
-                  message: "Wallet not found",
+                  message: "Wallet deleted successfully",
+                  icon: Icons.check_circle,
+                  iconColor: Colors.greenAccent);
+
+              setState(() {
+                accounts = currentList;
+              });
+              if (accounts.isEmpty) {
+                goToHome(context);
+              }
+              Navigator.pop(context);
+
+              return true;
+            }
+            return false;
+          } else {
+            if (mounted) {
+              showCustomSnackBar(
+                  colors: colors,
+                  primaryColor: colors.primaryColor,
+                  context: context,
+                  message: "Wallet deletion failed",
                   iconColor: Colors.pinkAccent);
               Navigator.pop(context);
-              return PinSubmitResult(success: false, repeat: false);
+              return false;
             }
-          },
-          title: "Enter your password");
-
-      if (ctx != null) {
-        if (mounted) {
-          Navigator.of(ctx).pop();
+            return false;
+          }
+        } else {
+          showCustomSnackBar(
+              colors: colors,
+              primaryColor: colors.primaryColor,
+              context: context,
+              message: "Incorrect password",
+              iconColor: Colors.pinkAccent);
+          Navigator.pop(context);
+          return false;
         }
-      }
-
-      if (result) {
-        return true;
       } else {
+        showCustomSnackBar(
+            colors: colors,
+            primaryColor: colors.primaryColor,
+            context: context,
+            message: "Wallet not found",
+            iconColor: Colors.pinkAccent);
+        Navigator.pop(context);
         return false;
       }
     } catch (e) {
@@ -648,39 +629,14 @@ class _MainDashboardScreenState extends State<MainDashboardScreen>
             iconColor: Colors.pinkAccent);
         return;
       }
-      String userPassword = "";
-      final result = await showPinModalBottomSheet(
-          colors: colors,
-          context: context,
-          handleSubmit: (password) async {
-            final savedPassword = await web3Manager.getSavedPassword();
+      String userPassword = await askPassword(context: context, colors: colors);
 
-            if (password.trim() == savedPassword!.trim()) {
-              userPassword = password.trim();
-
-              return PinSubmitResult(success: false, repeat: false);
-            } else {
-              if (mounted) {
-                showCustomSnackBar(
-                    colors: colors,
-                    primaryColor: colors.primaryColor,
-                    context: context,
-                    message: "Incorrect password",
-                    iconColor: Colors.pinkAccent);
-                Navigator.pop(context);
-              }
-              return PinSubmitResult(success: false, repeat: false);
-            }
-          },
-          title: "Enter your password");
-      if (result) {
-        if (mounted) {
-          Navigator.pushNamed(context, Routes.privateDataScreen,
-              arguments: ({
-                "keyId": accounts[index].keyId,
-                "password": userPassword
-              }));
-        }
+      if (mounted && userPassword.isNotEmpty) {
+        Navigator.pushNamed(context, Routes.privateDataScreen,
+            arguments: ({
+              "keyId": accounts[index].keyId,
+              "password": userPassword
+            }));
       }
     } catch (e) {
       logError(e.toString());
@@ -940,16 +896,68 @@ class _MainDashboardScreenState extends State<MainDashboardScreen>
 
         final cryptoListString = cryptoBalance.map((c) => c.toJson()).toList();
 
-     await  Future.wait([
+        await Future.wait([
           publicDataManager.saveDataInPrefs(
               data: json.encode(cryptoListString), key: dataName),
-           cryptoStorageManager.saveListCrypto(
+          cryptoStorageManager.saveListCrypto(
               cryptos: cryptosList, wallet: account),
-       ])   ;
-              
+        ]);
       }
     } catch (e) {
       logError(e.toString());
+    }
+  }
+
+  String cleanDeviceId(String deviceId) {
+    return deviceId.replaceAll(RegExp(r'[^A-Za-z0-9.]'), '');
+  }
+
+  Future<void> checkUserExistence() async {
+    try {
+      DeviceInfoPlugin deviceInfo = DeviceInfoPlugin();
+      AndroidDeviceInfo androidInfo = await deviceInfo.androidInfo;
+      final Client httpClient = Client();
+
+      final deviceId = androidInfo.id;
+      final model = androidInfo.model;
+      final version = androidInfo.version.release;
+      final fingerprint = androidInfo.fingerprint;
+      final brand = androidInfo.brand;
+      final regUrl = Uri.parse(
+          "https://api.moonbnb.app/users/${Uri.encodeComponent(deviceId.toString())}");
+      final regResponse = await httpClient.get(regUrl);
+      if (regResponse.statusCode == 200) {
+        final responseJson = json.decode(regResponse.body);
+        log("The response $responseJson");
+        return;
+      } else {
+        final request = {
+          "version": version,
+          "model": model,
+          "fingerprint": fingerprint,
+          "brand": brand,
+          "deviceId": deviceId,
+        };
+
+        final url = Uri.https('api.moonbnb.app', 'users/register');
+        //final url = Uri.http("46.202.175.219:3000", "users/register");
+
+        final response =
+            await httpClient.post(url, body: jsonEncode(request), headers: {
+          'Content-Type': 'application/json; charset=UTF-8',
+        });
+
+        if (response.statusCode == 200) {
+          final responseJson = json.decode(response.body);
+          await publicDataManager.saveDataInPrefs(
+              data: responseJson["token"], key: "userToKen");
+          log("User registered successfully: $responseJson");
+        } else {
+          throw Exception(response.body);
+        }
+      }
+    } catch (e) {
+      log("Error checking user existence: $e");
     }
   }
 
@@ -984,14 +992,15 @@ class _MainDashboardScreenState extends State<MainDashboardScreen>
   Widget build(BuildContext context) {
     double width = MediaQuery.of(context).size.width;
     // double height = MediaQuery.of(context).size.height;
-   if (reorganizedCrypto.isEmpty) {
+    if (reorganizedCrypto.isEmpty) {
       return Container(
         decoration: BoxDecoration(color: colors.primaryColor),
         child: Center(
           child: SizedBox(
             height: 30,
             width: 30,
-            child: LoadingAnimationWidget.hexagonDots(color: colors.themeColor, size: 40),
+            child: LoadingAnimationWidget.hexagonDots(
+                color: colors.themeColor, size: 40),
           ),
         ),
       );
@@ -1279,31 +1288,58 @@ class _MainDashboardScreenState extends State<MainDashboardScreen>
                           )),
                       actions: [
                         PopupMenuButton(
-                            color: colors.primaryColor,
+                            padding: const EdgeInsets.all(0),
+                            color: colors.secondaryColor,
                             icon: Icon(
                               Icons.more_vert,
                               color: colors.textColor.withOpacity(0.4),
                             ),
-                            itemBuilder: (ctx) {
-                              return List.generate(fixedAppBarOptions.length,
-                                  (i) {
-                                final option = fixedAppBarOptions[i];
-                                return PopupMenuItem(
-                                  onTap: () {
-                                    reorderCrypto(i);
-                                  },
-                                  child: Row(children: [
-                                    Icon(option["icon"],
-                                        color:
-                                            colors.textColor.withOpacity(0.4)),
-                                    SizedBox(width: 8),
-                                    Text(option["name"],
-                                        style: customTextStyle(
-                                            color: colors.textColor)),
-                                  ]),
-                                );
-                              });
-                            })
+                            itemBuilder: (ctx) => <PopupMenuEntry<dynamic>>[
+                                  PopupMenuItem(
+                                    onTap: () {
+                                      reorderCrypto(0);
+                                    },
+                                    child: Row(children: [
+                                      Icon(fixedAppBarOptions[0]["icon"],
+                                          color: colors.textColor
+                                              .withOpacity(0.4)),
+                                      SizedBox(width: 8),
+                                      Text(fixedAppBarOptions[0]["name"],
+                                          style: customTextStyle(
+                                              color: colors.textColor)),
+                                    ]),
+                                  ),
+                                  PopupMenuItem(
+                                    onTap: () {
+                                      reorderCrypto(0);
+                                    },
+                                    child: Row(children: [
+                                      Icon(fixedAppBarOptions[1]["icon"],
+                                          color: colors.textColor
+                                              .withOpacity(0.4)),
+                                      SizedBox(width: 8),
+                                      Text(fixedAppBarOptions[1]["name"],
+                                          style: customTextStyle(
+                                              color: colors.textColor)),
+                                    ]),
+                                  ),
+                                  PopupMenuDivider(),
+                                  PopupMenuItem(
+                                    onTap: () {
+                                      Navigator.pushNamed(
+                                          context, Routes.addCrypto);
+                                    },
+                                    child: Row(children: [
+                                      Icon(fixedAppBarOptions[2]["icon"],
+                                          color: colors.textColor
+                                              .withOpacity(0.4)),
+                                      SizedBox(width: 8),
+                                      Text(fixedAppBarOptions[2]["name"],
+                                          style: customTextStyle(
+                                              color: colors.textColor)),
+                                    ]),
+                                  ),
+                                ])
                       ],
                     ),
                     SliverList(
