@@ -11,6 +11,7 @@ import 'package:moonwallet/custom/web3_webview/lib/utils/loading.dart';
 import 'package:moonwallet/logger/logger.dart';
 import 'package:moonwallet/screens/dashboard/discover/browser.dart';
 import 'package:moonwallet/service/crypto_storage_manager.dart';
+import 'package:moonwallet/service/wallet_saver.dart';
 import 'package:moonwallet/service/web3.dart';
 import 'package:moonwallet/types/types.dart';
 import 'package:moonwallet/utils/colors.dart';
@@ -115,7 +116,7 @@ class _DiscoverScreenState extends State<DiscoverScreen>
 
   Future<void> getSavedWallets() async {
     try {
-      final web3Manager = Web3Manager();
+      final web3Manager = WalletSaver();
       final encryptService = EncryptService();
       final savedData = await web3Manager.getPublicData();
 
@@ -137,17 +138,29 @@ class _DiscoverScreenState extends State<DiscoverScreen>
 
       for (final account in accounts) {
         if (account.address == lastAccount) {
-          currentAccount = account;
+          setState(() {
+              currentAccount = account;
+
+          });
+       log("Last account address ${currentAccount?.address}");
+
           await getSavedCrypto(account: account);
 
           log("The current wallet is ${json.encode(account.toJson())}");
           break;
         } else {
           log("Not account found");
+          setState(() {
+                      currentAccount = accounts[0];
 
-          currentAccount = accounts[0];
+          });
+                log("first account address ${currentAccount?.address}");
+
+
         }
       }
+
+      log("Current account address ${currentAccount?.address}");
     } catch (e) {
       logError('Error getting saved wallets: $e');
     }
@@ -332,6 +345,9 @@ class _DiscoverScreenState extends State<DiscoverScreen>
 
   Future<void> openBrowser(String url) async {
     try {
+      if (currentAccount == null) {
+        throw "No account found";
+      }
       await getSavedCrypto(account: currentAccount!)
           .withLoading(context, colors);
 
@@ -380,6 +396,11 @@ class _DiscoverScreenState extends State<DiscoverScreen>
       });
     } catch (e) {
       logError(e.toString());
+      showCustomSnackBar(
+        context: context,
+        message: "Error opening browser: $e",
+        primaryColor: colors.primaryColor,
+        colors: colors);
     }
   }
 

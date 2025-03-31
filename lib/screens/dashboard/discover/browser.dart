@@ -58,6 +58,7 @@ class Web3BrowserScreenState extends State<Web3BrowserScreen> {
       cryptoId: "",
       canDisplay: false,
       symbol: "");
+      
   InAppWebViewController? _webViewController;
   bool _isInitialized = false;
   bool isFullScreen = false;
