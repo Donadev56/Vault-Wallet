@@ -139,10 +139,9 @@ class _DiscoverScreenState extends State<DiscoverScreen>
       for (final account in accounts) {
         if (account.address == lastAccount) {
           setState(() {
-              currentAccount = account;
-
+            currentAccount = account;
           });
-       log("Last account address ${currentAccount?.address}");
+          log("Last account address ${currentAccount?.address}");
 
           await getSavedCrypto(account: account);
 
@@ -151,12 +150,9 @@ class _DiscoverScreenState extends State<DiscoverScreen>
         } else {
           log("Not account found");
           setState(() {
-                      currentAccount = accounts[0];
-
+            currentAccount = accounts[0];
           });
-                log("first account address ${currentAccount?.address}");
-
-
+          log("first account address ${currentAccount?.address}");
         }
       }
 
@@ -397,10 +393,10 @@ class _DiscoverScreenState extends State<DiscoverScreen>
     } catch (e) {
       logError(e.toString());
       showCustomSnackBar(
-        context: context,
-        message: "Error opening browser: $e",
-        primaryColor: colors.primaryColor,
-        colors: colors);
+          context: context,
+          message: "Error opening browser: $e",
+          primaryColor: colors.primaryColor,
+          colors: colors);
     }
   }
 
