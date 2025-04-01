@@ -4,7 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_feather_icons/flutter_feather_icons.dart';
 import 'package:lucide_icons_flutter/lucide_icons.dart';
 import 'package:moonwallet/logger/logger.dart';
-import 'package:moonwallet/screens/dashboard/auth/home.dart';
+import 'package:moonwallet/screens/auth/home.dart';
 import 'package:moonwallet/types/types.dart';
 import 'package:share_plus/share_plus.dart';
 
