@@ -15,6 +15,7 @@ import 'package:moonwallet/service/wallet_saver.dart';
 import 'package:moonwallet/service/web3_interaction.dart';
 import 'package:moonwallet/types/types.dart';
 import 'package:moonwallet/utils/colors.dart';
+import 'package:moonwallet/utils/constant.dart';
 import 'package:moonwallet/utils/crypto.dart';
 import 'package:moonwallet/utils/prefs.dart';
 import 'package:moonwallet/utils/themes.dart';
@@ -100,15 +101,7 @@ class Web3BrowserScreenState extends State<Web3BrowserScreen> {
     }
   }
 
-  Future<void> share() async {
-    try {
-      Share.share('Take a look at this website $currentUrl',
-          subject: "Share Url");
-    } catch (e) {
-      logError(e.toString());
-    }
-  }
-
+ 
   void toggleShowAppBar() {
     if (!canShowAppBarOptions) {
       setState(() {
@@ -454,7 +447,7 @@ class Web3BrowserScreenState extends State<Web3BrowserScreen> {
                             // close the second context
                             Navigator.pop(context);
                           },
-                          onShareClick: share,
+                          onShareClick:(){ share(subject: "Share Url",text: "take a look at this url $currentUrl");},
                           context: context,
                           darkNavigatorColor: darkNavigatorColor,
                           colors: colors,

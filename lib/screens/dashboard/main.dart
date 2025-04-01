@@ -3,11 +3,13 @@
 import 'dart:async';
 import 'dart:convert';
 import 'dart:io';
+import 'dart:math' as math;
 import 'package:currency_formatter/currency_formatter.dart';
+import 'package:custom_refresh_indicator/custom_refresh_indicator.dart';
 import 'package:device_info_plus/device_info_plus.dart';
-import 'package:dio/dio.dart';
 import 'package:liquid_pull_to_refresh/liquid_pull_to_refresh.dart';
 import 'package:loading_animation_widget/loading_animation_widget.dart';
+import 'package:moonwallet/custom/refresh/check_mark.dart';
 import 'package:moonwallet/custom/web3_webview/lib/utils/loading.dart';
 import 'package:moonwallet/screens/dashboard/view/wallet_overview.dart';
 import 'package:moonwallet/service/crypto_request_manager.dart';
@@ -522,100 +524,7 @@ class _MainDashboardScreenState extends State<MainDashboardScreen>
     }
   }
 
-  Future<void> silentUpdate() async {
-    try {
-      final savedData = await web3Manager.getPublicData();
-      List<PublicData> wallets = [];
-      final List<Crypto> standardCrypto =
-          await CryptoRequestManager().getAllCryptos();
-
-      final lastAccount = await encryptService.getLastConnectedAddress();
-
-      if (savedData != null && lastAccount != null) {
-        for (final account in savedData) {
-          final newAccount = PublicData.fromJson(account);
-          setState(() {
-            wallets.add(newAccount);
-          });
-        }
-      }
-      if (wallets.isNotEmpty) {
-        for (final wallet in wallets) {
-          if (!mounted) {
-            log("The wallet is not mounted");
-            return;
-          }
-          List<Crypto> cryptosList = [];
-          List<Crypto> enabledCryptos = [];
-          List<Balance> cryptoBalance = [];
-          List<Crypto> availableCryptos = [];
-          final dataName = "cryptoAndBalance/${wallet.address}";
-
-          final savedCrypto =
-              await cryptoStorageManager.getSavedCryptos(wallet: wallet);
-
-          if (savedCrypto == null) {
-            await cryptoStorageManager.saveListCrypto(
-                cryptos: standardCrypto, wallet: wallet);
-            cryptosList = standardCrypto;
-          } else {
-            cryptosList = savedCrypto;
-          }
-
-          for (final crypto in cryptosList) {
-            for (int i = 0; i < standardCrypto.length; i++) {
-              final stCrypto = standardCrypto[i];
-              if (stCrypto.cryptoId == crypto.cryptoId) {
-                break;
-              }
-              if (i == standardCrypto.length - 1) {
-                cryptosList.add(stCrypto);
-              }
-            }
-          }
-
-          if (cryptosList.isNotEmpty) {
-            enabledCryptos =
-                cryptosList.where((c) => c.canDisplay == true).toList();
-
-            availableCryptos = [];
-
-            final results =
-                await Future.wait(enabledCryptos.map((crypto) async {
-              final balance =
-                  await web3InteractManager.getBalance(wallet, crypto);
-              final trend = await priceManager.checkCryptoTrend(
-                  crypto.binanceSymbol ?? "${crypto.symbol}USDT");
-              final cryptoPrice = await priceManager.getPriceUsingBinanceApi(
-                  crypto.binanceSymbol ?? "${crypto.symbol}USDT");
-              final balanceUsd = cryptoPrice * balance;
-
-              return Balance(
-                crypto: crypto,
-                balanceUsd: balanceUsd,
-                balanceCrypto: balance,
-                cryptoTrendPercent: trend["percent"] ?? 0,
-                cryptoPrice: cryptoPrice,
-              );
-            }));
-            cryptoBalance.addAll(results);
-            availableCryptos.addAll(enabledCryptos);
-            cryptoBalance
-                .sort((a, b) => (b.balanceUsd).compareTo(a.balanceUsd));
-
-            final cryptoListString =
-                cryptoBalance.map((c) => c.toJson()).toList();
-
-            await publicDataManager.saveDataInPrefs(
-                data: json.encode(cryptoListString), key: dataName);
-          }
-        }
-      }
-    } catch (e) {
-      logError('Error silent update: $e');
-    }
-  }
-
+ 
   Future<void> showPrivateData(int index) async {
     try {
       final wallet = accounts[index];
@@ -809,14 +718,27 @@ class _MainDashboardScreenState extends State<MainDashboardScreen>
   Future<void> getCryptoData({required PublicData account}) async {
     try {
       final dataName = "cryptoAndBalance/${account.address}";
-      final savedDataResult = await Future.wait([
-        CryptoRequestManager().getAllCryptos(),
+      final savedDataResult =  await Future.wait([
         publicDataManager.getDataFromPrefs(key: dataName),
         cryptoStorageManager.getSavedCryptos(wallet: account)
       ]);
-      final List<Crypto> standardCrypto = (savedDataResult[0] as List<Crypto>);
-      final savedData = (savedDataResult[1] as String?);
-      final savedCrypto = (savedDataResult[2] as List<Crypto>?);
+
+      List<Crypto> standardCrypto = [];
+      try {
+       standardCrypto = await CryptoRequestManager().getAllCryptos();
+      } catch (e) {
+        logError(e.toString());
+      }
+
+
+      if (standardCrypto.isEmpty) {
+        standardCrypto.addAll(
+          popularCrypto
+        );
+      }
+
+      final savedData = (savedDataResult[0] as String?);
+      final savedCrypto = (savedDataResult[1] as List<Crypto>?);
 
       List<Crypto> cryptosList = [];
       List<Crypto> enabledCryptos = [];
@@ -853,8 +775,10 @@ class _MainDashboardScreenState extends State<MainDashboardScreen>
             cryptosList.where((c) => c.canDisplay == true).toList();
         userBalanceUsd = 0;
         availableCryptos = [];
+         List<Map<String, Object>> results =  [];
 
-        final results = await Future.wait(enabledCryptos.map((crypto) async {
+        try {
+           results =  await Future.wait(enabledCryptos.map((crypto) async {
           final balance = await web3InteractManager.getBalance(account, crypto);
           final trend = await priceManager
               .checkCryptoTrend(crypto.binanceSymbol ?? "${crypto.symbol}USDT");
@@ -874,11 +798,15 @@ class _MainDashboardScreenState extends State<MainDashboardScreen>
             "balanceUsd": balanceUsd
           };
         }));
+        } catch (e) {
+          logError(e.toString());
+          throw e.toString();
+          
+        }
 
         cryptoBalance.addAll(results.map((r) => r["cryptoBalance"] as Balance));
         availableCryptos
             .addAll(results.map((r) => r["availableCrypto"] as Crypto));
-
         userBalanceUsd +=
             results.fold(0.0, (sum, r) => sum + (r["balanceUsd"] as double));
 
@@ -902,9 +830,104 @@ class _MainDashboardScreenState extends State<MainDashboardScreen>
           cryptoStorageManager.saveListCrypto(
               cryptos: cryptosList, wallet: account),
         ]);
+
       }
     } catch (e) {
       logError(e.toString());
+    }
+  }
+
+ Future<void> silentUpdate() async {
+    try {
+      final savedData = await web3Manager.getPublicData();
+      List<PublicData> wallets = [];
+      final List<Crypto> standardCrypto =
+          await CryptoRequestManager().getAllCryptos();
+
+      final lastAccount = await encryptService.getLastConnectedAddress();
+
+      if (savedData != null && lastAccount != null) {
+        for (final account in savedData) {
+          final newAccount = PublicData.fromJson(account);
+          setState(() {
+            wallets.add(newAccount);
+          });
+        }
+      }
+      if (wallets.isNotEmpty) {
+        for (final wallet in wallets) {
+          if (!mounted) {
+            log("The wallet is not mounted");
+            return;
+          }
+          List<Crypto> cryptosList = [];
+          List<Crypto> enabledCryptos = [];
+          List<Balance> cryptoBalance = [];
+          List<Crypto> availableCryptos = [];
+          final dataName = "cryptoAndBalance/${wallet.address}";
+
+          final savedCrypto =
+              await cryptoStorageManager.getSavedCryptos(wallet: wallet);
+
+          if (savedCrypto == null) {
+            await cryptoStorageManager.saveListCrypto(
+                cryptos: standardCrypto, wallet: wallet);
+            cryptosList = standardCrypto;
+          } else {
+            cryptosList = savedCrypto;
+          }
+
+          for (final crypto in cryptosList) {
+            for (int i = 0; i < standardCrypto.length; i++) {
+              final stCrypto = standardCrypto[i];
+              if (stCrypto.cryptoId == crypto.cryptoId) {
+                break;
+              }
+              if (i == standardCrypto.length - 1) {
+                cryptosList.add(stCrypto);
+              }
+            }
+          }
+
+          if (cryptosList.isNotEmpty) {
+            enabledCryptos =
+                cryptosList.where((c) => c.canDisplay == true).toList();
+
+            availableCryptos = [];
+
+            final results =
+                await Future.wait(enabledCryptos.map((crypto) async {
+              final balance =
+                  await web3InteractManager.getBalance(wallet, crypto);
+              final trend = await priceManager.checkCryptoTrend(
+                  crypto.binanceSymbol ?? "${crypto.symbol}USDT");
+              final cryptoPrice = await priceManager.getPriceUsingBinanceApi(
+                  crypto.binanceSymbol ?? "${crypto.symbol}USDT");
+              final balanceUsd = cryptoPrice * balance;
+
+              return Balance(
+                crypto: crypto,
+                balanceUsd: balanceUsd,
+                balanceCrypto: balance,
+                cryptoTrendPercent: trend["percent"] ?? 0,
+                cryptoPrice: cryptoPrice,
+              );
+            }));
+            cryptoBalance.addAll(results);
+            availableCryptos.addAll(enabledCryptos);
+            cryptoBalance
+                .sort((a, b) => (b.balanceUsd).compareTo(a.balanceUsd));
+
+            final cryptoListString =
+                cryptoBalance.map((c) => c.toJson()).toList();
+
+            await publicDataManager.saveDataInPrefs(
+                data: json.encode(cryptoListString), key: dataName);
+          }
+        }
+      }
+    } catch (e) {
+      logError('Error silent update: $e');
     }
   }
 
@@ -1114,11 +1137,13 @@ class _MainDashboardScreenState extends State<MainDashboardScreen>
             primaryColor: colors.primaryColor,
             textColor: colors.textColor,
             surfaceTintColor: colors.secondaryColor),
-        body: LiquidPullToRefresh(
-            showChildOpacityTransition: false,
-            color: colors.themeColor,
-            backgroundColor: colors.primaryColor,
+        body: CheckMarkIndicator(
+          style: CheckMarkStyle(loading: CheckMarkColors(content: colors.primaryColor, background: colors.themeColor), success: CheckMarkColors(content: colors.textColor, background: colors.greenColor), error: CheckMarkColors(content: colors.textColor, background: colors.redColor)),
+           // showChildOpacityTransition: false,
+           // color: colors.themeColor,
+           // backgroundColor: colors.primaryColor,
             key: _refreshIndicatorKey,
+      
             onRefresh: () async {
               await vibrate(duration: 10);
               if (currentAccount != null) {
@@ -1168,13 +1193,8 @@ class _MainDashboardScreenState extends State<MainDashboardScreen>
                               SizedBox(
                                 height: 10,
                               ),
-                              isHidden
-                                  ? CustomDots(
-                                      colors: colors,
-                                      borderRadius: BorderRadius.circular(5),
-                                    )
-                                  : Text(
-                                      "\$ ${formatUsd(totalBalanceUsd.toString())}",
+                            Text(
+                                  !isHidden ?    "\$ ${formatUsd(totalBalanceUsd.toString())}" : "***",
                                       style: GoogleFonts.roboto(
                                           color: colors.textColor,
                                           fontSize: 30,
@@ -1311,7 +1331,7 @@ class _MainDashboardScreenState extends State<MainDashboardScreen>
                                   ),
                                   PopupMenuItem(
                                     onTap: () {
-                                      reorderCrypto(0);
+                                      reorderCrypto(1);
                                     },
                                     child: Row(children: [
                                       Icon(fixedAppBarOptions[1]["icon"],

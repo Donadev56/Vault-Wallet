@@ -585,18 +585,15 @@ class _DiscoverScreenState extends State<DiscoverScreen>
                             child: Container(
                                 decoration: BoxDecoration(
                                     color: colors.grayColor.withOpacity(0.5)),
-                                child: FastCachedImage(
-                                  url:
-                                      "https://www.google.com/s2/favicons?domain_url=${hist.link}",
+                                child: Image.network(
+                                  errorBuilder: (ctx , widget , error)  {
+                                    return SizedBox(width:30, height: 30, child: ColoredBox(color: colors.themeColor),);
+                                  },
+                                 "https://www.google.com/s2/favicons?domain_url=${hist.link}",
                                   width: 30,
                                   height: 30,
                                   fit: BoxFit.cover,
-                                  loadingBuilder: (ctx, p) {
-                                    return CircularProgressIndicator(
-                                      color: colors.themeColor,
-                                      value: p.progressPercentage.value,
-                                    );
-                                  },
+                                 
                                 ))),
                         title: Text(
                           hist.title,

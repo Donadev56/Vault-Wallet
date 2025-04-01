@@ -1,3 +1,4 @@
+import 'package:fast_cached_network_image/fast_cached_network_image.dart';
 import 'package:flutter/material.dart';
 import 'package:moonwallet/types/types.dart';
 import 'package:moonwallet/widgets/text.dart';
@@ -23,16 +24,21 @@ class CryptoPicture extends StatelessWidget {
           borderRadius: BorderRadius.circular(50),
           child: crypto.icon != null &&
                   crypto.icon!.toLowerCase().startsWith("http")
-              ? Image.network(
-                  crypto.icon ?? "",
+              ?  FastCachedImage(
+                  url: crypto.icon ?? "",
                   width: size,
                   height: size,
-                )
+                  loadingBuilder: (ctx , data ) {
+                    return  CircularProgressIndicator(color: colors.themeColor,);
+                  },
+
+              ) 
               : crypto.icon == null
                   ? Container(
                       width: size,
                       height: size,
                       decoration: BoxDecoration(
+                          // ignore: deprecated_member_use
                           color: colors.textColor.withOpacity(0.6),
                           borderRadius: BorderRadius.circular(50)),
                       child: Center(

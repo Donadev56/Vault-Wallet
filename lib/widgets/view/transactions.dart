@@ -39,20 +39,30 @@ class TransactionsListElement extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+   
     return Material(
       color: Colors.transparent,
       child: ListTile(
         onTap: () {
-          showBarModalBottomSheet(
-              backgroundColor: Colors.transparent,
-              shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.only(
-                      topLeft: Radius.circular(20),
-                      topRight: Radius.circular(20))),
+
+          showMaterialModalBottomSheet(
+          
+              backgroundColor:  colors.primaryColor,
+           
               context: context,
               builder: (BuildContext ctx) {
                 return SafeArea(
-                    child: ConstrainedBox(
+                    child: Scaffold(
+                      backgroundColor: colors.primaryColor,
+                      appBar: AppBar(
+                        leading: IconButton(icon: Icon(Icons.arrow_back, color: colors.textColor.withOpacity(0.7),),onPressed: (){
+                          Navigator.pop(ctx);
+                        },),
+                        backgroundColor: colors.primaryColor,
+                        title: Text(isFrom ? "Transfer" : "Receive", style: GoogleFonts.roboto(color: colors.textColor.withOpacity(0.7)),),
+                  
+                      ),
+                      body: ConstrainedBox(
                         constraints: BoxConstraints(
                             minHeight:
                                 MediaQuery.of(context).size.height * 0.8),
@@ -65,6 +75,7 @@ class TransactionsListElement extends StatelessWidget {
                                 topRight: Radius.circular(30)),
                           ),
                           child: ListView(
+                            
                             children: [
                               Container(
                                 decoration: BoxDecoration(
@@ -337,10 +348,44 @@ class TransactionsListElement extends StatelessWidget {
                                     ),
                                   ),
                                 ),
+                              ),
+                              SizedBox(height: 20,),
+                                Material(
+                                color: Colors.transparent,
+                                child: InkWell(
+                                  borderRadius: BorderRadius.circular(10),
+                                  onTap: () async {
+                                    final text =  "${currentNetwork.type == CryptoType.token ? currentNetwork.network?.explorer : currentNetwork.explorer}/tx/${tr.hash}" ;
+                                    share(text: text , subject: "Share Transaction Hash");
+                                  },
+                                  child: Container(
+                                    padding: const EdgeInsets.all(10),
+                                    decoration: BoxDecoration(
+                                        color:
+                                            colors.themeColor.withOpacity(0.05),
+                                        borderRadius:
+                                            BorderRadius.circular(10)),
+                                    child:Row(
+                                      mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                                      children: [
+
+                                        Icon(LucideIcons.externalLink, color: colors.themeColor,),
+                                         Text(
+                                        "Share transaction hash",
+                                        style: GoogleFonts.manrope(
+                                            color: colors.themeColor),
+                                      )
+
+                                      ],
+                                    ) 
+                                  ),
+                                ),
                               )
                             ],
                           ),
-                        )));
+                        )),
+                    
+                    ) );
               });
         },
         leading: Container(

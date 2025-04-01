@@ -10,9 +10,7 @@ import 'package:moonwallet/service/price_manager.dart';
 import 'package:moonwallet/service/token_manager.dart';
 import 'package:moonwallet/service/wallet_saver.dart';
 import 'package:moonwallet/types/types.dart';
-import 'package:moonwallet/utils/constant.dart';
 import 'package:moonwallet/widgets/func/askUserforconf.dart';
-import 'package:moonwallet/widgets/bottom_pin_copy.dart';
 import 'package:moonwallet/widgets/func/ask_password.dart';
 import 'package:moonwallet/widgets/func/snackbar.dart';
 import 'package:web3dart/web3dart.dart';
@@ -62,10 +60,9 @@ class Web3InteractionManager {
       return balance.getValueInUnit(EtherUnit.ether);
     } catch (e) {
       logError(e.toString());
-      return 0;
+      throw e.toString();
     }
   }
-
   Future<String?> personalSign(String data,
       {required Crypto network,
       required PublicData account,

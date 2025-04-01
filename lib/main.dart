@@ -3,7 +3,6 @@ import 'dart:io';
 import 'package:fast_cached_network_image/fast_cached_network_image.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
 import 'package:flutter_web3_webview/flutter_web3_webview.dart';
 import 'package:moonwallet/logger/logger.dart';
 import 'package:moonwallet/screens/dashboard/add_crypto.dart';

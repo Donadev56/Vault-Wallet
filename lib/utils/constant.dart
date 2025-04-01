@@ -3,7 +3,10 @@ import 'dart:typed_data';
 import 'package:flutter/material.dart';
 import 'package:flutter_feather_icons/flutter_feather_icons.dart';
 import 'package:lucide_icons_flutter/lucide_icons.dart';
+import 'package:moonwallet/logger/logger.dart';
 import 'package:moonwallet/screens/dashboard/auth/home.dart';
+import 'package:moonwallet/types/types.dart';
+import 'package:share_plus/share_plus.dart';
 
 final List<Map<String, dynamic>> browserModalOptions = [
   {"name": 'Refresh', "icon": LucideIcons.refreshCcw},
@@ -168,3 +171,94 @@ final List<Map<String, dynamic>> appBarButtonOptions = [
       
     }
   } */
+
+
+
+final opBNbNetwork = Crypto(
+  isNetworkIcon: false,
+  symbol: "OpBNB",
+
+  canDisplay: true,
+  valueUsd: 0,
+  explorer: "https://opbnb.bscscan.com",
+  rpc: "https://opbnb-mainnet-rpc.bnbchain.org",
+  name: "opBNB",
+  icon: "assets/b1.webp",
+  binanceSymbol: "BNBUSDT",
+  chainId: 204,
+  type: CryptoType.network,
+  color: Color(0xFFFFA500), // Colors.orange.value
+  cryptoId: "a6717b9f-a1a9-4b48-82ed-d01c7d251794",
+);
+
+final binanceNetwork = Crypto(
+  isNetworkIcon: false,
+  symbol: "BNB",
+  
+  canDisplay: true,
+  valueUsd: 0,
+  type: CryptoType.network,
+  explorer: "https://bscscan.com",
+  rpc: "https://bsc-dataseed.binance.org",
+  name: "BNB",
+  binanceSymbol: "BNBUSDT",
+  icon: "assets/bnb.png",
+  chainId: 56,
+  color: Color(0xFFFFA500), // Colors.orange.value
+  cryptoId: "a2e6b128-616b-4702-af5f-453c9231cea8",
+);
+
+final polygonNetwork = Crypto(
+  isNetworkIcon: false,
+  symbol: "POL",
+
+  canDisplay: false,
+  valueUsd: 0,
+  type: CryptoType.network,
+  explorer: "https://polygonscan.com/",
+  rpc: "https://polygon-rpc.com",
+  name: "POL",
+  binanceSymbol: "POLUSDT",
+  icon: "assets/logos/pol.webp",
+  chainId: 137,
+  color:Color (0xFF7E57C2), // Colors.deepPurpleAccent.value
+  cryptoId: "a2e6b376-7263-4502-af5f-453c92316262",
+);
+
+final ethereumNetwork = Crypto(
+  isNetworkIcon: false,
+  symbol: "ETH",
+
+  canDisplay: false,
+  valueUsd: 0,
+  type: CryptoType.network,
+  explorer: "https://etherscan.io/",
+  rpc: "https://rpc.ankr.com/eth",
+  name: "ETH",
+  binanceSymbol: "ETHUSDT",
+  icon: "assets/logos/eth.png",
+  chainId: 1,
+  color: Color(0xFF9E9E9E), // Colors.grey.value
+  cryptoId: "42e6b336-616b-4502-af5f-453c9231ce09",
+);
+
+
+List<Crypto> popularCrypto = [
+  binanceNetwork,
+  opBNbNetwork,
+  polygonNetwork,
+  ethereumNetwork,
+
+];
+
+  Future<void> share({required String text, required String subject , VoidCallback? onError}) async {
+    try {
+      Share.share(text,
+          subject: subject);
+    } catch (e) {
+      logError(e.toString());
+       if (onError!= null) {
+        onError();
+      } 
+    }
+  }
