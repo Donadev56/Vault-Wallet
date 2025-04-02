@@ -10,7 +10,8 @@ import 'package:moonwallet/utils/themes.dart';
 import 'package:moonwallet/widgets/navBar.dart';
 
 class PagesManagerView extends StatefulWidget {
-  const PagesManagerView({super.key});
+  final AppColors? colors;
+  const PagesManagerView({super.key, this.colors});
   final pageIndex = 0;
 
   @override
@@ -28,14 +29,7 @@ class _PagesManagerViewState extends State<PagesManagerView> {
   final publicDataManager = PublicDataManager();
   bool isDarkMode = false;
 
-  AppColors colors = AppColors(
-      primaryColor: Color(0XFF0D0D0D),
-      themeColor: Colors.greenAccent,
-      greenColor: Colors.greenAccent,
-      secondaryColor: Color(0XFF121212),
-      grayColor: Color(0XFF353535),
-      textColor: Colors.white,
-      redColor: Colors.pinkAccent);
+  AppColors colors = AppColors.defaultTheme;
   Themes themes = Themes();
   String savedThemeName = "";
   Future<void> getSavedTheme() async {
@@ -54,18 +48,26 @@ class _PagesManagerViewState extends State<PagesManagerView> {
     }
   }
 
-  final List<Widget> _pages = [
-    MainDashboardScreen(
-      key: ValueKey<int>(0),
-    ),
-    DiscoverScreen(
-      key: ValueKey<int>(1),
-    ),
-  ];
+  List<Widget> _pages() {
+    return [
+      MainDashboardScreen(
+        key: ValueKey<int>(0),
+        colors: widget.colors,
+      ),
+      DiscoverScreen(
+        key: ValueKey<int>(1),
+      ),
+    ];
+  }
 
   @override
   void initState() {
     super.initState();
+    if (widget.colors != null) {
+      setState(() {
+        colors = widget.colors!;
+      });
+    }
     getSavedTheme();
     setState(() {
       currentIndex = widget.pageIndex;
@@ -92,7 +94,7 @@ class _PagesManagerViewState extends State<PagesManagerView> {
     return Scaffold(
       body: IndexedStack(
         index: currentIndex,
-        children: _pages,
+        children: _pages(),
       ),
       bottomNavigationBar: BottomNav(
           onTap: (index) async {

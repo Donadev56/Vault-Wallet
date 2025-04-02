@@ -24,15 +24,14 @@ class CryptoPicture extends StatelessWidget {
           borderRadius: BorderRadius.circular(50),
           child: crypto.icon != null &&
                   crypto.icon!.toLowerCase().startsWith("http")
-              ?  FastCachedImage(
+              ? FastCachedImage(
                   url: crypto.icon ?? "",
                   width: size,
                   height: size,
-                  loadingBuilder: (ctx , data ) {
+                  /* loadingBuilder: (ctx , data ) {
                     return  CircularProgressIndicator(color: colors.themeColor,);
-                  },
-
-              ) 
+                  }, */
+                )
               : crypto.icon == null
                   ? Container(
                       width: size,
@@ -43,8 +42,8 @@ class CryptoPicture extends StatelessWidget {
                           borderRadius: BorderRadius.circular(50)),
                       child: Center(
                         child: Text(
-                          crypto.symbol.length > 2
-                              ? crypto.symbol.substring(0, 2)
+                          crypto.symbol.length > 1
+                              ? crypto.symbol.substring(0, 1)
                               : crypto.symbol,
                           style: customTextStyle(
                               color: colors.primaryColor,

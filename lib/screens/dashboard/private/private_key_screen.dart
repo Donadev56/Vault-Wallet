@@ -18,7 +18,9 @@ import 'package:moonwallet/widgets/func/snackbar.dart';
 class PrivateKeyScreen extends StatefulWidget {
   final String? password;
   final String? walletId;
-  const PrivateKeyScreen({super.key, this.password, this.walletId});
+  final AppColors? colors;
+  const PrivateKeyScreen(
+      {super.key, this.password, this.walletId, this.colors});
 
   @override
   State<PrivateKeyScreen> createState() => _PrivateKeyScreenState();
@@ -26,14 +28,8 @@ class PrivateKeyScreen extends StatefulWidget {
 
 class _PrivateKeyScreenState extends State<PrivateKeyScreen> {
   bool isDarkMode = false;
-  AppColors colors = AppColors(
-      primaryColor: Color(0XFF0D0D0D),
-      themeColor: Colors.greenAccent,
-      greenColor: Colors.greenAccent,
-      secondaryColor: Color(0XFF121212),
-      grayColor: Color(0XFF353535),
-      textColor: Colors.white,
-      redColor: Colors.pinkAccent);
+  AppColors colors = AppColors.defaultTheme;
+
   Themes themes = Themes();
   String savedThemeName = "";
   Future<void> getSavedTheme() async {
@@ -76,6 +72,11 @@ class _PrivateKeyScreenState extends State<PrivateKeyScreen> {
         password = widget.password!;
       });
     }
+    if (widget.colors != null) {
+      setState(() {
+        colors = widget.colors!;
+      });
+    }
     if (widget.walletId != null) {
       walletKeyId = widget.walletId!;
     }
@@ -115,7 +116,7 @@ class _PrivateKeyScreenState extends State<PrivateKeyScreen> {
           if (mounted) {
             showCustomSnackBar(
                 colors: colors,
-                primaryColor: colors.primaryColor,
+                type: MessageType.error,
                 context: context,
                 message: "No encrypted data found",
                 iconColor: Colors.pinkAccent);
@@ -125,7 +126,7 @@ class _PrivateKeyScreenState extends State<PrivateKeyScreen> {
         if (mounted) {
           showCustomSnackBar(
               colors: colors,
-              primaryColor: colors.primaryColor,
+              type: MessageType.error,
               context: context,
               message: "No decrypted data found",
               iconColor: Colors.pinkAccent);
@@ -135,7 +136,7 @@ class _PrivateKeyScreenState extends State<PrivateKeyScreen> {
       if (mounted) {
         showCustomSnackBar(
             colors: colors,
-            primaryColor: colors.primaryColor,
+            type: MessageType.error,
             context: context,
             message: "An error occurred data",
             iconColor: Colors.pinkAccent);
@@ -298,7 +299,7 @@ class _PrivateKeyScreenState extends State<PrivateKeyScreen> {
                       if (_mnemonicController.text.isEmpty) {
                         showCustomSnackBar(
                             colors: colors,
-                            primaryColor: colors.primaryColor,
+                            type: MessageType.error,
                             context: context,
                             message: "No Mnemonic found",
                             iconColor: colors.redColor);
@@ -326,7 +327,7 @@ class _PrivateKeyScreenState extends State<PrivateKeyScreen> {
                       if (_privateKeyController.text.isEmpty) {
                         showCustomSnackBar(
                             colors: colors,
-                            primaryColor: colors.primaryColor,
+                            type: MessageType.error,
                             context: context,
                             message: "No Private Key found",
                             iconColor: colors.redColor);

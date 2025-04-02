@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:lucide_icons_flutter/lucide_icons.dart';
+import 'package:moonwallet/custom/web3_webview/lib/utils/loading.dart';
 import 'package:moonwallet/logger/logger.dart';
 import 'package:moonwallet/main.dart';
 import 'package:moonwallet/service/wallet_saver.dart';
@@ -28,15 +29,8 @@ class _CreatePrivateKeyState extends State<CreatePrivateKeyMain> {
   final publicDataManager = PublicDataManager();
   bool isDarkMode = false;
   final manager = WalletSaver();
+  AppColors colors = AppColors.defaultTheme;
 
-  AppColors colors = AppColors(
-      primaryColor: Color(0XFF0D0D0D),
-      themeColor: Colors.greenAccent,
-      greenColor: Colors.greenAccent,
-      secondaryColor: Color(0XFF121212),
-      grayColor: Color(0XFF353535),
-      textColor: Colors.white,
-      redColor: Colors.pinkAccent);
   Themes themes = Themes();
   String savedThemeName = "";
   Future<void> getSavedTheme() async {
@@ -59,7 +53,10 @@ class _CreatePrivateKeyState extends State<CreatePrivateKeyMain> {
   void initState() {
     _textController = TextEditingController();
     getSavedTheme();
-    createKey();
+    WidgetsBinding.instance.addPostFrameCallback((time) async {
+      await createKey().withLoading(context, colors);
+    });
+
     super.initState();
   }
 
@@ -78,7 +75,7 @@ class _CreatePrivateKeyState extends State<CreatePrivateKeyMain> {
       if (!mounted) return;
       showCustomSnackBar(
           colors: colors,
-          primaryColor: colors.primaryColor,
+          type: MessageType.error,
           context: context,
           message: "Failed to create a key");
     }
@@ -97,7 +94,7 @@ class _CreatePrivateKeyState extends State<CreatePrivateKeyMain> {
       logError(e.toString());
       showCustomSnackBar(
           colors: colors,
-          primaryColor: colors.primaryColor,
+          type: MessageType.error,
           context: context,
           message: "Error occurred while creating private key.",
           icon: Icons.error,
@@ -121,7 +118,7 @@ class _CreatePrivateKeyState extends State<CreatePrivateKeyMain> {
         if (!mounted) return;
         showCustomSnackBar(
             colors: colors,
-            primaryColor: colors.primaryColor,
+            type: MessageType.success,
             context: context,
             message: "Data saved successfully",
             icon: Icons.check_circle,
@@ -135,7 +132,7 @@ class _CreatePrivateKeyState extends State<CreatePrivateKeyMain> {
       logError(e.toString());
       showCustomSnackBar(
           colors: colors,
-          primaryColor: colors.primaryColor,
+          type: MessageType.error,
           context: context,
           message: "Failed to save the key.",
           iconColor: Colors.pinkAccent);

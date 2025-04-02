@@ -48,7 +48,7 @@ Future<String> askPassword(
           showCustomSnackBar(
               context: context,
               message: "Too Many attempts",
-              primaryColor: colors.primaryColor,
+              type: MessageType.error,
               colors: colors);
           return PinSubmitResult(
             success: false,

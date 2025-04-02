@@ -3,6 +3,7 @@ import 'package:flutter/services.dart';
 import 'package:flutter_feather_icons/flutter_feather_icons.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:modal_bottom_sheet/modal_bottom_sheet.dart';
+import 'package:moonwallet/custom/web3_webview/lib/web3_webview.dart';
 import 'package:moonwallet/logger/logger.dart';
 import 'package:moonwallet/types/types.dart';
 import 'package:moonwallet/utils/constant.dart';
@@ -22,7 +23,8 @@ void showBrowserBottomOptions(
     required VoidCallback reload,
     required VoidCallback toggleShowAppBar,
     required VoidCallback onShareClick,
-    required VoidCallback onClose}) async {
+    required VoidCallback onClose,
+    required InAppWebViewController controller}) async {
   try {
     showMaterialModalBottomSheet(
         backgroundColor: darkNavigatorColor,
@@ -103,15 +105,16 @@ void showBrowserBottomOptions(
                             padding: const EdgeInsets.only(left: 7),
                             margin: const EdgeInsets.only(top: 10),
                             decoration: BoxDecoration(
-                                color: colors.themeColor.withOpacity(0.1),
+                                color: currentNetwork.color?.withOpacity(0.05),
                                 borderRadius: BorderRadius.circular(30)),
                             child: Material(
                               color: Colors.transparent,
                               child: InkWell(
                                 borderRadius: BorderRadius.circular(20),
-                                onTap: () {
-                                  Clipboard.setData(
-                                      ClipboardData(text: currentUrl));
+                                onTap: () async {
+                                  Clipboard.setData(ClipboardData(
+                                      text: (await controller.getUrl())
+                                          .toString()));
                                 },
                                 child: Row(
                                   children: [
@@ -121,8 +124,8 @@ void showBrowserBottomOptions(
                                       child: Text(
                                         currentUrl,
                                         style: GoogleFonts.roboto(
-                                          color: colors.themeColor
-                                              .withOpacity(0.8),
+                                          color: currentNetwork.color
+                                              ?.withOpacity(0.8),
                                           fontSize: 14,
                                         ),
                                         maxLines: 1,
@@ -134,7 +137,7 @@ void showBrowserBottomOptions(
                                     ),
                                     Icon(
                                       FeatherIcons.copy,
-                                      color: colors.themeColor,
+                                      color: currentNetwork.color,
                                     )
                                   ],
                                 ),
@@ -146,13 +149,13 @@ void showBrowserBottomOptions(
                     ),
                   ),
                   Divider(
+                    height: 10,
                     color: colors.textColor.withOpacity(0.05),
                   ),
                   Column(
                     children:
                         List.generate(browserModalOptions.length, (index) {
                       final option = browserModalOptions[index];
-                      final isLast = index == browserModalOptions.length - 1;
 
                       return Material(
                         color: Colors.transparent,
@@ -179,34 +182,36 @@ void showBrowserBottomOptions(
                               onClose();
                             }
                           },
-                          tileColor: isLast
-                              ? colors.redColor.withOpacity(0.1)
-                              : Colors.transparent,
                           title: Row(
                             children: [
                               Text(
                                 option["name"],
                                 style: GoogleFonts.roboto(
-                                  color: isLast
-                                      ? colors.redColor
-                                      : colors.textColor,
+                                  color: colors.textColor,
                                 ),
                               ),
                               SizedBox(
                                 width: 7,
                               ),
                               if (index == 1)
-                                Container(
-                                  padding: const EdgeInsets.all(5),
-                                  decoration: BoxDecoration(
-                                      borderRadius: BorderRadius.circular(10),
-                                      color: colors.primaryColor),
-                                  child: Text(
-                                    currentNetwork.name,
-                                    style: GoogleFonts.roboto(
-                                      color: isLast
-                                          ? colors.redColor
-                                          : colors.textColor,
+                                ConstrainedBox(
+                                  constraints: BoxConstraints(
+                                    maxWidth:
+                                        MediaQuery.of(context).size.width *
+                                            0.45,
+                                  ),
+                                  child: Container(
+                                    padding: const EdgeInsets.all(8),
+                                    decoration: BoxDecoration(
+                                        borderRadius: BorderRadius.circular(30),
+                                        color: currentNetwork.color
+                                            ?.withOpacity(0.05)),
+                                    child: Text(
+                                      currentNetwork.name,
+                                      overflow: TextOverflow.ellipsis,
+                                      style: GoogleFonts.roboto(
+                                          color: currentNetwork.color,
+                                          fontSize: 14),
                                     ),
                                   ),
                                 )
@@ -214,9 +219,7 @@ void showBrowserBottomOptions(
                           ),
                           trailing: Icon(
                             option["icon"],
-                            color: isLast
-                                ? colors.redColor
-                                : colors.textColor.withOpacity(0.6),
+                            color: colors.textColor.withOpacity(0.6),
                           ),
                         ),
                       );

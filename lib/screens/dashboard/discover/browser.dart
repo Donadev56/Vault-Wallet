@@ -24,13 +24,13 @@ import 'package:moonwallet/custom/web3_webview/lib/models/web3_wallet_config.dar
 import 'package:moonwallet/custom/web3_webview/lib/web3_webview.dart';
 import 'package:moonwallet/custom/web3_webview/lib/web3_webview_eip1193.dart';
 import 'package:moonwallet/widgets/func/browser/show_bottom_options.dart';
-import 'package:share_plus/share_plus.dart';
 
 class Web3BrowserScreen extends StatefulWidget {
   final String? url;
   final Crypto? network;
+  final AppColors? colors;
 
-  const Web3BrowserScreen({super.key, this.url, this.network});
+  const Web3BrowserScreen({super.key, this.url, this.network, this.colors});
 
   @override
   Web3BrowserScreenState createState() => Web3BrowserScreenState();
@@ -43,7 +43,7 @@ class Web3BrowserScreenState extends State<Web3BrowserScreen> {
   final publicDataManager = PublicDataManager();
   bool isDarkMode = false;
 
-  String _title = '';
+  String _title = 'Loading...';
   String currentUrl = 'https://www.moonbnb.pro';
   bool canShowAppBarOptions = true;
   int _chainId = 204;
@@ -72,14 +72,8 @@ class Web3BrowserScreenState extends State<Web3BrowserScreen> {
 
   final encryptService = EncryptService();
   final String historyName = "UserHistory";
-  AppColors colors = AppColors(
-      primaryColor: Color(0XFF0D0D0D),
-      themeColor: Colors.greenAccent,
-      greenColor: Colors.greenAccent,
-      secondaryColor: Color(0XFF121212),
-      grayColor: Color(0XFF353535),
-      textColor: Colors.white,
-      redColor: Colors.pinkAccent);
+  AppColors colors = AppColors.defaultTheme;
+
   Themes themes = Themes();
   String savedThemeName = "";
 
@@ -101,7 +95,6 @@ class Web3BrowserScreenState extends State<Web3BrowserScreen> {
     }
   }
 
- 
   void toggleShowAppBar() {
     if (!canShowAppBarOptions) {
       setState(() {
@@ -258,6 +251,12 @@ class Web3BrowserScreenState extends State<Web3BrowserScreen> {
     if (widget.network != null) {
       currentNetwork = widget.network!;
       _chainId = currentNetwork.chainId!;
+    }
+
+    if (widget.colors != null) {
+      setState(() {
+        colors = widget.colors!;
+      });
     }
     if (widget.url != null) {
       String url = widget.url!;
@@ -441,13 +440,19 @@ class Web3BrowserScreenState extends State<Web3BrowserScreen> {
                     ),
                     onPressed: () {
                       showBrowserBottomOptions(
+                          controller: _webViewController!,
                           onClose: () {
                             // close the first context
                             Navigator.pop(context);
                             // close the second context
                             Navigator.pop(context);
                           },
-                          onShareClick:(){ share(subject: "Share Url",text: "take a look at this url $currentUrl");},
+                          onShareClick: () async {
+                            share(
+                                subject: "Share Url",
+                                text:
+                                    "take a look at this url ${(await _webViewController?.getUrl()).toString()}");
+                          },
                           context: context,
                           darkNavigatorColor: darkNavigatorColor,
                           colors: colors,

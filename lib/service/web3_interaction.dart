@@ -60,9 +60,10 @@ class Web3InteractionManager {
       return balance.getValueInUnit(EtherUnit.ether);
     } catch (e) {
       logError(e.toString());
-      throw e.toString();
+      return 0;
     }
   }
+
   Future<String?> personalSign(String data,
       {required Crypto network,
       required PublicData account,
@@ -274,9 +275,9 @@ class Web3InteractionManager {
         );
         if (hash.isNotEmpty) {
           showCustomSnackBar(
+              type: MessageType.success,
               context: context,
               message: "Hash : $hash",
-              primaryColor: colors.primaryColor,
               colors: colors,
               icon: Icons.check_circle,
               iconColor: colors.greenColor);
@@ -291,9 +292,9 @@ class Web3InteractionManager {
       logError(e.toString());
       // show error
       showCustomSnackBar(
+          type: MessageType.error,
           context: context,
           message: e.toString(),
-          primaryColor: colors.primaryColor,
           colors: colors,
           icon: Icons.error,
           iconColor: Colors.red);

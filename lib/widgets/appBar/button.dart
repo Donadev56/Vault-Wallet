@@ -20,6 +20,7 @@ class AddWalletButton extends StatelessWidget {
       color: Colors.transparent,
       borderRadius: BorderRadius.circular(10),
       child: ListTile(
+        visualDensity: VisualDensity(horizontal: 0, vertical: 0),
         tileColor: textColor.withOpacity(0.05),
         onTap: onTap,
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),

@@ -172,8 +172,6 @@ final List<Map<String, dynamic>> appBarButtonOptions = [
     }
   } */
 
-
-
 final opBNbNetwork = Crypto(
   isNetworkIcon: false,
   symbol: "OpBNB",
@@ -194,7 +192,7 @@ final opBNbNetwork = Crypto(
 final binanceNetwork = Crypto(
   isNetworkIcon: false,
   symbol: "BNB",
-  
+
   canDisplay: true,
   valueUsd: 0,
   type: CryptoType.network,
@@ -221,7 +219,7 @@ final polygonNetwork = Crypto(
   binanceSymbol: "POLUSDT",
   icon: "assets/logos/pol.webp",
   chainId: 137,
-  color:Color (0xFF7E57C2), // Colors.deepPurpleAccent.value
+  color: Color(0xFF7E57C2), // Colors.deepPurpleAccent.value
   cryptoId: "a2e6b376-7263-4502-af5f-453c92316262",
 );
 
@@ -242,23 +240,23 @@ final ethereumNetwork = Crypto(
   cryptoId: "42e6b336-616b-4502-af5f-453c9231ce09",
 );
 
-
 List<Crypto> popularCrypto = [
   binanceNetwork,
   opBNbNetwork,
   polygonNetwork,
   ethereumNetwork,
-
 ];
 
-  Future<void> share({required String text, required String subject , VoidCallback? onError}) async {
-    try {
-      Share.share(text,
-          subject: subject);
-    } catch (e) {
-      logError(e.toString());
-       if (onError!= null) {
-        onError();
-      } 
+Future<void> share(
+    {required String text,
+    required String subject,
+    VoidCallback? onError}) async {
+  try {
+    Share.share(text, subject: subject);
+  } catch (e) {
+    logError(e.toString());
+    if (onError != null) {
+      onError();
     }
   }
+}

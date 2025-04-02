@@ -19,7 +19,8 @@ import 'package:moonwallet/widgets/crypto_picture.dart';
 import 'package:qr_flutter/qr_flutter.dart';
 
 class ReceiveScreen extends StatefulWidget {
-  const ReceiveScreen({super.key});
+  final AppColors? colors;
+  const ReceiveScreen({super.key, this.colors});
 
   @override
   State<ReceiveScreen> createState() => _ReceiveScreenState();
@@ -55,6 +56,11 @@ class _ReceiveScreenState extends State<ReceiveScreen> {
   @override
   void initState() {
     super.initState();
+    if (widget.colors != null) {
+      setState(() {
+        colors = widget.colors!;
+      });
+    }
     getSavedTheme();
   }
 

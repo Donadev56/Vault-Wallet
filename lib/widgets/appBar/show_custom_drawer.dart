@@ -174,8 +174,7 @@ void showCustomDrawer(
                                                   context: context,
                                                   message:
                                                       "Can't edit the wallet",
-                                                  primaryColor:
-                                                      colors.primaryColor,
+                                                  type: MessageType.error,
                                                   colors: colors);
                                             }
                                           },
@@ -561,7 +560,7 @@ void showCustomDrawer(
                                       context: context,
                                       message:
                                           "A watch-only wallet does not store private data",
-                                      primaryColor: colors.primaryColor,
+                                      type: MessageType.error,
                                       colors: colors);
                                   return;
                                 }
@@ -586,7 +585,7 @@ void showCustomDrawer(
                                   showCustomSnackBar(
                                       context: context,
                                       message: "Incorrect password",
-                                      primaryColor: colors.primaryColor,
+                                      type: MessageType.error,
                                       colors: colors);
                                   return;
                                 }
@@ -623,10 +622,10 @@ void showCustomDrawer(
                                 if (res) {
                                   if (password == confirmPassword) {
                                     showCustomSnackBar(
+                                        type: MessageType.error,
                                         context: context,
                                         message:
                                             "The old password and the new one are the same",
-                                        primaryColor: colors.primaryColor,
                                         colors: colors);
                                     newPassword = "";
                                     confirmPassword = "";
@@ -639,7 +638,7 @@ void showCustomDrawer(
                                       showCustomSnackBar(
                                           context: context,
                                           message: "Failed to change password",
-                                          primaryColor: colors.primaryColor,
+                                          type: MessageType.error,
                                           colors: colors);
                                       newPassword = "";
                                       confirmPassword = "";
@@ -650,7 +649,7 @@ void showCustomDrawer(
                                           context: context,
                                           message:
                                               "Password changed successfully",
-                                          primaryColor: colors.primaryColor,
+                                          type: MessageType.success,
                                           colors: colors);
                                     }
                                   }
@@ -715,8 +714,9 @@ void showCustomDrawer(
                                                                     context,
                                                                 message:
                                                                     "Too many attempts",
-                                                                primaryColor: colors
-                                                                    .primaryColor,
+                                                                type:
+                                                                    MessageType
+                                                                        .error,
                                                                 colors: colors,
                                                                 icon:
                                                                     Icons.error,
@@ -771,8 +771,7 @@ void showCustomDrawer(
                                                   showCustomSnackBar(
                                                       context: context,
                                                       message: "Enabled",
-                                                      primaryColor:
-                                                          colors.primaryColor,
+                                                      type: MessageType.success,
                                                       colors: colors,
                                                       icon: Icons.check_circle,
                                                       iconColor:
@@ -789,8 +788,7 @@ void showCustomDrawer(
                                             } catch (e) {
                                               showCustomSnackBar(
                                                 colors: colors,
-                                                primaryColor:
-                                                    colors.primaryColor,
+                                                type: MessageType.error,
                                                 icon: Icons.error,
                                                 iconColor: Colors.red,
                                                 context: context,

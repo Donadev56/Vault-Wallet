@@ -15,6 +15,7 @@ void showAppBarWalletActions(
       context: context,
       builder: (BuildContext btnCtx) {
         final width = MediaQuery.of(context).size.width;
+        final double height = 8;
         return Container(
           width: width,
           decoration: BoxDecoration(
@@ -37,7 +38,7 @@ void showAppBarWalletActions(
                               context, Routes.createPrivateKeyMain);
                         }),
                     SizedBox(
-                      height: 20,
+                      height: height,
                     ),
                     AddWalletButton(
                         textColor: colors.textColor,
@@ -48,7 +49,7 @@ void showAppBarWalletActions(
                               context, Routes.createAccountFromSed);
                         }),
                     SizedBox(
-                      height: 20,
+                      height: height,
                     ),
                     AddWalletButton(
                         textColor: colors.textColor,
@@ -58,7 +59,7 @@ void showAppBarWalletActions(
                           Navigator.pushNamed(context, Routes.importWalletMain);
                         }),
                     SizedBox(
-                      height: 20,
+                      height: height,
                     ),
                     AddWalletButton(
                         textColor: colors.textColor,

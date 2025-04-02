@@ -152,7 +152,7 @@ class CustomAppBar extends StatelessWidget implements PreferredSizeWidget {
                     style: GoogleFonts.roboto(
                         fontSize: 16,
                         fontWeight: FontWeight.bold,
-                        color: textColor),
+                        color: textColor.withOpacity(0.7)),
                   ),
                   SizedBox(
                     width: 5,
@@ -172,7 +172,7 @@ class CustomAppBar extends StatelessWidget implements PreferredSizeWidget {
             },
             icon: Icon(
               Icons.add,
-              color: textColor,
+              color: textColor.withOpacity(0.7),
             )),
       ],
     );

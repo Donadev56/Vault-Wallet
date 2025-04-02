@@ -6,6 +6,7 @@ import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:lucide_icons_flutter/lucide_icons.dart';
 import 'package:modal_bottom_sheet/modal_bottom_sheet.dart';
+import 'package:moonwallet/custom/web3_webview/lib/utils/loading.dart';
 import 'package:moonwallet/main.dart';
 import 'package:moonwallet/service/crypto_storage_manager.dart';
 import 'package:moonwallet/service/token_manager.dart';
@@ -30,6 +31,7 @@ void showAddToken(
   final tokenManager = TokenManager();
   final cryptoStorageManager = CryptoStorageManager();
   SearchingContractInfo? searchingContractInfo;
+
   showCupertinoModalBottomSheet(
       backgroundColor: colors.primaryColor,
       context: context,
@@ -49,25 +51,26 @@ void showAddToken(
                         onPressed: () async {
                           if (selectedNetwork == null) {
                             showCustomSnackBar(
+                                type: MessageType.error,
                                 colors: colors,
-                                primaryColor: colors.primaryColor,
                                 context: context,
                                 message: 'Please select a network.',
                                 iconColor: Colors.pinkAccent);
                           }
                           if (_contractAddressController.text.isEmpty) {
                             showCustomSnackBar(
+                                type: MessageType.error,
                                 colors: colors,
-                                primaryColor: colors.primaryColor,
                                 context: context,
                                 message: 'Please enter a contract address.',
                                 iconColor: Colors.pinkAccent);
                           }
-                          final tokenFoundedData =
-                              await tokenManager.getCryptoInfo(
+                          final tokenFoundedData = await tokenManager
+                              .getCryptoInfo(
                                   address:
                                       _contractAddressController.text.trim(),
-                                  network: selectedNetwork!);
+                                  network: selectedNetwork!)
+                              .withLoading(context, colors);
                           setModalState(() {
                             searchingContractInfo = tokenFoundedData;
                           });
@@ -79,13 +82,21 @@ void showAddToken(
                                     filter:
                                         ImageFilter.blur(sigmaX: 8, sigmaY: 8),
                                     child: AlertDialog(
+                                      contentPadding: const EdgeInsets.all(5),
+                                      titlePadding: const EdgeInsets.all(15),
+                                      buttonPadding: const EdgeInsets.all(15),
+                                      actionsPadding: const EdgeInsets.all(10),
+                                      shape: RoundedRectangleBorder(
+                                          borderRadius:
+                                              BorderRadius.circular(5)),
                                       backgroundColor: colors.primaryColor,
                                       title: Text(
                                         "Confirmation",
                                         style: GoogleFonts.roboto(
                                             color: colors.textColor),
                                       ),
-                                      content: Column(
+                                      content: ListView(
+                                        shrinkWrap: true,
                                         children: [
                                           Container(
                                             padding: const EdgeInsets.all(10),
@@ -158,12 +169,15 @@ void showAddToken(
                                       actions: [
                                         TextButton(
                                           style: ElevatedButton.styleFrom(
+                                              shape: RoundedRectangleBorder(
+                                                  borderRadius:
+                                                      BorderRadius.circular(5)),
                                               backgroundColor:
-                                                  colors.textColor),
+                                                  colors.themeColor),
                                           child: Text(
                                             "Add Token",
                                             style: GoogleFonts.roboto(
-                                                color: colors.primaryColor),
+                                                color: colors.textColor),
                                           ),
                                           onPressed: () async {
                                             final List<Crypto>? cryptos =
@@ -182,9 +196,8 @@ void showAddToken(
                                                             .trim()
                                                             .toLowerCase()) {
                                                   showCustomSnackBar(
+                                                      type: MessageType.warning,
                                                       colors: colors,
-                                                      primaryColor:
-                                                          colors.primaryColor,
                                                       context: context,
                                                       message:
                                                           'Token already added.',
@@ -230,9 +243,8 @@ void showAddToken(
                                             if (saveResult) {
                                               hasSaved = true;
                                               showCustomSnackBar(
+                                                  type: MessageType.success,
                                                   colors: colors,
-                                                  primaryColor:
-                                                      colors.primaryColor,
                                                   context: context,
                                                   icon: Icons.check,
                                                   message:
@@ -241,9 +253,8 @@ void showAddToken(
                                               Navigator.pop(context);
                                             } else {
                                               showCustomSnackBar(
+                                                type: MessageType.error,
                                                 colors: colors,
-                                                primaryColor:
-                                                    colors.primaryColor,
                                                 context: context,
                                                 message: 'Error adding token.',
                                                 iconColor: Colors.red,
@@ -254,8 +265,10 @@ void showAddToken(
                                         ),
                                         TextButton(
                                           style: ElevatedButton.styleFrom(
-                                              backgroundColor:
-                                                  Colors.pinkAccent),
+                                              shape: RoundedRectangleBorder(
+                                                  borderRadius:
+                                                      BorderRadius.circular(5)),
+                                              backgroundColor: colors.redColor),
                                           child: Text(
                                             "Cancel",
                                             style: GoogleFonts.roboto(
@@ -271,8 +284,8 @@ void showAddToken(
                                 });
                           } else {
                             showCustomSnackBar(
+                                type: MessageType.error,
                                 colors: colors,
-                                primaryColor: colors.primaryColor,
                                 context: context,
                                 message: 'Token not found.',
                                 iconColor: Colors.pinkAccent);

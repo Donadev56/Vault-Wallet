@@ -5,6 +5,8 @@ import 'package:lucide_icons_flutter/lucide_icons.dart';
 
 enum CryptoType { network, token }
 
+enum MessageType { success, error, warning, info }
+
 enum SignatureRequestType { ethPersonalSign, ethSign, ethSignTypedData }
 
 extension IconJson on IconData {
@@ -606,7 +608,6 @@ class Balance {
 }
 
 class AppColors {
-  int id;
   final Color primaryColor;
   final Color themeColor;
   final Color greenColor;
@@ -615,7 +616,7 @@ class AppColors {
   final Color textColor;
   final Color redColor;
 
-  AppColors({
+  const AppColors({
     required this.primaryColor,
     required this.themeColor,
     required this.greenColor,
@@ -623,8 +624,16 @@ class AppColors {
     required this.grayColor,
     required this.textColor,
     required this.redColor,
-    this.id = 0,
   });
+
+  static const defaultTheme = AppColors(
+      primaryColor: Color(0XFF0D0D0D),
+      themeColor: Colors.greenAccent,
+      greenColor: Colors.greenAccent,
+      secondaryColor: Color(0XFF121212),
+      grayColor: Color(0XFF353535),
+      textColor: Colors.white,
+      redColor: Colors.pinkAccent);
 
   Map<String, dynamic> toJson() {
     return {
@@ -635,7 +644,6 @@ class AppColors {
       'grayColor': grayColor.value,
       'textColor': textColor.value,
       'redColor': redColor.value,
-      'id': id,
     };
   }
 
@@ -648,7 +656,6 @@ class AppColors {
       grayColor: Color(json['grayColor'] ?? Colors.black.value),
       textColor: Color(json['textColor'] ?? Colors.black.value),
       redColor: Color(json['redColor'] ?? Colors.black.value),
-      id: json['id'] ?? 0,
     );
   }
 

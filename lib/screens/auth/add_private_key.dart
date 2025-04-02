@@ -11,7 +11,9 @@ import 'package:moonwallet/widgets/func/snackbar.dart';
 import 'package:web3dart/web3dart.dart';
 
 class AddPrivateKey extends StatefulWidget {
-  const AddPrivateKey({super.key});
+  const AddPrivateKey({
+    super.key,
+  });
 
   @override
   State<AddPrivateKey> createState() => _AddPrivateKeyState();
@@ -20,26 +22,14 @@ class AddPrivateKey extends StatefulWidget {
 class _AddPrivateKeyState extends State<AddPrivateKey> {
   late TextEditingController _textController;
   final _formKey = GlobalKey<FormState>();
-  AppColors colors = AppColors(
-      primaryColor: Color(0XFF0D0D0D),
-      themeColor: Colors.greenAccent,
-      greenColor: Colors.greenAccent,
-      secondaryColor: Color(0XFF121212),
-      grayColor: Color(0XFF353535),
-      textColor: Colors.white,
-      redColor: Colors.pinkAccent);
+  AppColors colors = AppColors.defaultTheme;
   String firstPassword = "";
   String secondPassword = "";
 
   @override
   void initState() {
     _textController = TextEditingController();
-    SystemChrome.setSystemUIOverlayStyle(
-      const SystemUiOverlayStyle(
-        statusBarColor: Color(0xFF0D0D0D),
-        statusBarIconBrightness: Brightness.light,
-      ),
-    );
+
     super.initState();
   }
 
@@ -89,8 +79,8 @@ class _AddPrivateKeyState extends State<AddPrivateKey> {
       if (result) {
         if (!mounted) return;
         showCustomSnackBar(
+            type: MessageType.success,
             colors: colors,
-            primaryColor: colors.primaryColor,
             context: context,
             message: "Data saved successfully",
             icon: Icons.check_circle,
@@ -102,8 +92,8 @@ class _AddPrivateKeyState extends State<AddPrivateKey> {
     } catch (e) {
       logError(e.toString());
       showCustomSnackBar(
+          type: MessageType.error,
           colors: colors,
-          primaryColor: colors.primaryColor,
           context: context,
           message: "Failed to save the key.",
           iconColor: Colors.pinkAccent);
@@ -120,8 +110,8 @@ class _AddPrivateKeyState extends State<AddPrivateKey> {
       String hexKey;
       if (key.isEmpty) {
         showCustomSnackBar(
+            type: MessageType.error,
             colors: colors,
-            primaryColor: colors.primaryColor,
             context: context,
             message: "Please enter a private key !",
             iconColor: Colors.pinkAccent);

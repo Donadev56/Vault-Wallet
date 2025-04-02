@@ -104,6 +104,7 @@ class _CheckMarkIndicatorState extends State<CheckMarkIndicator>
         IndicatorController controller,
       ) {
         final CheckMarkColors style;
+
         if (_renderCompleteState) {
           if (_hasError) {
             style = widget.style.error;

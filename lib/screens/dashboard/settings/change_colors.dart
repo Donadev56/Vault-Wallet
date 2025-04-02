@@ -1,6 +1,5 @@
 import 'dart:ui';
 
-import 'package:delightful_toast/delight_toast.dart';
 import 'package:delightful_toast/toast/components/toast_card.dart';
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
@@ -10,24 +9,21 @@ import 'package:moonwallet/main.dart';
 import 'package:moonwallet/types/types.dart';
 import 'package:moonwallet/utils/colors.dart';
 import 'package:moonwallet/utils/themes.dart';
+import 'package:moonwallet/widgets/func/snackbar.dart';
 import 'package:photo_view/photo_view.dart';
 
 class ChangeThemeView extends StatefulWidget {
-  const ChangeThemeView({super.key});
+  final AppColors? colors;
+
+  const ChangeThemeView({super.key, this.colors});
 
   @override
   State<ChangeThemeView> createState() => _ChangeThemeViewState();
 }
 
 class _ChangeThemeViewState extends State<ChangeThemeView> {
-  AppColors colors = AppColors(
-      primaryColor: Color(0XFF0D0D0D),
-      themeColor: Colors.greenAccent,
-      greenColor: Colors.greenAccent,
-      secondaryColor: Color(0XFF121212),
-      grayColor: Color(0XFF353535),
-      textColor: Colors.white,
-      redColor: Colors.pinkAccent);
+  AppColors colors = AppColors.defaultTheme;
+
   bool saved = false;
   Themes themes = Themes();
   String savedThemeName = "";
@@ -53,49 +49,24 @@ class _ChangeThemeViewState extends State<ChangeThemeView> {
       final save = await manager.saveDefaultTheme(theme: themeName);
       if (save) {
         saved = true;
-        DelightToastBar(
-          autoDismiss: true,
-          builder: (context) => ToastCard(
-            color: colors.secondaryColor,
-            leading: Icon(
-              color: colors.themeColor,
-              Icons.check_circle,
-              size: 28,
-            ),
-            title: Text(
-              "Theme saved successfully",
-              style: TextStyle(
-                color: colors.textColor,
-                fontWeight: FontWeight.w700,
-                fontSize: 14,
-              ),
-            ),
-          ),
-        ).show(context);
+
+        showCustomSnackBar(
+            context: context,
+            message: "Theme saved successfully",
+            colors: colors,
+            type: MessageType.success,
+            iconColor: colors.greenColor,
+            icon: Icons.check);
       } else {
         throw Exception("An error occurred");
       }
     } catch (e) {
       logError(e.toString());
-      DelightToastBar(
-        autoDismiss: true,
-        builder: (context) => ToastCard(
-          color: colors.secondaryColor,
-          leading: Icon(
-            color: colors.redColor,
-            Icons.error,
-            size: 28,
-          ),
-          title: Text(
-            "An error occurred",
-            style: TextStyle(
-              color: colors.textColor,
-              fontWeight: FontWeight.w700,
-              fontSize: 14,
-            ),
-          ),
-        ),
-      ).show(context);
+      showCustomSnackBar(
+          context: context,
+          message: "${e.toString()}",
+          colors: colors,
+          type: MessageType.error);
     }
   }
 
@@ -103,6 +74,11 @@ class _ChangeThemeViewState extends State<ChangeThemeView> {
   void initState() {
     super.initState();
     getSavedTheme();
+    if (widget.colors != null) {
+      setState(() {
+        colors = widget.colors!;
+      });
+    }
   }
 
   @override

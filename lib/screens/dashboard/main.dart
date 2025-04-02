@@ -3,11 +3,9 @@
 import 'dart:async';
 import 'dart:convert';
 import 'dart:io';
-import 'dart:math' as math;
+import 'dart:isolate';
 import 'package:currency_formatter/currency_formatter.dart';
-import 'package:custom_refresh_indicator/custom_refresh_indicator.dart';
 import 'package:device_info_plus/device_info_plus.dart';
-import 'package:liquid_pull_to_refresh/liquid_pull_to_refresh.dart';
 import 'package:loading_animation_widget/loading_animation_widget.dart';
 import 'package:moonwallet/custom/refresh/check_mark.dart';
 import 'package:moonwallet/custom/web3_webview/lib/utils/loading.dart';
@@ -20,7 +18,7 @@ import 'package:moonwallet/service/wallet_saver.dart';
 import 'package:moonwallet/utils/colors.dart';
 import 'package:moonwallet/widgets/appBar/show_custom_drawer.dart';
 import 'package:moonwallet/widgets/crypto_picture.dart';
-import 'package:moonwallet/widgets/dot.dart';
+import 'package:moonwallet/widgets/pop_menu_divider.dart';
 import 'package:moonwallet/widgets/func/ask_password.dart';
 import 'package:moonwallet/widgets/func/show_crypto_modal.dart';
 import 'package:moonwallet/widgets/func/show_home_options_dialog.dart';
@@ -50,7 +48,8 @@ import 'package:simple_gesture_detector/simple_gesture_detector.dart';
 import 'package:http/http.dart';
 
 class MainDashboardScreen extends StatefulWidget {
-  const MainDashboardScreen({super.key});
+  final AppColors? colors;
+  const MainDashboardScreen({super.key, this.colors});
 
   @override
   State<MainDashboardScreen> createState() => _MainDashboardScreenState();
@@ -68,14 +67,7 @@ class _MainDashboardScreenState extends State<MainDashboardScreen>
   File? _backgroundImage;
   String userName = "Moon User";
 
-  AppColors colors = AppColors(
-      primaryColor: Color(0XFF0D0D0D),
-      themeColor: Colors.greenAccent,
-      greenColor: Colors.greenAccent,
-      secondaryColor: Color(0XFF121212),
-      grayColor: Color(0XFF353535),
-      textColor: Colors.white,
-      redColor: Colors.pinkAccent);
+  AppColors colors = AppColors.defaultTheme;
 
   List<PublicData> accounts = [];
   List<PublicData> filteredAccounts = [];
@@ -113,7 +105,11 @@ class _MainDashboardScreenState extends State<MainDashboardScreen>
 
   @override
   void initState() {
-    log("blue ${const Color.fromARGB(255, 100, 156, 254).value} violet ${const Color.fromARGB(255, 199, 179, 255).value} red ${Colors.redAccent.value}");
+    if (widget.colors != null) {
+      setState(() {
+        colors = widget.colors!;
+      });
+    }
     getIsHidden();
     getSavedTheme();
     getSavedWallets();
@@ -195,9 +191,9 @@ class _MainDashboardScreenState extends State<MainDashboardScreen>
       log("Retrieved $count wallets");
       if (count == 0) {
         showCustomSnackBar(
+            type: MessageType.error,
             context: context,
             message: "No wallet found",
-            primaryColor: colors.primaryColor,
             colors: colors);
         goToHome(context);
       }
@@ -269,8 +265,8 @@ class _MainDashboardScreenState extends State<MainDashboardScreen>
     try {
       if (name.isEmpty) {
         showCustomSnackBar(
+            type: MessageType.error,
             colors: colors,
-            primaryColor: colors.primaryColor,
             context: context,
             message: "Name cannot be empty",
             iconColor: Colors.pinkAccent);
@@ -295,9 +291,9 @@ class _MainDashboardScreenState extends State<MainDashboardScreen>
       if (result) {
         if (mounted) {
           showCustomSnackBar(
+              type: MessageType.success,
               icon: Icons.check,
               colors: colors,
-              primaryColor: colors.primaryColor,
               context: context,
               message: "Name edit was successful",
               iconColor: Colors.greenAccent);
@@ -305,9 +301,9 @@ class _MainDashboardScreenState extends State<MainDashboardScreen>
       } else {
         if (mounted) {
           showCustomSnackBar(
+              type: MessageType.error,
               icon: Icons.check,
               colors: colors,
-              primaryColor: colors.primaryColor,
               context: context,
               message: "Name edit failed",
               iconColor: Colors.pinkAccent);
@@ -366,9 +362,9 @@ class _MainDashboardScreenState extends State<MainDashboardScreen>
       if (result) {
         if (mounted) {
           showCustomSnackBar(
+              type: MessageType.success,
               icon: Icons.check,
               colors: colors,
-              primaryColor: colors.primaryColor,
               context: context,
               message: "Data was successful",
               iconColor: Colors.greenAccent);
@@ -376,9 +372,9 @@ class _MainDashboardScreenState extends State<MainDashboardScreen>
       } else {
         if (mounted) {
           showCustomSnackBar(
+              type: MessageType.error,
               icon: Icons.check,
               colors: colors,
-              primaryColor: colors.primaryColor,
               context: context,
               message: "Data edit failed",
               iconColor: Colors.pinkAccent);
@@ -411,6 +407,7 @@ class _MainDashboardScreenState extends State<MainDashboardScreen>
               currentAccount = accounts[index - 1];
             });
           }
+          await encryptService.saveLastConnectedData(currentAccount!.address);
 
           currentList.removeAt(index);
           setState(() {
@@ -421,8 +418,8 @@ class _MainDashboardScreenState extends State<MainDashboardScreen>
           if (result) {
             if (mounted) {
               showCustomSnackBar(
+                  type: MessageType.success,
                   colors: colors,
-                  primaryColor: colors.primaryColor,
                   context: context,
                   message: "Wallet deleted successfully",
                   icon: Icons.check_circle,
@@ -442,8 +439,8 @@ class _MainDashboardScreenState extends State<MainDashboardScreen>
           } else {
             if (mounted) {
               showCustomSnackBar(
+                  type: MessageType.error,
                   colors: colors,
-                  primaryColor: colors.primaryColor,
                   context: context,
                   message: "Wallet deletion failed",
                   iconColor: Colors.pinkAccent);
@@ -454,8 +451,8 @@ class _MainDashboardScreenState extends State<MainDashboardScreen>
           }
         } else {
           showCustomSnackBar(
+              type: MessageType.error,
               colors: colors,
-              primaryColor: colors.primaryColor,
               context: context,
               message: "Incorrect password",
               iconColor: Colors.pinkAccent);
@@ -464,8 +461,8 @@ class _MainDashboardScreenState extends State<MainDashboardScreen>
         }
       } else {
         showCustomSnackBar(
+            type: MessageType.error,
             colors: colors,
-            primaryColor: colors.primaryColor,
             context: context,
             message: "Wallet not found",
             iconColor: Colors.pinkAccent);
@@ -475,9 +472,9 @@ class _MainDashboardScreenState extends State<MainDashboardScreen>
     } catch (e) {
       logError(e.toString());
       showCustomSnackBar(
+          type: MessageType.error,
           context: context,
           message: e.toString(),
-          primaryColor: colors.primaryColor,
           colors: colors);
       return false;
     }
@@ -524,15 +521,14 @@ class _MainDashboardScreenState extends State<MainDashboardScreen>
     }
   }
 
- 
   Future<void> showPrivateData(int index) async {
     try {
       final wallet = accounts[index];
       if (wallet.isWatchOnly) {
         Navigator.pop(context);
         showCustomSnackBar(
+            type: MessageType.error,
             colors: colors,
-            primaryColor: colors.primaryColor,
             context: context,
             message: "This is a watch-only wallet.",
             iconColor: Colors.pinkAccent);
@@ -567,8 +563,8 @@ class _MainDashboardScreenState extends State<MainDashboardScreen>
       } else {
         if (mounted) {
           showCustomSnackBar(
+              type: MessageType.error,
               colors: colors,
-              primaryColor: colors.primaryColor,
               context: context,
               message: "List reorder failed",
               iconColor: Colors.pinkAccent);
@@ -603,8 +599,8 @@ class _MainDashboardScreenState extends State<MainDashboardScreen>
       } else {
         if (mounted) {
           showCustomSnackBar(
+              type: MessageType.error,
               colors: colors,
-              primaryColor: colors.primaryColor,
               context: context,
               message: "Wallet change failed",
               iconColor: Colors.pinkAccent);
@@ -614,9 +610,9 @@ class _MainDashboardScreenState extends State<MainDashboardScreen>
       logError(e.toString());
       if (mounted) {
         showCustomSnackBar(
+            type: MessageType.error,
             context: context,
             message: "$e",
-            primaryColor: colors.primaryColor,
             colors: colors);
       }
     }
@@ -718,27 +714,27 @@ class _MainDashboardScreenState extends State<MainDashboardScreen>
   Future<void> getCryptoData({required PublicData account}) async {
     try {
       final dataName = "cryptoAndBalance/${account.address}";
-      final savedDataResult =  await Future.wait([
+      final savedDataResult = await Future.wait([
         publicDataManager.getDataFromPrefs(key: dataName),
         cryptoStorageManager.getSavedCryptos(wallet: account)
       ]);
 
       List<Crypto> standardCrypto = [];
       try {
-       standardCrypto = await CryptoRequestManager().getAllCryptos();
+        standardCrypto = await CryptoRequestManager().getAllCryptos();
       } catch (e) {
         logError(e.toString());
       }
 
-
       if (standardCrypto.isEmpty) {
-        standardCrypto.addAll(
-          popularCrypto
-        );
+        standardCrypto.addAll(popularCrypto);
       }
 
       final savedData = (savedDataResult[0] as String?);
       final savedCrypto = (savedDataResult[1] as List<Crypto>?);
+
+      log("Saved Crypto length ${savedCrypto?.length}");
+      log("Standard Crypto length ${standardCrypto.length}");
 
       List<Crypto> cryptosList = [];
       List<Crypto> enabledCryptos = [];
@@ -754,6 +750,7 @@ class _MainDashboardScreenState extends State<MainDashboardScreen>
           balances.add(newBalance);
           userBalanceUsd += newBalance.balanceUsd;
           availableCryptos.add(newBalance.crypto);
+
           if (balances.isNotEmpty) {
             setState(() {
               reorganizedCrypto = availableCryptos;
@@ -769,16 +766,15 @@ class _MainDashboardScreenState extends State<MainDashboardScreen>
       } else {
         cryptosList = savedCrypto;
       }
-
+      log("Crypto List length ${cryptosList.length}");
       if (cryptosList.isNotEmpty) {
         enabledCryptos =
             cryptosList.where((c) => c.canDisplay == true).toList();
         userBalanceUsd = 0;
         availableCryptos = [];
-         List<Map<String, Object>> results =  [];
+        List<Map<String, Object>> results = [];
 
-        try {
-           results =  await Future.wait(enabledCryptos.map((crypto) async {
+        results = await Future.wait(enabledCryptos.map((crypto) async {
           final balance = await web3InteractManager.getBalance(account, crypto);
           final trend = await priceManager
               .checkCryptoTrend(crypto.binanceSymbol ?? "${crypto.symbol}USDT");
@@ -798,11 +794,6 @@ class _MainDashboardScreenState extends State<MainDashboardScreen>
             "balanceUsd": balanceUsd
           };
         }));
-        } catch (e) {
-          logError(e.toString());
-          throw e.toString();
-          
-        }
 
         cryptoBalance.addAll(results.map((r) => r["cryptoBalance"] as Balance));
         availableCryptos
@@ -830,15 +821,15 @@ class _MainDashboardScreenState extends State<MainDashboardScreen>
           cryptoStorageManager.saveListCrypto(
               cryptos: cryptosList, wallet: account),
         ]);
-
       }
     } catch (e) {
       logError(e.toString());
     }
   }
 
- Future<void> silentUpdate() async {
+  Future<void> silentUpdate() async {
     try {
+      log("Isolate update of balances");
       final savedData = await web3Manager.getPublicData();
       List<PublicData> wallets = [];
       final List<Crypto> standardCrypto =
@@ -1022,7 +1013,7 @@ class _MainDashboardScreenState extends State<MainDashboardScreen>
           child: SizedBox(
             height: 30,
             width: 30,
-            child: LoadingAnimationWidget.hexagonDots(
+            child: LoadingAnimationWidget.discreteCircle(
                 color: colors.themeColor, size: 40),
           ),
         ),
@@ -1138,12 +1129,18 @@ class _MainDashboardScreenState extends State<MainDashboardScreen>
             textColor: colors.textColor,
             surfaceTintColor: colors.secondaryColor),
         body: CheckMarkIndicator(
-          style: CheckMarkStyle(loading: CheckMarkColors(content: colors.primaryColor, background: colors.themeColor), success: CheckMarkColors(content: colors.textColor, background: colors.greenColor), error: CheckMarkColors(content: colors.textColor, background: colors.redColor)),
-           // showChildOpacityTransition: false,
-           // color: colors.themeColor,
-           // backgroundColor: colors.primaryColor,
+            style: CheckMarkStyle(
+                loading: CheckMarkColors(
+                    content: colors.primaryColor,
+                    background: colors.themeColor),
+                success: CheckMarkColors(
+                    content: colors.textColor, background: colors.greenColor),
+                error: CheckMarkColors(
+                    content: colors.textColor, background: colors.redColor)),
+            // showChildOpacityTransition: false,
+            // color: colors.themeColor,
+            // backgroundColor: colors.primaryColor,
             key: _refreshIndicatorKey,
-      
             onRefresh: () async {
               await vibrate(duration: 10);
               if (currentAccount != null) {
@@ -1193,13 +1190,15 @@ class _MainDashboardScreenState extends State<MainDashboardScreen>
                               SizedBox(
                                 height: 10,
                               ),
-                            Text(
-                                  !isHidden ?    "\$ ${formatUsd(totalBalanceUsd.toString())}" : "***",
-                                      style: GoogleFonts.roboto(
-                                          color: colors.textColor,
-                                          fontSize: 30,
-                                          fontWeight: FontWeight.bold),
-                                    ),
+                              Text(
+                                !isHidden
+                                    ? "\$ ${formatUsd(totalBalanceUsd.toString())}"
+                                    : "***",
+                                style: GoogleFonts.roboto(
+                                    color: colors.textColor,
+                                    fontSize: 30,
+                                    fontWeight: FontWeight.bold),
+                              ),
                             ],
                           ),
                         ),
@@ -1308,6 +1307,10 @@ class _MainDashboardScreenState extends State<MainDashboardScreen>
                           )),
                       actions: [
                         PopupMenuButton(
+                            splashRadius: 10,
+                            borderRadius: BorderRadius.circular(10),
+                            requestFocus: true,
+                            menuPadding: const EdgeInsets.all(0),
                             padding: const EdgeInsets.all(0),
                             color: colors.secondaryColor,
                             icon: Icon(
@@ -1321,12 +1324,15 @@ class _MainDashboardScreenState extends State<MainDashboardScreen>
                                     },
                                     child: Row(children: [
                                       Icon(fixedAppBarOptions[0]["icon"],
+                                          size: 25,
                                           color: colors.textColor
                                               .withOpacity(0.4)),
                                       SizedBox(width: 8),
                                       Text(fixedAppBarOptions[0]["name"],
                                           style: customTextStyle(
-                                              color: colors.textColor)),
+                                              fontWeight: FontWeight.w500,
+                                              color: colors.textColor
+                                                  .withOpacity(0.7))),
                                     ]),
                                   ),
                                   PopupMenuItem(
@@ -1340,10 +1346,12 @@ class _MainDashboardScreenState extends State<MainDashboardScreen>
                                       SizedBox(width: 8),
                                       Text(fixedAppBarOptions[1]["name"],
                                           style: customTextStyle(
-                                              color: colors.textColor)),
+                                              fontWeight: FontWeight.w500,
+                                              color: colors.textColor
+                                                  .withOpacity(0.7))),
                                     ]),
                                   ),
-                                  PopupMenuDivider(),
+                                  CustomPopMenuDivider(colors: colors),
                                   PopupMenuItem(
                                     onTap: () {
                                       Navigator.pushNamed(
@@ -1356,7 +1364,9 @@ class _MainDashboardScreenState extends State<MainDashboardScreen>
                                       SizedBox(width: 8),
                                       Text(fixedAppBarOptions[2]["name"],
                                           style: customTextStyle(
-                                              color: colors.textColor)),
+                                              fontWeight: FontWeight.w500,
+                                              color: colors.textColor
+                                                  .withOpacity(0.7))),
                                     ]),
                                   ),
                                 ])

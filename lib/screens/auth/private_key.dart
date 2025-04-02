@@ -22,14 +22,8 @@ class _CreatePrivateKeyState extends State<CreatePrivateKey> {
   String firstPassword = "";
   String secondPassword = "";
   final manager = WalletSaver();
-  AppColors colors = AppColors(
-      primaryColor: Color(0XFF0D0D0D),
-      themeColor: Colors.greenAccent,
-      greenColor: Colors.greenAccent,
-      secondaryColor: Color(0XFF121212),
-      grayColor: Color(0XFF353535),
-      textColor: Colors.white,
-      redColor: Colors.pinkAccent);
+  AppColors colors = AppColors.defaultTheme;
+
   @override
   void initState() {
     _textController = TextEditingController();
@@ -57,8 +51,8 @@ class _CreatePrivateKeyState extends State<CreatePrivateKey> {
     } catch (e) {
       if (!mounted) return;
       showCustomSnackBar(
+          type: MessageType.error,
           colors: colors,
-          primaryColor: colors.primaryColor,
           context: context,
           message: "Failed to create a key");
     }
@@ -107,8 +101,8 @@ class _CreatePrivateKeyState extends State<CreatePrivateKey> {
       if (result) {
         if (!mounted) return;
         showCustomSnackBar(
+            type: MessageType.success,
             colors: colors,
-            primaryColor: colors.primaryColor,
             context: context,
             message: "Data saved successfully",
             icon: Icons.check_circle,
@@ -121,8 +115,8 @@ class _CreatePrivateKeyState extends State<CreatePrivateKey> {
     } catch (e) {
       logError(e.toString());
       showCustomSnackBar(
+          type: MessageType.error,
           colors: colors,
-          primaryColor: colors.primaryColor,
           context: context,
           message: "Failed to save the key.",
           iconColor: Colors.pinkAccent);

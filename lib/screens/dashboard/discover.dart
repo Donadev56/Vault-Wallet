@@ -23,7 +23,8 @@ import 'package:moonwallet/widgets/func/browser/change_network.dart';
 import 'package:moonwallet/widgets/func/snackbar.dart';
 
 class DiscoverScreen extends StatefulWidget {
-  const DiscoverScreen({super.key});
+  final AppColors? colors;
+  const DiscoverScreen({super.key, this.colors});
 
   @override
   State<DiscoverScreen> createState() => _DiscoverScreenState();
@@ -99,7 +100,11 @@ class _DiscoverScreenState extends State<DiscoverScreen>
   @override
   void initState() {
     super.initState();
-
+    if (widget.colors != null) {
+      setState(() {
+        colors = widget.colors!;
+      });
+    }
     _tabController = TabController(length: 2, vsync: this);
     getSavedTheme();
     _focusNode.addListener(() {
@@ -329,9 +334,9 @@ class _DiscoverScreenState extends State<DiscoverScreen>
         logError("No saved cryptos found");
 
         showCustomSnackBar(
+            type: MessageType.error,
             context: context,
             message: "No saved cryptos found",
-            primaryColor: colors.primaryColor,
             colors: colors);
       }
     } catch (e) {
@@ -349,17 +354,17 @@ class _DiscoverScreenState extends State<DiscoverScreen>
 
       if (url.isEmpty) {
         showCustomSnackBar(
+            type: MessageType.error,
             context: context,
             message: "Url cannot be empty",
-            primaryColor: colors.primaryColor,
             colors: colors);
         return;
       }
       if (networks.isEmpty) {
         showCustomSnackBar(
+            type: MessageType.error,
             context: context,
             message: "No saved cryptos found",
-            primaryColor: colors.primaryColor,
             colors: colors);
         return;
       }
@@ -393,9 +398,9 @@ class _DiscoverScreenState extends State<DiscoverScreen>
     } catch (e) {
       logError(e.toString());
       showCustomSnackBar(
+          type: MessageType.error,
           context: context,
           message: "Error opening browser: $e",
-          primaryColor: colors.primaryColor,
           colors: colors);
     }
   }
@@ -440,8 +445,8 @@ class _DiscoverScreenState extends State<DiscoverScreen>
                         } catch (e) {
                           logError(e.toString());
                           showCustomSnackBar(
+                              type: MessageType.error,
                               colors: colors,
-                              primaryColor: colors.primaryColor,
                               context: context,
                               message: "Invalid Url",
                               iconColor: Colors.pinkAccent);
@@ -586,14 +591,18 @@ class _DiscoverScreenState extends State<DiscoverScreen>
                                 decoration: BoxDecoration(
                                     color: colors.grayColor.withOpacity(0.5)),
                                 child: Image.network(
-                                  errorBuilder: (ctx , widget , error)  {
-                                    return SizedBox(width:30, height: 30, child: ColoredBox(color: colors.themeColor),);
+                                  errorBuilder: (ctx, widget, error) {
+                                    return SizedBox(
+                                      width: 30,
+                                      height: 30,
+                                      child:
+                                          ColoredBox(color: colors.themeColor),
+                                    );
                                   },
-                                 "https://www.google.com/s2/favicons?domain_url=${hist.link}",
+                                  "https://www.google.com/s2/favicons?domain_url=${hist.link}",
                                   width: 30,
                                   height: 30,
                                   fit: BoxFit.cover,
-                                 
                                 ))),
                         title: Text(
                           hist.title,
@@ -610,16 +619,16 @@ class _DiscoverScreenState extends State<DiscoverScreen>
                               final res = await deleteHistoryItem(index);
                               if (res) {
                                 showCustomSnackBar(
+                                    type: MessageType.success,
                                     colors: colors,
-                                    primaryColor: colors.primaryColor,
                                     context: context,
                                     message: "Deleted successfully",
                                     iconColor: Colors.greenAccent,
                                     icon: Icons.check);
                               } else {
                                 showCustomSnackBar(
+                                    type: MessageType.error,
                                     colors: colors,
-                                    primaryColor: colors.primaryColor,
                                     context: context,
                                     message: "Failed to delete",
                                     iconColor: Colors.pinkAccent,

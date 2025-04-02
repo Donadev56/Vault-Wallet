@@ -31,14 +31,8 @@ class _AddPrivateKeyState extends State<AddPrivateKeyInMain> {
   bool isDarkMode = false;
 
   final manager = WalletSaver();
-  AppColors colors = AppColors(
-      primaryColor: Color(0XFF0D0D0D),
-      themeColor: Colors.greenAccent,
-      greenColor: Colors.greenAccent,
-      secondaryColor: Color(0XFF121212),
-      grayColor: Color(0XFF353535),
-      textColor: Colors.white,
-      redColor: Colors.pinkAccent);
+  AppColors colors = AppColors.defaultTheme;
+
   Themes themes = Themes();
   String savedThemeName = "";
   Future<void> getSavedTheme() async {
@@ -78,7 +72,7 @@ class _AddPrivateKeyState extends State<AddPrivateKeyInMain> {
       logError(e.toString());
       showCustomSnackBar(
           colors: colors,
-          primaryColor: colors.primaryColor,
+          type: MessageType.error,
           context: context,
           message: "Error occurred while creating private key.",
           icon: Icons.error,
@@ -105,7 +99,7 @@ class _AddPrivateKeyState extends State<AddPrivateKeyInMain> {
         if (!mounted) return;
         showCustomSnackBar(
             colors: colors,
-            primaryColor: colors.primaryColor,
+            type: MessageType.success,
             context: context,
             message: "Data saved successfully",
             icon: Icons.check_circle,
@@ -118,7 +112,7 @@ class _AddPrivateKeyState extends State<AddPrivateKeyInMain> {
       logError(e.toString());
       showCustomSnackBar(
           colors: colors,
-          primaryColor: colors.primaryColor,
+          type: MessageType.error,
           context: context,
           message: "Failed to save the key.",
           iconColor: Colors.pinkAccent);
@@ -134,7 +128,7 @@ class _AddPrivateKeyState extends State<AddPrivateKeyInMain> {
       if (key.length < 60) {
         showCustomSnackBar(
             colors: colors,
-            primaryColor: colors.primaryColor,
+            type: MessageType.error,
             context: context,
             message: "Private key is not valid.",
             iconColor: Colors.pinkAccent);
@@ -144,7 +138,7 @@ class _AddPrivateKeyState extends State<AddPrivateKeyInMain> {
       if (key.isEmpty) {
         showCustomSnackBar(
             colors: colors,
-            primaryColor: colors.primaryColor,
+            type: MessageType.error,
             context: context,
             message: "Please enter a private key !",
             iconColor: Colors.pinkAccent);

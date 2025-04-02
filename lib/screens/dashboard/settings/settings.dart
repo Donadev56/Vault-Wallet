@@ -30,14 +30,8 @@ class _SettingsPageState extends State<SettingsPage> {
 
   final publicDataManager = PublicDataManager();
   bool isDarkMode = false;
-  AppColors colors = AppColors(
-      primaryColor: Color(0XFF0D0D0D),
-      themeColor: Colors.greenAccent,
-      greenColor: Colors.greenAccent,
-      secondaryColor: Color(0XFF121212),
-      grayColor: Color(0XFF353535),
-      textColor: Colors.white,
-      redColor: Colors.pinkAccent);
+  AppColors colors = AppColors.defaultTheme;
+
   Themes themes = Themes();
   String savedThemeName = "";
   Future<void> getSavedTheme() async {
@@ -291,14 +285,14 @@ class _SettingsPageState extends State<SettingsPage> {
                       if (!res) {
                         showCustomSnackBar(
                             colors: colors,
-                            primaryColor: colors.primaryColor,
+                            type: MessageType.error,
                             context: context,
                             message: "An error has occurred",
                             iconColor: Colors.pinkAccent);
                       } else {
                         showCustomSnackBar(
                             colors: colors,
-                            primaryColor: colors.primaryColor,
+                            type: MessageType.success,
                             context: context,
                             message: "Settings saved successfully",
                             iconColor: Colors.greenAccent);
@@ -309,7 +303,7 @@ class _SettingsPageState extends State<SettingsPage> {
                     if (!mounted) return;
                     showCustomSnackBar(
                         colors: colors,
-                        primaryColor: colors.primaryColor,
+                        type: MessageType.error,
                         context: context,
                         message: "An error has occurred",
                         iconColor: Colors.pinkAccent);

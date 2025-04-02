@@ -34,7 +34,8 @@ import 'package:permission_handler/permission_handler.dart';
 import 'package:qr_code_scanner_plus/qr_code_scanner_plus.dart';
 
 class SendTransactionScreen extends StatefulWidget {
-  const SendTransactionScreen({super.key});
+  final AppColors? colors;
+  const SendTransactionScreen({super.key, this.colors});
 
   @override
   State<SendTransactionScreen> createState() => _SendTransactionScreenState();
@@ -115,6 +116,11 @@ class _SendTransactionScreenState extends State<SendTransactionScreen> {
   @override
   void initState() {
     super.initState();
+    if (widget.colors != null) {
+      setState(() {
+        colors = widget.colors!;
+      });
+    }
     getSavedTheme();
     askCamera();
   }

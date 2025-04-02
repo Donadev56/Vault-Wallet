@@ -22,7 +22,7 @@ import 'package:moonwallet/screens/dashboard/view/send.dart';
 import 'package:moonwallet/screens/dashboard/wallet_actions/add_WO.dart';
 import 'package:moonwallet/screens/dashboard/wallet_actions/add_mnemonic.dart';
 import 'package:moonwallet/screens/dashboard/wallet_actions/add_private_key.dart';
-import 'package:moonwallet/screens/dashboard/wallet_actions/private_key.dart';
+import 'package:moonwallet/screens/dashboard/wallet_actions/create_private_key.dart';
 import 'package:moonwallet/service/wallet_saver.dart';
 import 'package:moonwallet/service/web3.dart';
 import 'package:moonwallet/types/types.dart';
@@ -124,9 +124,9 @@ class _MyAppState extends State<MyApp> {
     } catch (e) {
       logError(e.toString());
       showCustomSnackBar(
+          type: MessageType.error,
           context: context,
           message: e.toString(),
-          primaryColor: colors.primaryColor,
           colors: colors);
 
       return false;
@@ -168,9 +168,9 @@ class _MyAppState extends State<MyApp> {
     } catch (e) {
       logError(e.toString());
       showCustomSnackBar(
+          type: MessageType.error,
           context: context,
           message: e.toString(),
-          primaryColor: colors.primaryColor,
           colors: colors);
     }
   }
@@ -232,9 +232,15 @@ class _MyAppState extends State<MyApp> {
                 ),
                 initialRoute: snapshot.data! ? Routes.pageManager : Routes.home,
                 routes: {
-                  Routes.main: (context) => MainDashboardScreen(),
-                  Routes.discover: (context) => DiscoverScreen(),
-                  Routes.browser: (context) => Web3BrowserScreen(),
+                  Routes.main: (context) => MainDashboardScreen(
+                        colors: colors,
+                      ),
+                  Routes.discover: (context) => DiscoverScreen(
+                        colors: colors,
+                      ),
+                  Routes.browser: (context) => Web3BrowserScreen(
+                        colors: colors,
+                      ),
                   Routes.home: (context) => HomeScreen(),
                   Routes.privateKeyCreator: (context) => CreatePrivateKey(),
                   Routes.addPrivateKey: (context) => AddPrivateKey(),
@@ -245,13 +251,25 @@ class _MyAppState extends State<MyApp> {
                   Routes.createAccountFromSed: (context) => AddMnemonicScreen(),
                   Routes.addObservationWallet: (context) =>
                       AddObservationWallet(),
-                  Routes.privateDataScreen: (context) => PrivateKeyScreen(),
-                  Routes.receiveScreen: (context) => ReceiveScreen(),
-                  Routes.sendScreen: (context) => SendTransactionScreen(),
+                  Routes.privateDataScreen: (context) => PrivateKeyScreen(
+                        colors: colors,
+                      ),
+                  Routes.receiveScreen: (context) => ReceiveScreen(
+                        colors: colors,
+                      ),
+                  Routes.sendScreen: (context) => SendTransactionScreen(
+                        colors: colors,
+                      ),
                   Routes.settings: (context) => SettingsPage(),
-                  Routes.addCrypto: (context) => AddCryptoView(),
-                  Routes.pageManager: (context) => PagesManagerView(),
-                  Routes.changeTheme: (context) => ChangeThemeView(),
+                  Routes.addCrypto: (context) => AddCryptoView(
+                        colors: colors,
+                      ),
+                  Routes.pageManager: (context) => PagesManagerView(
+                        colors: colors,
+                      ),
+                  Routes.changeTheme: (context) => ChangeThemeView(
+                        colors: colors,
+                      ),
                 });
           } else {
             return const Center(child: Text("An error occurred."));

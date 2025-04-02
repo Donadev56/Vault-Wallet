@@ -30,15 +30,8 @@ class _AddPrivateKeyState extends State<AddObservationWallet> {
   final web3Manager = WalletSaver();
   final publicDataManager = PublicDataManager();
   bool isDarkMode = false;
+  AppColors colors = AppColors.defaultTheme;
 
-  AppColors colors = AppColors(
-      primaryColor: Color(0XFF0D0D0D),
-      themeColor: Colors.greenAccent,
-      greenColor: Colors.greenAccent,
-      secondaryColor: Color(0XFF121212),
-      grayColor: Color(0XFF353535),
-      textColor: Colors.white,
-      redColor: Colors.pinkAccent);
   Themes themes = Themes();
   String savedThemeName = "";
   Future<void> getSavedTheme() async {
@@ -81,7 +74,7 @@ class _AddPrivateKeyState extends State<AddObservationWallet> {
       logError(e.toString());
       showCustomSnackBar(
           colors: colors,
-          primaryColor: colors.primaryColor,
+          type: MessageType.error,
           context: context,
           message: "Error occurred while creating private key.",
           icon: Icons.error,
@@ -105,7 +98,7 @@ class _AddPrivateKeyState extends State<AddObservationWallet> {
         if (!mounted) return;
         showCustomSnackBar(
             colors: colors,
-            primaryColor: colors.primaryColor,
+            type: MessageType.success,
             context: context,
             message: "Data saved successfully",
             icon: Icons.check_circle,
@@ -118,7 +111,7 @@ class _AddPrivateKeyState extends State<AddObservationWallet> {
       logError(e.toString());
       showCustomSnackBar(
           colors: colors,
-          primaryColor: colors.primaryColor,
+          type: MessageType.error,
           context: context,
           message: "Failed to save the address.",
           iconColor: Colors.pinkAccent);

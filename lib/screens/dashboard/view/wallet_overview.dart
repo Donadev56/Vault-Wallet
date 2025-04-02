@@ -36,7 +36,8 @@ import 'package:url_launcher/url_launcher.dart';
 
 class WalletViewScreen extends StatefulWidget {
   final String cryptoId;
-  const WalletViewScreen({super.key, required this.cryptoId});
+  final AppColors? colors;
+  const WalletViewScreen({super.key, required this.cryptoId, this.colors});
 
   @override
   State<WalletViewScreen> createState() => _WalletViewScreenState();
@@ -236,6 +237,11 @@ class _WalletViewScreenState extends State<WalletViewScreen>
   @override
   void initState() {
     super.initState();
+    if (widget.colors != null) {
+      setState(() {
+        colors = widget.colors!;
+      });
+    }
     getSavedTheme();
     reorganizeCrypto();
     _tabController = TabController(length: 3, vsync: this);

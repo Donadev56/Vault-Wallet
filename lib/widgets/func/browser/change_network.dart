@@ -1,3 +1,5 @@
+// ignore_for_file: deprecated_member_use
+
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:lucide_icons_flutter/lucide_icons.dart';
@@ -80,8 +82,8 @@ Future<bool> showChangeNetworkModal(
                         style: GoogleFonts.roboto(color: textColor),
                       ),
                       trailing: Icon(
-                        Icons.arrow_right_outlined,
-                        color: textColor.withOpacity(0.6),
+                        LucideIcons.chevronRight,
+                        color: textColor.withOpacity(0.4),
                       ),
                     ),
                   );

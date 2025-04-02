@@ -39,7 +39,7 @@ class TransactionHandler {
         showCustomSnackBar(
             context: context,
             message: "Hash : $txHash",
-            primaryColor: colors.primaryColor,
+            type: MessageType.success,
             colors: colors,
             iconColor: colors.greenColor,
             icon: Icons.check_circle);
@@ -51,7 +51,7 @@ class TransactionHandler {
       showCustomSnackBar(
           context: context,
           message: "$e",
-          primaryColor: colors.redColor,
+          type: MessageType.error,
           colors: colors,
           iconColor: colors.redColor,
           icon: Icons.error);

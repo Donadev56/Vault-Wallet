@@ -21,7 +21,8 @@ import 'package:moonwallet/types/types.dart';
 import 'package:moonwallet/utils/prefs.dart';
 
 class AddCryptoView extends StatefulWidget {
-  const AddCryptoView({super.key});
+  final AppColors? colors;
+  const AddCryptoView({super.key, this.colors});
 
   @override
   State<AddCryptoView> createState() => _AddCryptoViewState();
@@ -49,14 +50,8 @@ class _AddCryptoViewState extends State<AddCryptoView> {
   final TextEditingController _searchController = TextEditingController();
 
   final publicDataManager = PublicDataManager();
-  AppColors colors = AppColors(
-      primaryColor: Color(0XFF0D0D0D),
-      themeColor: Colors.greenAccent,
-      greenColor: Colors.greenAccent,
-      secondaryColor: Color(0XFF121212),
-      grayColor: Color(0XFF353535),
-      textColor: Colors.white,
-      redColor: Colors.pinkAccent);
+  AppColors colors = AppColors.defaultTheme;
+
   bool saved = false;
   Themes themes = Themes();
   String savedThemeName = "";
@@ -79,6 +74,11 @@ class _AddCryptoViewState extends State<AddCryptoView> {
   @override
   void initState() {
     super.initState();
+    if (widget.colors != null) {
+      setState(() {
+        colors = widget.colors!;
+      });
+    }
     getSavedTheme();
     getSavedWallets();
   }
@@ -92,9 +92,10 @@ class _AddCryptoViewState extends State<AddCryptoView> {
       final savedData = await web3Manager.getPublicData();
 
       final lastAccount = await encryptService.getLastConnectedAddress();
+      log("Last account $lastAccount");
 
       int count = 0;
-      if (savedData != null && lastAccount != null) {
+      if (savedData != null) {
         for (final account in savedData) {
           final newAccount = PublicData.fromJson(account);
           setState(() {
@@ -105,18 +106,21 @@ class _AddCryptoViewState extends State<AddCryptoView> {
       }
 
       log("Retrieved $count wallets");
-
+      bool found = false;
       for (final account in accounts) {
         if (account.address == lastAccount) {
           currentAccount = account;
           await reorganizeCrypto(account: account);
+          found = true;
 
           log("The current wallet is ${json.encode(account.toJson())}");
           break;
-        } else {
-          log("Not account found");
-          currentAccount = accounts[0];
         }
+      }
+      if (!found) {
+        logger.w("Not account found");
+        currentAccount = accounts[0];
+        await encryptService.saveLastConnectedData(currentAccount!.address);
       }
     } catch (e) {
       logError('Error getting saved wallets: $e');

@@ -12,7 +12,6 @@ import 'package:hive_ce/hive.dart';
 import 'package:moonwallet/service/secure_storage.dart';
 import 'package:moonwallet/types/types.dart';
 import 'package:moonwallet/utils/crypto.dart';
-import 'package:moonwallet/utils/document_manager.dart';
 import 'package:web3dart/web3dart.dart';
 
 class WalletSaver {
@@ -40,6 +39,7 @@ class WalletSaver {
     try {
       final seed = generateMnemonic();
       final privateKey = deriveEthereumPrivateKey(seed);
+
       if (privateKey == null) {
         logError("Private key is null");
         return {};
