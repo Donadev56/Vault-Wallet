@@ -12,6 +12,8 @@ import 'package:moonwallet/utils/prefs.dart';
 import 'package:moonwallet/utils/themes.dart';
 import 'package:moonwallet/widgets/func/ask_password.dart';
 import 'package:moonwallet/widgets/func/snackbar.dart';
+import 'package:moonwallet/widgets/scanner/scanner.dart';
+import 'package:moonwallet/widgets/scanner/show_scanner.dart';
 
 class AddObservationWallet extends StatefulWidget {
   const AddObservationWallet({super.key});
@@ -244,25 +246,12 @@ class _AddPrivateKeyState extends State<AddObservationWallet> {
                           padding: const EdgeInsets.symmetric(horizontal: 20),
                           child: OutlinedButton.icon(
                             onPressed: () {
-                              showModalBottomSheet(
-                                  isScrollControlled: true,
+                              showScanner(
                                   context: context,
-                                  builder: (BuildContext scanCtx) {
-                                    return StatefulBuilder(builder:
-                                        (BuildContext stateFScanCtx,
-                                            setModalState) {
-                                      return MobileScanner(
-                                        controller: _mobileScannerController,
-                                        onDetect: (barcode) {
-                                          final String code = barcode.barcodes
-                                                  .firstOrNull!.displayValue ??
-                                              "";
-                                          log("The code $code");
-                                          _textController.text = code;
-                                          Navigator.pop(stateFScanCtx);
-                                        },
-                                      );
-                                    });
+                                  controller: _mobileScannerController,
+                                  colors: colors,
+                                  onResult: (result) {
+                                    _textController.text = result;
                                   });
                             },
                             icon: Icon(LucideIcons.maximize,

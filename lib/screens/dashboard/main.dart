@@ -58,6 +58,7 @@ class MainDashboardScreen extends StatefulWidget {
 class _MainDashboardScreenState extends State<MainDashboardScreen>
     with SingleTickerProviderStateMixin {
   List<Balance> cryptosAndBalance = [];
+  List<Balance> initialListBalance = [];
   bool isLoading = true;
 
   final GlobalKey<RefreshIndicatorState> _refreshIndicatorKey =
@@ -755,6 +756,7 @@ class _MainDashboardScreenState extends State<MainDashboardScreen>
             setState(() {
               reorganizedCrypto = availableCryptos;
               cryptosAndBalance = balances;
+              initialListBalance = balances;
               totalBalanceUsd = userBalanceUsd;
               isLoading = false;
             });
@@ -803,6 +805,7 @@ class _MainDashboardScreenState extends State<MainDashboardScreen>
 
         setState(() {
           cryptosAndBalance = cryptoBalance;
+          initialListBalance = cryptoBalance;
           totalBalanceUsd = userBalanceUsd;
           reorganizedCrypto = availableCryptos;
           isLoading = false;
@@ -811,6 +814,7 @@ class _MainDashboardScreenState extends State<MainDashboardScreen>
         cryptoBalance.sort((a, b) => (b.balanceUsd).compareTo(a.balanceUsd));
         setState(() {
           cryptosAndBalance = cryptoBalance;
+          initialListBalance = cryptoBalance;
         });
 
         final cryptoListString = cryptoBalance.map((c) => c.toJson()).toList();
@@ -1021,6 +1025,7 @@ class _MainDashboardScreenState extends State<MainDashboardScreen>
     }
 
     void reorderCrypto(int order) async {
+      cryptosAndBalance = initialListBalance;
       final lastList = cryptosAndBalance;
       lastList.sort((a, b) => (b.balanceUsd).compareTo(a.balanceUsd));
       setState(() {
@@ -1036,6 +1041,19 @@ class _MainDashboardScreenState extends State<MainDashboardScreen>
 
         setState(() {
           cryptosAndBalance = lastList;
+        });
+      } else if (currentOrder == 2) {
+        // reorder according to the network
+        setState(() {
+          cryptosAndBalance = lastList
+              .where((c) => c.crypto.type == CryptoType.network)
+              .toList();
+        });
+      } else if (currentOrder == 3) {
+        // reorder according to the network
+        setState(() {
+          cryptosAndBalance =
+              lastList.where((c) => c.crypto.type == CryptoType.token).toList();
         });
       }
     }
@@ -1308,7 +1326,7 @@ class _MainDashboardScreenState extends State<MainDashboardScreen>
                       actions: [
                         PopupMenuButton(
                             splashRadius: 10,
-                            borderRadius: BorderRadius.circular(10),
+                            borderRadius: BorderRadius.circular(20),
                             requestFocus: true,
                             menuPadding: const EdgeInsets.all(0),
                             padding: const EdgeInsets.all(0),
@@ -1354,8 +1372,7 @@ class _MainDashboardScreenState extends State<MainDashboardScreen>
                                   CustomPopMenuDivider(colors: colors),
                                   PopupMenuItem(
                                     onTap: () {
-                                      Navigator.pushNamed(
-                                          context, Routes.addCrypto);
+                                      reorderCrypto(2);
                                     },
                                     child: Row(children: [
                                       Icon(fixedAppBarOptions[2]["icon"],
@@ -1363,6 +1380,40 @@ class _MainDashboardScreenState extends State<MainDashboardScreen>
                                               .withOpacity(0.4)),
                                       SizedBox(width: 8),
                                       Text(fixedAppBarOptions[2]["name"],
+                                          style: customTextStyle(
+                                              fontWeight: FontWeight.w500,
+                                              color: colors.textColor
+                                                  .withOpacity(0.7))),
+                                    ]),
+                                  ),
+                                  PopupMenuItem(
+                                    onTap: () {
+                                      reorderCrypto(3);
+                                    },
+                                    child: Row(children: [
+                                      Icon(fixedAppBarOptions[3]["icon"],
+                                          color: colors.textColor
+                                              .withOpacity(0.4)),
+                                      SizedBox(width: 8),
+                                      Text(fixedAppBarOptions[3]["name"],
+                                          style: customTextStyle(
+                                              fontWeight: FontWeight.w500,
+                                              color: colors.textColor
+                                                  .withOpacity(0.7))),
+                                    ]),
+                                  ),
+                                  CustomPopMenuDivider(colors: colors),
+                                  PopupMenuItem(
+                                    onTap: () {
+                                      Navigator.pushNamed(
+                                          context, Routes.addCrypto);
+                                    },
+                                    child: Row(children: [
+                                      Icon(fixedAppBarOptions[4]["icon"],
+                                          color: colors.textColor
+                                              .withOpacity(0.4)),
+                                      SizedBox(width: 8),
+                                      Text(fixedAppBarOptions[4]["name"],
                                           style: customTextStyle(
                                               fontWeight: FontWeight.w500,
                                               color: colors.textColor

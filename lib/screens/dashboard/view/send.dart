@@ -30,6 +30,8 @@ import 'package:moonwallet/utils/themes.dart';
 import 'package:moonwallet/widgets/crypto_picture.dart';
 import 'package:moonwallet/widgets/func/show_select_account.dart';
 import 'package:moonwallet/widgets/func/show_select_last_addr.dart';
+import 'package:moonwallet/widgets/scanner/scanner.dart';
+import 'package:moonwallet/widgets/scanner/show_scanner.dart';
 import 'package:permission_handler/permission_handler.dart';
 import 'package:qr_code_scanner_plus/qr_code_scanner_plus.dart';
 
@@ -86,14 +88,7 @@ class _SendTransactionScreenState extends State<SendTransactionScreen> {
   final TextEditingController _amountUsdController = TextEditingController();
   final cryptoStorageManager = CryptoStorageManager();
   final tokenManager = TokenManager();
-  AppColors colors = AppColors(
-      primaryColor: Color(0XFF0D0D0D),
-      themeColor: Colors.greenAccent,
-      greenColor: Colors.greenAccent,
-      secondaryColor: Color(0XFF121212),
-      grayColor: Color(0XFF353535),
-      textColor: Colors.white,
-      redColor: Colors.pinkAccent);
+  AppColors colors = AppColors.defaultTheme;
   Themes themes = Themes();
   String savedThemeName = "";
 
@@ -720,24 +715,13 @@ class _SendTransactionScreenState extends State<SendTransactionScreen> {
                           icon: Icon(Icons.contact_page_outlined)),
                       IconButton(
                           onPressed: () {
-                            showModalBottomSheet(
-                                isScrollControlled: true,
+                            showScanner(
                                 context: context,
-                                builder: (BuildContext scanCtx) {
-                                  return StatefulBuilder(builder:
-                                      (BuildContext stateFScanCtx,
-                                          setModalState) {
-                                    return MobileScanner(
-                                      controller: _mobileScannerController,
-                                      onDetect: (barcode) {
-                                        final String code = barcode.barcodes
-                                                .firstOrNull!.displayValue ??
-                                            "";
-                                        log("The code $code");
-                                        _addressController.text = code;
-                                        Navigator.pop(stateFScanCtx);
-                                      },
-                                    );
+                                controller: _mobileScannerController,
+                                colors: colors,
+                                onResult: (result) {
+                                  setState(() {
+                                    _addressController.text = result;
                                   });
                                 });
                           },

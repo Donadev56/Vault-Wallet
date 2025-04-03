@@ -12,6 +12,8 @@ import 'package:moonwallet/utils/prefs.dart';
 import 'package:moonwallet/utils/themes.dart';
 import 'package:moonwallet/widgets/func/ask_password.dart';
 import 'package:moonwallet/widgets/func/snackbar.dart';
+import 'package:moonwallet/widgets/scanner/scanner.dart';
+import 'package:moonwallet/widgets/scanner/show_scanner.dart';
 
 class AddMnemonicScreen extends StatefulWidget {
   const AddMnemonicScreen({super.key});
@@ -259,24 +261,13 @@ class _AddPrivateKeyState extends State<AddMnemonicScreen> {
                           padding: const EdgeInsets.symmetric(horizontal: 20),
                           child: OutlinedButton.icon(
                             onPressed: () {
-                              showModalBottomSheet(
-                                  isScrollControlled: true,
+                              showScanner(
                                   context: context,
-                                  builder: (BuildContext scanCtx) {
-                                    return StatefulBuilder(builder:
-                                        (BuildContext stateFScanCtx,
-                                            setModalState) {
-                                      return MobileScanner(
-                                        controller: _mobileScannerController,
-                                        onDetect: (barcode) {
-                                          final String code = barcode.barcodes
-                                                  .firstOrNull!.displayValue ??
-                                              "";
-                                          log("The code $code");
-                                          _textController.text = code;
-                                          Navigator.pop(stateFScanCtx);
-                                        },
-                                      );
+                                  controller: _mobileScannerController,
+                                  colors: colors,
+                                  onResult: (result) {
+                                    setState(() {
+                                      _textController.text = result;
                                     });
                                   });
                             },

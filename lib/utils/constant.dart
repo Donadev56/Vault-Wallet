@@ -19,6 +19,8 @@ final List<Map<String, dynamic>> browserModalOptions = [
 final List<Map<String, dynamic>> fixedAppBarOptions = [
   {"name": "Sort by Value", "icon": LucideIcons.coins},
   {"name": "Sort by Name", "icon": LucideIcons.arrowDownAZ},
+  {"name": "Only Native", "icon": LucideIcons.circleDollarSign},
+  {"name": "Only Tokens", "icon": LucideIcons.blend},
   {"name": "Manage crypto", "icon": LucideIcons.settings2}
 ];
 
@@ -126,10 +128,6 @@ final List<Map<String, dynamic>> appBarButtonOptions = [
   {
     'icon': LucideIcons.pencil,
     'name': 'Edit name',
-  },
-  {
-    'icon': LucideIcons.badgeDollarSign,
-    'name': 'Edit Icon',
   },
   {
     'icon': LucideIcons.palette,
