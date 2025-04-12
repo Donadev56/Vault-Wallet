@@ -45,7 +45,10 @@ class WalletViewButtonAction extends StatelessWidget {
         ),
         Text(
           bottomText,
-          style: Theme.of(context).textTheme.bodyMedium?.copyWith(color: textColor, fontSize: fontSize),
+          style: Theme.of(context)
+              .textTheme
+              .bodyMedium
+              ?.copyWith(color: textColor, fontSize: fontSize),
         )
       ],
     );

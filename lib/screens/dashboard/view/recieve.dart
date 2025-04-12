@@ -170,7 +170,8 @@ class _ReceiveScreenState extends State<ReceiveScreen> {
         ),
         title: Text(
           "Receive",
-          style:textTheme.headlineMedium?.copyWith(color: colors.textColor, fontSize: 20),
+          style: textTheme.headlineMedium
+              ?.copyWith(color: colors.textColor, fontSize: 20),
         ),
       ),
       body: Column(
@@ -198,7 +199,8 @@ class _ReceiveScreenState extends State<ReceiveScreen> {
                     child: RichText(
                   text: TextSpan(
                       text: "Only send ",
-                      style: textTheme.bodyMedium?.copyWith(color: warningColor),
+                      style:
+                          textTheme.bodyMedium?.copyWith(color: warningColor),
                       children: [
                         TextSpan(
                           text: currentNetwork.name,
@@ -208,7 +210,8 @@ class _ReceiveScreenState extends State<ReceiveScreen> {
                         TextSpan(
                           text:
                               " assets to this address , other assets will be lost forever.",
-                          style: textTheme.bodyMedium?.copyWith(color: warningColor),
+                          style: textTheme.bodyMedium
+                              ?.copyWith(color: warningColor),
                         )
                       ]),
                   overflow: TextOverflow.clip,
@@ -297,8 +300,8 @@ class _ReceiveScreenState extends State<ReceiveScreen> {
                     child: Center(
                       child: Text(
                         currentAccount.address,
-                        style:textTheme.bodyMedium?.copyWith(
-                            color: colors.textColor, fontSize: 11),
+                        style: textTheme.bodyMedium
+                            ?.copyWith(color: colors.textColor, fontSize: 11),
                       ),
                     ))),
           ),
@@ -324,7 +327,8 @@ class _ReceiveScreenState extends State<ReceiveScreen> {
                   ),
                   label: Text(
                     "Copy the address",
-                    style: textTheme.bodyMedium?.copyWith(color: colors.primaryColor),
+                    style: textTheme.bodyMedium
+                        ?.copyWith(color: colors.primaryColor),
                   ),
                 ),
               ))

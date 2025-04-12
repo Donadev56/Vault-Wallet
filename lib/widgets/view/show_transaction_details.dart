@@ -16,9 +16,7 @@ void showTransactionDetails(
     required bool isFrom,
     required TransactionDetails tr,
     required Crypto currentNetwork}) {
-  
   final textTheme = Theme.of(context).textTheme;
-
 
   showMaterialModalBottomSheet(
       backgroundColor: colors.primaryColor,
@@ -40,8 +38,8 @@ void showTransactionDetails(
             backgroundColor: colors.primaryColor,
             title: Text(
               isFrom ? "Transfer" : "Receive",
-              style:
-                 textTheme.headlineSmall?.copyWith(color: colors.textColor.withOpacity(0.7), fontSize: 20),
+              style: textTheme.headlineSmall?.copyWith(
+                  color: colors.textColor.withOpacity(0.7), fontSize: 20),
             ),
           ),
           body: ConstrainedBox(
@@ -79,7 +77,7 @@ void showTransactionDetails(
                         ),
                         subtitle: Text(
                           currentNetwork.symbol,
-                          style:  textTheme.bodySmall?.copyWith(
+                          style: textTheme.bodySmall?.copyWith(
                               color: colors.textColor.withOpacity(0.3),
                               fontSize: 15,
                               fontWeight: FontWeight.normal),
@@ -135,7 +133,7 @@ void showTransactionDetails(
                             children: [
                               Text(
                                 "To",
-                                style:textTheme.bodyMedium?.copyWith(
+                                style: textTheme.bodyMedium?.copyWith(
                                     color: colors.textColor, fontSize: 14),
                               ),
                               Row(
@@ -224,7 +222,7 @@ void showTransactionDetails(
                             children: [
                               Text(
                                 "Hash",
-                                style:textTheme.bodyMedium?.copyWith(
+                                style: textTheme.bodyMedium?.copyWith(
                                     color: colors.textColor, fontSize: 14),
                               ),
                               Row(
@@ -260,7 +258,7 @@ void showTransactionDetails(
                             children: [
                               Text(
                                 "Block",
-                                style:textTheme.bodyMedium?.copyWith(
+                                style: textTheme.bodyMedium?.copyWith(
                                     color: colors.textColor, fontSize: 14),
                               ),
                               Row(
@@ -313,8 +311,8 @@ void showTransactionDetails(
                           child: Center(
                             child: Text(
                               "View on Blockchain explorer",
-                              style:
-                                  textTheme.bodyMedium?.copyWith(color: colors.textColor),
+                              style: textTheme.bodyMedium
+                                  ?.copyWith(color: colors.textColor),
                             ),
                           ),
                         ),
@@ -346,8 +344,8 @@ void showTransactionDetails(
                                 ),
                                 Text(
                                   "Share transaction hash",
-                                  style:textTheme.bodyMedium?.copyWith(
-                                      color: colors.themeColor),
+                                  style: textTheme.bodyMedium
+                                      ?.copyWith(color: colors.themeColor),
                                 )
                               ],
                             )),

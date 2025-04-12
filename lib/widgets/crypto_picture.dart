@@ -44,10 +44,13 @@ class CryptoPicture extends StatelessWidget {
                           crypto.symbol.length > 1
                               ? crypto.symbol.substring(0, 1)
                               : crypto.symbol,
-                          style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                              color: colors.primaryColor,
-                              fontWeight: FontWeight.bold,
-                              fontSize: 18),
+                          style: Theme.of(context)
+                              .textTheme
+                              .bodyMedium
+                              ?.copyWith(
+                                  color: colors.primaryColor,
+                                  fontWeight: FontWeight.bold,
+                                  fontSize: 18),
                         ),
                       ),
                     )

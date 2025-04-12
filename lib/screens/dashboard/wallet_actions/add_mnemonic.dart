@@ -193,7 +193,7 @@ class _AddPrivateKeyState extends State<AddMnemonicScreen> {
                             return "Please enter your 12 words";
                           }
                         },
-                        style:textTheme.bodyMedium?.copyWith(
+                        style: textTheme.bodyMedium?.copyWith(
                           color: colors.textColor,
                         ),
                         cursorColor: colors.themeColor,

@@ -26,7 +26,7 @@ void showSelectLastAddr(
       backgroundColor: Colors.transparent,
       context: context,
       builder: (BuildContext btmCtx) {
-            final textTheme = Theme.of(context).textTheme;
+        final textTheme = Theme.of(context).textTheme;
 
         return StatefulBuilder(
             builder: (BuildContext stateFCtx, setModalState) {
@@ -72,7 +72,8 @@ void showSelectLastAddr(
                     appBar: AppBar(
                       backgroundColor: colors.primaryColor,
                       bottom: TabBar(
-                        labelStyle: textTheme.bodyMedium?.copyWith(color: colors.textColor),
+                        labelStyle: textTheme.bodyMedium
+                            ?.copyWith(color: colors.textColor),
                         tabs: <Widget>[
                           Tab(
                             text: "Used Addresses",
@@ -106,7 +107,7 @@ void showSelectLastAddr(
                                             colors: colors),
                                         title: Text(
                                           "${(addr as String).substring(0, 10)}...${(addr).substring(addr.length - 10, addr.length)}",
-                                          style:textTheme.bodyMedium?.copyWith(
+                                          style: textTheme.bodyMedium?.copyWith(
                                               color: colors.textColor
                                                   .withOpacity(0.7)),
                                         ),
@@ -126,16 +127,16 @@ void showSelectLastAddr(
                               return Center(
                                 child: Text(
                                   result.error.toString(),
-                                  style: textTheme.bodyMedium?.copyWith(
-                                      color: colors.textColor),
+                                  style: textTheme.bodyMedium
+                                      ?.copyWith(color: colors.textColor),
                                 ),
                               );
                             } else {
                               return Center(
                                 child: Text(
                                   "No address found",
-                                  style: textTheme.bodyMedium?.copyWith(
-                                      color: colors.textColor),
+                                  style: textTheme.bodyMedium
+                                      ?.copyWith(color: colors.textColor),
                                 ),
                               );
                             }

@@ -173,7 +173,8 @@ class _CreatePrivateKeyState extends State<CreatePrivateKeyMain> {
                 child: Material(
                   color: Colors.transparent,
                   child: TextField(
-                    style: textTheme.bodyMedium?.copyWith(color: colors.textColor),
+                    style:
+                        textTheme.bodyMedium?.copyWith(color: colors.textColor),
                     readOnly: true,
                     minLines: 3,
                     maxLines: 5,

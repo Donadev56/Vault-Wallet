@@ -180,7 +180,8 @@ class CustomPopupMenuItem<T> extends PopupMenuEntry<T> {
   final double height;
   final VoidCallback onTap;
 
-  const CustomPopupMenuItem({super.key, 
+  const CustomPopupMenuItem({
+    super.key,
     required this.value,
     required this.child,
     this.height = kMinInteractiveDimension,

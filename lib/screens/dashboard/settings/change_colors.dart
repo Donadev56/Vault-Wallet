@@ -99,7 +99,8 @@ class _ChangeThemeViewState extends State<ChangeThemeView> {
               )),
           title: Text(
             "Change color",
-            style: textTheme.headlineMedium?.copyWith(color: colors.textColor, fontSize: 20),
+            style: textTheme.headlineMedium
+                ?.copyWith(color: colors.textColor, fontSize: 20),
           ),
         ),
         body: GlowingOverscrollIndicator(
@@ -173,9 +174,11 @@ class _ChangeThemeViewState extends State<ChangeThemeView> {
                                                                       .primaryColor,
                                                               title: Text(
                                                                 themeName,
-                                                                style: textTheme.bodyMedium?.copyWith(
-                                                                    color: colors
-                                                                        .textColor),
+                                                                style: textTheme
+                                                                    .bodyMedium
+                                                                    ?.copyWith(
+                                                                        color: colors
+                                                                            .textColor),
                                                               ),
                                                               actions: [
                                                                 IconButton(
@@ -232,9 +235,11 @@ class _ChangeThemeViewState extends State<ChangeThemeView> {
                                                       Colors.transparent),
                                               label: Text(
                                                 "View",
-                                                style: textTheme.bodyMedium?.copyWith(
-                                                    fontSize: 10,
-                                                    color: colors.themeColor),
+                                                style: textTheme.bodyMedium
+                                                    ?.copyWith(
+                                                        fontSize: 10,
+                                                        color:
+                                                            colors.themeColor),
                                               ),
                                             ),
                                           ),
@@ -267,13 +272,16 @@ class _ChangeThemeViewState extends State<ChangeThemeView> {
                                               savedThemeName == themeName
                                                   ? "Selected"
                                                   : "Select",
-                                              style: textTheme.bodyMedium?.copyWith(
-                                                  fontSize: 10,
-                                                  color: Colors.black87,
-                                                  fontWeight: savedThemeName ==
-                                                          themeName
-                                                      ? FontWeight.bold
-                                                      : FontWeight.normal),
+                                              style: textTheme.bodyMedium
+                                                  ?.copyWith(
+                                                      fontSize: 10,
+                                                      color: Colors.black87,
+                                                      fontWeight:
+                                                          savedThemeName ==
+                                                                  themeName
+                                                              ? FontWeight.bold
+                                                              : FontWeight
+                                                                  .normal),
                                             ),
                                           )
                                         ],

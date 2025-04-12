@@ -39,8 +39,8 @@ void showOtherOptions(
                     ),
                     subtitle: Text(
                       currentCrypto.name,
-                      style: textTheme.bodyMedium?.copyWith(
-                          color: colors.textColor.withOpacity(0.5)),
+                      style: textTheme.bodyMedium
+                          ?.copyWith(color: colors.textColor.withOpacity(0.5)),
                     ),
                     trailing: IconButton(
                         onPressed: () {
@@ -81,7 +81,7 @@ void showOtherOptions(
                                   ),
                                   trailing: Text(
                                     "${currentCrypto.type == CryptoType.network ? currentCrypto.name : currentCrypto.network?.name}",
-                                    style:textTheme.bodyMedium?.copyWith(
+                                    style: textTheme.bodyMedium?.copyWith(
                                         color:
                                             colors.textColor.withOpacity(0.5)),
                                   ),
@@ -100,12 +100,12 @@ void showOtherOptions(
                                   ),
                                   title: Text(
                                     "Contract",
-                                    style: textTheme.bodyMedium?.copyWith(
-                                        color: colors.textColor),
+                                    style: textTheme.bodyMedium
+                                        ?.copyWith(color: colors.textColor),
                                   ),
                                   trailing: Text(
                                     "${currentCrypto.contractAddress != null ? currentCrypto.contractAddress!.length > 10 ? currentCrypto.contractAddress?.substring(0, 10) : "" : ""}...",
-                                    style:textTheme.bodyMedium?.copyWith(
+                                    style: textTheme.bodyMedium?.copyWith(
                                         color:
                                             colors.textColor.withOpacity(0.5)),
                                   ),

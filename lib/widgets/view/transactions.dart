@@ -40,7 +40,7 @@ class TransactionsListElement extends StatelessWidget {
       child: ListTile(
         onTap: () {
           showTransactionDetails(
-            isFrom: isFrom,
+              isFrom: isFrom,
               context: context,
               colors: colors,
               address: tr.from,

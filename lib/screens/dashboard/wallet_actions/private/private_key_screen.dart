@@ -159,7 +159,8 @@ class _PrivateKeyScreenState extends State<PrivateKeyScreen> {
               backgroundColor: colors.primaryColor,
               title: Text(
                 "Warning",
-                style: textTheme.headlineMedium?.copyWith(color: Colors.orange, fontSize: 20),
+                style: textTheme.headlineMedium
+                    ?.copyWith(color: Colors.orange, fontSize: 20),
               ),
               content: Text(
                 "You are about to view sensitive information, make sure you are not in a public place and that no one is looking at your screen.",
@@ -181,7 +182,8 @@ class _PrivateKeyScreenState extends State<PrivateKeyScreen> {
                       },
                       label: Text(
                         "Go back",
-                        style:textTheme.bodyMedium?.copyWith(color: colors.textColor),
+                        style: textTheme.bodyMedium
+                            ?.copyWith(color: colors.textColor),
                       ),
                     ),
                     TextButton.icon(
@@ -195,7 +197,8 @@ class _PrivateKeyScreenState extends State<PrivateKeyScreen> {
                       },
                       label: Text(
                         "View",
-                        style: textTheme.bodyMedium?.copyWith(color: colors.textColor),
+                        style: textTheme.bodyMedium
+                            ?.copyWith(color: colors.textColor),
                       ),
                     ),
                   ],
@@ -257,7 +260,8 @@ class _PrivateKeyScreenState extends State<PrivateKeyScreen> {
               style: textTheme.bodyMedium?.copyWith(color: colors.textColor),
               decoration: InputDecoration(
                   label: Text("Mnemonic"),
-                  labelStyle: textTheme.bodyMedium?.copyWith(color: colors.textColor),
+                  labelStyle:
+                      textTheme.bodyMedium?.copyWith(color: colors.textColor),
                   enabledBorder: OutlineInputBorder(
                       borderSide:
                           BorderSide(width: 1, color: colors.themeColor)),
@@ -276,7 +280,8 @@ class _PrivateKeyScreenState extends State<PrivateKeyScreen> {
               style: textTheme.bodyMedium?.copyWith(color: colors.textColor),
               decoration: InputDecoration(
                   label: Text("Private  Key"),
-                  labelStyle: textTheme.bodyMedium?.copyWith(color: colors.textColor),
+                  labelStyle:
+                      textTheme.bodyMedium?.copyWith(color: colors.textColor),
                   enabledBorder: OutlineInputBorder(
                       borderSide:
                           BorderSide(width: 1, color: colors.themeColor)),
@@ -311,7 +316,8 @@ class _PrivateKeyScreenState extends State<PrivateKeyScreen> {
                     },
                     label: Text(
                       'Mnemonic',
-                      style: textTheme.bodyMedium?.copyWith(color: colors.primaryColor),
+                      style: textTheme.bodyMedium
+                          ?.copyWith(color: colors.primaryColor),
                     ),
                     icon: Icon(
                       Icons.copy,
@@ -339,7 +345,8 @@ class _PrivateKeyScreenState extends State<PrivateKeyScreen> {
                     },
                     label: Text(
                       'PrivateKey',
-                      style:textTheme.bodyMedium?.copyWith(color: colors.primaryColor),
+                      style: textTheme.bodyMedium
+                          ?.copyWith(color: colors.primaryColor),
                     ),
                     icon: Icon(
                       Icons.copy,
@@ -366,7 +373,7 @@ class _PrivateKeyScreenState extends State<PrivateKeyScreen> {
                           width: 5,
                         ),
                         Text("Important :",
-                            style:textTheme.bodyMedium?.copyWith(
+                            style: textTheme.bodyMedium?.copyWith(
                                 fontSize: 16,
                                 color: colors.textColor,
                                 decoration: TextDecoration.none)),

@@ -454,7 +454,7 @@ class _DiscoverScreenState extends State<DiscoverScreen>
                       focusNode: _focusNode,
                       controller: _textEditingController,
                       cursorColor: colors.themeColor,
-                      style:textTheme.bodyMedium?.copyWith(
+                      style: textTheme.bodyMedium?.copyWith(
                         color: colors.textColor,
                       ),
                       decoration: InputDecoration(
@@ -549,7 +549,7 @@ class _DiscoverScreenState extends State<DiscoverScreen>
                                 ),
                                 title: Text(
                                   dapp.name,
-                                  style:textTheme.bodyMedium?.copyWith(
+                                  style: textTheme.bodyMedium?.copyWith(
                                     fontSize: 16,
                                     fontWeight: FontWeight.bold,
                                     color: colors.textColor,
@@ -559,7 +559,7 @@ class _DiscoverScreenState extends State<DiscoverScreen>
                                 ),
                                 subtitle: Text(
                                   dapp.description,
-                                  style:textTheme.bodyMedium?.copyWith(
+                                  style: textTheme.bodyMedium?.copyWith(
                                     fontSize: 14,
                                     color: colors.textColor.withOpacity(0.6),
                                   ),

@@ -1,3 +1,5 @@
+// ignore_for_file: deprecated_member_use
+
 import 'package:flutter/material.dart';
 import 'package:flutter_feather_icons/flutter_feather_icons.dart';
 import 'package:flutter_web3_webview/flutter_web3_webview.dart';
@@ -11,10 +13,7 @@ Future<UserRequestResponse> askUserForConfirmation(
     {Crypto? crypto,
     required JsTransactionObject txData,
     required BuildContext context,
-    required Color textColor,
-    required Color primaryColor,
-    required Color actionsColor,
-    required Color secondaryColor,
+    required AppColors colors,
     PublicData? currentAccount,
     required BigInt estimatedGas,
     required BigInt gasPrice,
@@ -91,7 +90,7 @@ Future<UserRequestResponse> askUserForConfirmation(
           return Container(
             padding: const EdgeInsets.all(13),
             decoration: BoxDecoration(
-              color: primaryColor,
+              color: colors.primaryColor,
               borderRadius: BorderRadius.only(
                 topLeft: Radius.circular(30),
                 topRight: Radius.circular(30),
@@ -113,7 +112,7 @@ Future<UserRequestResponse> askUserForConfirmation(
                                 children: [
                                   Icon(
                                     LucideIcons.fileText,
-                                    color: textColor,
+                                    color: colors.textColor,
                                   ),
                                   SizedBox(
                                     width: width * 0.6,
@@ -121,7 +120,7 @@ Future<UserRequestResponse> askUserForConfirmation(
                                       "Smart Contract Call",
                                       overflow: TextOverflow.ellipsis,
                                       style: textTheme.headlineMedium?.copyWith(
-                                          color: textColor,
+                                          color: colors.textColor,
                                           fontWeight: FontWeight.bold,
                                           fontSize: 22),
                                     ),
@@ -131,7 +130,7 @@ Future<UserRequestResponse> askUserForConfirmation(
                             : Text(
                                 "Transfer",
                                 style: textTheme.headlineMedium?.copyWith(
-                                    color: textColor,
+                                    color: colors.textColor,
                                     fontWeight: FontWeight.bold,
                                     fontSize: 22),
                               ),
@@ -160,7 +159,7 @@ Future<UserRequestResponse> askUserForConfirmation(
                     margin: const EdgeInsets.all(10),
                     width: width,
                     decoration: BoxDecoration(
-                      color: actionsColor.withOpacity(0.4),
+                      color: colors.secondaryColor,
                       borderRadius: BorderRadius.circular(10),
                     ),
                     child: Align(
@@ -173,7 +172,7 @@ Future<UserRequestResponse> askUserForConfirmation(
                               overflow: TextOverflow.clip,
                               maxLines: 1,
                               style: textTheme.bodyMedium?.copyWith(
-                                  color: textColor,
+                                  color: colors.textColor,
                                   fontWeight: FontWeight.bold,
                                   fontSize: 25),
                             ),
@@ -182,7 +181,7 @@ Future<UserRequestResponse> askUserForConfirmation(
                               overflow: TextOverflow.clip,
                               maxLines: 1,
                               style: textTheme.bodyMedium?.copyWith(
-                                  color: textColor.withOpacity(0.5),
+                                  color: colors.textColor.withOpacity(0.5),
                                   fontWeight: FontWeight.bold,
                                   fontSize: 25),
                             ),
@@ -196,7 +195,8 @@ Future<UserRequestResponse> askUserForConfirmation(
                       ? Text(
                           "This is a third-party app. Please check the info.",
                           style: textTheme.bodySmall?.copyWith(
-                              color: Colors.orange,),
+                            color: Colors.orange,
+                          ),
                         )
                       : null,
                 ),
@@ -206,7 +206,7 @@ Future<UserRequestResponse> askUserForConfirmation(
                   padding: const EdgeInsets.all(10),
                   decoration: BoxDecoration(
                     borderRadius: BorderRadius.circular(10),
-                    color: actionsColor.withOpacity(0.4),
+                    color: colors.secondaryColor,
                   ),
                   child: Column(
                     children: [
@@ -216,20 +216,20 @@ Future<UserRequestResponse> askUserForConfirmation(
                           operationType == 0
                               ? Text(
                                   "My Wallet",
-                                  style: textTheme.bodyMedium?.copyWith( 
-                                      color: textColor, fontSize: 14),
+                                  style: textTheme.bodyMedium?.copyWith(
+                                      color: colors.textColor, fontSize: 14),
                                 )
                               : Text(
                                   "From ",
                                   style: textTheme.bodyMedium?.copyWith(
-                                      color: textColor, fontSize: 14),
+                                      color: colors.textColor, fontSize: 14),
                                 ),
                           Text(
                             currentAccount?.address != null
                                 ? "${currentAccount!.address.substring(0, 6)}...${currentAccount.address.substring(currentAccount.address.length - 6)}"
                                 : "",
                             style: textTheme.bodyMedium?.copyWith(
-                                color: textColor, fontSize: 14),
+                                color: colors.textColor, fontSize: 14),
                           ),
                         ],
                       ),
@@ -241,19 +241,19 @@ Future<UserRequestResponse> askUserForConfirmation(
                               ? Text(
                                   "Interact with",
                                   style: textTheme.bodyMedium?.copyWith(
-                                      color: textColor, fontSize: 14),
+                                      color: colors.textColor, fontSize: 14),
                                 )
                               : Text(
                                   "To",
-                                  style:textTheme.bodyMedium?.copyWith(
-                                      color: textColor, fontSize: 14),
+                                  style: textTheme.bodyMedium?.copyWith(
+                                      color: colors.textColor, fontSize: 14),
                                 ),
                           Text(
                             txData.to != null
                                 ? "${txData.to!.substring(0, 6)}...${txData.to!.substring(txData.to!.length - 6)}"
                                 : "",
                             style: textTheme.bodyMedium?.copyWith(
-                                color: textColor, fontSize: 14),
+                                color: colors.textColor, fontSize: 14),
                           ),
                         ],
                       )
@@ -265,15 +265,15 @@ Future<UserRequestResponse> askUserForConfirmation(
                   padding: const EdgeInsets.all(10),
                   decoration: BoxDecoration(
                     borderRadius: BorderRadius.circular(10),
-                    color: actionsColor.withOpacity(0.4),
+                    color: colors.secondaryColor,
                   ),
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       Text(
                         "Data :",
-                        style:
-                           textTheme.bodyMedium?.copyWith(color: textColor, fontSize: 14),
+                        style: textTheme.bodyMedium
+                            ?.copyWith(color: colors.textColor, fontSize: 14),
                       ),
                       SizedBox(height: 5),
                       SizedBox(
@@ -283,7 +283,7 @@ Future<UserRequestResponse> askUserForConfirmation(
                           child: Text(
                             txData.data ?? "",
                             style: textTheme.bodyMedium?.copyWith(
-                                color: textColor, fontSize: 14),
+                                color: colors.textColor, fontSize: 14),
                           ),
                         ),
                       ),
@@ -310,7 +310,7 @@ Future<UserRequestResponse> askUserForConfirmation(
                                       child: Container(
                                           padding: const EdgeInsets.all(20),
                                           decoration: BoxDecoration(
-                                            color: primaryColor,
+                                            color: colors.primaryColor,
                                           ),
                                           child: ListView(
                                             children: [
@@ -324,11 +324,15 @@ Future<UserRequestResponse> askUserForConfirmation(
                                                   children: [
                                                     Text(
                                                       "Customize gas",
-                                                      style: textTheme.headlineMedium?.copyWith(
-                                                          color: textColor,
-                                                          fontWeight:
-                                                              FontWeight.bold,
-                                                          fontSize: 22),
+                                                      style: textTheme
+                                                          .headlineMedium
+                                                          ?.copyWith(
+                                                              color: colors
+                                                                  .textColor,
+                                                              fontWeight:
+                                                                  FontWeight
+                                                                      .bold,
+                                                              fontSize: 22),
                                                     ),
                                                     IconButton(
                                                       icon: Icon(
@@ -354,21 +358,24 @@ Future<UserRequestResponse> askUserForConfirmation(
                                                 },
                                                 keyboardType:
                                                     TextInputType.number,
-                                                style: textTheme.bodyMedium?.copyWith(
-                                                    color: textColor),
+                                                style: textTheme.bodyMedium
+                                                    ?.copyWith(
+                                                        color:
+                                                            colors.textColor),
                                                 decoration: InputDecoration(
                                                   enabledBorder:
                                                       OutlineInputBorder(
                                                     borderSide: BorderSide(
                                                         width: 1,
-                                                        color: textColor
+                                                        color: colors.textColor
                                                             .withOpacity(0.1)),
                                                   ),
                                                   focusedBorder:
                                                       OutlineInputBorder(
                                                     borderSide: BorderSide(
                                                         width: 1,
-                                                        color: secondaryColor
+                                                        color: colors
+                                                            .primaryColor
                                                             .withOpacity(0.1)),
                                                   ),
                                                   labelText: "Gas Limit",
@@ -378,8 +385,10 @@ Future<UserRequestResponse> askUserForConfirmation(
                                               ),
                                               SizedBox(height: 20),
                                               TextField(
-                                                style: textTheme.bodyMedium?.copyWith(
-                                                    color: textColor),
+                                                style: textTheme.bodyMedium
+                                                    ?.copyWith(
+                                                        color:
+                                                            colors.textColor),
                                                 keyboardType:
                                                     TextInputType.number,
                                                 onChanged: (value) {
@@ -395,15 +404,15 @@ Future<UserRequestResponse> askUserForConfirmation(
                                                       OutlineInputBorder(
                                                     borderSide: BorderSide(
                                                         width: 1,
-                                                        color: textColor
+                                                        color: colors.textColor
                                                             .withOpacity(0.1)),
                                                   ),
                                                   focusedBorder:
                                                       OutlineInputBorder(
                                                     borderSide: BorderSide(
                                                         width: 1,
-                                                        color: secondaryColor
-                                                            .withOpacity(0.1)),
+                                                        color: colors
+                                                            .secondaryColor),
                                                   ),
                                                   labelText: "Gas Price",
                                                   border: InputBorder.none,
@@ -418,7 +427,7 @@ Future<UserRequestResponse> askUserForConfirmation(
                                                 decoration: BoxDecoration(
                                                   borderRadius:
                                                       BorderRadius.circular(10),
-                                                  color: textColor,
+                                                  color: colors.themeColor,
                                                 ),
                                                 child: Material(
                                                   color: Colors.transparent,
@@ -439,8 +448,11 @@ Future<UserRequestResponse> askUserForConfirmation(
                                                       child: Center(
                                                         child: Text(
                                                           "Confirm",
-                                                          style: textTheme.bodyMedium?.copyWith(
-                                                            color: primaryColor,
+                                                          style: textTheme
+                                                              .bodyMedium
+                                                              ?.copyWith(
+                                                            color: colors
+                                                                .primaryColor,
                                                             fontWeight:
                                                                 FontWeight.bold,
                                                             fontSize: 16,
@@ -475,64 +487,62 @@ Future<UserRequestResponse> askUserForConfirmation(
                                 Text(
                                   "${gas["name"]}",
                                   style: textTheme.bodyMedium?.copyWith(
-                                      color: textColor, fontSize: 10),
+                                      color: colors.textColor, fontSize: 10),
                                 ),
                                 SizedBox(height: 2),
-                                Icon(Icons.edit, color: textColor),
+                                Icon(Icons.edit, color: colors.textColor),
                                 SizedBox(height: 2),
                               ],
                             ),
                           ),
                         );
                       }
-                      return Container(
-                        child: Material(
-                          color: Colors.transparent,
-                          child: InkWell(
-                            borderRadius: BorderRadius.circular(10),
-                            onTap: () {
-                              setModalState(() {
-                                currentIndex = index;
-                                if (canUseCustomGas) {
-                                  setModalState(() {
-                                    canUseCustomGas = false;
-                                  });
-                                }
-                              });
-                            },
-                            child: Container(
-                              decoration: BoxDecoration(
-                                borderRadius: BorderRadius.circular(10),
-                                border: Border.all(
-                                    width: 0.5,
-                                    color: selected && !canUseCustomGas
-                                        ? Colors.greenAccent
-                                        : Colors.grey.withOpacity(0.3)),
-                              ),
-                              width: width / 5,
-                              height: 70,
-                              child: Column(
-                                mainAxisAlignment: MainAxisAlignment.center,
-                                children: [
-                                  Text(
-                                    "${gas["name"]}",
-                                    style: textTheme.bodyMedium?.copyWith(
-                                        color: textColor, fontSize: 10),
-                                  ),
-                                  SizedBox(height: 2),
-                                  Text(
-                                    "\$ ${calculatePrice(gas["wei"]).toStringAsFixed(4)}",
-                                    style: textTheme.bodyMedium?.copyWith(
-                                        color: textColor, fontSize: 10),
-                                  ),
-                                  SizedBox(height: 2),
-                                  Text(
-                                    "${(gas["gwei"] as BigInt).toString()} GWEI",
-                                    style:textTheme.bodyMedium?.copyWith(
-                                        color: textColor, fontSize: 10),
-                                  ),
-                                ],
-                              ),
+                      return Material(
+                        color: Colors.transparent,
+                        child: InkWell(
+                          borderRadius: BorderRadius.circular(10),
+                          onTap: () {
+                            setModalState(() {
+                              currentIndex = index;
+                              if (canUseCustomGas) {
+                                setModalState(() {
+                                  canUseCustomGas = false;
+                                });
+                              }
+                            });
+                          },
+                          child: Container(
+                            decoration: BoxDecoration(
+                              borderRadius: BorderRadius.circular(10),
+                              border: Border.all(
+                                  width: 0.8,
+                                  color: selected && !canUseCustomGas
+                                      ? colors.themeColor
+                                      : Colors.grey.withOpacity(0.3)),
+                            ),
+                            width: width / 5,
+                            height: 70,
+                            child: Column(
+                              mainAxisAlignment: MainAxisAlignment.center,
+                              children: [
+                                Text(
+                                  "${gas["name"]}",
+                                  style: textTheme.bodyMedium?.copyWith(
+                                      color: colors.textColor, fontSize: 10),
+                                ),
+                                SizedBox(height: 2),
+                                Text(
+                                  "\$ ${calculatePrice(gas["wei"]).toStringAsFixed(4)}",
+                                  style: textTheme.bodyMedium?.copyWith(
+                                      color: colors.textColor, fontSize: 10),
+                                ),
+                                SizedBox(height: 2),
+                                Text(
+                                  "${(gas["gwei"] as BigInt).toString()} GWEI",
+                                  style: textTheme.bodyMedium?.copyWith(
+                                      color: colors.textColor, fontSize: 10),
+                                ),
+                              ],
                             ),
                           ),
                         ),
@@ -546,7 +556,7 @@ Future<UserRequestResponse> askUserForConfirmation(
                       const EdgeInsets.only(bottom: 20, left: 10, right: 10),
                   decoration: BoxDecoration(
                     borderRadius: BorderRadius.circular(8),
-                    color: textColor,
+                    color: colors.themeColor,
                   ),
                   child: Material(
                     color: Colors.transparent,
@@ -579,7 +589,7 @@ Future<UserRequestResponse> askUserForConfirmation(
                           child: Text(
                             "Confirm",
                             style: textTheme.bodyMedium?.copyWith(
-                              color: primaryColor,
+                              color: colors.primaryColor,
                               fontWeight: FontWeight.bold,
                               fontSize: 16,
                             ),

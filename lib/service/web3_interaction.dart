@@ -10,7 +10,7 @@ import 'package:moonwallet/service/price_manager.dart';
 import 'package:moonwallet/service/token_manager.dart';
 import 'package:moonwallet/service/wallet_saver.dart';
 import 'package:moonwallet/types/types.dart';
-import 'package:moonwallet/widgets/func/askUserforconf.dart';
+import 'package:moonwallet/widgets/func/ask_user_for_conf.dart';
 import 'package:moonwallet/widgets/func/ask_password.dart';
 import 'package:moonwallet/widgets/func/snackbar.dart';
 import 'package:web3dart/web3dart.dart';
@@ -437,20 +437,18 @@ class Web3InteractionManager {
         throw Exception("Internal error");
       }
       final confirmedResponse = await askUserForConfirmation(
-          crypto: crypto,
-          operationType: operationType,
-          secondaryColor: secondaryColor,
-          cryptoPrice: cryptoPrice,
-          estimatedGas: estimatedGas,
-          gasPrice: gasPrice,
-          gasLimit: gasLimit,
-          valueInWei: valueInWei,
-          actionsColor: actionsColor,
-          txData: data,
-          context: context,
-          primaryColor: primaryColor,
-          currentAccount: currentAccount,
-          textColor: textColor);
+        crypto: crypto,
+        operationType: operationType,
+        cryptoPrice: cryptoPrice,
+        estimatedGas: estimatedGas,
+        gasPrice: gasPrice,
+        gasLimit: gasLimit,
+        valueInWei: valueInWei,
+        txData: data,
+        colors: colors,
+        context: context,
+        currentAccount: currentAccount,
+      );
 
       final confirmed = confirmedResponse.ok;
 

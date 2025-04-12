@@ -1128,90 +1128,88 @@ class _MainDashboardScreenState extends State<MainDashboardScreen>
                 child: CustomScrollView(
                   physics: BouncingScrollPhysics(),
                   slivers: <Widget>[
-
                     SliverToBoxAdapter(
                         key: ValueKey(colors.textColor.value),
-
                         child: Column(
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      children: [
-                        Container(
-                          margin: const EdgeInsets.all(17),
-                          child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.center,
-                            mainAxisAlignment: MainAxisAlignment.center,
-                            children: [
-                              Row(
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          children: [
+                            Container(
+                              margin: const EdgeInsets.all(17),
+                              child: Column(
+                                crossAxisAlignment: CrossAxisAlignment.center,
                                 mainAxisAlignment: MainAxisAlignment.center,
                                 children: [
-                                  Text(
-                                    "Balance",
-                                    style: textTheme.bodyMedium,
+                                  Row(
+                                    mainAxisAlignment: MainAxisAlignment.center,
+                                    children: [
+                                      Text(
+                                        "Balance",
+                                        style: textTheme.bodyMedium,
+                                      ),
+                                      IconButton(
+                                          onPressed: toggleHidden,
+                                          icon: Icon(
+                                            isHidden
+                                                ? LucideIcons.eyeClosed
+                                                : Icons.remove_red_eye_outlined,
+                                            color: colors.textColor,
+                                            size: 22,
+                                          ))
+                                    ],
                                   ),
-                                  IconButton(
-                                      onPressed: toggleHidden,
-                                      icon: Icon(
-                                        isHidden
-                                            ? LucideIcons.eyeClosed
-                                            : Icons.remove_red_eye_outlined,
-                                        color: colors.textColor,
-                                        size: 22,
-                                      ))
+                                  SizedBox(
+                                    height: 10,
+                                  ),
+                                  Row(
+                                    mainAxisAlignment: MainAxisAlignment.center,
+                                    children: [
+                                      //   Icon(FeatherIcons.dollarSign, color: colors.textColor, size: textTheme.headlineLarge?.fontSize,),
+                                      Text(
+                                        !isHidden
+                                            ? "\$ ${formatUsd(totalBalanceUsd.toString())}"
+                                            : "***",
+                                        style: textTheme.headlineLarge,
+                                      ),
+                                    ],
+                                  )
                                 ],
                               ),
-                              SizedBox(
-                                height: 10,
-                              ),
-                              Row(
-                                mainAxisAlignment: MainAxisAlignment.center,
-                                children: [
-                                  //   Icon(FeatherIcons.dollarSign, color: colors.textColor, size: textTheme.headlineLarge?.fontSize,),
-                                  Text(
-                                    !isHidden
-                                        ? "\$ ${formatUsd(totalBalanceUsd.toString())}"
-                                        : "***",
-                                    style: textTheme.headlineLarge,
-                                  ),
-                                ],
-                              )
-                            ],
-                          ),
-                        ),
-                        Container(
-                          margin: const EdgeInsets.only(top: 20),
-                          alignment: Alignment.center,
-                          child: Row(
-                              crossAxisAlignment: CrossAxisAlignment.center,
-                              mainAxisAlignment: MainAxisAlignment.center,
-                              children:
-                                  List.generate(actionsData.length, (index) {
-                                final action = actionsData[index];
-                                return ActionsWidgets(
-                                  onTap: () {
-                                    if (index == 1) {
-                                      showReceiveModal();
-                                    } else if (index == 0) {
-                                      showSendModal();
-                                    } else if (index == 3) {
-                                      showOptionsModal();
-                                    } else if (index == 2) {
-                                      Navigator.pushNamed(
-                                          context, Routes.addCrypto);
-                                    }
-                                  },
-                                  text: action["name"],
-                                  actIcon: action["icon"],
-                                  textColor: colors.textColor,
-                                  actionsColor:
-                                      colors.grayColor.withOpacity(0.3),
-                                );
-                              })),
-                        ),
-                        SizedBox(
-                          height: 20,
-                        ),
-                      ],
-                    )),
+                            ),
+                            Container(
+                              margin: const EdgeInsets.only(top: 20),
+                              alignment: Alignment.center,
+                              child: Row(
+                                  crossAxisAlignment: CrossAxisAlignment.center,
+                                  mainAxisAlignment: MainAxisAlignment.center,
+                                  children: List.generate(actionsData.length,
+                                      (index) {
+                                    final action = actionsData[index];
+                                    return ActionsWidgets(
+                                      onTap: () {
+                                        if (index == 1) {
+                                          showReceiveModal();
+                                        } else if (index == 0) {
+                                          showSendModal();
+                                        } else if (index == 3) {
+                                          showOptionsModal();
+                                        } else if (index == 2) {
+                                          Navigator.pushNamed(
+                                              context, Routes.addCrypto);
+                                        }
+                                      },
+                                      text: action["name"],
+                                      actIcon: action["icon"],
+                                      textColor: colors.textColor,
+                                      actionsColor:
+                                          colors.grayColor.withOpacity(0.3),
+                                    );
+                                  })),
+                            ),
+                            SizedBox(
+                              height: 20,
+                            ),
+                          ],
+                        )),
                     SliverAppBar(
                       backgroundColor: colors.primaryColor,
                       surfaceTintColor: colors.grayColor.withOpacity(0.1),

@@ -190,7 +190,8 @@ class _AddCryptoViewState extends State<AddCryptoView> {
             )),
         title: Text(
           "Manage Coins ",
-          style: textTheme.bodyMedium?.copyWith(color: colors.textColor, fontSize: 20),
+          style: textTheme.bodyMedium
+              ?.copyWith(color: colors.textColor, fontSize: 20),
         ),
       ),
       body: Column(
@@ -214,8 +215,8 @@ class _AddCryptoViewState extends State<AddCryptoView> {
                 controller: _searchController,
                 decoration: InputDecoration(
                     hintText: "Search Crypto",
-                    hintStyle: textTheme.bodyMedium?.copyWith(
-                        color: colors.textColor.withOpacity(0.4)),
+                    hintStyle: textTheme.bodyMedium
+                        ?.copyWith(color: colors.textColor.withOpacity(0.4)),
                     contentPadding:
                         const EdgeInsets.symmetric(vertical: 8, horizontal: 8),
                     prefixIcon: Icon(

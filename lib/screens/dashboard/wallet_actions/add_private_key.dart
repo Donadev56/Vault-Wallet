@@ -170,7 +170,7 @@ class _AddPrivateKeyState extends State<AddPrivateKeyInMain> {
 
   @override
   Widget build(BuildContext context) {
-      final textTheme = Theme.of(context).textTheme;
+    final textTheme = Theme.of(context).textTheme;
 
     return Scaffold(
         backgroundColor: colors.primaryColor,
@@ -378,7 +378,7 @@ class _AddPrivateKeyState extends State<AddPrivateKeyInMain> {
                           },
                           child: Text(
                             "Previous",
-                            style:textTheme.bodyMedium?.copyWith(
+                            style: textTheme.bodyMedium?.copyWith(
                               fontSize: 18,
                               color: colors.themeColor,
                               decoration: TextDecoration.none,

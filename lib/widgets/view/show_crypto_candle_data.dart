@@ -135,8 +135,8 @@ void showCryptoCandleModal(
                             height: height * 0.3,
                             child: Text(
                               "Error fetching data",
-                              style:
-                                  textTheme.bodyMedium?.copyWith(color: Colors.pinkAccent),
+                              style: textTheme.bodyMedium
+                                  ?.copyWith(color: Colors.pinkAccent),
                             ),
                           );
                         } else {

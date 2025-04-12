@@ -50,8 +50,8 @@ void showCryptoModal(
                         "Search crypto",
                         style: textTheme.bodyMedium,
                       ),
-                      labelStyle:
-                         textTheme.bodyMedium?.copyWith(color: textColor.withOpacity(0.7)),
+                      labelStyle: textTheme.bodyMedium
+                          ?.copyWith(color: textColor.withOpacity(0.7)),
                       filled: true,
                       fillColor: surfaceTintColor.withOpacity(0.15),
                       prefixIcon: Icon(
@@ -113,8 +113,8 @@ void showCryptoModal(
                                   child: Text(
                                     "${net.network?.name}",
                                     style: textTheme.bodySmall?.copyWith(
-                                        color: textColor.withOpacity(0.8),
-                                        ),
+                                      color: textColor.withOpacity(0.8),
+                                    ),
                                   ),
                                 )
                             ],

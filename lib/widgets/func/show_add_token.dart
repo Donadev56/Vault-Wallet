@@ -89,257 +89,260 @@ void showAddToken(
                                             title: "Confirmation",
                                             subtitle:
                                                 "Do your own research before adding a TOKEN, as anyone can create them, even malicious people.",
-                                            content: Padding(padding: const EdgeInsets.only(top: 0) , 
-                                            
-                                            child:  Column(
-                                              spacing: 10,
-                                              children: [
-                                                Divider(color: colors.textColor.withOpacity(0.2),),
-                                                Row(
+                                            content: Padding(
+                                                padding: const EdgeInsets.only(
+                                                    top: 0),
+                                                child: Column(
                                                   spacing: 10,
                                                   children: [
-                                                    Text(
-                                                      "Name :",
-                                                      style: textTheme
-                                                          .bodyMedium
-                                                          ?.copyWith(
-                                                              color: colors
-                                                                  .textColor
-                                                                  .withOpacity(
-                                                                      0.5)),
+                                                    Divider(
+                                                      color: colors.textColor
+                                                          .withOpacity(0.2),
                                                     ),
-                                                    Text(
-                                                      "${tokenFoundedData.name}",
-                                                      style: textTheme
-                                                          .bodyMedium
-                                                          ?.copyWith(
-                                                              color: colors
-                                                                  .textColor
-                                                                  .withOpacity(
-                                                                      0.8),
-                                                              fontWeight:
-                                                                  FontWeight
-                                                                      .bold),
+                                                    Row(
+                                                      spacing: 10,
+                                                      children: [
+                                                        Text(
+                                                          "Name :",
+                                                          style: textTheme
+                                                              .bodyMedium
+                                                              ?.copyWith(
+                                                                  color: colors
+                                                                      .textColor
+                                                                      .withOpacity(
+                                                                          0.5)),
+                                                        ),
+                                                        Text(
+                                                          "${tokenFoundedData.name}",
+                                                          style: textTheme
+                                                              .bodyMedium
+                                                              ?.copyWith(
+                                                                  color: colors
+                                                                      .textColor
+                                                                      .withOpacity(
+                                                                          0.8),
+                                                                  fontWeight:
+                                                                      FontWeight
+                                                                          .bold),
+                                                        ),
+                                                      ],
                                                     ),
-                                                  ],
-                                                ),
-                                                Row(
-                                                  spacing: 10,
-                                                  children: [
-                                                    Text(
-                                                      "Symbol :",
-                                                      style: textTheme
-                                                          .bodyMedium
-                                                          ?.copyWith(
-                                                              color: colors
-                                                                  .textColor
-                                                                  .withOpacity(
-                                                                      0.5)),
+                                                    Row(
+                                                      spacing: 10,
+                                                      children: [
+                                                        Text(
+                                                          "Symbol :",
+                                                          style: textTheme
+                                                              .bodyMedium
+                                                              ?.copyWith(
+                                                                  color: colors
+                                                                      .textColor
+                                                                      .withOpacity(
+                                                                          0.5)),
+                                                        ),
+                                                        Text(
+                                                          "${tokenFoundedData.symbol}",
+                                                          style: textTheme
+                                                              .bodyMedium
+                                                              ?.copyWith(
+                                                                  color: colors
+                                                                      .textColor
+                                                                      .withOpacity(
+                                                                          0.8),
+                                                                  fontWeight:
+                                                                      FontWeight
+                                                                          .bold),
+                                                        ),
+                                                      ],
                                                     ),
-                                                    Text(
-                                                      "${tokenFoundedData.symbol}",
-                                                      style: textTheme
-                                                          .bodyMedium
-                                                          ?.copyWith(
-                                                              color: colors
-                                                                  .textColor
-                                                                  .withOpacity(
-                                                                      0.8),
-                                                              fontWeight:
-                                                                  FontWeight
-                                                                      .bold),
+                                                    Row(
+                                                      spacing: 10,
+                                                      children: [
+                                                        Text(
+                                                          "Decimals :",
+                                                          style: textTheme
+                                                              .bodyMedium
+                                                              ?.copyWith(
+                                                                  color: colors
+                                                                      .textColor
+                                                                      .withOpacity(
+                                                                          0.5)),
+                                                        ),
+                                                        Text(
+                                                          "${tokenFoundedData.decimals}",
+                                                          style: textTheme
+                                                              .bodyMedium
+                                                              ?.copyWith(
+                                                                  color: colors
+                                                                      .textColor
+                                                                      .withOpacity(
+                                                                          0.8),
+                                                                  fontWeight:
+                                                                      FontWeight
+                                                                          .bold),
+                                                        ),
+                                                      ],
                                                     ),
-                                                  ],
-                                                ),
-                                                Row(
-                                                  spacing: 10,
-                                                  children: [
-                                                    Text(
-                                                      "Decimals :",
-                                                      style: textTheme
-                                                          .bodyMedium
-                                                          ?.copyWith(
-                                                              color: colors
-                                                                  .textColor
-                                                                  .withOpacity(
-                                                                      0.5)),
-                                                    ),
-                                                    Text(
-                                                      "${tokenFoundedData.decimals}",
-                                                      style: textTheme
-                                                          .bodyMedium
-                                                          ?.copyWith(
-                                                              color: colors
-                                                                  .textColor
-                                                                  .withOpacity(
-                                                                      0.8),
-                                                              fontWeight:
-                                                                  FontWeight
-                                                                      .bold),
-                                                    ),
-                                                  ],
-                                                ),
-                                               Column(
+                                                    Column(
+                                                      children: [
+                                                        SizedBox(
+                                                            width: width * 0.9,
+                                                            child:
+                                                                ElevatedButton(
+                                                              style: ElevatedButton.styleFrom(
+                                                                  elevation: 0,
+                                                                  shape: RoundedRectangleBorder(
+                                                                      borderRadius:
+                                                                          BorderRadius.circular(
+                                                                              30)),
+                                                                  backgroundColor:
+                                                                      colors
+                                                                          .themeColor),
+                                                              child: Text(
+                                                                "Add Token",
+                                                                style: textTheme
+                                                                    .bodyLarge
+                                                                    ?.copyWith(
+                                                                        color: colors
+                                                                            .primaryColor),
+                                                              ),
+                                                              onPressed:
+                                                                  () async {
+                                                                final List<
+                                                                        Crypto>?
+                                                                    cryptos =
+                                                                    await cryptoStorageManager
+                                                                        .getSavedCryptos(
+                                                                            wallet:
+                                                                                currentAccount);
+                                                                if (cryptos !=
+                                                                    null) {
+                                                                  for (final crypto
+                                                                      in cryptos) {
+                                                                    if (crypto.contractAddress !=
+                                                                            null &&
+                                                                        crypto.contractAddress?.trim().toLowerCase() ==
+                                                                            _contractAddressController.text.trim().toLowerCase()) {
+                                                                      showCustomSnackBar(
+                                                                          type: MessageType
+                                                                              .warning,
+                                                                          colors:
+                                                                              colors,
+                                                                          context:
+                                                                              context,
+                                                                          message:
+                                                                              'Token already added.',
+                                                                          iconColor:
+                                                                              Colors.orange);
+                                                                      Navigator.pop(
+                                                                          context);
+                                                                      return;
+                                                                    }
+                                                                  }
+                                                                }
 
-                                                  children: [
-
-                                                   SizedBox(
-                                                width: width * 0.9,
-                                                child: 
-                                                ElevatedButton(
-                                                      style: ElevatedButton.styleFrom(
-                                                        elevation: 0,
-                                                        
-                                                          shape: RoundedRectangleBorder(
-                                                              borderRadius:
-                                                                  BorderRadius.circular(30)),
-                                                          backgroundColor:
-                                                              colors
-                                                                  .themeColor),
-                                                      child: Text(
-                                                        "Add Token",
-                                                        style: textTheme
-                                                            .bodyLarge
-                                                            ?.copyWith(
-                                                                color: colors
-                                                                    .primaryColor),
-                                                      ),
-                                                      onPressed: () async {
-                                                        final List<Crypto>?
-                                                            cryptos =
-                                                            await cryptoStorageManager
-                                                                .getSavedCryptos(
-                                                                    wallet:
-                                                                        currentAccount);
-                                                        if (cryptos != null) {
-                                                          for (final crypto
-                                                              in cryptos) {
-                                                            if (crypto.contractAddress !=
-                                                                    null &&
-                                                                crypto.contractAddress
-                                                                        ?.trim()
-                                                                        .toLowerCase() ==
-                                                                    _contractAddressController
-                                                                        .text
-                                                                        .trim()
-                                                                        .toLowerCase()) {
-                                                              showCustomSnackBar(
-                                                                  type: MessageType
-                                                                      .warning,
-                                                                  colors:
-                                                                      colors,
-                                                                  context:
-                                                                      context,
-                                                                  message:
-                                                                      'Token already added.',
-                                                                  iconColor: Colors
-                                                                      .orange);
-                                                              Navigator.pop(
-                                                                  context);
-                                                              return;
-                                                            }
-                                                          }
-                                                        }
-
-                                                        final newCrypto = Crypto(
-                                                            isNetworkIcon:
-                                                                false,
-                                                            symbol: searchingContractInfo
-                                                                    ?.symbol ??
-                                                                "",
-                                                            name:
-                                                                searchingContractInfo?.name ??
-                                                                    "Unknown ",
-                                                            color:
-                                                                selectedNetwork?.color ??
-                                                                    Colors
-                                                                        .white,
-                                                            type: CryptoType
-                                                                .token,
-                                                            valueUsd: 0,
-                                                            cryptoId:
-                                                                generateUUID(),
-                                                            canDisplay: true,
-                                                            network:
-                                                                selectedNetwork,
-                                                            decimals:
-                                                                searchingContractInfo
-                                                                    ?.decimals
-                                                                    .toInt(),
-                                                            binanceSymbol:
-                                                                "${searchingContractInfo?.symbol}USDT",
-                                                            contractAddress:
-                                                                _contractAddressController
-                                                                    .text);
-                                                        final saveResult =
-                                                            await cryptoStorageManager
-                                                                .addCrypto(
-                                                                    wallet:
-                                                                        currentAccount,
-                                                                    crypto:
-                                                                        newCrypto);
-                                                        if (saveResult) {
-                                                          hasSaved = true;
-                                                          showCustomSnackBar(
-                                                              type: MessageType
-                                                                  .success,
-                                                              colors: colors,
-                                                              context: context,
-                                                              icon: Icons.check,
-                                                              message:
-                                                                  'Token added successfully.',
-                                                              iconColor:
-                                                                  Colors.green);
-                                                          Navigator.pop(
-                                                              context);
-                                                        } else {
-                                                          showCustomSnackBar(
-                                                            type: MessageType
-                                                                .error,
-                                                            colors: colors,
-                                                            context: context,
-                                                            message:
-                                                                'Error adding token.',
-                                                            iconColor:
-                                                                Colors.red,
-                                                          );
-                                                          Navigator.pop(
-                                                              context);
-                                                        }
-                                                      },
-                                                    )),
-                                                    SizedBox(
-                                                width: width * 0.9,
-                                                child: 
-                                               OutlinedButton(
-                                              
-                                                style: OutlinedButton.styleFrom(
-                                                  side: BorderSide(
-                                                    color: colors.redColor
-                                                  ),
-                                                 shape:  RoundedRectangleBorder(
-                                                              borderRadius:
-                                                                  BorderRadius.circular(30))
-                                                  
-                                                  
-                                                ),
-                                                     
-                                                      child: Text(
-                                                        "Cancel",
-                                                        style: textTheme
-                                                            .bodyLarge
-                                                            ?.copyWith(
-                                                                color: colors
-                                                                    .redColor),
-                                                      ),
-                                                      onPressed: () {
-                                                        Navigator.pop(btx);
-                                                      },
-                                                    ))
+                                                                final newCrypto = Crypto(
+                                                                    isNetworkIcon:
+                                                                        false,
+                                                                    symbol: searchingContractInfo?.symbol ??
+                                                                        "",
+                                                                    name: searchingContractInfo
+                                                                            ?.name ??
+                                                                        "Unknown ",
+                                                                    color: selectedNetwork
+                                                                            ?.color ??
+                                                                        Colors
+                                                                            .white,
+                                                                    type: CryptoType
+                                                                        .token,
+                                                                    valueUsd: 0,
+                                                                    cryptoId:
+                                                                        generateUUID(),
+                                                                    canDisplay:
+                                                                        true,
+                                                                    network:
+                                                                        selectedNetwork,
+                                                                    decimals: searchingContractInfo
+                                                                        ?.decimals
+                                                                        .toInt(),
+                                                                    binanceSymbol:
+                                                                        "${searchingContractInfo?.symbol}USDT",
+                                                                    contractAddress:
+                                                                        _contractAddressController
+                                                                            .text);
+                                                                final saveResult =
+                                                                    await cryptoStorageManager.addCrypto(
+                                                                        wallet:
+                                                                            currentAccount,
+                                                                        crypto:
+                                                                            newCrypto);
+                                                                if (saveResult) {
+                                                                  hasSaved =
+                                                                      true;
+                                                                  showCustomSnackBar(
+                                                                      type: MessageType
+                                                                          .success,
+                                                                      colors:
+                                                                          colors,
+                                                                      context:
+                                                                          context,
+                                                                      icon: Icons
+                                                                          .check,
+                                                                      message:
+                                                                          'Token added successfully.',
+                                                                      iconColor:
+                                                                          Colors
+                                                                              .green);
+                                                                  Navigator.pop(
+                                                                      context);
+                                                                } else {
+                                                                  showCustomSnackBar(
+                                                                    type: MessageType
+                                                                        .error,
+                                                                    colors:
+                                                                        colors,
+                                                                    context:
+                                                                        context,
+                                                                    message:
+                                                                        'Error adding token.',
+                                                                    iconColor:
+                                                                        Colors
+                                                                            .red,
+                                                                  );
+                                                                  Navigator.pop(
+                                                                      context);
+                                                                }
+                                                              },
+                                                            )),
+                                                        SizedBox(
+                                                            width: width * 0.9,
+                                                            child:
+                                                                OutlinedButton(
+                                                              style: OutlinedButton.styleFrom(
+                                                                  side: BorderSide(
+                                                                      color: colors
+                                                                          .redColor),
+                                                                  shape: RoundedRectangleBorder(
+                                                                      borderRadius:
+                                                                          BorderRadius.circular(
+                                                                              30))),
+                                                              child: Text(
+                                                                "Cancel",
+                                                                style: textTheme
+                                                                    .bodyLarge
+                                                                    ?.copyWith(
+                                                                        color: colors
+                                                                            .redColor),
+                                                              ),
+                                                              onPressed: () {
+                                                                Navigator.pop(
+                                                                    btx);
+                                                              },
+                                                            ))
+                                                      ],
+                                                    )
                                                   ],
-                                                )
-                                              ],
-                                            ))),
+                                                ))),
                                       ));
                                 });
                           } else {

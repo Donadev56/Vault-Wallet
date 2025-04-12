@@ -297,7 +297,6 @@ class _MyAppState extends State<MyApp> {
                   textButtonTheme: TextButtonThemeData(
                     style: TextButton.styleFrom(
                       foregroundColor: colors.textColor,
-
                     ),
                   ),
                   elevatedButtonTheme: ElevatedButtonThemeData(
@@ -308,11 +307,8 @@ class _MyAppState extends State<MyApp> {
                   ),
                   outlinedButtonTheme: OutlinedButtonThemeData(
                     style: OutlinedButton.styleFrom(
-                      foregroundColor: colors.themeColor,
-                      side : BorderSide(
-                        color : colors.themeColor
-                      )
-                    ),
+                        foregroundColor: colors.themeColor,
+                        side: BorderSide(color: colors.themeColor)),
                   ),
                 ),
                 initialRoute: snapshot.data! ? Routes.pageManager : Routes.home,

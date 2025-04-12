@@ -613,7 +613,8 @@ class _SendTransactionScreenState extends State<SendTransactionScreen> {
             )),
         title: Text(
           'Send',
-          style: textTheme.headlineMedium?.copyWith(color: colors.textColor  , fontSize: 20),
+          style: textTheme.headlineMedium
+              ?.copyWith(color: colors.textColor, fontSize: 20),
         ),
       ),
       body: SingleChildScrollView(
@@ -653,7 +654,8 @@ class _SendTransactionScreenState extends State<SendTransactionScreen> {
                             currentAccount.address.isNotEmpty
                                 ? "${currentAccount.address.substring(0, 6)}...${currentAccount.address.substring(currentAccount.address.length - 6, currentAccount.address.length)}"
                                 : "No Account",
-                            style: textTheme.bodyMedium?.copyWith(color: colors.textColor),
+                            style: textTheme.bodyMedium
+                                ?.copyWith(color: colors.textColor),
                           )
                         ],
                       ),
@@ -682,7 +684,8 @@ class _SendTransactionScreenState extends State<SendTransactionScreen> {
                         child: Center(
                           child: Text(
                             currentAccount.walletName,
-                            style:textTheme.bodyMedium?.copyWith(color: colors.textColor),
+                            style: textTheme.bodyMedium
+                                ?.copyWith(color: colors.textColor),
                             overflow: TextOverflow.ellipsis,
                             maxLines: 1,
                           ),
@@ -723,7 +726,8 @@ class _SendTransactionScreenState extends State<SendTransactionScreen> {
                 children: [
                   Text(
                     "To",
-                    style:textTheme.bodyMedium?.copyWith(color: colors.textColor),
+                    style:
+                        textTheme.bodyMedium?.copyWith(color: colors.textColor),
                   ),
                   Spacer(),
                   Row(
@@ -761,8 +765,8 @@ class _SendTransactionScreenState extends State<SendTransactionScreen> {
               Form(
                 key: _formKey,
                 child: TextFormField(
-                  style: textTheme.bodyMedium?.copyWith(
-                      color: colors.textColor.withOpacity(0.8)),
+                  style: textTheme.bodyMedium
+                      ?.copyWith(color: colors.textColor.withOpacity(0.8)),
                   validator: (value) {
                     if (value != null) {
                       if (value.length == 42 &&
@@ -805,7 +809,8 @@ class _SendTransactionScreenState extends State<SendTransactionScreen> {
                         color: colors.textColor,
                       ),
                     ),
-                    labelStyle: textTheme.bodyMedium?.copyWith(color: colors.textColor),
+                    labelStyle:
+                        textTheme.bodyMedium?.copyWith(color: colors.textColor),
                     focusedBorder: OutlineInputBorder(
                       borderRadius: BorderRadius.circular(5),
                       borderSide: BorderSide(color: colors.themeColor),
@@ -826,8 +831,8 @@ class _SendTransactionScreenState extends State<SendTransactionScreen> {
                 ),
               ),
               TextFormField(
-                style: textTheme.bodyMedium?.copyWith(
-                    color: colors.textColor.withOpacity(0.8)),
+                style: textTheme.bodyMedium
+                    ?.copyWith(color: colors.textColor.withOpacity(0.8)),
                 validator: (v) {
                   log("Value $v");
                   if (double.parse(v ?? "") >= userBalance) {
@@ -889,14 +894,15 @@ class _SendTransactionScreenState extends State<SendTransactionScreen> {
                         child: Center(
                           child: Text(
                             "Max",
-                            style: textTheme.bodyMedium?.copyWith(color: colors.textColor),
+                            style: textTheme.bodyMedium
+                                ?.copyWith(color: colors.textColor),
                           ),
                         ),
                       ),
                     ),
                   ),
-                  labelStyle: textTheme.bodyMedium?.copyWith(
-                      color: colors.textColor.withOpacity(0.3)),
+                  labelStyle: textTheme.bodyMedium
+                      ?.copyWith(color: colors.textColor.withOpacity(0.3)),
                   focusedBorder: OutlineInputBorder(
                     borderRadius: BorderRadius.circular(5),
                     borderSide: BorderSide(color: colors.themeColor),
@@ -908,8 +914,8 @@ class _SendTransactionScreenState extends State<SendTransactionScreen> {
                 ),
               ),
               TextField(
-                style:textTheme.bodyMedium?.copyWith(
-                    color: colors.textColor.withOpacity(0.8)),
+                style: textTheme.bodyMedium
+                    ?.copyWith(color: colors.textColor.withOpacity(0.8)),
                 keyboardType: TextInputType.number,
                 onChanged: (value) {
                   if (value.isEmpty) {
@@ -936,14 +942,14 @@ class _SendTransactionScreenState extends State<SendTransactionScreen> {
                     child: Center(
                       child: Text(
                         "USD",
-                        style: textTheme.bodyMedium?.copyWith(
-                            color: colors.textColor, fontSize: 15),
+                        style: textTheme.bodyMedium
+                            ?.copyWith(color: colors.textColor, fontSize: 15),
                       ),
                     ),
                   ),
                   alignLabelWithHint: false,
-                  labelStyle: textTheme.bodyMedium?.copyWith(
-                      color: colors.textColor.withOpacity(0.3)),
+                  labelStyle: textTheme.bodyMedium
+                      ?.copyWith(color: colors.textColor.withOpacity(0.3)),
                   focusedBorder: OutlineInputBorder(
                     borderRadius: BorderRadius.circular(5),
                     borderSide: BorderSide(color: colors.themeColor),
@@ -958,15 +964,15 @@ class _SendTransactionScreenState extends State<SendTransactionScreen> {
                 alignment: Alignment.topLeft,
                 child: Text(
                   "Balance : ${formatCryptoValue(userBalance.toString())} ${currentNetwork.symbol}",
-                  style: textTheme.bodyMedium?.copyWith(
-                      color: colors.textColor.withOpacity(0.7)),
+                  style: textTheme.bodyMedium
+                      ?.copyWith(color: colors.textColor.withOpacity(0.7)),
                 ),
               ),
               ConstrainedBox(
                 constraints: BoxConstraints(minWidth: width * 0.95),
                 child: ElevatedButton(
                     style: ElevatedButton.styleFrom(
-                      elevation: 0,
+                        elevation: 0,
                         backgroundColor: _amountController.text.isEmpty
                             ? colors.themeColor.withOpacity(0.2)
                             : colors.themeColor),
@@ -984,7 +990,8 @@ class _SendTransactionScreenState extends State<SendTransactionScreen> {
                     },
                     child: Text(
                       "Next",
-                      style: textTheme.bodyMedium?.copyWith(color: colors.primaryColor),
+                      style: textTheme.bodyMedium
+                          ?.copyWith(color: colors.primaryColor),
                     )),
               )
             ],

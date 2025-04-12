@@ -132,7 +132,6 @@ class _AddPrivateKeyState extends State<AddObservationWallet> {
 
   @override
   Widget build(BuildContext context) {
-
     final textTheme = Theme.of(context).textTheme;
     return Scaffold(
         backgroundColor: colors.primaryColor,

@@ -6,8 +6,7 @@ import 'package:moonwallet/service/price_manager.dart';
 import 'package:moonwallet/service/web3.dart';
 import 'package:moonwallet/service/web3_interaction.dart';
 import 'package:moonwallet/types/types.dart';
-import 'package:moonwallet/widgets/func/askUserforconf.dart';
-import 'package:moonwallet/widgets/bottom_pin_copy.dart';
+import 'package:moonwallet/widgets/func/ask_user_for_conf.dart';
 import 'package:moonwallet/widgets/func/ask_password.dart';
 import 'package:web3dart/web3dart.dart';
 import 'package:http/http.dart';
@@ -233,20 +232,18 @@ class TokenManager {
       }
 
       final confirmedResponse = await askUserForConfirmation(
-          crypto: currentNetwork,
-          operationType: operationType,
-          secondaryColor: secondaryColor,
-          cryptoPrice: cryptoPrice,
-          estimatedGas: estimatedGas,
-          gasPrice: gasPrice,
-          gasLimit: gasLimit,
-          valueInWei: valueInWei,
-          actionsColor: actionsColor,
-          txData: data,
-          context: context,
-          primaryColor: primaryColor,
-          currentAccount: currentAccount,
-          textColor: textColor);
+        crypto: currentNetwork,
+        operationType: operationType,
+        cryptoPrice: cryptoPrice,
+        estimatedGas: estimatedGas,
+        gasPrice: gasPrice,
+        gasLimit: gasLimit,
+        valueInWei: valueInWei,
+        txData: data,
+        context: context,
+        colors: colors,
+        currentAccount: currentAccount,
+      );
 
       final confirmed = confirmedResponse.ok;
 

@@ -124,8 +124,8 @@ Future<bool> showPinModalBottomSheet(
                         padding: const EdgeInsets.only(top: 20),
                         child: Text(
                           newTitle.isEmpty ? title : newTitle,
-                          style: textTheme.bodyMedium?.copyWith(
-                              color: colors.textColor, fontSize: 18),
+                          style: textTheme.bodyMedium
+                              ?.copyWith(color: colors.textColor, fontSize: 18),
                         ),
                       ),
                     ),
@@ -195,8 +195,7 @@ Future<bool> showPinModalBottomSheet(
                                 SizedBox(
                                   width: 5,
                                 ),
-                                Text(error,
-                                    style: textTheme.bodyMedium),
+                                Text(error, style: textTheme.bodyMedium),
                               ],
                             )
                           ],
@@ -241,7 +240,8 @@ Future<bool> showPinModalBottomSheet(
                                             )
                                           : Text(
                                               "${getIndex(index)}",
-                                              style: textTheme.bodyMedium?.copyWith(
+                                              style: textTheme.bodyMedium
+                                                  ?.copyWith(
                                                 color: colors.textColor,
                                                 fontWeight: FontWeight.bold,
                                                 fontSize: 20,

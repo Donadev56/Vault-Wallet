@@ -446,10 +446,11 @@ class _WalletViewScreenState extends State<WalletViewScreen>
                                             enabled: isBalanceLoading,
                                             child: Text(
                                               " = \$0.00 ",
-                                              style:textTheme.bodySmall?.copyWith(
-                                                  color: colors.textColor
-                                                      .withOpacity(0.5),
-                                                  fontSize: 14),
+                                              style: textTheme.bodySmall
+                                                  ?.copyWith(
+                                                      color: colors.textColor
+                                                          .withOpacity(0.5),
+                                                      fontSize: 14),
                                             ));
                                       }
                                     })),
@@ -564,8 +565,8 @@ class _WalletViewScreenState extends State<WalletViewScreen>
                                   },
                                   child: Text(
                                     "Check explorer",
-                                    style:textTheme.bodyMedium?.copyWith(
-                                        color: colors.themeColor),
+                                    style: textTheme.bodyMedium
+                                        ?.copyWith(color: colors.themeColor),
                                   ),
                                 )
                               ],
