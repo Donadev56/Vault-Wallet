@@ -1449,30 +1449,33 @@ class _MainDashboardScreenState extends State<MainDashboardScreen>
                                   ),
                                   trailing: ConstrainedBox(
                                     constraints:
-                                        BoxConstraints(maxWidth: width * 0.3),
+                                        BoxConstraints(maxWidth: width * 0.37),
                                     child: Column(
                                       mainAxisAlignment:
-                                          MainAxisAlignment.spaceBetween,
+                                          MainAxisAlignment.spaceAround,
                                       crossAxisAlignment:
                                           CrossAxisAlignment.end,
                                       children: [
                                         Text(
                                             isHidden
                                                 ? "***"
-                                                : "${formatCryptoValue(crypto.balanceCrypto.toString())}",
-                                            overflow: TextOverflow.clip,
+                                                : formatCryptoValue(crypto
+                                                        .balanceCrypto
+                                                        .toString())
+                                                    .trim(),
+                                            overflow: TextOverflow.ellipsis,
                                             maxLines: 1,
                                             style: textTheme.bodyMedium
                                                 ?.copyWith(
                                                     color: colors.textColor,
-                                                    fontSize: 16,
                                                     fontWeight:
                                                         FontWeight.w400)),
                                         Text(
                                             isHidden
                                                 ? "***"
-                                                : "\$ ${formatUsd(crypto.balanceUsd.toString())}",
+                                                : "\$${formatUsd(crypto.balanceUsd.toString()).trim()}",
                                             overflow: TextOverflow.ellipsis,
+                                            maxLines: 1,
                                             style:
                                                 textTheme.bodySmall
                                                     ?.copyWith(

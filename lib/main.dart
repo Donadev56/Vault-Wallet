@@ -26,6 +26,7 @@ import 'package:moonwallet/screens/dashboard/wallet_actions/add_w_o.dart';
 import 'package:moonwallet/screens/dashboard/wallet_actions/add_mnemonic.dart';
 import 'package:moonwallet/screens/dashboard/wallet_actions/add_private_key.dart';
 import 'package:moonwallet/screens/dashboard/wallet_actions/create_private_key.dart';
+import 'package:moonwallet/screens/test/test.dart';
 import 'package:moonwallet/service/wallet_saver.dart';
 import 'package:moonwallet/service/web3.dart';
 import 'package:moonwallet/types/types.dart';
@@ -67,6 +68,7 @@ class Routes {
   static const String addCrypto = '/main/addCrypto';
   static const String pageManager = '/main/pageManager';
   static const String changeTheme = '/settings/changeColor';
+  static const String test = '/tets';
 
   static const String privateKeyCreator = '/privatekeyCreator';
 }
@@ -301,8 +303,9 @@ class _MyAppState extends State<MyApp> {
                   ),
                   elevatedButtonTheme: ElevatedButtonThemeData(
                     style: ElevatedButton.styleFrom(
-                      backgroundColor: colors.primaryColor,
-                      foregroundColor: colors.themeColor,
+                      elevation: 0,
+                      backgroundColor: colors.themeColor,
+                      foregroundColor: colors.primaryColor,
                     ),
                   ),
                   outlinedButtonTheme: OutlinedButtonThemeData(
@@ -351,9 +354,19 @@ class _MyAppState extends State<MyApp> {
                   Routes.changeTheme: (context) => ChangeThemeView(
                         colors: colors,
                       ),
+                  Routes.test: (context) => TestWidget(
+                        colors: colors,
+                      ),
                 });
           } else {
-            return const Center(child: Text("An error occurred."));
+            return Center(
+                child: Text(
+              "An error occurred.",
+              style: Theme.of(context)
+                  .textTheme
+                  .bodyMedium
+                  ?.copyWith(color: colors.redColor),
+            ));
           }
         });
   }
