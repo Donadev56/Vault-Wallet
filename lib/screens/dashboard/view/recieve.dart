@@ -4,7 +4,6 @@ import 'dart:convert';
 
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
-import 'package:google_fonts/google_fonts.dart';
 import 'package:lucide_icons_flutter/lucide_icons.dart';
 import 'package:moonwallet/logger/logger.dart';
 import 'package:moonwallet/service/crypto_storage_manager.dart';
@@ -153,6 +152,7 @@ class _ReceiveScreenState extends State<ReceiveScreen> {
   @override
   Widget build(BuildContext context) {
     final width = MediaQuery.of(context).size.width;
+    final textTheme = Theme.of(context).textTheme;
     //final height = MediaQuery.of(context).size.height;
 
     return Scaffold(
@@ -170,7 +170,7 @@ class _ReceiveScreenState extends State<ReceiveScreen> {
         ),
         title: Text(
           "Receive",
-          style: GoogleFonts.roboto(color: colors.textColor, fontSize: 20),
+          style:textTheme.headlineMedium?.copyWith(color: colors.textColor, fontSize: 20),
         ),
       ),
       body: Column(
@@ -198,17 +198,17 @@ class _ReceiveScreenState extends State<ReceiveScreen> {
                     child: RichText(
                   text: TextSpan(
                       text: "Only send ",
-                      style: GoogleFonts.roboto(color: warningColor),
+                      style: textTheme.bodyMedium?.copyWith(color: warningColor),
                       children: [
                         TextSpan(
                           text: currentNetwork.name,
-                          style: GoogleFonts.roboto(
+                          style: textTheme.bodyMedium?.copyWith(
                               color: warningColor, fontWeight: FontWeight.bold),
                         ),
                         TextSpan(
                           text:
                               " assets to this address , other assets will be lost forever.",
-                          style: GoogleFonts.roboto(color: warningColor),
+                          style: textTheme.bodyMedium?.copyWith(color: warningColor),
                         )
                       ]),
                   overflow: TextOverflow.clip,
@@ -233,10 +233,10 @@ class _ReceiveScreenState extends State<ReceiveScreen> {
                     ),
                     Text(
                       currentNetwork.symbol,
-                      style: GoogleFonts.roboto(
+                      style: textTheme.bodyMedium?.copyWith(
                           color: colors.textColor,
                           fontSize: 20,
-                          fontWeight: FontWeight.bold),
+                          fontWeight: FontWeight.w500),
                     )
                   ],
                 ),
@@ -297,7 +297,7 @@ class _ReceiveScreenState extends State<ReceiveScreen> {
                     child: Center(
                       child: Text(
                         currentAccount.address,
-                        style: GoogleFonts.roboto(
+                        style:textTheme.bodyMedium?.copyWith(
                             color: colors.textColor, fontSize: 11),
                       ),
                     ))),
@@ -324,7 +324,7 @@ class _ReceiveScreenState extends State<ReceiveScreen> {
                   ),
                   label: Text(
                     "Copy the address",
-                    style: GoogleFonts.roboto(color: colors.primaryColor),
+                    style: textTheme.bodyMedium?.copyWith(color: colors.primaryColor),
                   ),
                 ),
               ))

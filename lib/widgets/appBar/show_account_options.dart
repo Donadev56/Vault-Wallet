@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
-import 'package:google_fonts/google_fonts.dart';
 import 'package:moonwallet/service/vibration.dart';
 import 'package:moonwallet/types/types.dart';
 import 'package:moonwallet/widgets/flowting_modat.dart';
@@ -32,6 +31,7 @@ void showAccountOptions(
             .where((acc) => acc.keyId == wallet.keyId)
             .toList()
             .first;
+        final textTheme = Theme.of(context).textTheme;
 
         return ListView.builder(
             itemCount: appBarButtonOptions.length,
@@ -54,7 +54,7 @@ void showAccountOptions(
                       ),
                       title: Text(
                         opt["name"] ?? "",
-                        style: GoogleFonts.roboto(
+                        style: textTheme.bodyMedium?.copyWith(
                           color: isLast
                               ? colors.redColor
                               : colors.textColor.withOpacity(0.8),

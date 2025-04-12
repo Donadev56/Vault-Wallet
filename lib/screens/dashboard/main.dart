@@ -3,9 +3,10 @@
 import 'dart:async';
 import 'dart:convert';
 import 'dart:io';
-import 'dart:isolate';
 import 'package:currency_formatter/currency_formatter.dart';
 import 'package:device_info_plus/device_info_plus.dart';
+import 'package:internet_connection_checker/internet_connection_checker.dart';
+import 'package:internet_connection_checker_plus/internet_connection_checker_plus.dart';
 import 'package:loading_animation_widget/loading_animation_widget.dart';
 import 'package:moonwallet/custom/refresh/check_mark.dart';
 import 'package:moonwallet/custom/web3_webview/lib/utils/loading.dart';
@@ -22,7 +23,6 @@ import 'package:moonwallet/widgets/pop_menu_divider.dart';
 import 'package:moonwallet/widgets/func/ask_password.dart';
 import 'package:moonwallet/widgets/func/show_crypto_modal.dart';
 import 'package:moonwallet/widgets/func/show_home_options_dialog.dart';
-import 'package:moonwallet/widgets/text.dart';
 // ignore: depend_on_referenced_packages
 import 'package:path/path.dart' as path;
 
@@ -92,6 +92,12 @@ class _MainDashboardScreenState extends State<MainDashboardScreen>
   bool isHidden = false;
   bool isTotalBalanceUpdated = false;
   final _cryptoSearchTextController = TextEditingController();
+  final connectionListener = InternetConnection();
+  final connectionChecker = InternetConnectionChecker.instance;
+  late dynamic connectionSubscription;
+
+  bool isConnected = false;
+  bool wasDisconnected = false;
 
   double totalBalanceUsd = 0;
   double balanceOfAllAccounts = 0;
@@ -103,6 +109,8 @@ class _MainDashboardScreenState extends State<MainDashboardScreen>
     {'icon': LucideIcons.plus, 'page': 'add_token', 'name': 'Add crypto'},
     {'icon': LucideIcons.ellipsis, 'page': 'more', 'name': 'More'},
   ];
+
+  // initializer
 
   @override
   void initState() {
@@ -116,10 +124,36 @@ class _MainDashboardScreenState extends State<MainDashboardScreen>
     getSavedWallets();
     calculateTotalBalanceOfAllWallets();
 
+    connectionListener.onStatusChange.listen(handleConnected);
+
     loadData();
     super.initState();
     checkCanUseBio();
     checkUserExistence();
+  }
+
+  Future<void> handleConnected(InternetStatus status) async {
+    switch (status) {
+      case InternetStatus.connected:
+        isConnected = true;
+        if (wasDisconnected) {
+          showCustomSnackBar(
+              context: context,
+              message: "Updating...",
+              colors: colors,
+              type: MessageType.success,
+              icon: Icons.check,
+              iconColor: colors.greenColor);
+          await getCryptoData(account: currentAccount!);
+        }
+
+        break;
+      case InternetStatus.disconnected:
+        isConnected = false;
+        wasDisconnected = true;
+
+        break;
+    }
   }
 
   Future<void> checkCanUseBio() async {
@@ -712,6 +746,7 @@ class _MainDashboardScreenState extends State<MainDashboardScreen>
     }
   }
 
+  // main function
   Future<void> getCryptoData({required PublicData account}) async {
     try {
       final dataName = "cryptoAndBalance/${account.address}";
@@ -733,9 +768,6 @@ class _MainDashboardScreenState extends State<MainDashboardScreen>
 
       final savedData = (savedDataResult[0] as String?);
       final savedCrypto = (savedDataResult[1] as List<Crypto>?);
-
-      log("Saved Crypto length ${savedCrypto?.length}");
-      log("Standard Crypto length ${standardCrypto.length}");
 
       List<Crypto> cryptosList = [];
       List<Crypto> enabledCryptos = [];
@@ -768,7 +800,6 @@ class _MainDashboardScreenState extends State<MainDashboardScreen>
       } else {
         cryptosList = savedCrypto;
       }
-      log("Crypto List length ${cryptosList.length}");
       if (cryptosList.isNotEmpty) {
         enabledCryptos =
             cryptosList.where((c) => c.canDisplay == true).toList();
@@ -803,6 +834,18 @@ class _MainDashboardScreenState extends State<MainDashboardScreen>
         userBalanceUsd +=
             results.fold(0.0, (sum, r) => sum + (r["balanceUsd"] as double));
 
+        if (!isConnected &&
+            (await connectionListener.internetStatus
+                .then((st) => st == InternetStatus.disconnected))) {
+          logError("Not connected to the internet");
+          showCustomSnackBar(
+              context: context,
+              message: "Not connected to the internet",
+              colors: colors,
+              type: MessageType.error);
+          return;
+        }
+
         setState(() {
           cryptosAndBalance = cryptoBalance;
           initialListBalance = cryptoBalance;
@@ -828,106 +871,12 @@ class _MainDashboardScreenState extends State<MainDashboardScreen>
       }
     } catch (e) {
       logError(e.toString());
+      showCustomSnackBar(
+          context: context,
+          message: e.toString(),
+          colors: colors,
+          type: MessageType.error);
     }
-  }
-
-  Future<void> silentUpdate() async {
-    try {
-      log("Isolate update of balances");
-      final savedData = await web3Manager.getPublicData();
-      List<PublicData> wallets = [];
-      final List<Crypto> standardCrypto =
-          await CryptoRequestManager().getAllCryptos();
-
-      final lastAccount = await encryptService.getLastConnectedAddress();
-
-      if (savedData != null && lastAccount != null) {
-        for (final account in savedData) {
-          final newAccount = PublicData.fromJson(account);
-          setState(() {
-            wallets.add(newAccount);
-          });
-        }
-      }
-      if (wallets.isNotEmpty) {
-        for (final wallet in wallets) {
-          if (!mounted) {
-            log("The wallet is not mounted");
-            return;
-          }
-          List<Crypto> cryptosList = [];
-          List<Crypto> enabledCryptos = [];
-          List<Balance> cryptoBalance = [];
-          List<Crypto> availableCryptos = [];
-          final dataName = "cryptoAndBalance/${wallet.address}";
-
-          final savedCrypto =
-              await cryptoStorageManager.getSavedCryptos(wallet: wallet);
-
-          if (savedCrypto == null) {
-            await cryptoStorageManager.saveListCrypto(
-                cryptos: standardCrypto, wallet: wallet);
-            cryptosList = standardCrypto;
-          } else {
-            cryptosList = savedCrypto;
-          }
-
-          for (final crypto in cryptosList) {
-            for (int i = 0; i < standardCrypto.length; i++) {
-              final stCrypto = standardCrypto[i];
-              if (stCrypto.cryptoId == crypto.cryptoId) {
-                break;
-              }
-              if (i == standardCrypto.length - 1) {
-                cryptosList.add(stCrypto);
-              }
-            }
-          }
-
-          if (cryptosList.isNotEmpty) {
-            enabledCryptos =
-                cryptosList.where((c) => c.canDisplay == true).toList();
-
-            availableCryptos = [];
-
-            final results =
-                await Future.wait(enabledCryptos.map((crypto) async {
-              final balance =
-                  await web3InteractManager.getBalance(wallet, crypto);
-              final trend = await priceManager.checkCryptoTrend(
-                  crypto.binanceSymbol ?? "${crypto.symbol}USDT");
-              final cryptoPrice = await priceManager.getPriceUsingBinanceApi(
-                  crypto.binanceSymbol ?? "${crypto.symbol}USDT");
-              final balanceUsd = cryptoPrice * balance;
-
-              return Balance(
-                crypto: crypto,
-                balanceUsd: balanceUsd,
-                balanceCrypto: balance,
-                cryptoTrendPercent: trend["percent"] ?? 0,
-                cryptoPrice: cryptoPrice,
-              );
-            }));
-            cryptoBalance.addAll(results);
-            availableCryptos.addAll(enabledCryptos);
-            cryptoBalance
-                .sort((a, b) => (b.balanceUsd).compareTo(a.balanceUsd));
-
-            final cryptoListString =
-                cryptoBalance.map((c) => c.toJson()).toList();
-
-            await publicDataManager.saveDataInPrefs(
-                data: json.encode(cryptoListString), key: dataName);
-          }
-        }
-      }
-    } catch (e) {
-      logError('Error silent update: $e');
-    }
-  }
-
-  String cleanDeviceId(String deviceId) {
-    return deviceId.replaceAll(RegExp(r'[^A-Za-z0-9.]'), '');
   }
 
   Future<void> checkUserExistence() async {
@@ -1010,6 +959,8 @@ class _MainDashboardScreenState extends State<MainDashboardScreen>
   Widget build(BuildContext context) {
     double width = MediaQuery.of(context).size.width;
     // double height = MediaQuery.of(context).size.height;
+    final textTheme = Theme.of(context).textTheme;
+
     if (reorganizedCrypto.isEmpty) {
       return Container(
         decoration: BoxDecoration(color: colors.primaryColor),
@@ -1089,6 +1040,7 @@ class _MainDashboardScreenState extends State<MainDashboardScreen>
       setState(() {
         if (direction == SwipeDirection.right) {
           showCustomDrawer(
+              isHidden: isHidden,
               updateBioState: updateBioState,
               canUseBio: canUseBio,
               deleteWallet: (acc) async {
@@ -1176,7 +1128,10 @@ class _MainDashboardScreenState extends State<MainDashboardScreen>
                 child: CustomScrollView(
                   physics: BouncingScrollPhysics(),
                   slivers: <Widget>[
+
                     SliverToBoxAdapter(
+                        key: ValueKey(colors.textColor.value),
+
                         child: Column(
                       mainAxisAlignment: MainAxisAlignment.center,
                       children: [
@@ -1191,8 +1146,7 @@ class _MainDashboardScreenState extends State<MainDashboardScreen>
                                 children: [
                                   Text(
                                     "Balance",
-                                    style: customTextStyle(
-                                        color: colors.textColor),
+                                    style: textTheme.bodyMedium,
                                   ),
                                   IconButton(
                                       onPressed: toggleHidden,
@@ -1208,15 +1162,18 @@ class _MainDashboardScreenState extends State<MainDashboardScreen>
                               SizedBox(
                                 height: 10,
                               ),
-                              Text(
-                                !isHidden
-                                    ? "\$ ${formatUsd(totalBalanceUsd.toString())}"
-                                    : "***",
-                                style: GoogleFonts.roboto(
-                                    color: colors.textColor,
-                                    fontSize: 30,
-                                    fontWeight: FontWeight.bold),
-                              ),
+                              Row(
+                                mainAxisAlignment: MainAxisAlignment.center,
+                                children: [
+                                  //   Icon(FeatherIcons.dollarSign, color: colors.textColor, size: textTheme.headlineLarge?.fontSize,),
+                                  Text(
+                                    !isHidden
+                                        ? "\$ ${formatUsd(totalBalanceUsd.toString())}"
+                                        : "***",
+                                    style: textTheme.headlineLarge,
+                                  ),
+                                ],
+                              )
                             ],
                           ),
                         ),
@@ -1281,10 +1238,8 @@ class _MainDashboardScreenState extends State<MainDashboardScreen>
                                       });
                                     },
                                     controller: _cryptoSearchTextController,
-                                    style: GoogleFonts.roboto(
-                                        color:
-                                            colors.textColor.withOpacity(0.7),
-                                        fontSize: 13),
+                                    style: textTheme.bodySmall
+                                        ?.copyWith(fontSize: 13),
                                     decoration: InputDecoration(
                                         prefixIcon: Icon(
                                           Icons.search,
@@ -1347,10 +1302,7 @@ class _MainDashboardScreenState extends State<MainDashboardScreen>
                                               .withOpacity(0.4)),
                                       SizedBox(width: 8),
                                       Text(fixedAppBarOptions[0]["name"],
-                                          style: customTextStyle(
-                                              fontWeight: FontWeight.w500,
-                                              color: colors.textColor
-                                                  .withOpacity(0.7))),
+                                          style: textTheme.bodyMedium),
                                     ]),
                                   ),
                                   PopupMenuItem(
@@ -1363,10 +1315,7 @@ class _MainDashboardScreenState extends State<MainDashboardScreen>
                                               .withOpacity(0.4)),
                                       SizedBox(width: 8),
                                       Text(fixedAppBarOptions[1]["name"],
-                                          style: customTextStyle(
-                                              fontWeight: FontWeight.w500,
-                                              color: colors.textColor
-                                                  .withOpacity(0.7))),
+                                          style: textTheme.bodyMedium),
                                     ]),
                                   ),
                                   CustomPopMenuDivider(colors: colors),
@@ -1380,10 +1329,7 @@ class _MainDashboardScreenState extends State<MainDashboardScreen>
                                               .withOpacity(0.4)),
                                       SizedBox(width: 8),
                                       Text(fixedAppBarOptions[2]["name"],
-                                          style: customTextStyle(
-                                              fontWeight: FontWeight.w500,
-                                              color: colors.textColor
-                                                  .withOpacity(0.7))),
+                                          style: textTheme.bodyMedium),
                                     ]),
                                   ),
                                   PopupMenuItem(
@@ -1396,10 +1342,7 @@ class _MainDashboardScreenState extends State<MainDashboardScreen>
                                               .withOpacity(0.4)),
                                       SizedBox(width: 8),
                                       Text(fixedAppBarOptions[3]["name"],
-                                          style: customTextStyle(
-                                              fontWeight: FontWeight.w500,
-                                              color: colors.textColor
-                                                  .withOpacity(0.7))),
+                                          style: textTheme.bodyMedium),
                                     ]),
                                   ),
                                   CustomPopMenuDivider(colors: colors),
@@ -1414,10 +1357,7 @@ class _MainDashboardScreenState extends State<MainDashboardScreen>
                                               .withOpacity(0.4)),
                                       SizedBox(width: 8),
                                       Text(fixedAppBarOptions[4]["name"],
-                                          style: customTextStyle(
-                                              fontWeight: FontWeight.w500,
-                                              color: colors.textColor
-                                                  .withOpacity(0.7))),
+                                          style: textTheme.bodyMedium),
                                     ]),
                                   ),
                                 ])
@@ -1427,112 +1367,126 @@ class _MainDashboardScreenState extends State<MainDashboardScreen>
                       delegate: SliverChildBuilderDelegate(
                         (BuildContext context, int index) {
                           final crypto = getFilteredCryptos()[index];
-                          return Material(
-                            color: Colors.transparent,
-                            child: ListTile(
-                              splashColor: colors.textColor.withOpacity(0.05),
-                              onTap: () {
-                                log("Crypto id ${crypto.crypto.cryptoId}");
-                                Navigator.push(
-                                    context,
-                                    MaterialPageRoute(
-                                      builder: (context) => WalletViewScreen(
-                                        cryptoId: crypto.crypto.cryptoId,
-                                      ),
-                                    ));
-                              },
-                              leading: CryptoPicture(
-                                  crypto: crypto.crypto,
-                                  size: 40,
-                                  colors: colors),
-                              title: LayoutBuilder(builder: (ctx, c) {
-                                return Row(
-                                  spacing: 10,
-                                  children: [
-                                    ConstrainedBox(
-                                      constraints: BoxConstraints(
-                                          maxWidth: c.maxWidth * 0.9),
-                                      child: Text(
-                                        crypto.crypto.symbol,
-                                        maxLines: 1,
-                                        overflow: TextOverflow.ellipsis,
-                                        style: customTextStyle(
-                                          color: colors.textColor,
-                                          fontSize: 16,
-                                          fontWeight: FontWeight.bold,
+                          return Padding(
+                            padding: const EdgeInsets.symmetric(vertical: 5),
+                            child: Material(
+                                color: Colors.transparent,
+                                child: ListTile(
+                                  visualDensity: VisualDensity.compact,
+                                  splashColor:
+                                      colors.textColor.withOpacity(0.05),
+                                  onTap: () {
+                                    log("Crypto id ${crypto.crypto.cryptoId}");
+                                    Navigator.push(
+                                        context,
+                                        MaterialPageRoute(
+                                          builder: (context) =>
+                                              WalletViewScreen(
+                                            cryptoId: crypto.crypto.cryptoId,
+                                          ),
+                                        ));
+                                  },
+                                  leading: CryptoPicture(
+                                      crypto: crypto.crypto,
+                                      size: 38,
+                                      colors: colors),
+                                  title: LayoutBuilder(builder: (ctx, c) {
+                                    return Row(
+                                      spacing: 10,
+                                      children: [
+                                        ConstrainedBox(
+                                          constraints: BoxConstraints(
+                                              maxWidth: c.maxWidth * 0.9),
+                                          child: Text(
+                                              crypto.crypto.symbol
+                                                  .toUpperCase(),
+                                              maxLines: 1,
+                                              overflow: TextOverflow.ellipsis,
+                                              style: textTheme.bodyMedium
+                                                  ?.copyWith(
+                                                      fontWeight:
+                                                          FontWeight.w400)),
                                         ),
-                                      ),
-                                    ),
-                                    if (crypto.crypto.type == CryptoType.token)
-                                      Container(
-                                        padding: const EdgeInsets.symmetric(
-                                            horizontal: 10, vertical: 2),
-                                        decoration: BoxDecoration(
-                                            color: colors.grayColor
-                                                .withOpacity(0.9)
-                                                .withOpacity(0.2),
-                                            borderRadius:
-                                                BorderRadius.circular(20)),
-                                        child: Text(
-                                            "${crypto.crypto.network?.name}",
-                                            style: customTextStyle(
-                                                color: colors.textColor
-                                                    .withOpacity(0.8),
-                                                fontSize: 10)),
-                                      )
-                                  ],
-                                );
-                              }),
-                              subtitle: Row(
-                                spacing: 10,
-                                children: [
-                                  Text(formatUsd(crypto.cryptoPrice.toString()),
-                                      style: customTextStyle(
-                                        color:
-                                            colors.textColor.withOpacity(0.6),
-                                        fontSize: 16,
-                                      )),
-                                  if (crypto.cryptoTrendPercent != 0)
-                                    Text(
-                                      " ${(crypto.cryptoTrendPercent).toStringAsFixed(2)}%",
-                                      style: customTextStyle(
-                                        color: crypto.cryptoTrendPercent > 0
-                                            ? colors.greenColor
-                                            : colors.redColor,
-                                        fontSize: 14,
-                                      ),
-                                    ),
-                                ],
-                              ),
-                              trailing: Column(
-                                mainAxisAlignment: MainAxisAlignment.center,
-                                crossAxisAlignment: CrossAxisAlignment.end,
-                                children: [
-                                  ConstrainedBox(
+                                        if (crypto.crypto.type ==
+                                            CryptoType.token)
+                                          Container(
+                                            padding: const EdgeInsets.symmetric(
+                                                horizontal: 10, vertical: 2),
+                                            decoration: BoxDecoration(
+                                                color: colors.grayColor
+                                                    .withOpacity(0.9)
+                                                    .withOpacity(0.2),
+                                                borderRadius:
+                                                    BorderRadius.circular(20)),
+                                            child: Text(
+                                                "${crypto.crypto.network?.name}",
+                                                style: textTheme.bodySmall
+                                                    ?.copyWith(fontSize: 10)),
+                                          )
+                                      ],
+                                    );
+                                  }),
+                                  subtitle: Row(
+                                    spacing: 10,
+                                    children: [
+                                      Text(
+                                          formatUsd(
+                                              crypto.cryptoPrice.toString()),
+                                          style: textTheme.bodySmall?.copyWith(
+                                            color: colors.textColor
+                                                .withOpacity(0.6),
+                                            fontSize: 16,
+                                          )),
+                                      if (crypto.cryptoTrendPercent != 0)
+                                        Text(
+                                          " ${(crypto.cryptoTrendPercent).toStringAsFixed(2)}%",
+                                          style: textTheme.bodySmall?.copyWith(
+                                            color: crypto.cryptoTrendPercent > 0
+                                                ? colors.greenColor
+                                                : colors.redColor,
+                                            fontSize: 14,
+                                          ),
+                                        ),
+                                    ],
+                                  ),
+                                  trailing: ConstrainedBox(
                                     constraints:
                                         BoxConstraints(maxWidth: width * 0.3),
-                                    child: Text(
-                                        isHidden
-                                            ? "***"
-                                            : "${formatCryptoValue(crypto.balanceCrypto.toString())}",
-                                        overflow: TextOverflow.clip,
-                                        maxLines: 1,
-                                        style: customTextStyle(
-                                            color: colors.textColor,
-                                            fontSize: 16,
-                                            fontWeight: FontWeight.bold)),
+                                    child: Column(
+                                      mainAxisAlignment:
+                                          MainAxisAlignment.spaceBetween,
+                                      crossAxisAlignment:
+                                          CrossAxisAlignment.end,
+                                      children: [
+                                        Text(
+                                            isHidden
+                                                ? "***"
+                                                : "${formatCryptoValue(crypto.balanceCrypto.toString())}",
+                                            overflow: TextOverflow.clip,
+                                            maxLines: 1,
+                                            style: textTheme.bodyMedium
+                                                ?.copyWith(
+                                                    color: colors.textColor,
+                                                    fontSize: 16,
+                                                    fontWeight:
+                                                        FontWeight.w400)),
+                                        Text(
+                                            isHidden
+                                                ? "***"
+                                                : "\$ ${formatUsd(crypto.balanceUsd.toString())}",
+                                            overflow: TextOverflow.ellipsis,
+                                            style:
+                                                textTheme.bodySmall
+                                                    ?.copyWith(
+                                                        color: colors.textColor
+                                                            .withOpacity(0.6),
+                                                        fontSize: 14,
+                                                        fontWeight:
+                                                            FontWeight.w400))
+                                      ],
+                                    ),
                                   ),
-                                  Text(
-                                      isHidden
-                                          ? "***"
-                                          : "\$ ${formatUsd(crypto.balanceUsd.toString())}",
-                                      style: customTextStyle(
-                                          color:
-                                              colors.textColor.withOpacity(0.6),
-                                          fontSize: 14))
-                                ],
-                              ),
-                            ),
+                                )),
                           );
                         },
                         childCount: getFilteredCryptos().length,

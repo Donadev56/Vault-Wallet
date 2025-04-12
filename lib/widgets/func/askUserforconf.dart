@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_feather_icons/flutter_feather_icons.dart';
 import 'package:flutter_web3_webview/flutter_web3_webview.dart';
-import 'package:google_fonts/google_fonts.dart';
 import 'package:lucide_icons_flutter/lucide_icons.dart';
 import 'package:modal_bottom_sheet/modal_bottom_sheet.dart';
 import 'package:moonwallet/logger/logger.dart';
@@ -85,6 +84,7 @@ Future<UserRequestResponse> askUserForConfirmation(
       ),
     ),
     builder: (BuildContext confirmationCtx) {
+      final textTheme = Theme.of(context).textTheme;
       final width = MediaQuery.of(confirmationCtx).size.width;
       return StatefulBuilder(
         builder: (BuildContext ctx, StateSetter setModalState) {
@@ -120,7 +120,7 @@ Future<UserRequestResponse> askUserForConfirmation(
                                     child: Text(
                                       "Smart Contract Call",
                                       overflow: TextOverflow.ellipsis,
-                                      style: GoogleFonts.roboto(
+                                      style: textTheme.headlineMedium?.copyWith(
                                           color: textColor,
                                           fontWeight: FontWeight.bold,
                                           fontSize: 22),
@@ -130,7 +130,7 @@ Future<UserRequestResponse> askUserForConfirmation(
                               )
                             : Text(
                                 "Transfer",
-                                style: GoogleFonts.roboto(
+                                style: textTheme.headlineMedium?.copyWith(
                                     color: textColor,
                                     fontWeight: FontWeight.bold,
                                     fontSize: 22),
@@ -172,7 +172,7 @@ Future<UserRequestResponse> askUserForConfirmation(
                               txData.value != null ? "${getValue()} " : "0 ",
                               overflow: TextOverflow.clip,
                               maxLines: 1,
-                              style: GoogleFonts.roboto(
+                              style: textTheme.bodyMedium?.copyWith(
                                   color: textColor,
                                   fontWeight: FontWeight.bold,
                                   fontSize: 25),
@@ -181,7 +181,7 @@ Future<UserRequestResponse> askUserForConfirmation(
                               crypto != null ? crypto.symbol.toUpperCase() : "",
                               overflow: TextOverflow.clip,
                               maxLines: 1,
-                              style: GoogleFonts.roboto(
+                              style: textTheme.bodyMedium?.copyWith(
                                   color: textColor.withOpacity(0.5),
                                   fontWeight: FontWeight.bold,
                                   fontSize: 25),
@@ -195,8 +195,8 @@ Future<UserRequestResponse> askUserForConfirmation(
                   child: operationType == 0
                       ? Text(
                           "This is a third-party app. Please check the info.",
-                          style: GoogleFonts.roboto(
-                              color: Colors.orange, fontSize: 12),
+                          style: textTheme.bodySmall?.copyWith(
+                              color: Colors.orange,),
                         )
                       : null,
                 ),
@@ -216,19 +216,19 @@ Future<UserRequestResponse> askUserForConfirmation(
                           operationType == 0
                               ? Text(
                                   "My Wallet",
-                                  style: GoogleFonts.roboto(
+                                  style: textTheme.bodyMedium?.copyWith( 
                                       color: textColor, fontSize: 14),
                                 )
                               : Text(
                                   "From ",
-                                  style: GoogleFonts.roboto(
+                                  style: textTheme.bodyMedium?.copyWith(
                                       color: textColor, fontSize: 14),
                                 ),
                           Text(
                             currentAccount?.address != null
                                 ? "${currentAccount!.address.substring(0, 6)}...${currentAccount.address.substring(currentAccount.address.length - 6)}"
                                 : "",
-                            style: GoogleFonts.roboto(
+                            style: textTheme.bodyMedium?.copyWith(
                                 color: textColor, fontSize: 14),
                           ),
                         ],
@@ -240,19 +240,19 @@ Future<UserRequestResponse> askUserForConfirmation(
                           operationType == 0
                               ? Text(
                                   "Interact with",
-                                  style: GoogleFonts.roboto(
+                                  style: textTheme.bodyMedium?.copyWith(
                                       color: textColor, fontSize: 14),
                                 )
                               : Text(
                                   "To",
-                                  style: GoogleFonts.roboto(
+                                  style:textTheme.bodyMedium?.copyWith(
                                       color: textColor, fontSize: 14),
                                 ),
                           Text(
                             txData.to != null
                                 ? "${txData.to!.substring(0, 6)}...${txData.to!.substring(txData.to!.length - 6)}"
                                 : "",
-                            style: GoogleFonts.roboto(
+                            style: textTheme.bodyMedium?.copyWith(
                                 color: textColor, fontSize: 14),
                           ),
                         ],
@@ -273,7 +273,7 @@ Future<UserRequestResponse> askUserForConfirmation(
                       Text(
                         "Data :",
                         style:
-                            GoogleFonts.roboto(color: textColor, fontSize: 14),
+                           textTheme.bodyMedium?.copyWith(color: textColor, fontSize: 14),
                       ),
                       SizedBox(height: 5),
                       SizedBox(
@@ -282,7 +282,7 @@ Future<UserRequestResponse> askUserForConfirmation(
                         child: SingleChildScrollView(
                           child: Text(
                             txData.data ?? "",
-                            style: GoogleFonts.roboto(
+                            style: textTheme.bodyMedium?.copyWith(
                                 color: textColor, fontSize: 14),
                           ),
                         ),
@@ -324,7 +324,7 @@ Future<UserRequestResponse> askUserForConfirmation(
                                                   children: [
                                                     Text(
                                                       "Customize gas",
-                                                      style: GoogleFonts.roboto(
+                                                      style: textTheme.headlineMedium?.copyWith(
                                                           color: textColor,
                                                           fontWeight:
                                                               FontWeight.bold,
@@ -354,7 +354,7 @@ Future<UserRequestResponse> askUserForConfirmation(
                                                 },
                                                 keyboardType:
                                                     TextInputType.number,
-                                                style: GoogleFonts.roboto(
+                                                style: textTheme.bodyMedium?.copyWith(
                                                     color: textColor),
                                                 decoration: InputDecoration(
                                                   enabledBorder:
@@ -378,7 +378,7 @@ Future<UserRequestResponse> askUserForConfirmation(
                                               ),
                                               SizedBox(height: 20),
                                               TextField(
-                                                style: GoogleFonts.roboto(
+                                                style: textTheme.bodyMedium?.copyWith(
                                                     color: textColor),
                                                 keyboardType:
                                                     TextInputType.number,
@@ -439,8 +439,7 @@ Future<UserRequestResponse> askUserForConfirmation(
                                                       child: Center(
                                                         child: Text(
                                                           "Confirm",
-                                                          style: GoogleFonts
-                                                              .roboto(
+                                                          style: textTheme.bodyMedium?.copyWith(
                                                             color: primaryColor,
                                                             fontWeight:
                                                                 FontWeight.bold,
@@ -475,7 +474,7 @@ Future<UserRequestResponse> askUserForConfirmation(
                               children: [
                                 Text(
                                   "${gas["name"]}",
-                                  style: GoogleFonts.roboto(
+                                  style: textTheme.bodyMedium?.copyWith(
                                       color: textColor, fontSize: 10),
                                 ),
                                 SizedBox(height: 2),
@@ -517,19 +516,19 @@ Future<UserRequestResponse> askUserForConfirmation(
                                 children: [
                                   Text(
                                     "${gas["name"]}",
-                                    style: GoogleFonts.roboto(
+                                    style: textTheme.bodyMedium?.copyWith(
                                         color: textColor, fontSize: 10),
                                   ),
                                   SizedBox(height: 2),
                                   Text(
                                     "\$ ${calculatePrice(gas["wei"]).toStringAsFixed(4)}",
-                                    style: GoogleFonts.roboto(
+                                    style: textTheme.bodyMedium?.copyWith(
                                         color: textColor, fontSize: 10),
                                   ),
                                   SizedBox(height: 2),
                                   Text(
                                     "${(gas["gwei"] as BigInt).toString()} GWEI",
-                                    style: GoogleFonts.roboto(
+                                    style:textTheme.bodyMedium?.copyWith(
                                         color: textColor, fontSize: 10),
                                   ),
                                 ],
@@ -579,7 +578,7 @@ Future<UserRequestResponse> askUserForConfirmation(
                         child: Center(
                           child: Text(
                             "Confirm",
-                            style: GoogleFonts.roboto(
+                            style: textTheme.bodyMedium?.copyWith(
                               color: primaryColor,
                               fontWeight: FontWeight.bold,
                               fontSize: 16,

@@ -8,10 +8,20 @@ import 'package:moonwallet/utils/colors.dart';
 import 'package:moonwallet/utils/prefs.dart';
 import 'package:moonwallet/utils/themes.dart';
 import 'package:moonwallet/widgets/navBar.dart';
+import 'package:moonwallet/widgets/view/show_transaction_details.dart';
 
 class PagesManagerView extends StatefulWidget {
   final AppColors? colors;
-  const PagesManagerView({super.key, this.colors});
+  final PublicData? currentAccount;
+  final Crypto? crypto;
+  final TransactionDetails? transaction;
+
+  const PagesManagerView(
+      {super.key,
+      this.colors,
+      this.currentAccount,
+      this.crypto,
+      this.transaction});
   final pageIndex = 0;
 
   @override
@@ -20,12 +30,11 @@ class PagesManagerView extends StatefulWidget {
 
 class _PagesManagerViewState extends State<PagesManagerView> {
   int currentIndex = 2;
-  Color primaryColor = Color(0XFF1B1B1B);
-  Color textColor = Color(0xFFF5F5F5);
-  Color secondaryColor = Colors.greenAccent;
-  Color actionsColor = Color(0XFF353535);
-  Color surfaceTintColor = Color(0XFF454545);
+
   bool _isInitialized = false;
+  PublicData? currentAccount;
+  Crypto? crypto;
+  TransactionDetails? transaction;
   final publicDataManager = PublicDataManager();
   bool isDarkMode = false;
 
@@ -68,6 +77,31 @@ class _PagesManagerViewState extends State<PagesManagerView> {
         colors = widget.colors!;
       });
     }
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      try {
+        if (widget.transaction != null &&
+            widget.crypto != null &&
+            widget.currentAccount != null) {
+          setState(() {
+            crypto = widget.crypto;
+            transaction = widget.transaction;
+            currentAccount = widget.currentAccount;
+          });
+          showTransactionDetails(
+              isFrom: true,
+              context: context,
+              colors: colors,
+              address: currentAccount?.address ?? "",
+              tr: transaction!,
+              currentNetwork: crypto!);
+        } else {
+          logger.w("Transaction details data is missing");
+        }
+      } catch (e) {
+        logError(e.toString());
+      }
+    });
+
     getSavedTheme();
     setState(() {
       currentIndex = widget.pageIndex;

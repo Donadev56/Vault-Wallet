@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:google_fonts/google_fonts.dart';
 
 typedef OnTapType = void Function();
 
@@ -46,7 +45,7 @@ class WalletViewButtonAction extends StatelessWidget {
         ),
         Text(
           bottomText,
-          style: GoogleFonts.roboto(color: textColor, fontSize: fontSize),
+          style: Theme.of(context).textTheme.bodyMedium?.copyWith(color: textColor, fontSize: fontSize),
         )
       ],
     );

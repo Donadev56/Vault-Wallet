@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
-import 'package:google_fonts/google_fonts.dart';
 import 'package:lucide_icons_flutter/lucide_icons.dart';
 import 'package:modal_bottom_sheet/modal_bottom_sheet.dart';
 import 'package:moonwallet/types/types.dart';
@@ -16,6 +15,7 @@ void showOtherOptions(
       context: context,
       builder: (ctx) {
         final width = MediaQuery.of(context).size.width;
+        final textTheme = Theme.of(context).textTheme;
 
         return Material(
             color: Colors.transparent,
@@ -34,12 +34,12 @@ void showOtherOptions(
                         crypto: currentCrypto, size: 40, colors: colors),
                     title: Text(
                       currentCrypto.symbol,
-                      style: GoogleFonts.roboto(
+                      style: textTheme.bodyMedium?.copyWith(
                           color: colors.textColor, fontWeight: FontWeight.bold),
                     ),
                     subtitle: Text(
                       currentCrypto.name,
-                      style: GoogleFonts.roboto(
+                      style: textTheme.bodyMedium?.copyWith(
                           color: colors.textColor.withOpacity(0.5)),
                     ),
                     trailing: IconButton(
@@ -77,12 +77,11 @@ void showOtherOptions(
                                   ),
                                   title: Text(
                                     "Network",
-                                    style: GoogleFonts.roboto(
-                                        color: colors.textColor),
+                                    style: textTheme.bodyMedium,
                                   ),
                                   trailing: Text(
                                     "${currentCrypto.type == CryptoType.network ? currentCrypto.name : currentCrypto.network?.name}",
-                                    style: GoogleFonts.roboto(
+                                    style:textTheme.bodyMedium?.copyWith(
                                         color:
                                             colors.textColor.withOpacity(0.5)),
                                   ),
@@ -101,12 +100,12 @@ void showOtherOptions(
                                   ),
                                   title: Text(
                                     "Contract",
-                                    style: GoogleFonts.roboto(
+                                    style: textTheme.bodyMedium?.copyWith(
                                         color: colors.textColor),
                                   ),
                                   trailing: Text(
                                     "${currentCrypto.contractAddress != null ? currentCrypto.contractAddress!.length > 10 ? currentCrypto.contractAddress?.substring(0, 10) : "" : ""}...",
-                                    style: GoogleFonts.roboto(
+                                    style:textTheme.bodyMedium?.copyWith(
                                         color:
                                             colors.textColor.withOpacity(0.5)),
                                   ),
@@ -140,8 +139,7 @@ void showOtherOptions(
                                     ),
                                     title: Text(
                                       "View on Explorer",
-                                      style: GoogleFonts.roboto(
-                                          color: colors.textColor),
+                                      style: textTheme.bodyMedium,
                                     ),
                                     trailing: Icon(
                                       Icons.chevron_right,

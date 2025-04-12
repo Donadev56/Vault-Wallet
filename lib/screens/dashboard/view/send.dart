@@ -2,19 +2,17 @@
 
 import 'dart:convert';
 import 'dart:io';
-import 'dart:ui';
 import 'package:awesome_snackbar_content/awesome_snackbar_content.dart';
 
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_feather_icons/flutter_feather_icons.dart';
 import 'package:flutter_web3_webview/flutter_web3_webview.dart';
-import 'package:google_fonts/google_fonts.dart';
 import 'package:intl/intl.dart';
 import 'package:lucide_icons_flutter/lucide_icons.dart';
 import 'package:mobile_scanner/mobile_scanner.dart';
 import 'package:moonwallet/logger/logger.dart';
-import 'package:moonwallet/main.dart';
+import 'package:moonwallet/screens/dashboard/page_manager.dart';
 import 'package:moonwallet/service/crypto_storage_manager.dart';
 import 'package:moonwallet/service/number_formatter.dart';
 import 'package:moonwallet/service/price_manager.dart';
@@ -30,7 +28,6 @@ import 'package:moonwallet/utils/themes.dart';
 import 'package:moonwallet/widgets/crypto_picture.dart';
 import 'package:moonwallet/widgets/func/show_select_account.dart';
 import 'package:moonwallet/widgets/func/show_select_last_addr.dart';
-import 'package:moonwallet/widgets/scanner/scanner.dart';
 import 'package:moonwallet/widgets/scanner/show_scanner.dart';
 import 'package:permission_handler/permission_handler.dart';
 import 'package:qr_code_scanner_plus/qr_code_scanner_plus.dart';
@@ -181,8 +178,8 @@ class _SendTransactionScreenState extends State<SendTransactionScreen> {
       if (userBalance <= double.parse(_amountController.text)) {
         throw Exception("Insufficient balance");
       }
-
       showLoader();
+
       final to = _addressController.text;
       final from = currentAccount.address;
 
@@ -226,12 +223,29 @@ class _SendTransactionScreenState extends State<SendTransactionScreen> {
             secondaryColor: colors.themeColor,
             actionsColor: colors.grayColor,
             operationType: 1);
+
         saveLastUsedAddresses(address: to);
 
         if (tx.isNotEmpty) {
           log("Transaction tx : $tx");
           if (mounted) {
-            Navigator.pushNamed(context, Routes.pageManager);
+            Navigator.push(
+                context,
+                MaterialPageRoute(
+                    builder: (context) => PagesManagerView(
+                          colors: colors,
+                          currentAccount: currentAccount,
+                          crypto: currentNetwork,
+                          transaction: TransactionDetails(
+                              from: from,
+                              to: to,
+                              value: valueWei.toString(),
+                              timeStamp:
+                                  (DateTime.now().millisecondsSinceEpoch / 1000)
+                                      .toStringAsFixed(0),
+                              hash: tx,
+                              blockNumber: "..."),
+                        )));
           }
         } else {
           log("Transaction failed");
@@ -288,14 +302,10 @@ class _SendTransactionScreenState extends State<SendTransactionScreen> {
         throw Exception(
             "Insufficient ${currentNetwork.network?.symbol} balance , add ${(transactionFee - nativeTokenBalance).toStringAsFixed(8)}");
       }
-
       showLoader();
 
       final to = _addressController.text;
       final from = currentAccount.address;
-
-      // final gasPrice = await web3InteractManager.getGasPrice(
-      //  currentNetwork.network?.rpc ?? "https://opbnb-mainnet-rpc.bnbchain.org");
 
       final value = (BigInt.from((roundedAmount * 1e8).round()) *
           BigInt.from(10).pow(18) ~/
@@ -347,7 +357,23 @@ class _SendTransactionScreenState extends State<SendTransactionScreen> {
         if (tx != null && tx.isNotEmpty) {
           log("Transaction tx : $tx");
           if (mounted) {
-            Navigator.pushNamed(context, Routes.pageManager);
+            Navigator.push(
+                context,
+                MaterialPageRoute(
+                    builder: (context) => PagesManagerView(
+                          colors: colors,
+                          currentAccount: currentAccount,
+                          crypto: currentNetwork,
+                          transaction: TransactionDetails(
+                              from: from,
+                              to: to,
+                              value: value.toString(),
+                              timeStamp:
+                                  (DateTime.now().millisecondsSinceEpoch / 1000)
+                                      .toStringAsFixed(0),
+                              hash: tx,
+                              blockNumber: "..."),
+                        )));
           }
         } else {
           log("Transaction failed");
@@ -570,6 +596,7 @@ class _SendTransactionScreenState extends State<SendTransactionScreen> {
   @override
   Widget build(BuildContext context) {
     final width = MediaQuery.of(context).size.width;
+    final textTheme = Theme.of(context).textTheme;
 
     return Scaffold(
       backgroundColor: colors.primaryColor,
@@ -586,7 +613,7 @@ class _SendTransactionScreenState extends State<SendTransactionScreen> {
             )),
         title: Text(
           'Send',
-          style: GoogleFonts.roboto(color: colors.textColor),
+          style: textTheme.headlineMedium?.copyWith(color: colors.textColor  , fontSize: 20),
         ),
       ),
       body: SingleChildScrollView(
@@ -626,7 +653,7 @@ class _SendTransactionScreenState extends State<SendTransactionScreen> {
                             currentAccount.address.isNotEmpty
                                 ? "${currentAccount.address.substring(0, 6)}...${currentAccount.address.substring(currentAccount.address.length - 6, currentAccount.address.length)}"
                                 : "No Account",
-                            style: GoogleFonts.roboto(color: colors.textColor),
+                            style: textTheme.bodyMedium?.copyWith(color: colors.textColor),
                           )
                         ],
                       ),
@@ -655,7 +682,7 @@ class _SendTransactionScreenState extends State<SendTransactionScreen> {
                         child: Center(
                           child: Text(
                             currentAccount.walletName,
-                            style: GoogleFonts.roboto(color: colors.textColor),
+                            style:textTheme.bodyMedium?.copyWith(color: colors.textColor),
                             overflow: TextOverflow.ellipsis,
                             maxLines: 1,
                           ),
@@ -683,7 +710,7 @@ class _SendTransactionScreenState extends State<SendTransactionScreen> {
                       children: [
                         Text(
                           currentNetwork.symbol,
-                          style: GoogleFonts.roboto(
+                          style: textTheme.bodyMedium?.copyWith(
                               color: colors.textColor,
                               fontWeight: FontWeight.bold),
                         )
@@ -696,7 +723,7 @@ class _SendTransactionScreenState extends State<SendTransactionScreen> {
                 children: [
                   Text(
                     "To",
-                    style: GoogleFonts.roboto(color: colors.textColor),
+                    style:textTheme.bodyMedium?.copyWith(color: colors.textColor),
                   ),
                   Spacer(),
                   Row(
@@ -705,6 +732,7 @@ class _SendTransactionScreenState extends State<SendTransactionScreen> {
                       IconButton(
                           onPressed: () {
                             showSelectLastAddr(
+                                accounts: accounts,
                                 context: context,
                                 publicDataManager: publicDataManager,
                                 currentAccount: currentAccount,
@@ -733,7 +761,7 @@ class _SendTransactionScreenState extends State<SendTransactionScreen> {
               Form(
                 key: _formKey,
                 child: TextFormField(
-                  style: GoogleFonts.roboto(
+                  style: textTheme.bodyMedium?.copyWith(
                       color: colors.textColor.withOpacity(0.8)),
                   validator: (value) {
                     if (value != null) {
@@ -777,7 +805,7 @@ class _SendTransactionScreenState extends State<SendTransactionScreen> {
                         color: colors.textColor,
                       ),
                     ),
-                    labelStyle: GoogleFonts.roboto(color: colors.textColor),
+                    labelStyle: textTheme.bodyMedium?.copyWith(color: colors.textColor),
                     focusedBorder: OutlineInputBorder(
                       borderRadius: BorderRadius.circular(5),
                       borderSide: BorderSide(color: colors.themeColor),
@@ -793,12 +821,12 @@ class _SendTransactionScreenState extends State<SendTransactionScreen> {
                 alignment: Alignment.topLeft,
                 child: Text(
                   "Amount",
-                  style: GoogleFonts.roboto(
+                  style: textTheme.bodyMedium?.copyWith(
                       color: colors.textColor, fontWeight: FontWeight.bold),
                 ),
               ),
               TextFormField(
-                style: GoogleFonts.roboto(
+                style: textTheme.bodyMedium?.copyWith(
                     color: colors.textColor.withOpacity(0.8)),
                 validator: (v) {
                   log("Value $v");
@@ -861,13 +889,13 @@ class _SendTransactionScreenState extends State<SendTransactionScreen> {
                         child: Center(
                           child: Text(
                             "Max",
-                            style: GoogleFonts.roboto(color: colors.textColor),
+                            style: textTheme.bodyMedium?.copyWith(color: colors.textColor),
                           ),
                         ),
                       ),
                     ),
                   ),
-                  labelStyle: GoogleFonts.roboto(
+                  labelStyle: textTheme.bodyMedium?.copyWith(
                       color: colors.textColor.withOpacity(0.3)),
                   focusedBorder: OutlineInputBorder(
                     borderRadius: BorderRadius.circular(5),
@@ -880,7 +908,7 @@ class _SendTransactionScreenState extends State<SendTransactionScreen> {
                 ),
               ),
               TextField(
-                style: GoogleFonts.roboto(
+                style:textTheme.bodyMedium?.copyWith(
                     color: colors.textColor.withOpacity(0.8)),
                 keyboardType: TextInputType.number,
                 onChanged: (value) {
@@ -908,13 +936,13 @@ class _SendTransactionScreenState extends State<SendTransactionScreen> {
                     child: Center(
                       child: Text(
                         "USD",
-                        style: GoogleFonts.roboto(
+                        style: textTheme.bodyMedium?.copyWith(
                             color: colors.textColor, fontSize: 15),
                       ),
                     ),
                   ),
                   alignLabelWithHint: false,
-                  labelStyle: GoogleFonts.roboto(
+                  labelStyle: textTheme.bodyMedium?.copyWith(
                       color: colors.textColor.withOpacity(0.3)),
                   focusedBorder: OutlineInputBorder(
                     borderRadius: BorderRadius.circular(5),
@@ -930,7 +958,7 @@ class _SendTransactionScreenState extends State<SendTransactionScreen> {
                 alignment: Alignment.topLeft,
                 child: Text(
                   "Balance : ${formatCryptoValue(userBalance.toString())} ${currentNetwork.symbol}",
-                  style: GoogleFonts.roboto(
+                  style: textTheme.bodyMedium?.copyWith(
                       color: colors.textColor.withOpacity(0.7)),
                 ),
               ),
@@ -938,9 +966,10 @@ class _SendTransactionScreenState extends State<SendTransactionScreen> {
                 constraints: BoxConstraints(minWidth: width * 0.95),
                 child: ElevatedButton(
                     style: ElevatedButton.styleFrom(
+                      elevation: 0,
                         backgroundColor: _amountController.text.isEmpty
-                            ? colors.textColor.withOpacity(0.2)
-                            : colors.textColor),
+                            ? colors.themeColor.withOpacity(0.2)
+                            : colors.themeColor),
                     onPressed: () async {
                       if (_amountController.text.isEmpty) return;
 
@@ -955,7 +984,7 @@ class _SendTransactionScreenState extends State<SendTransactionScreen> {
                     },
                     child: Text(
                       "Next",
-                      style: GoogleFonts.roboto(color: colors.primaryColor),
+                      style: textTheme.bodyMedium?.copyWith(color: colors.primaryColor),
                     )),
               )
             ],

@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:google_fonts/google_fonts.dart';
 
 typedef OnTap = void Function(int index);
 
@@ -19,6 +18,8 @@ class ActionsWidgets extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final textTheme = Theme.of(context).textTheme;
+
     return Container(
       margin: const EdgeInsets.all(10),
       child: Column(
@@ -43,10 +44,7 @@ class ActionsWidgets extends StatelessWidget {
                       ),
                     ),
                   ))),
-          Text(
-            text,
-            style: GoogleFonts.roboto(color: textColor, fontSize: 12),
-          )
+          Text(text, style: textTheme.bodySmall)
         ],
       ),
     );

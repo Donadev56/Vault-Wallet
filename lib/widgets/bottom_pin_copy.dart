@@ -2,7 +2,6 @@ import 'dart:ui';
 
 import 'package:flutter/material.dart';
 import 'package:flutter_feather_icons/flutter_feather_icons.dart';
-import 'package:google_fonts/google_fonts.dart';
 import 'package:moonwallet/logger/logger.dart';
 import 'package:moonwallet/service/vibration.dart';
 import 'package:moonwallet/types/types.dart';
@@ -21,6 +20,7 @@ Future<bool> showPinModalBottomSheet(
       builder: (BuildContext context) {
         final width = MediaQuery.of(context).size.width;
         final height = MediaQuery.of(context).size.height;
+        final textTheme = Theme.of(context).textTheme;
         String error = "";
         String newTitle = "";
         int numberOfNumbers = 0;
@@ -124,7 +124,7 @@ Future<bool> showPinModalBottomSheet(
                         padding: const EdgeInsets.only(top: 20),
                         child: Text(
                           newTitle.isEmpty ? title : newTitle,
-                          style: GoogleFonts.exo(
+                          style: textTheme.bodyMedium?.copyWith(
                               color: colors.textColor, fontSize: 18),
                         ),
                       ),
@@ -196,8 +196,7 @@ Future<bool> showPinModalBottomSheet(
                                   width: 5,
                                 ),
                                 Text(error,
-                                    style: GoogleFonts.roboto(
-                                        color: colors.redColor)),
+                                    style: textTheme.bodyMedium),
                               ],
                             )
                           ],
@@ -242,7 +241,7 @@ Future<bool> showPinModalBottomSheet(
                                             )
                                           : Text(
                                               "${getIndex(index)}",
-                                              style: GoogleFonts.roboto(
+                                              style: textTheme.bodyMedium?.copyWith(
                                                 color: colors.textColor,
                                                 fontWeight: FontWeight.bold,
                                                 fontSize: 20,

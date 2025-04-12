@@ -1,8 +1,6 @@
 import 'dart:ui';
 
-import 'package:delightful_toast/toast/components/toast_card.dart';
 import 'package:flutter/material.dart';
-import 'package:google_fonts/google_fonts.dart';
 import 'package:modal_bottom_sheet/modal_bottom_sheet.dart';
 import 'package:moonwallet/logger/logger.dart';
 import 'package:moonwallet/main.dart';
@@ -83,6 +81,7 @@ class _ChangeThemeViewState extends State<ChangeThemeView> {
 
   @override
   Widget build(BuildContext context) {
+    final textTheme = Theme.of(context).textTheme;
     return Scaffold(
         backgroundColor: colors.primaryColor,
         appBar: AppBar(
@@ -100,7 +99,7 @@ class _ChangeThemeViewState extends State<ChangeThemeView> {
               )),
           title: Text(
             "Change color",
-            style: GoogleFonts.roboto(color: colors.textColor),
+            style: textTheme.headlineMedium?.copyWith(color: colors.textColor, fontSize: 20),
           ),
         ),
         body: GlowingOverscrollIndicator(
@@ -174,7 +173,7 @@ class _ChangeThemeViewState extends State<ChangeThemeView> {
                                                                       .primaryColor,
                                                               title: Text(
                                                                 themeName,
-                                                                style: GoogleFonts.roboto(
+                                                                style: textTheme.bodyMedium?.copyWith(
                                                                     color: colors
                                                                         .textColor),
                                                               ),
@@ -233,7 +232,7 @@ class _ChangeThemeViewState extends State<ChangeThemeView> {
                                                       Colors.transparent),
                                               label: Text(
                                                 "View",
-                                                style: GoogleFonts.roboto(
+                                                style: textTheme.bodyMedium?.copyWith(
                                                     fontSize: 10,
                                                     color: colors.themeColor),
                                               ),
@@ -268,7 +267,7 @@ class _ChangeThemeViewState extends State<ChangeThemeView> {
                                               savedThemeName == themeName
                                                   ? "Selected"
                                                   : "Select",
-                                              style: GoogleFonts.roboto(
+                                              style: textTheme.bodyMedium?.copyWith(
                                                   fontSize: 10,
                                                   color: Colors.black87,
                                                   fontWeight: savedThemeName ==

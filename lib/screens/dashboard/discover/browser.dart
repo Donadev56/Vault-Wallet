@@ -8,7 +8,6 @@ import 'package:moonwallet/service/price_manager.dart';
 import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
-import 'package:google_fonts/google_fonts.dart';
 import 'package:lucide_icons_flutter/lucide_icons.dart';
 import 'package:moonwallet/logger/logger.dart';
 import 'package:moonwallet/service/wallet_saver.dart';
@@ -345,6 +344,7 @@ class Web3BrowserScreenState extends State<Web3BrowserScreen> {
   @override
   Widget build(BuildContext context) {
     final width = MediaQuery.of(context).size.width;
+    final textTheme = Theme.of(context).textTheme;
     if (isLoading) {
       return Center(
         child: SizedBox(
@@ -413,7 +413,7 @@ class Web3BrowserScreenState extends State<Web3BrowserScreen> {
                               child: Text(
                                 Uri.parse(currentUrl).host,
                                 overflow: TextOverflow.ellipsis,
-                                style: GoogleFonts.roboto(
+                                style: textTheme.bodyMedium?.copyWith(
                                     color: colors.textColor.withOpacity(0.8),
                                     fontSize: 16),
                               ),

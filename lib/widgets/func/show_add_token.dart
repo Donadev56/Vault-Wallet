@@ -3,7 +3,6 @@
 import 'dart:ui';
 
 import 'package:flutter/material.dart';
-import 'package:google_fonts/google_fonts.dart';
 import 'package:lucide_icons_flutter/lucide_icons.dart';
 import 'package:modal_bottom_sheet/modal_bottom_sheet.dart';
 import 'package:moonwallet/custom/web3_webview/lib/utils/loading.dart';
@@ -12,6 +11,7 @@ import 'package:moonwallet/service/crypto_storage_manager.dart';
 import 'package:moonwallet/service/token_manager.dart';
 import 'package:moonwallet/types/types.dart';
 import 'package:moonwallet/widgets/crypto_picture.dart';
+import 'package:moonwallet/widgets/custom_dialog.dart';
 import 'package:moonwallet/widgets/func/snackbar.dart';
 import 'package:ulid/ulid.dart';
 
@@ -27,6 +27,7 @@ void showAddToken(
     required bool hasSaved}) {
   Crypto? selectedNetwork;
   TextEditingController _contractAddressController = TextEditingController();
+  final textTheme = Theme.of(context).textTheme;
 
   final tokenManager = TokenManager();
   final cryptoStorageManager = CryptoStorageManager();
@@ -79,208 +80,267 @@ void showAddToken(
                                 context: context,
                                 builder: (btx) {
                                   return BackdropFilter(
-                                    filter:
-                                        ImageFilter.blur(sigmaX: 8, sigmaY: 8),
-                                    child: AlertDialog(
-                                      contentPadding: const EdgeInsets.all(5),
-                                      titlePadding: const EdgeInsets.all(15),
-                                      buttonPadding: const EdgeInsets.all(15),
-                                      actionsPadding: const EdgeInsets.all(10),
-                                      shape: RoundedRectangleBorder(
-                                          borderRadius:
-                                              BorderRadius.circular(5)),
-                                      backgroundColor: colors.primaryColor,
-                                      title: Text(
-                                        "Confirmation",
-                                        style: GoogleFonts.roboto(
-                                            color: colors.textColor),
-                                      ),
-                                      content: ListView(
-                                        shrinkWrap: true,
-                                        children: [
-                                          Container(
-                                            padding: const EdgeInsets.all(10),
-                                            child: Row(
+                                      filter: ImageFilter.blur(
+                                          sigmaX: 8, sigmaY: 8),
+                                      child: Dialog(
+                                        backgroundColor: colors.primaryColor,
+                                        child: CustomDialog(
+                                            colors: colors,
+                                            title: "Confirmation",
+                                            subtitle:
+                                                "Do your own research before adding a TOKEN, as anyone can create them, even malicious people.",
+                                            content: Padding(padding: const EdgeInsets.only(top: 0) , 
+                                            
+                                            child:  Column(
                                               spacing: 10,
                                               children: [
-                                                Text(
-                                                  "Name :",
-                                                  style: GoogleFonts.roboto(
-                                                      color: colors.textColor
-                                                          .withOpacity(0.5)),
+                                                Divider(color: colors.textColor.withOpacity(0.2),),
+                                                Row(
+                                                  spacing: 10,
+                                                  children: [
+                                                    Text(
+                                                      "Name :",
+                                                      style: textTheme
+                                                          .bodyMedium
+                                                          ?.copyWith(
+                                                              color: colors
+                                                                  .textColor
+                                                                  .withOpacity(
+                                                                      0.5)),
+                                                    ),
+                                                    Text(
+                                                      "${tokenFoundedData.name}",
+                                                      style: textTheme
+                                                          .bodyMedium
+                                                          ?.copyWith(
+                                                              color: colors
+                                                                  .textColor
+                                                                  .withOpacity(
+                                                                      0.8),
+                                                              fontWeight:
+                                                                  FontWeight
+                                                                      .bold),
+                                                    ),
+                                                  ],
                                                 ),
-                                                Text(
-                                                  "${tokenFoundedData.name}",
-                                                  style: GoogleFonts.roboto(
-                                                      color: colors.textColor
-                                                          .withOpacity(0.8),
-                                                      fontWeight:
-                                                          FontWeight.bold),
+                                                Row(
+                                                  spacing: 10,
+                                                  children: [
+                                                    Text(
+                                                      "Symbol :",
+                                                      style: textTheme
+                                                          .bodyMedium
+                                                          ?.copyWith(
+                                                              color: colors
+                                                                  .textColor
+                                                                  .withOpacity(
+                                                                      0.5)),
+                                                    ),
+                                                    Text(
+                                                      "${tokenFoundedData.symbol}",
+                                                      style: textTheme
+                                                          .bodyMedium
+                                                          ?.copyWith(
+                                                              color: colors
+                                                                  .textColor
+                                                                  .withOpacity(
+                                                                      0.8),
+                                                              fontWeight:
+                                                                  FontWeight
+                                                                      .bold),
+                                                    ),
+                                                  ],
                                                 ),
-                                              ],
-                                            ),
-                                          ),
-                                          Container(
-                                            padding: const EdgeInsets.all(10),
-                                            child: Row(
-                                              spacing: 10,
-                                              children: [
-                                                Text(
-                                                  "Symbol :",
-                                                  style: GoogleFonts.roboto(
-                                                      color: colors.textColor
-                                                          .withOpacity(0.5)),
+                                                Row(
+                                                  spacing: 10,
+                                                  children: [
+                                                    Text(
+                                                      "Decimals :",
+                                                      style: textTheme
+                                                          .bodyMedium
+                                                          ?.copyWith(
+                                                              color: colors
+                                                                  .textColor
+                                                                  .withOpacity(
+                                                                      0.5)),
+                                                    ),
+                                                    Text(
+                                                      "${tokenFoundedData.decimals}",
+                                                      style: textTheme
+                                                          .bodyMedium
+                                                          ?.copyWith(
+                                                              color: colors
+                                                                  .textColor
+                                                                  .withOpacity(
+                                                                      0.8),
+                                                              fontWeight:
+                                                                  FontWeight
+                                                                      .bold),
+                                                    ),
+                                                  ],
                                                 ),
-                                                Text(
-                                                  "${tokenFoundedData.symbol}",
-                                                  style: GoogleFonts.roboto(
-                                                      color: colors.textColor
-                                                          .withOpacity(0.8),
-                                                      fontWeight:
-                                                          FontWeight.bold),
-                                                ),
-                                              ],
-                                            ),
-                                          ),
-                                          Container(
-                                            padding: const EdgeInsets.all(10),
-                                            child: Row(
-                                              spacing: 10,
-                                              children: [
-                                                Text(
-                                                  "Decimals :",
-                                                  style: GoogleFonts.roboto(
-                                                      color: colors.textColor
-                                                          .withOpacity(0.5)),
-                                                ),
-                                                Text(
-                                                  "${tokenFoundedData.decimals}",
-                                                  style: GoogleFonts.roboto(
-                                                      color: colors.textColor
-                                                          .withOpacity(0.8),
-                                                      fontWeight:
-                                                          FontWeight.bold),
-                                                ),
-                                              ],
-                                            ),
-                                          )
-                                        ],
-                                      ),
-                                      actions: [
-                                        TextButton(
-                                          style: ElevatedButton.styleFrom(
-                                              shape: RoundedRectangleBorder(
-                                                  borderRadius:
-                                                      BorderRadius.circular(5)),
-                                              backgroundColor:
-                                                  colors.themeColor),
-                                          child: Text(
-                                            "Add Token",
-                                            style: GoogleFonts.roboto(
-                                                color: colors.textColor),
-                                          ),
-                                          onPressed: () async {
-                                            final List<Crypto>? cryptos =
-                                                await cryptoStorageManager
-                                                    .getSavedCryptos(
-                                                        wallet: currentAccount);
-                                            if (cryptos != null) {
-                                              for (final crypto in cryptos) {
-                                                if (crypto.contractAddress !=
-                                                        null &&
-                                                    crypto.contractAddress
-                                                            ?.trim()
-                                                            .toLowerCase() ==
-                                                        _contractAddressController
-                                                            .text
-                                                            .trim()
-                                                            .toLowerCase()) {
-                                                  showCustomSnackBar(
-                                                      type: MessageType.warning,
-                                                      colors: colors,
-                                                      context: context,
-                                                      message:
-                                                          'Token already added.',
-                                                      iconColor: Colors.orange);
-                                                  Navigator.pop(context);
-                                                  return;
-                                                }
-                                              }
-                                            }
+                                               Column(
 
-                                            final newCrypto = Crypto(
-                                                isNetworkIcon: false,
-                                                symbol: searchingContractInfo
-                                                        ?.symbol ??
-                                                    "",
-                                                name:
-                                                    searchingContractInfo
-                                                            ?.name ??
-                                                        "Unknown ",
-                                                color:
-                                                    selectedNetwork
-                                                            ?.color ??
-                                                        Colors.white,
-                                                type: CryptoType.token,
-                                                valueUsd: 0,
-                                                cryptoId: generateUUID(),
-                                                canDisplay: true,
-                                                network: selectedNetwork,
-                                                decimals:
-                                                    searchingContractInfo
-                                                        ?.decimals
-                                                        .toInt(),
-                                                binanceSymbol:
-                                                    "${searchingContractInfo?.symbol}USDT",
-                                                contractAddress:
-                                                    _contractAddressController
-                                                        .text);
-                                            final saveResult =
-                                                await cryptoStorageManager
-                                                    .addCrypto(
-                                                        wallet: currentAccount,
-                                                        crypto: newCrypto);
-                                            if (saveResult) {
-                                              hasSaved = true;
-                                              showCustomSnackBar(
-                                                  type: MessageType.success,
-                                                  colors: colors,
-                                                  context: context,
-                                                  icon: Icons.check,
-                                                  message:
-                                                      'Token added successfully.',
-                                                  iconColor: Colors.green);
-                                              Navigator.pop(context);
-                                            } else {
-                                              showCustomSnackBar(
-                                                type: MessageType.error,
-                                                colors: colors,
-                                                context: context,
-                                                message: 'Error adding token.',
-                                                iconColor: Colors.red,
-                                              );
-                                              Navigator.pop(context);
-                                            }
-                                          },
-                                        ),
-                                        TextButton(
-                                          style: ElevatedButton.styleFrom(
-                                              shape: RoundedRectangleBorder(
-                                                  borderRadius:
-                                                      BorderRadius.circular(5)),
-                                              backgroundColor: colors.redColor),
-                                          child: Text(
-                                            "Cancel",
-                                            style: GoogleFonts.roboto(
-                                                color: colors.textColor),
-                                          ),
-                                          onPressed: () {
-                                            Navigator.pop(btx);
-                                          },
-                                        )
-                                      ],
-                                    ),
-                                  );
+                                                  children: [
+
+                                                   SizedBox(
+                                                width: width * 0.9,
+                                                child: 
+                                                ElevatedButton(
+                                                      style: ElevatedButton.styleFrom(
+                                                        elevation: 0,
+                                                        
+                                                          shape: RoundedRectangleBorder(
+                                                              borderRadius:
+                                                                  BorderRadius.circular(30)),
+                                                          backgroundColor:
+                                                              colors
+                                                                  .themeColor),
+                                                      child: Text(
+                                                        "Add Token",
+                                                        style: textTheme
+                                                            .bodyLarge
+                                                            ?.copyWith(
+                                                                color: colors
+                                                                    .primaryColor),
+                                                      ),
+                                                      onPressed: () async {
+                                                        final List<Crypto>?
+                                                            cryptos =
+                                                            await cryptoStorageManager
+                                                                .getSavedCryptos(
+                                                                    wallet:
+                                                                        currentAccount);
+                                                        if (cryptos != null) {
+                                                          for (final crypto
+                                                              in cryptos) {
+                                                            if (crypto.contractAddress !=
+                                                                    null &&
+                                                                crypto.contractAddress
+                                                                        ?.trim()
+                                                                        .toLowerCase() ==
+                                                                    _contractAddressController
+                                                                        .text
+                                                                        .trim()
+                                                                        .toLowerCase()) {
+                                                              showCustomSnackBar(
+                                                                  type: MessageType
+                                                                      .warning,
+                                                                  colors:
+                                                                      colors,
+                                                                  context:
+                                                                      context,
+                                                                  message:
+                                                                      'Token already added.',
+                                                                  iconColor: Colors
+                                                                      .orange);
+                                                              Navigator.pop(
+                                                                  context);
+                                                              return;
+                                                            }
+                                                          }
+                                                        }
+
+                                                        final newCrypto = Crypto(
+                                                            isNetworkIcon:
+                                                                false,
+                                                            symbol: searchingContractInfo
+                                                                    ?.symbol ??
+                                                                "",
+                                                            name:
+                                                                searchingContractInfo?.name ??
+                                                                    "Unknown ",
+                                                            color:
+                                                                selectedNetwork?.color ??
+                                                                    Colors
+                                                                        .white,
+                                                            type: CryptoType
+                                                                .token,
+                                                            valueUsd: 0,
+                                                            cryptoId:
+                                                                generateUUID(),
+                                                            canDisplay: true,
+                                                            network:
+                                                                selectedNetwork,
+                                                            decimals:
+                                                                searchingContractInfo
+                                                                    ?.decimals
+                                                                    .toInt(),
+                                                            binanceSymbol:
+                                                                "${searchingContractInfo?.symbol}USDT",
+                                                            contractAddress:
+                                                                _contractAddressController
+                                                                    .text);
+                                                        final saveResult =
+                                                            await cryptoStorageManager
+                                                                .addCrypto(
+                                                                    wallet:
+                                                                        currentAccount,
+                                                                    crypto:
+                                                                        newCrypto);
+                                                        if (saveResult) {
+                                                          hasSaved = true;
+                                                          showCustomSnackBar(
+                                                              type: MessageType
+                                                                  .success,
+                                                              colors: colors,
+                                                              context: context,
+                                                              icon: Icons.check,
+                                                              message:
+                                                                  'Token added successfully.',
+                                                              iconColor:
+                                                                  Colors.green);
+                                                          Navigator.pop(
+                                                              context);
+                                                        } else {
+                                                          showCustomSnackBar(
+                                                            type: MessageType
+                                                                .error,
+                                                            colors: colors,
+                                                            context: context,
+                                                            message:
+                                                                'Error adding token.',
+                                                            iconColor:
+                                                                Colors.red,
+                                                          );
+                                                          Navigator.pop(
+                                                              context);
+                                                        }
+                                                      },
+                                                    )),
+                                                    SizedBox(
+                                                width: width * 0.9,
+                                                child: 
+                                               OutlinedButton(
+                                              
+                                                style: OutlinedButton.styleFrom(
+                                                  side: BorderSide(
+                                                    color: colors.redColor
+                                                  ),
+                                                 shape:  RoundedRectangleBorder(
+                                                              borderRadius:
+                                                                  BorderRadius.circular(30))
+                                                  
+                                                  
+                                                ),
+                                                     
+                                                      child: Text(
+                                                        "Cancel",
+                                                        style: textTheme
+                                                            .bodyLarge
+                                                            ?.copyWith(
+                                                                color: colors
+                                                                    .redColor),
+                                                      ),
+                                                      onPressed: () {
+                                                        Navigator.pop(btx);
+                                                      },
+                                                    ))
+                                                  ],
+                                                )
+                                              ],
+                                            ))),
+                                      ));
                                 });
                           } else {
                             showCustomSnackBar(
@@ -344,8 +404,9 @@ void showAddToken(
                                               size: 30,
                                               colors: colors),
                                           title: Text(crypto.name,
-                                              style: GoogleFonts.roboto(
-                                                  color: colors.textColor)),
+                                              style: textTheme.bodyMedium
+                                                  ?.copyWith(
+                                                      color: colors.textColor)),
                                           onTap: () {
                                             setModalState(() {
                                               selectedNetwork = crypto;
@@ -363,7 +424,7 @@ void showAddToken(
                         },
                         title: Text(
                           "${selectedNetwork != null ? selectedNetwork?.name : "Select an network"}",
-                          style: GoogleFonts.roboto(
+                          style: textTheme.bodyMedium?.copyWith(
                               color: colors.textColor.withOpacity(0.5)),
                         ),
                         trailing: Icon(
@@ -374,12 +435,13 @@ void showAddToken(
                       SizedBox(
                         width: width * 0.92,
                         child: TextField(
-                          style: GoogleFonts.roboto(color: colors.textColor),
+                          style: textTheme.bodyMedium
+                              ?.copyWith(color: colors.textColor),
                           cursorColor: colors.themeColor,
                           controller: _contractAddressController,
                           decoration: InputDecoration(
                               hintText: "Contract address",
-                              hintStyle: GoogleFonts.robotoFlex(
+                              hintStyle: textTheme.bodyMedium?.copyWith(
                                   color: colors.textColor.withOpacity(0.4)),
                               contentPadding: const EdgeInsets.symmetric(
                                   vertical: 8, horizontal: 8),

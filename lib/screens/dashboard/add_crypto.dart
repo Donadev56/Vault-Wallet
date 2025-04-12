@@ -1,7 +1,6 @@
 // ignore_for_file: deprecated_member_use, use_build_context_synchronously
 
 import 'dart:convert';
-import 'dart:ui';
 import 'package:moonwallet/main.dart';
 import 'package:moonwallet/service/wallet_saver.dart';
 import 'package:moonwallet/utils/colors.dart';
@@ -12,7 +11,6 @@ import 'package:moonwallet/widgets/func/show_add_token.dart';
 import 'package:ulid/ulid.dart';
 
 import 'package:flutter/material.dart';
-import 'package:google_fonts/google_fonts.dart';
 import 'package:lucide_icons_flutter/lucide_icons.dart';
 import 'package:moonwallet/logger/logger.dart';
 import 'package:moonwallet/service/crypto_storage_manager.dart';
@@ -149,6 +147,7 @@ class _AddCryptoViewState extends State<AddCryptoView> {
 
   @override
   Widget build(BuildContext context) {
+    final textTheme = Theme.of(context).textTheme;
     final width = MediaQuery.of(context).size.width;
     return Scaffold(
       backgroundColor: colors.primaryColor,
@@ -191,7 +190,7 @@ class _AddCryptoViewState extends State<AddCryptoView> {
             )),
         title: Text(
           "Manage Coins ",
-          style: GoogleFonts.robotoFlex(color: colors.textColor),
+          style: textTheme.bodyMedium?.copyWith(color: colors.textColor, fontSize: 20),
         ),
       ),
       body: Column(
@@ -210,12 +209,12 @@ class _AddCryptoViewState extends State<AddCryptoView> {
                     _searchController.text = v;
                   });
                 },
-                style: GoogleFonts.roboto(color: colors.textColor),
+                style: textTheme.bodyMedium?.copyWith(color: colors.textColor),
                 cursorColor: colors.themeColor,
                 controller: _searchController,
                 decoration: InputDecoration(
                     hintText: "Search Crypto",
-                    hintStyle: GoogleFonts.robotoFlex(
+                    hintStyle: textTheme.bodyMedium?.copyWith(
                         color: colors.textColor.withOpacity(0.4)),
                     contentPadding:
                         const EdgeInsets.symmetric(vertical: 8, horizontal: 8),
@@ -263,7 +262,7 @@ class _AddCryptoViewState extends State<AddCryptoView> {
                           crypto: crypto, size: 40, colors: colors),
                       title: Text(
                         crypto.symbol,
-                        style: GoogleFonts.roboto(
+                        style: textTheme.bodyMedium?.copyWith(
                             color: colors.textColor,
                             fontSize: 16,
                             fontWeight: FontWeight.bold),

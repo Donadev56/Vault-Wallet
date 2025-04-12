@@ -1,7 +1,6 @@
 import 'dart:ui';
 
 import 'package:flutter/material.dart';
-import 'package:google_fonts/google_fonts.dart';
 import 'package:lucide_icons_flutter/lucide_icons.dart';
 import 'package:moonwallet/types/types.dart';
 import 'package:moonwallet/widgets/barre.dart';
@@ -19,6 +18,8 @@ selectAnAccount(
               topLeft: Radius.circular(30), topRight: Radius.circular(30))),
       context: context,
       builder: (ctx) {
+        final textTheme = Theme.of(context).textTheme;
+
         return DraggableScrollableSheet(
             initialChildSize: 0.3,
             minChildSize: 0.2,
@@ -54,17 +55,16 @@ selectAnAccount(
                                     ),
                                     title: Text(
                                       w.walletName,
-                                      style: GoogleFonts.roboto(
-                                          color: colors.textColor),
+                                      style: textTheme.bodyMedium,
                                     ),
                                     subtitle: Text(
                                       w.address,
                                       overflow: TextOverflow.ellipsis,
                                       maxLines: 1,
-                                      style: GoogleFonts.roboto(
-                                          color:
-                                              colors.textColor.withOpacity(0.5),
-                                          fontSize: 12),
+                                      style: textTheme.bodySmall?.copyWith(
+                                          fontSize: 12,
+                                          color: colors.textColor
+                                              .withOpacity(0.5)),
                                     ),
                                   );
                                 })),

@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
-import 'package:google_fonts/google_fonts.dart';
 import 'package:lucide_icons_flutter/lucide_icons.dart';
 import 'package:mobile_scanner/mobile_scanner.dart';
 import 'package:moonwallet/logger/logger.dart';
@@ -12,7 +11,6 @@ import 'package:moonwallet/utils/prefs.dart';
 import 'package:moonwallet/utils/themes.dart';
 import 'package:moonwallet/widgets/func/ask_password.dart';
 import 'package:moonwallet/widgets/func/snackbar.dart';
-import 'package:moonwallet/widgets/scanner/scanner.dart';
 import 'package:moonwallet/widgets/scanner/show_scanner.dart';
 
 class AddObservationWallet extends StatefulWidget {
@@ -134,6 +132,8 @@ class _AddPrivateKeyState extends State<AddObservationWallet> {
 
   @override
   Widget build(BuildContext context) {
+
+    final textTheme = Theme.of(context).textTheme;
     return Scaffold(
         backgroundColor: colors.primaryColor,
         body: Form(
@@ -151,7 +151,7 @@ class _AddPrivateKeyState extends State<AddObservationWallet> {
                       margin: const EdgeInsets.only(top: 25, left: 20),
                       child: Text(
                         "Add Public Address",
-                        style: GoogleFonts.exo2(
+                        style: textTheme.headlineMedium?.copyWith(
                             color: colors.textColor,
                             fontSize: 24,
                             decoration: TextDecoration.none),
@@ -178,7 +178,7 @@ class _AddPrivateKeyState extends State<AddObservationWallet> {
                             return "Please enter the public address";
                           }
                         },
-                        style: GoogleFonts.exo2(
+                        style: textTheme.bodyMedium?.copyWith(
                           color: colors.textColor,
                         ),
                         cursorColor: colors.themeColor,
@@ -225,7 +225,7 @@ class _AddPrivateKeyState extends State<AddObservationWallet> {
                             icon: Icon(Icons.paste, color: colors.themeColor),
                             label: Text(
                               "Paste",
-                              style: GoogleFonts.exo2(
+                              style: textTheme.bodyMedium?.copyWith(
                                 fontSize: 16,
                                 color: colors.themeColor,
                               ),
@@ -258,7 +258,7 @@ class _AddPrivateKeyState extends State<AddObservationWallet> {
                                 color: colors.themeColor),
                             label: Text(
                               "Scan",
-                              style: GoogleFonts.exo2(
+                              style: textTheme.bodyMedium?.copyWith(
                                 fontSize: 16,
                                 color: colors.themeColor,
                               ),
@@ -299,7 +299,7 @@ class _AddPrivateKeyState extends State<AddObservationWallet> {
                           },
                           child: Text(
                             "Previous",
-                            style: GoogleFonts.exo(
+                            style: textTheme.bodyMedium?.copyWith(
                               fontSize: 18,
                               color: colors.themeColor,
                               decoration: TextDecoration.none,
@@ -324,7 +324,7 @@ class _AddPrivateKeyState extends State<AddObservationWallet> {
                           },
                           child: Text(
                             "Next",
-                            style: GoogleFonts.exo(
+                            style: textTheme.bodyMedium?.copyWith(
                               fontSize: 18,
                               color: colors.primaryColor,
                               decoration: TextDecoration.none,

@@ -16,6 +16,9 @@ void showCustomSnackBar(
   switch (type) {
     case MessageType.success:
       CherryToast.success(
+              actionHandler: () {
+                Navigator.of(context);
+              },
               shadowColor: shadowColor,
               borderRadius: borderRadius,
               animationDuration: duration,
@@ -24,6 +27,9 @@ void showCustomSnackBar(
           .show(context);
     case MessageType.error:
       CherryToast.error(
+              actionHandler: () {
+                Navigator.of(context);
+              },
               shadowColor: shadowColor,
               borderRadius: borderRadius,
               animationDuration: duration,
@@ -33,6 +39,9 @@ void showCustomSnackBar(
 
     case MessageType.warning:
       CherryToast.warning(
+              actionHandler: () {
+                Navigator.of(context);
+              },
               shadowColor: shadowColor,
               borderRadius: borderRadius,
               animationDuration: duration,
@@ -42,6 +51,9 @@ void showCustomSnackBar(
 
     case MessageType.info:
       CherryToast.warning(
+              actionHandler: () {
+                Navigator.of(context);
+              },
               shadowColor: shadowColor,
               borderRadius: borderRadius,
               animationDuration: duration,

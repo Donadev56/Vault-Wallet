@@ -1,5 +1,7 @@
+// ignore_for_file: deprecated_member_use
+
 import 'package:flutter/material.dart';
-import 'package:google_fonts/google_fonts.dart';
+
 
 class BottomNav extends StatelessWidget {
   final int currentIndex;
@@ -9,23 +11,31 @@ class BottomNav extends StatelessWidget {
   final Color secondaryColor;
 
   const BottomNav({
-    Key? key,
+    super.key,
     required this.currentIndex,
     this.onTap,
     required this.primaryColor,
     required this.textColor,
     required this.secondaryColor,
-  }) : super(key: key);
+  });
 
   @override
   Widget build(BuildContext context) {
+    final textTheme = Theme.of(context).textTheme;
+
     final List<Map<String, dynamic>> navItems = [
-      {'icon': Icons.home, 'label': 'Home'},
-      {'icon': Icons.explore, 'label': 'Discover'},
+      {'icon': Icons.home_filled, "filled": Icons.home_filled, 'label': 'Home'},
+      {
+        'icon': Icons.explore_outlined,
+        "filled": Icons.explore,
+        'label': 'Discover'
+      },
     ];
 
     return Container(
-      decoration: BoxDecoration(border: Border()),
+      decoration: BoxDecoration(
+          border: Border(
+              top: BorderSide(color: textColor.withOpacity(0.1), width: 0.1))),
       child: Theme(
         data: Theme.of(context).copyWith(
           splashFactory: InkRipple.splashFactory,
@@ -38,9 +48,11 @@ class BottomNav extends StatelessWidget {
           type: BottomNavigationBarType.fixed,
           selectedItemColor: secondaryColor,
           unselectedItemColor: textColor,
-          selectedLabelStyle:
-              GoogleFonts.exo2(fontSize: 12, color: secondaryColor),
-          unselectedLabelStyle: GoogleFonts.exo2(),
+          selectedLabelStyle: textTheme.bodySmall?.copyWith(fontSize: 12),
+          unselectedLabelStyle: textTheme.bodySmall?.copyWith(
+            fontSize: 12,
+            color: textColor.withOpacity(0.5),
+          ),
           items: List.generate(navItems.length, (index) {
             final item = navItems[index];
             final bool isSelected = index == currentIndex;
@@ -55,7 +67,7 @@ class BottomNav extends StatelessWidget {
                   duration: const Duration(milliseconds: 300),
                   curve: Curves.easeInOut,
                   child: Icon(
-                    item['icon'] as IconData,
+                    isSelected ? item['filled'] : item['icon'] as IconData,
                     size: 30,
                   ),
                 ),

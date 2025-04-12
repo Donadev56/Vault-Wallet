@@ -5,14 +5,12 @@ import 'dart:convert';
 import 'package:fast_cached_network_image/fast_cached_network_image.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_feather_icons/flutter_feather_icons.dart';
-import 'package:google_fonts/google_fonts.dart';
 import 'package:lucide_icons_flutter/lucide_icons.dart';
 import 'package:moonwallet/custom/web3_webview/lib/utils/loading.dart';
 import 'package:moonwallet/logger/logger.dart';
 import 'package:moonwallet/screens/dashboard/discover/browser.dart';
 import 'package:moonwallet/service/crypto_storage_manager.dart';
 import 'package:moonwallet/service/wallet_saver.dart';
-import 'package:moonwallet/service/web3.dart';
 import 'package:moonwallet/types/types.dart';
 import 'package:moonwallet/utils/colors.dart';
 import 'package:moonwallet/utils/crypto.dart';
@@ -35,7 +33,7 @@ class _DiscoverScreenState extends State<DiscoverScreen>
   late TabController _tabController;
   final publicDataManager = PublicDataManager();
 
-  TextEditingController _textEditingController = TextEditingController();
+  final _textEditingController = TextEditingController();
   bool _isSearchFocused = false;
   bool isDarkMode = false;
   List<Crypto> networks = [];
@@ -43,7 +41,7 @@ class _DiscoverScreenState extends State<DiscoverScreen>
   List<PublicData> accounts = [];
 
   final String historyName = "UserHistory";
-  FocusNode _focusNode = FocusNode();
+  final _focusNode = FocusNode();
   final List<DApp> dapps = [
     DApp(
       description: "Moon BNB is Global smart contract for global earnings",
@@ -408,6 +406,7 @@ class _DiscoverScreenState extends State<DiscoverScreen>
   @override
   Widget build(BuildContext context) {
     double width = MediaQuery.of(context).size.width;
+    final textTheme = Theme.of(context).textTheme;
     return Scaffold(
         backgroundColor: colors.primaryColor,
         appBar: AppBar(
@@ -416,7 +415,7 @@ class _DiscoverScreenState extends State<DiscoverScreen>
           backgroundColor: colors.primaryColor,
           title: Text(
             "Discover",
-            style: GoogleFonts.roboto(
+            style: textTheme.headlineMedium?.copyWith(
               fontSize: 24,
               fontWeight: FontWeight.bold,
               color: colors.textColor,
@@ -455,7 +454,7 @@ class _DiscoverScreenState extends State<DiscoverScreen>
                       focusNode: _focusNode,
                       controller: _textEditingController,
                       cursorColor: colors.themeColor,
-                      style: GoogleFonts.roboto(
+                      style:textTheme.bodyMedium?.copyWith(
                         color: colors.textColor,
                       ),
                       decoration: InputDecoration(
@@ -521,7 +520,7 @@ class _DiscoverScreenState extends State<DiscoverScreen>
                     padding: const EdgeInsets.all(20),
                     child: Text(
                       "Best DApps",
-                      style: GoogleFonts.roboto(
+                      style: textTheme.bodyMedium?.copyWith(
                         fontSize: 20,
                         fontWeight: FontWeight.bold,
                         color: colors.textColor,
@@ -550,7 +549,7 @@ class _DiscoverScreenState extends State<DiscoverScreen>
                                 ),
                                 title: Text(
                                   dapp.name,
-                                  style: GoogleFonts.roboto(
+                                  style:textTheme.bodyMedium?.copyWith(
                                     fontSize: 16,
                                     fontWeight: FontWeight.bold,
                                     color: colors.textColor,
@@ -560,7 +559,7 @@ class _DiscoverScreenState extends State<DiscoverScreen>
                                 ),
                                 subtitle: Text(
                                   dapp.description,
-                                  style: GoogleFonts.roboto(
+                                  style:textTheme.bodyMedium?.copyWith(
                                     fontSize: 14,
                                     color: colors.textColor.withOpacity(0.6),
                                   ),
@@ -606,7 +605,7 @@ class _DiscoverScreenState extends State<DiscoverScreen>
                                 ))),
                         title: Text(
                           hist.title,
-                          style: GoogleFonts.roboto(
+                          style: textTheme.bodyMedium?.copyWith(
                             fontSize: 16,
                             fontWeight: FontWeight.bold,
                             color: colors.textColor,

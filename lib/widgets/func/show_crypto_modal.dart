@@ -1,7 +1,6 @@
 // ignore_for_file: deprecated_member_use
 
 import 'package:flutter/material.dart';
-import 'package:google_fonts/google_fonts.dart';
 import 'package:modal_bottom_sheet/modal_bottom_sheet.dart';
 import 'package:moonwallet/types/types.dart';
 import 'package:moonwallet/widgets/crypto_picture.dart';
@@ -29,6 +28,8 @@ void showCryptoModal(
         String searchQuery = "";
 
         return StatefulBuilder(builder: (ctx, setLocalState) {
+          final textTheme = Theme.of(context).textTheme;
+
           return Column(
             children: [
               Container(
@@ -45,9 +46,12 @@ void showCryptoModal(
                     decoration: InputDecoration(
                       contentPadding: const EdgeInsets.symmetric(
                           vertical: 6, horizontal: 6),
-                      label: Text("Search crypto"),
+                      label: Text(
+                        "Search crypto",
+                        style: textTheme.bodyMedium,
+                      ),
                       labelStyle:
-                          GoogleFonts.roboto(color: textColor.withOpacity(0.7)),
+                         textTheme.bodyMedium?.copyWith(color: textColor.withOpacity(0.7)),
                       filled: true,
                       fillColor: surfaceTintColor.withOpacity(0.15),
                       prefixIcon: Icon(
@@ -94,10 +98,9 @@ void showCryptoModal(
                                 net.symbol,
                                 maxLines: 1,
                                 overflow: TextOverflow.ellipsis,
-                                style: GoogleFonts.roboto(
+                                style: textTheme.bodyMedium?.copyWith(
                                   color: textColor,
                                   fontSize: 16,
-                                  fontWeight: FontWeight.bold,
                                 ),
                               ),
                               if (net.type == CryptoType.token)
@@ -109,9 +112,9 @@ void showCryptoModal(
                                       borderRadius: BorderRadius.circular(20)),
                                   child: Text(
                                     "${net.network?.name}",
-                                    style: GoogleFonts.roboto(
+                                    style: textTheme.bodySmall?.copyWith(
                                         color: textColor.withOpacity(0.8),
-                                        fontSize: 10),
+                                        ),
                                   ),
                                 )
                             ],

@@ -2,7 +2,6 @@
 
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
-import 'package:google_fonts/google_fonts.dart';
 import 'package:jazzicon/jazzicon.dart';
 import 'package:jazzicon/jazziconshape.dart';
 
@@ -35,6 +34,7 @@ void showAccountList({
 }) async {
   final height = MediaQuery.of(context).size.height;
   final width = MediaQuery.of(context).size.width;
+  final textTheme = Theme.of(context).textTheme;
 
   Key widgetKey = UniqueKey();
   String searchQuery = "";
@@ -97,9 +97,10 @@ void showAccountList({
                         padding: const EdgeInsets.only(
                             bottom: 15, left: 20, right: 20, top: 5),
                         child: TextField(
-                            style: GoogleFonts.roboto(
-                              color: colors.textColor,
-                            ),
+                            style: textTheme.bodyMedium?.copyWith(
+                                color: colors.textColor,
+                                fontSize: 14,
+                                fontWeight: FontWeight.w500),
                             onChanged: (value) {
                               setModalState(() {
                                 searchQuery = value;
@@ -127,7 +128,7 @@ void showAccountList({
                                       color: Colors.transparent, width: 0),
                                   borderRadius: BorderRadius.circular(5)),
                               hintText: 'Search wallets',
-                              hintStyle: GoogleFonts.roboto(
+                              hintStyle: textTheme.bodySmall?.copyWith(
                                   fontSize: 14,
                                   fontWeight: FontWeight.normal,
                                   color: colors.textColor.withOpacity(0.4)),
@@ -223,7 +224,7 @@ void showAccountList({
                                                                   overflow:
                                                                       TextOverflow
                                                                           .ellipsis,
-                                                                  style: GoogleFonts.roboto(
+                                                                  style: textTheme.bodyMedium?.copyWith(
                                                                       color: colors
                                                                           .textColor,
                                                                       fontWeight:
@@ -255,7 +256,7 @@ void showAccountList({
                                                                             .secondaryColor)),
                                                                 child: Text(
                                                                   "Watch Only",
-                                                                  style: GoogleFonts.roboto(
+                                                                  style: textTheme.bodySmall?.copyWith(
                                                                       color: colors
                                                                           .textColor
                                                                           .withOpacity(
@@ -271,8 +272,9 @@ void showAccountList({
                                                           maxLines: 1,
                                                           overflow: TextOverflow
                                                               .ellipsis,
-                                                          style: GoogleFonts
-                                                              .roboto(
+                                                          style: textTheme
+                                                              .bodySmall
+                                                              ?.copyWith(
                                                                   color: colors
                                                                       .textColor
                                                                       .withOpacity(
@@ -356,7 +358,7 @@ void showAccountList({
                               icon: Icon(Icons.add, color: colors.primaryColor),
                               label: Text(
                                 "Add Wallet",
-                                style: GoogleFonts.exo2(
+                                style: textTheme.bodyMedium?.copyWith(
                                     fontSize: 16,
                                     color: colors.primaryColor,
                                     fontWeight: FontWeight.bold),

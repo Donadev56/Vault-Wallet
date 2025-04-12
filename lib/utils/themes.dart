@@ -68,7 +68,7 @@ class Themes {
   AppColors lightColors = AppColors(
     primaryColor: Color(0XFFFFFFFF),
     themeColor: Colors.lightBlueAccent,
-    greenColor: const Color.fromARGB(255, 3, 244, 127),
+    greenColor: const Color.fromARGB(255, 0, 175, 90),
     secondaryColor: Color(0XFFF0F0F0),
     grayColor: Color(0XFFBDBDBD),
     textColor: Colors.black,

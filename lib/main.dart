@@ -1,9 +1,12 @@
+// ignore_for_file: deprecated_member_use
+
 import 'dart:io';
 
 import 'package:fast_cached_network_image/fast_cached_network_image.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_web3_webview/flutter_web3_webview.dart';
+import 'package:google_fonts/google_fonts.dart';
 import 'package:moonwallet/logger/logger.dart';
 import 'package:moonwallet/screens/dashboard/add_crypto.dart';
 import 'package:moonwallet/screens/auth/add_private_key.dart';
@@ -14,7 +17,7 @@ import 'package:moonwallet/screens/dashboard/discover/browser.dart';
 import 'package:moonwallet/screens/dashboard/discover.dart';
 import 'package:moonwallet/screens/dashboard/main.dart';
 import 'package:moonwallet/screens/dashboard/page_manager.dart';
-import 'package:moonwallet/screens/dashboard/private/private_key_screen.dart';
+import 'package:moonwallet/screens/dashboard/wallet_actions/private/private_key_screen.dart';
 import 'package:moonwallet/screens/dashboard/settings/change_colors.dart';
 import 'package:moonwallet/screens/dashboard/settings/settings.dart';
 import 'package:moonwallet/screens/dashboard/view/recieve.dart';
@@ -199,6 +202,84 @@ class _MyAppState extends State<MyApp> {
                 debugShowCheckedModeBanner: false,
                 title: 'Moon Wallet',
                 theme: ThemeData(
+                  textTheme: TextTheme(
+                    displayLarge: GoogleFonts.roboto(
+                      fontSize: 57,
+                      fontWeight: FontWeight.bold,
+                      color: colors.textColor,
+                      letterSpacing: -0.25,
+                    ),
+                    displayMedium: GoogleFonts.roboto(
+                      fontSize: 45,
+                      fontWeight: FontWeight.bold,
+                      color: colors.textColor,
+                    ),
+                    displaySmall: GoogleFonts.roboto(
+                      fontSize: 36,
+                      fontWeight: FontWeight.w600,
+                      color: colors.textColor,
+                    ),
+                    headlineLarge: GoogleFonts.roboto(
+                      fontSize: 32,
+                      fontWeight: FontWeight.w600,
+                      color: colors.textColor,
+                    ),
+                    headlineMedium: GoogleFonts.roboto(
+                      fontSize: 28,
+                      fontWeight: FontWeight.w500,
+                      color: colors.textColor,
+                    ),
+                    headlineSmall: GoogleFonts.roboto(
+                      fontSize: 24,
+                      fontWeight: FontWeight.w500,
+                      color: colors.textColor,
+                    ),
+                    titleLarge: GoogleFonts.roboto(
+                      fontSize: 22,
+                      fontWeight: FontWeight.bold,
+                      color: colors.textColor,
+                    ),
+                    titleMedium: GoogleFonts.roboto(
+                      fontSize: 16,
+                      fontWeight: FontWeight.w500,
+                      color: colors.textColor.withOpacity(0.9),
+                    ),
+                    titleSmall: GoogleFonts.roboto(
+                      fontSize: 14,
+                      fontWeight: FontWeight.w500,
+                      color: colors.textColor.withOpacity(0.85),
+                    ),
+                    bodyLarge: GoogleFonts.roboto(
+                      fontSize: 16,
+                      fontWeight: FontWeight.normal,
+                      color: colors.textColor,
+                    ),
+                    bodyMedium: GoogleFonts.roboto(
+                      fontSize: 14,
+                      fontWeight: FontWeight.normal,
+                      color: colors.textColor.withOpacity(0.9),
+                    ),
+                    bodySmall: GoogleFonts.roboto(
+                      fontSize: 12,
+                      fontWeight: FontWeight.normal,
+                      color: colors.textColor.withOpacity(0.7),
+                    ),
+                    labelLarge: GoogleFonts.roboto(
+                      fontSize: 14,
+                      fontWeight: FontWeight.w600,
+                      color: colors.textColor,
+                    ),
+                    labelMedium: GoogleFonts.roboto(
+                      fontSize: 12,
+                      fontWeight: FontWeight.w500,
+                      color: colors.textColor.withOpacity(0.8),
+                    ),
+                    labelSmall: GoogleFonts.roboto(
+                      fontSize: 11,
+                      fontWeight: FontWeight.w400,
+                      color: colors.textColor.withOpacity(0.6),
+                    ),
+                  ),
                   splashFactory: InkRipple.splashFactory,
                   primaryColor: colors.primaryColor,
                   dividerColor: colors.textColor,
@@ -215,18 +296,22 @@ class _MyAppState extends State<MyApp> {
                   useMaterial3: true,
                   textButtonTheme: TextButtonThemeData(
                     style: TextButton.styleFrom(
-                      foregroundColor: Colors.white,
+                      foregroundColor: colors.textColor,
+
                     ),
                   ),
                   elevatedButtonTheme: ElevatedButtonThemeData(
                     style: ElevatedButton.styleFrom(
-                      backgroundColor: Colors.white,
-                      foregroundColor: Colors.black,
+                      backgroundColor: colors.primaryColor,
+                      foregroundColor: colors.themeColor,
                     ),
                   ),
                   outlinedButtonTheme: OutlinedButtonThemeData(
                     style: OutlinedButton.styleFrom(
-                      foregroundColor: Colors.white,
+                      foregroundColor: colors.themeColor,
+                      side : BorderSide(
+                        color : colors.themeColor
+                      )
                     ),
                   ),
                 ),

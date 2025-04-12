@@ -2,7 +2,6 @@ import 'dart:ui';
 
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
-import 'package:google_fonts/google_fonts.dart';
 import 'package:lucide_icons_flutter/lucide_icons.dart';
 import 'package:moonwallet/logger/logger.dart';
 import 'package:moonwallet/service/price_manager.dart';
@@ -150,6 +149,7 @@ class _PrivateKeyScreenState extends State<PrivateKeyScreen> {
     showDialog(
         context: context,
         builder: (BuildContext ctx) {
+          final textTheme = Theme.of(context).textTheme;
           return BackdropFilter(
             filter: ImageFilter.blur(
               sigmaX: 8.0,
@@ -159,11 +159,11 @@ class _PrivateKeyScreenState extends State<PrivateKeyScreen> {
               backgroundColor: colors.primaryColor,
               title: Text(
                 "Warning",
-                style: GoogleFonts.roboto(color: Colors.orange),
+                style: textTheme.headlineMedium?.copyWith(color: Colors.orange, fontSize: 20),
               ),
               content: Text(
                 "You are about to view sensitive information, make sure you are not in a public place and that no one is looking at your screen.",
-                style: GoogleFonts.roboto(color: Colors.pinkAccent),
+                style: textTheme.bodyMedium?.copyWith(color: Colors.pinkAccent),
               ),
               actions: [
                 Row(
@@ -181,7 +181,7 @@ class _PrivateKeyScreenState extends State<PrivateKeyScreen> {
                       },
                       label: Text(
                         "Go back",
-                        style: GoogleFonts.roboto(color: colors.textColor),
+                        style:textTheme.bodyMedium?.copyWith(color: colors.textColor),
                       ),
                     ),
                     TextButton.icon(
@@ -195,7 +195,7 @@ class _PrivateKeyScreenState extends State<PrivateKeyScreen> {
                       },
                       label: Text(
                         "View",
-                        style: GoogleFonts.roboto(color: colors.textColor),
+                        style: textTheme.bodyMedium?.copyWith(color: colors.textColor),
                       ),
                     ),
                   ],
@@ -229,6 +229,7 @@ class _PrivateKeyScreenState extends State<PrivateKeyScreen> {
   @override
   Widget build(BuildContext context) {
     final width = MediaQuery.of(context).size.width;
+    final TextTheme textTheme = Theme.of(context).textTheme;
     return Scaffold(
       backgroundColor: colors.primaryColor,
       appBar: AppBar(
@@ -241,7 +242,7 @@ class _PrivateKeyScreenState extends State<PrivateKeyScreen> {
         ),
         title: Text(
           "Private Data Overview",
-          style: GoogleFonts.roboto(color: colors.textColor),
+          style: textTheme.bodyMedium?.copyWith(color: colors.textColor),
         ),
       ),
       body: Padding(
@@ -253,10 +254,10 @@ class _PrivateKeyScreenState extends State<PrivateKeyScreen> {
               controller: _mnemonicController,
               minLines: 4,
               maxLines: 5,
-              style: GoogleFonts.roboto(color: colors.textColor),
+              style: textTheme.bodyMedium?.copyWith(color: colors.textColor),
               decoration: InputDecoration(
                   label: Text("Mnemonic"),
-                  labelStyle: GoogleFonts.roboto(color: colors.textColor),
+                  labelStyle: textTheme.bodyMedium?.copyWith(color: colors.textColor),
                   enabledBorder: OutlineInputBorder(
                       borderSide:
                           BorderSide(width: 1, color: colors.themeColor)),
@@ -272,10 +273,10 @@ class _PrivateKeyScreenState extends State<PrivateKeyScreen> {
               controller: _privateKeyController,
               minLines: 2,
               maxLines: 3,
-              style: GoogleFonts.roboto(color: colors.textColor),
+              style: textTheme.bodyMedium?.copyWith(color: colors.textColor),
               decoration: InputDecoration(
                   label: Text("Private  Key"),
-                  labelStyle: GoogleFonts.roboto(color: colors.textColor),
+                  labelStyle: textTheme.bodyMedium?.copyWith(color: colors.textColor),
                   enabledBorder: OutlineInputBorder(
                       borderSide:
                           BorderSide(width: 1, color: colors.themeColor)),
@@ -310,7 +311,7 @@ class _PrivateKeyScreenState extends State<PrivateKeyScreen> {
                     },
                     label: Text(
                       'Mnemonic',
-                      style: GoogleFonts.roboto(color: colors.primaryColor),
+                      style: textTheme.bodyMedium?.copyWith(color: colors.primaryColor),
                     ),
                     icon: Icon(
                       Icons.copy,
@@ -338,7 +339,7 @@ class _PrivateKeyScreenState extends State<PrivateKeyScreen> {
                     },
                     label: Text(
                       'PrivateKey',
-                      style: GoogleFonts.roboto(color: colors.primaryColor),
+                      style:textTheme.bodyMedium?.copyWith(color: colors.primaryColor),
                     ),
                     icon: Icon(
                       Icons.copy,
@@ -365,7 +366,7 @@ class _PrivateKeyScreenState extends State<PrivateKeyScreen> {
                           width: 5,
                         ),
                         Text("Important :",
-                            style: GoogleFonts.exo(
+                            style:textTheme.bodyMedium?.copyWith(
                                 fontSize: 16,
                                 color: colors.textColor,
                                 decoration: TextDecoration.none)),
@@ -376,7 +377,7 @@ class _PrivateKeyScreenState extends State<PrivateKeyScreen> {
                         padding: const EdgeInsets.only(top: 10),
                         child: Text(
                           "The private key and Mnemonic are secret and is the only way to access your funds. Never share your private key or Mnemonic with anyone.",
-                          style: GoogleFonts.exo(
+                          style: textTheme.bodyMedium?.copyWith(
                               fontSize: 16,
                               color: colors.textColor.withOpacity(0.5),
                               decoration: TextDecoration.none),

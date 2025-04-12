@@ -1,20 +1,13 @@
 // ignore_for_file: deprecated_member_use
 
 import 'dart:io';
-import 'dart:ui';
-
-import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
 import 'package:flutter_feather_icons/flutter_feather_icons.dart';
-import 'package:google_fonts/google_fonts.dart';
-import 'package:lucide_icons_flutter/lucide_icons.dart';
 import 'package:moonwallet/service/vibration.dart';
 import 'package:moonwallet/types/types.dart';
 import 'package:moonwallet/widgets/appBar/show_accounts_list.dart';
 import 'package:moonwallet/widgets/appBar/show_custom_drawer.dart';
 import 'package:moonwallet/widgets/appBar/show_wallet_actions.dart';
-import 'package:url_launcher/url_launcher.dart';
 
 typedef EditWalletNameType = void Function(String newName, int index);
 typedef ActionWithIndexType = void Function(int index);
@@ -86,6 +79,7 @@ class CustomAppBar extends StatelessWidget implements PreferredSizeWidget {
   @override
   Widget build(BuildContext context) {
     // ignore: no_leading_underscores_for_local_identifiers
+    final textTheme = Theme.of(context).textTheme;
 
     return AppBar(
       backgroundColor: primaryColor,
@@ -93,6 +87,7 @@ class CustomAppBar extends StatelessWidget implements PreferredSizeWidget {
       leading: IconButton(
           onPressed: () {
             showCustomDrawer(
+                isHidden: isHidden,
                 updateBioState: updateBioState,
                 canUseBio: canUseBio,
                 deleteWallet: (acc) async {
@@ -147,13 +142,9 @@ class CustomAppBar extends StatelessWidget implements PreferredSizeWidget {
               child: Row(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
-                  Text(
-                    currentAccount.walletName,
-                    style: GoogleFonts.roboto(
-                        fontSize: 16,
-                        fontWeight: FontWeight.bold,
-                        color: textColor.withOpacity(0.7)),
-                  ),
+                  Text(currentAccount.walletName,
+                      style: textTheme.bodyMedium?.copyWith(
+                          fontSize: 16, color: textColor.withOpacity(0.8))),
                   SizedBox(
                     width: 5,
                   ),
@@ -185,10 +176,11 @@ class CustomAppBar extends StatelessWidget implements PreferredSizeWidget {
 class CustomPopupMenuItem<T> extends PopupMenuEntry<T> {
   final T value;
   final Widget child;
+  @override
   final double height;
   final VoidCallback onTap;
 
-  const CustomPopupMenuItem({
+  const CustomPopupMenuItem({super.key, 
     required this.value,
     required this.child,
     this.height = kMinInteractiveDimension,
@@ -209,8 +201,8 @@ class CustomPopupMenuItemState<T> extends State<CustomPopupMenuItem<T>> {
       height: widget.height,
       alignment: Alignment.centerLeft,
       child: PopupMenuItem(
-        child: widget.child,
         onTap: widget.onTap,
+        child: widget.child,
       ),
     );
   }

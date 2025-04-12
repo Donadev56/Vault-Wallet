@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
-import 'package:google_fonts/google_fonts.dart';
 import 'package:lucide_icons_flutter/lucide_icons.dart';
 import 'package:mobile_scanner/mobile_scanner.dart';
 import 'package:moonwallet/logger/logger.dart';
@@ -12,7 +11,6 @@ import 'package:moonwallet/utils/prefs.dart';
 import 'package:moonwallet/utils/themes.dart';
 import 'package:moonwallet/widgets/func/ask_password.dart';
 import 'package:moonwallet/widgets/func/snackbar.dart';
-import 'package:moonwallet/widgets/scanner/scanner.dart';
 import 'package:moonwallet/widgets/scanner/show_scanner.dart';
 import 'package:web3dart/web3dart.dart';
 
@@ -172,6 +170,8 @@ class _AddPrivateKeyState extends State<AddPrivateKeyInMain> {
 
   @override
   Widget build(BuildContext context) {
+      final textTheme = Theme.of(context).textTheme;
+
     return Scaffold(
         backgroundColor: colors.primaryColor,
         body: Form(
@@ -189,7 +189,7 @@ class _AddPrivateKeyState extends State<AddPrivateKeyInMain> {
                       margin: const EdgeInsets.only(top: 25, left: 20),
                       child: Text(
                         "Add Private Key",
-                        style: GoogleFonts.exo2(
+                        style: textTheme.headlineMedium?.copyWith(
                             color: colors.textColor,
                             fontSize: 24,
                             decoration: TextDecoration.none),
@@ -216,7 +216,7 @@ class _AddPrivateKeyState extends State<AddPrivateKeyInMain> {
                             return "Please enter a private key";
                           }
                         },
-                        style: GoogleFonts.exo2(
+                        style: textTheme.bodyMedium?.copyWith(
                           color: colors.textColor,
                         ),
                         cursorColor: colors.themeColor,
@@ -263,7 +263,7 @@ class _AddPrivateKeyState extends State<AddPrivateKeyInMain> {
                             icon: Icon(Icons.paste, color: colors.themeColor),
                             label: Text(
                               "Paste",
-                              style: GoogleFonts.exo2(
+                              style: textTheme.bodyMedium?.copyWith(
                                 fontSize: 16,
                                 color: colors.themeColor,
                               ),
@@ -298,7 +298,7 @@ class _AddPrivateKeyState extends State<AddPrivateKeyInMain> {
                                 color: colors.themeColor),
                             label: Text(
                               "Scan",
-                              style: GoogleFonts.exo2(
+                              style: textTheme.bodyMedium?.copyWith(
                                 fontSize: 16,
                                 color: colors.themeColor,
                               ),
@@ -335,7 +335,7 @@ class _AddPrivateKeyState extends State<AddPrivateKeyInMain> {
                                 width: 5,
                               ),
                               Text("Important :",
-                                  style: GoogleFonts.exo(
+                                  style: textTheme.bodyMedium?.copyWith(
                                       fontSize: 16,
                                       color: colors.textColor,
                                       decoration: TextDecoration.none)),
@@ -346,7 +346,7 @@ class _AddPrivateKeyState extends State<AddPrivateKeyInMain> {
                               padding: const EdgeInsets.only(top: 10),
                               child: Text(
                                 "The private key is secret and is the only way to access your funds. Never share your private key with anyone and keep it in a safe place.",
-                                style: GoogleFonts.exo(
+                                style: textTheme.bodyMedium?.copyWith(
                                     fontSize: 16,
                                     color: colors.textColor.withOpacity(0.5),
                                     decoration: TextDecoration.none),
@@ -378,7 +378,7 @@ class _AddPrivateKeyState extends State<AddPrivateKeyInMain> {
                           },
                           child: Text(
                             "Previous",
-                            style: GoogleFonts.exo(
+                            style:textTheme.bodyMedium?.copyWith(
                               fontSize: 18,
                               color: colors.themeColor,
                               decoration: TextDecoration.none,
@@ -403,7 +403,7 @@ class _AddPrivateKeyState extends State<AddPrivateKeyInMain> {
                           },
                           child: Text(
                             "Next",
-                            style: GoogleFonts.exo(
+                            style: textTheme.bodyMedium?.copyWith(
                               fontSize: 18,
                               color: colors.primaryColor,
                               decoration: TextDecoration.none,

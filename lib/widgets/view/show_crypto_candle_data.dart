@@ -2,7 +2,6 @@ import 'dart:ui';
 
 import 'package:flutter/material.dart';
 import 'package:flutter_feather_icons/flutter_feather_icons.dart';
-import 'package:google_fonts/google_fonts.dart';
 import 'package:modal_bottom_sheet/modal_bottom_sheet.dart';
 import 'package:moonwallet/custom/candlesticks/lib/candlesticks.dart';
 import 'package:moonwallet/service/price_manager.dart';
@@ -52,6 +51,7 @@ void showCryptoCandleModal(
       final height = MediaQuery.of(context).size.height;
       return StatefulBuilder(
         builder: (BuildContext context, StateSetter setModalState) {
+          final textTheme = Theme.of(context).textTheme;
           return BackdropFilter(
               filter: ImageFilter.blur(sigmaX: 10, sigmaY: 10),
               child: Container(
@@ -83,7 +83,7 @@ void showCryptoCandleModal(
                                 children: [
                                   Text(
                                     "\$ ${result.data["price"]}",
-                                    style: GoogleFonts.roboto(
+                                    style: textTheme.bodyMedium?.copyWith(
                                       color: isPositive
                                           ? colors.greenColor
                                           : colors.redColor,
@@ -93,7 +93,7 @@ void showCryptoCandleModal(
                                   ),
                                   Text(
                                     " ${(result.data["percent"] != null ? result.data["percent"] as double : 0).toStringAsFixed(5)}%",
-                                    style: GoogleFonts.roboto(
+                                    style: textTheme.bodyMedium?.copyWith(
                                       color: isPositive
                                           ? colors.greenColor
                                           : colors.redColor,
@@ -136,7 +136,7 @@ void showCryptoCandleModal(
                             child: Text(
                               "Error fetching data",
                               style:
-                                  GoogleFonts.roboto(color: Colors.pinkAccent),
+                                  textTheme.bodyMedium?.copyWith(color: Colors.pinkAccent),
                             ),
                           );
                         } else {
@@ -173,7 +173,7 @@ void showCryptoCandleModal(
                               child: Center(
                                 child: Text(
                                   intervals[index],
-                                  style: GoogleFonts.roboto(
+                                  style: textTheme.bodyMedium?.copyWith(
                                       color: colors.primaryColor, fontSize: 10),
                                 ),
                               ),

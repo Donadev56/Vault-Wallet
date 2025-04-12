@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:google_fonts/google_fonts.dart';
 
 class AddWalletButton extends StatelessWidget {
   final Color textColor;
@@ -16,6 +15,7 @@ class AddWalletButton extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final textTheme = Theme.of(context).textTheme;
     return Material(
       color: Colors.transparent,
       borderRadius: BorderRadius.circular(10),
@@ -30,7 +30,7 @@ class AddWalletButton extends StatelessWidget {
         ),
         title: Text(
           text,
-          style: GoogleFonts.roboto(color: textColor),
+          style: textTheme.bodyMedium,
         ),
       ),
     );

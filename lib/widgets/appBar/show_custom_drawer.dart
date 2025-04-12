@@ -8,7 +8,7 @@ import 'package:google_fonts/google_fonts.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:local_auth/local_auth.dart';
 import 'package:lucide_icons_flutter/lucide_icons.dart';
-import 'package:moonwallet/screens/dashboard/private/private_key_screen.dart';
+import 'package:moonwallet/screens/dashboard/wallet_actions/private/private_key_screen.dart';
 import 'package:moonwallet/screens/dashboard/settings/change_colors.dart';
 import 'package:moonwallet/service/number_formatter.dart';
 import 'package:moonwallet/service/profile_image_manager.dart';
@@ -37,6 +37,7 @@ void showCustomDrawer(
     required Future<void> Function(PublicData account) deleteWallet,
     required bool canUseBio,
     required void Function(bool state) updateBioState,
+    required bool isHidden,
     required Future Function(
             {required PublicData account,
             String? name,
@@ -52,6 +53,7 @@ void showCustomDrawer(
   final ImageStorageManager storageManager = ImageStorageManager();
   String newPassword = "";
   String confirmPassword = "";
+  final textTheme = Theme.of(context).textTheme;
 
   String formatUsd(String value) {
     return NumberFormatter().formatUsd(value: value);
@@ -119,7 +121,7 @@ void showCustomDrawer(
                                 children: [
                                   Text(
                                     walletName,
-                                    style: GoogleFonts.roboto(
+                                    style: textTheme.bodySmall?.copyWith(
                                         color:
                                             colors.textColor.withOpacity(0.7),
                                         fontSize: 17,
@@ -148,7 +150,7 @@ void showCustomDrawer(
                                     SizedBox(
                                       width: maxWidth * 0.6,
                                       child: TextField(
-                                        style: GoogleFonts.roboto(
+                                        style: textTheme.bodySmall?.copyWith(
                                             color: colors.textColor
                                                 .withOpacity(0.8)),
                                         controller: textController,
@@ -239,15 +241,17 @@ void showCustomDrawer(
                               crossAxisAlignment: CrossAxisAlignment.start,
                               children: [
                                 Text(
-                                  "\$${(formatUsd(totalBalanceUsd.toString()))}",
-                                  style: GoogleFonts.roboto(
+                                  !isHidden
+                                      ? "\$${(formatUsd(totalBalanceUsd.toString()))}"
+                                      : "***",
+                                  style: textTheme.bodySmall?.copyWith(
                                       color: colors.textColor,
                                       fontSize: 30,
                                       fontWeight: FontWeight.bold),
                                 ),
                                 Text(
                                   "Balance",
-                                  style: GoogleFonts.robotoMono(
+                                  style: textTheme.bodySmall?.copyWith(
                                     color: colors.textColor.withOpacity(0.6),
                                     fontSize: 16,
                                   ),
@@ -264,7 +268,7 @@ void showCustomDrawer(
                           alignment: Alignment.centerLeft,
                           child: Text(
                             "Settings",
-                            style: GoogleFonts.roboto(
+                            style: textTheme.bodySmall?.copyWith(
                                 color: colors.textColor.withOpacity(0.8),
                                 fontSize: 20,
                                 fontWeight: FontWeight.bold),
@@ -281,9 +285,10 @@ void showCustomDrawer(
                             shapeBorder: RoundedRectangleBorder(
                                 borderRadius: BorderRadius.circular(10)),
                             backgroundColor: Colors.transparent,
-                            spaceNameStyle: GoogleFonts.roboto(
-                              color: colors.textColor,
-                            ),
+                            spaceNameStyle: textTheme.bodySmall?.copyWith(
+                                  color: colors.textColor,
+                                ) ??
+                                GoogleFonts.roboto(color: colors.textColor),
                             options: [
                               Option(
                                   tileColor:
@@ -297,7 +302,7 @@ void showCustomDrawer(
                                   trailing: Icon(Icons.chevron_right,
                                       color: colors.textColor.withOpacity(0.5)),
                                   color: colors.secondaryColor,
-                                  titleStyle: GoogleFonts.roboto(
+                                  titleStyle: textTheme.bodySmall?.copyWith(
                                       color: colors.textColor, fontSize: 14)),
                               Option(
                                   tileColor:
@@ -313,7 +318,7 @@ void showCustomDrawer(
                                     color: colors.textColor.withOpacity(0.5),
                                   ),
                                   color: colors.secondaryColor,
-                                  titleStyle: GoogleFonts.roboto(
+                                  titleStyle: textTheme.bodySmall?.copyWith(
                                       color: colors.textColor, fontSize: 14))
                             ],
                             onTap: (i) {
@@ -458,8 +463,9 @@ void showCustomDrawer(
                                                                       .themeColor),
                                                           child: Text(
                                                             "Save",
-                                                            style: GoogleFonts
-                                                                .roboto(
+                                                            style: textTheme
+                                                                .bodySmall
+                                                                ?.copyWith(
                                                                     color: colors
                                                                         .primaryColor),
                                                           )),
@@ -491,8 +497,9 @@ void showCustomDrawer(
                                                                       .redColor)),
                                                           child: Text(
                                                             "Cancel",
-                                                            style: GoogleFonts
-                                                                .roboto(
+                                                            style: textTheme
+                                                                .bodySmall
+                                                                ?.copyWith(
                                                                     color: colors
                                                                         .redColor),
                                                           )),
@@ -518,9 +525,10 @@ void showCustomDrawer(
                             shapeBorder: RoundedRectangleBorder(
                                 borderRadius: BorderRadius.circular(10)),
                             backgroundColor: Colors.transparent,
-                            spaceNameStyle: GoogleFonts.roboto(
-                              color: colors.textColor,
-                            ),
+                            spaceNameStyle: textTheme.bodySmall?.copyWith(
+                                  color: colors.textColor,
+                                ) ??
+                                GoogleFonts.roboto(color: colors.textColor),
                             options: [
                               Option(
                                   tileColor:
@@ -534,7 +542,7 @@ void showCustomDrawer(
                                   trailing: Icon(Icons.chevron_right,
                                       color: colors.textColor.withOpacity(0.5)),
                                   color: colors.secondaryColor,
-                                  titleStyle: GoogleFonts.roboto(
+                                  titleStyle: textTheme.bodySmall?.copyWith(
                                       color: colors.textColor, fontSize: 14)),
                               Option(
                                   tileColor:
@@ -550,7 +558,7 @@ void showCustomDrawer(
                                     color: colors.textColor.withOpacity(0.5),
                                   ),
                                   color: colors.secondaryColor,
-                                  titleStyle: GoogleFonts.roboto(
+                                  titleStyle: textTheme.bodySmall?.copyWith(
                                       color: colors.textColor, fontSize: 14))
                             ],
                             onTap: (i) async {
@@ -664,9 +672,10 @@ void showCustomDrawer(
                             shapeBorder: RoundedRectangleBorder(
                                 borderRadius: BorderRadius.circular(10)),
                             backgroundColor: Colors.transparent,
-                            spaceNameStyle: GoogleFonts.roboto(
-                              color: colors.textColor,
-                            ),
+                            spaceNameStyle: textTheme.bodyMedium?.copyWith(
+                                  color: colors.textColor,
+                                ) ??
+                                GoogleFonts.roboto(color: colors.textColor),
                             options: [
                               Option(
                                   title: "Enable biometric",
@@ -812,7 +821,7 @@ void showCustomDrawer(
                                         }
                                       }),
                                   color: colors.textColor,
-                                  titleStyle: GoogleFonts.roboto(
+                                  titleStyle: textTheme.bodySmall?.copyWith(
                                       color: colors.textColor, fontSize: 14)),
                               Option(
                                   tileColor: colors.redColor.withOpacity(0.1),
@@ -827,7 +836,7 @@ void showCustomDrawer(
                                     color: colors.redColor,
                                   ),
                                   color: colors.redColor,
-                                  titleStyle: GoogleFonts.roboto(
+                                  titleStyle: textTheme.bodySmall?.copyWith(
                                       color: colors.redColor, fontSize: 14))
                             ],
                             onTap: (i) {

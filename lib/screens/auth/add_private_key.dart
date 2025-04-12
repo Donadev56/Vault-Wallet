@@ -2,12 +2,14 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:lucide_icons_flutter/lucide_icons.dart';
+import 'package:mobile_scanner/mobile_scanner.dart';
 import 'package:moonwallet/logger/logger.dart';
 import 'package:moonwallet/main.dart';
 import 'package:moonwallet/service/wallet_saver.dart';
 import 'package:moonwallet/types/types.dart';
 import 'package:moonwallet/widgets/bottom_pin_copy.dart';
 import 'package:moonwallet/widgets/func/snackbar.dart';
+import 'package:moonwallet/widgets/scanner/show_scanner.dart';
 import 'package:web3dart/web3dart.dart';
 
 class AddPrivateKey extends StatefulWidget {
@@ -21,6 +23,7 @@ class AddPrivateKey extends StatefulWidget {
 
 class _AddPrivateKeyState extends State<AddPrivateKey> {
   late TextEditingController _textController;
+  final _controller = MobileScannerController();
   final _formKey = GlobalKey<FormState>();
   AppColors colors = AppColors.defaultTheme;
   String firstPassword = "";
@@ -190,17 +193,19 @@ class _AddPrivateKeyState extends State<AddPrivateKey> {
                         maxLines: 5,
                         controller: _textController,
                         decoration: InputDecoration(
+                          filled: true,
+                          fillColor: colors.secondaryColor,
                           enabledBorder: OutlineInputBorder(
                               borderSide: BorderSide(
-                                  width: 1, color: Colors.greenAccent)),
+                                  width: 0, color: Colors.transparent)),
                           focusedBorder: OutlineInputBorder(
                               borderSide: BorderSide(
-                                  width: 1, color: Colors.greenAccent)),
-                          labelText: 'Private Key',
-                          labelStyle: TextStyle(color: Colors.white),
+                                  width: 0, color: Colors.transparent)),
+                          labelText: 'Private key',
+                          labelStyle: TextStyle(color: colors.textColor),
                           border: OutlineInputBorder(
                             borderRadius: BorderRadius.circular(10),
-                            borderSide: BorderSide(color: Colors.white),
+                            borderSide: BorderSide(color: colors.textColor),
                           ),
                         ),
                       ),
@@ -248,7 +253,17 @@ class _AddPrivateKeyState extends State<AddPrivateKey> {
                         child: Padding(
                           padding: const EdgeInsets.symmetric(horizontal: 20),
                           child: OutlinedButton.icon(
-                            onPressed: () {},
+                            onPressed: () {
+                              showScanner(
+                                  context: context,
+                                  controller: _controller,
+                                  colors: colors,
+                                  onResult: (result) {
+                                    setState(() {
+                                      _textController.text = result;
+                                    });
+                                  });
+                            },
                             icon: const Icon(LucideIcons.maximize,
                                 color: Colors.greenAccent),
                             label: Text(

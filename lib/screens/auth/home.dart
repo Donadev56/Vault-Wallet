@@ -44,7 +44,7 @@ class _HomeScreenState extends State<HomeScreen> {
                   children: [
                     const SizedBox(height: 50),
                     Image.asset(
-                      "assets/g2.gif",
+                      "assets/icon/icon4.png",
                       width: height < 550 ? 210 : 280,
                       height: height < 550 ? 210 : 280,
                     ),

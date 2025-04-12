@@ -6,7 +6,6 @@ import 'package:flutter/services.dart';
 // ignore: depend_on_referenced_packages
 
 import 'package:flutter/material.dart';
-import 'package:google_fonts/google_fonts.dart';
 import 'package:intl/intl.dart';
 import 'package:liquid_pull_to_refresh/liquid_pull_to_refresh.dart';
 import 'package:loading_animation_widget/loading_animation_widget.dart';
@@ -340,6 +339,7 @@ class _WalletViewScreenState extends State<WalletViewScreen>
   @override
   Widget build(BuildContext context) {
     double width = MediaQuery.of(context).size.width;
+    final textTheme = Theme.of(context).textTheme;
     return Scaffold(
         backgroundColor: colors.primaryColor,
         appBar: AppBar(
@@ -355,7 +355,7 @@ class _WalletViewScreenState extends State<WalletViewScreen>
               )),
           title: Text(
             currentCrypto.symbol,
-            style: GoogleFonts.roboto(
+            style: textTheme.bodyMedium?.copyWith(
                 color: colors.textColor,
                 fontWeight: FontWeight.bold,
                 fontSize: 22),
@@ -419,7 +419,7 @@ class _WalletViewScreenState extends State<WalletViewScreen>
                                       (formatCryptoValue(balance.toString())),
                                       overflow: TextOverflow.clip,
                                       maxLines: 1,
-                                      style: GoogleFonts.roboto(
+                                      style: textTheme.bodyMedium?.copyWith(
                                           color: colors.textColor,
                                           fontWeight: FontWeight.bold,
                                           fontSize: 24),
@@ -436,7 +436,7 @@ class _WalletViewScreenState extends State<WalletViewScreen>
                                       if (result.hasData) {
                                         return Text(
                                           "= \$ ${formatUsd((result.data as double).toString())}",
-                                          style: GoogleFonts.roboto(
+                                          style: textTheme.bodySmall?.copyWith(
                                               color: colors.textColor
                                                   .withOpacity(0.5),
                                               fontSize: 14),
@@ -446,7 +446,7 @@ class _WalletViewScreenState extends State<WalletViewScreen>
                                             enabled: isBalanceLoading,
                                             child: Text(
                                               " = \$0.00 ",
-                                              style: GoogleFonts.roboto(
+                                              style:textTheme.bodySmall?.copyWith(
                                                   color: colors.textColor
                                                       .withOpacity(0.5),
                                                   fontSize: 14),
@@ -548,7 +548,7 @@ class _WalletViewScreenState extends State<WalletViewScreen>
                               children: [
                                 Text(
                                   "Cannot find your transaction ? ",
-                                  style: GoogleFonts.roboto(
+                                  style: textTheme.bodyMedium?.copyWith(
                                       color: colors.textColor.withOpacity(0.7)),
                                 ),
                                 InkWell(
@@ -564,7 +564,7 @@ class _WalletViewScreenState extends State<WalletViewScreen>
                                   },
                                   child: Text(
                                     "Check explorer",
-                                    style: GoogleFonts.roboto(
+                                    style:textTheme.bodyMedium?.copyWith(
                                         color: colors.themeColor),
                                   ),
                                 )

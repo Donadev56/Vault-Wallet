@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
-import 'package:google_fonts/google_fonts.dart';
 import 'package:lucide_icons_flutter/lucide_icons.dart';
 import 'package:moonwallet/custom/web3_webview/lib/utils/loading.dart';
 import 'package:moonwallet/logger/logger.dart';
@@ -144,6 +143,7 @@ class _CreatePrivateKeyState extends State<CreatePrivateKeyMain> {
 
   @override
   Widget build(BuildContext context) {
+    final textTheme = Theme.of(context).textTheme;
     return Scaffold(
       backgroundColor: colors.primaryColor,
       body: Container(
@@ -158,7 +158,7 @@ class _CreatePrivateKeyState extends State<CreatePrivateKeyMain> {
                   margin: const EdgeInsets.only(top: 25, left: 20),
                   child: Text(
                     "Create private key",
-                    style: GoogleFonts.exo2(
+                    style: textTheme.headlineMedium?.copyWith(
                         color: colors.textColor,
                         fontSize: 24,
                         decoration: TextDecoration.none),
@@ -173,7 +173,7 @@ class _CreatePrivateKeyState extends State<CreatePrivateKeyMain> {
                 child: Material(
                   color: Colors.transparent,
                   child: TextField(
-                    style: GoogleFonts.exo(color: colors.textColor),
+                    style: textTheme.bodyMedium?.copyWith(color: colors.textColor),
                     readOnly: true,
                     minLines: 3,
                     maxLines: 5,
@@ -208,7 +208,7 @@ class _CreatePrivateKeyState extends State<CreatePrivateKeyMain> {
                   icon: Icon(Icons.copy, color: colors.themeColor),
                   label: Text(
                     "Copy the Private key",
-                    style: GoogleFonts.exo2(
+                    style: textTheme.bodyMedium?.copyWith(
                       fontSize: 16,
                       color: colors.themeColor,
                     ),
@@ -242,7 +242,7 @@ class _CreatePrivateKeyState extends State<CreatePrivateKeyMain> {
                             width: 5,
                           ),
                           Text("Important :",
-                              style: GoogleFonts.exo(
+                              style: textTheme.bodyMedium?.copyWith(
                                   fontSize: 16,
                                   color: colors.textColor,
                                   decoration: TextDecoration.none)),
@@ -253,7 +253,7 @@ class _CreatePrivateKeyState extends State<CreatePrivateKeyMain> {
                           padding: const EdgeInsets.only(top: 10),
                           child: Text(
                             "The private key is secret and is the only way to access your funds. Never share your private key with anyone.",
-                            style: GoogleFonts.exo(
+                            style: textTheme.bodyMedium?.copyWith(
                                 fontSize: 16,
                                 color: colors.textColor.withOpacity(0.5),
                                 decoration: TextDecoration.none),
@@ -284,7 +284,7 @@ class _CreatePrivateKeyState extends State<CreatePrivateKeyMain> {
                       },
                       child: Text(
                         "Previous",
-                        style: GoogleFonts.exo(
+                        style: textTheme.bodyMedium?.copyWith(
                           fontSize: 18,
                           color: colors.themeColor,
                           decoration: TextDecoration.none,
@@ -307,7 +307,7 @@ class _CreatePrivateKeyState extends State<CreatePrivateKeyMain> {
                       },
                       child: Text(
                         "Next",
-                        style: GoogleFonts.exo(
+                        style: textTheme.bodyMedium?.copyWith(
                           fontSize: 18,
                           color: colors.primaryColor,
                           decoration: TextDecoration.none,

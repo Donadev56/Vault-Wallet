@@ -635,6 +635,16 @@ class AppColors {
       textColor: Colors.white,
       redColor: Colors.pinkAccent);
 
+  static const lightColors = AppColors(
+    primaryColor: Color(0XFFFFFFFF),
+    themeColor: Colors.lightBlueAccent,
+    greenColor: const Color.fromARGB(255, 3, 244, 127),
+    secondaryColor: Color(0XFFF0F0F0),
+    grayColor: Color(0XFFBDBDBD),
+    textColor: Colors.black,
+    redColor: Colors.redAccent,
+  );
+
   Map<String, dynamic> toJson() {
     return {
       'primaryColor': primaryColor.value,
@@ -712,5 +722,44 @@ class Option {
   @override
   String toString() {
     return 'Option(title: $title, icon: $icon, trailing: $trailing, color: $color )';
+  }
+}
+
+class TransactionDetails {
+  final String from;
+  final String to;
+  final String value;
+  final String timeStamp;
+  final String hash;
+  final String blockNumber;
+
+  TransactionDetails({
+    required this.from,
+    required this.to,
+    required this.value,
+    required this.timeStamp,
+    required this.hash,
+    required this.blockNumber,
+  });
+  Map<String, dynamic> toJson() {
+    return {
+      'from': from,
+      'to': to,
+      'value': value,
+      'timeStamp': timeStamp,
+      'hash': hash,
+      'blockNumber': blockNumber,
+    };
+  }
+
+  factory TransactionDetails.fromJson(Map<String, dynamic> json) {
+    return TransactionDetails(
+      from: json['from'],
+      to: json['to'],
+      value: json['value'],
+      timeStamp: json['timeStamp'],
+      hash: json['hash'],
+      blockNumber: json['blockNumber'],
+    );
   }
 }

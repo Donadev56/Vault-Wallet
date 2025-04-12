@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
-import 'package:google_fonts/google_fonts.dart';
 import 'package:lucide_icons_flutter/lucide_icons.dart';
 import 'package:mobile_scanner/mobile_scanner.dart';
 import 'package:moonwallet/logger/logger.dart';
@@ -12,7 +11,6 @@ import 'package:moonwallet/utils/prefs.dart';
 import 'package:moonwallet/utils/themes.dart';
 import 'package:moonwallet/widgets/func/ask_password.dart';
 import 'package:moonwallet/widgets/func/snackbar.dart';
-import 'package:moonwallet/widgets/scanner/scanner.dart';
 import 'package:moonwallet/widgets/scanner/show_scanner.dart';
 
 class AddMnemonicScreen extends StatefulWidget {
@@ -31,6 +29,7 @@ class _AddPrivateKeyState extends State<AddMnemonicScreen> {
   final web3Manager = WalletSaver();
   final publicDataManager = PublicDataManager();
   bool isDarkMode = false;
+
   final MobileScannerController _mobileScannerController =
       MobileScannerController();
 
@@ -148,6 +147,7 @@ class _AddPrivateKeyState extends State<AddMnemonicScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final textTheme = Theme.of(context).textTheme;
     return Scaffold(
         backgroundColor: colors.primaryColor,
         body: Form(
@@ -165,7 +165,7 @@ class _AddPrivateKeyState extends State<AddMnemonicScreen> {
                       margin: const EdgeInsets.only(top: 25, left: 20),
                       child: Text(
                         "Add Mnemonic phrase",
-                        style: GoogleFonts.exo2(
+                        style: textTheme.headlineMedium?.copyWith(
                             color: colors.textColor,
                             fontSize: 24,
                             decoration: TextDecoration.none),
@@ -193,7 +193,7 @@ class _AddPrivateKeyState extends State<AddMnemonicScreen> {
                             return "Please enter your 12 words";
                           }
                         },
-                        style: GoogleFonts.exo2(
+                        style:textTheme.bodyMedium?.copyWith(
                           color: colors.textColor,
                         ),
                         cursorColor: colors.themeColor,
@@ -240,7 +240,7 @@ class _AddPrivateKeyState extends State<AddMnemonicScreen> {
                             icon: Icon(Icons.paste, color: colors.themeColor),
                             label: Text(
                               "Paste",
-                              style: GoogleFonts.exo2(
+                              style: textTheme.bodyMedium?.copyWith(
                                 fontSize: 16,
                                 color: colors.themeColor,
                               ),
@@ -275,7 +275,7 @@ class _AddPrivateKeyState extends State<AddMnemonicScreen> {
                                 color: colors.themeColor),
                             label: Text(
                               "Scan",
-                              style: GoogleFonts.exo2(
+                              style: textTheme.bodyMedium?.copyWith(
                                 fontSize: 16,
                                 color: colors.themeColor,
                               ),
@@ -312,7 +312,7 @@ class _AddPrivateKeyState extends State<AddMnemonicScreen> {
                                 width: 5,
                               ),
                               Text("Important :",
-                                  style: GoogleFonts.exo(
+                                  style: textTheme.bodyMedium?.copyWith(
                                       fontSize: 16,
                                       color: colors.textColor,
                                       decoration: TextDecoration.none)),
@@ -323,7 +323,7 @@ class _AddPrivateKeyState extends State<AddMnemonicScreen> {
                               padding: const EdgeInsets.only(top: 10),
                               child: Text(
                                 "The Seed phrase is secret and is the only way to access your funds. Never share your private key with anyone and keep it in a safe place.",
-                                style: GoogleFonts.exo(
+                                style: textTheme.bodyMedium?.copyWith(
                                     fontSize: 16,
                                     color: colors.textColor.withOpacity(0.5),
                                     decoration: TextDecoration.none),
@@ -355,7 +355,7 @@ class _AddPrivateKeyState extends State<AddMnemonicScreen> {
                           },
                           child: Text(
                             "Previous",
-                            style: GoogleFonts.exo(
+                            style: textTheme.bodyMedium?.copyWith(
                               fontSize: 18,
                               color: colors.themeColor,
                               decoration: TextDecoration.none,
@@ -380,7 +380,7 @@ class _AddPrivateKeyState extends State<AddMnemonicScreen> {
                           },
                           child: Text(
                             "Next",
-                            style: GoogleFonts.exo(
+                            style: textTheme.bodyMedium?.copyWith(
                               fontSize: 18,
                               color: colors.primaryColor,
                               decoration: TextDecoration.none,

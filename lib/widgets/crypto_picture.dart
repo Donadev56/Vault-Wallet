@@ -1,7 +1,6 @@
 import 'package:fast_cached_network_image/fast_cached_network_image.dart';
 import 'package:flutter/material.dart';
 import 'package:moonwallet/types/types.dart';
-import 'package:moonwallet/widgets/text.dart';
 
 class CryptoPicture extends StatelessWidget {
   final Crypto crypto;
@@ -45,7 +44,7 @@ class CryptoPicture extends StatelessWidget {
                           crypto.symbol.length > 1
                               ? crypto.symbol.substring(0, 1)
                               : crypto.symbol,
-                          style: customTextStyle(
+                          style: Theme.of(context).textTheme.bodyMedium?.copyWith(
                               color: colors.primaryColor,
                               fontWeight: FontWeight.bold,
                               fontSize: 18),
@@ -65,12 +64,19 @@ class CryptoPicture extends StatelessWidget {
               child: Container(
                   padding: const EdgeInsets.all(2),
                   decoration: BoxDecoration(
-                    borderRadius: BorderRadius.circular(20),
+                    borderRadius: BorderRadius.circular(50),
                     color: primaryColor ?? colors.primaryColor,
                   ),
                   child: ClipRRect(
-                    borderRadius: BorderRadius.circular(20),
+                    borderRadius: BorderRadius.circular(50),
                     child: Image.asset(
+                      errorBuilder: (ctx, object, err) {
+                        return Image.network(
+                          crypto.network?.icon ?? "",
+                          width: size / 2.75,
+                          height: size / 2.75,
+                        );
+                      },
                       crypto.network?.icon ?? "",
                       width: size / 2.75,
                       height: size / 2.75,
