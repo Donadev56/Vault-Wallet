@@ -5,30 +5,29 @@ import 'dart:convert';
 import 'package:fast_cached_network_image/fast_cached_network_image.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_feather_icons/flutter_feather_icons.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:lucide_icons_flutter/lucide_icons.dart';
-import 'package:moonwallet/custom/web3_webview/lib/utils/loading.dart';
 import 'package:moonwallet/logger/logger.dart';
+import 'package:moonwallet/notifiers/providers.dart';
 import 'package:moonwallet/screens/dashboard/discover/browser.dart';
-import 'package:moonwallet/service/crypto_storage_manager.dart';
-import 'package:moonwallet/service/wallet_saver.dart';
 import 'package:moonwallet/types/types.dart';
 import 'package:moonwallet/utils/colors.dart';
-import 'package:moonwallet/utils/crypto.dart';
+import 'package:moonwallet/utils/constant.dart';
 import 'package:moonwallet/utils/prefs.dart';
 import 'package:moonwallet/utils/themes.dart';
 import 'package:moonwallet/widgets/func/browser/change_network.dart';
 
 import 'package:moonwallet/widgets/func/snackbar.dart';
 
-class DiscoverScreen extends StatefulWidget {
+class DiscoverScreen extends ConsumerStatefulWidget {
   final AppColors? colors;
   const DiscoverScreen({super.key, this.colors});
 
   @override
-  State<DiscoverScreen> createState() => _DiscoverScreenState();
+  ConsumerState<DiscoverScreen> createState() => _DiscoverScreenState();
 }
 
-class _DiscoverScreenState extends State<DiscoverScreen>
+class _DiscoverScreenState extends ConsumerState<DiscoverScreen>
     with SingleTickerProviderStateMixin {
   late TabController _tabController;
   final publicDataManager = PublicDataManager();
@@ -42,41 +41,9 @@ class _DiscoverScreenState extends State<DiscoverScreen>
 
   final String historyName = "UserHistory";
   final _focusNode = FocusNode();
-  final List<DApp> dapps = [
-    DApp(
-      description: "Moon BNB is Global smart contract for global earnings",
-      icon: "assets/image.png",
-      name: 'Moon BNB',
-      link: "https://moonbnb.pro",
-      isNetworkImage: false,
-    ),
-    DApp(
-      description:
-          "Trade, earn, and own crypto on the all-in-one multichain DEX",
-      icon:
-          "https://tokens.pancakeswap.finance/images/0x0E09FaBB73Bd3Ade0a17ECC321fD13a19e81cE82.png",
-      name: 'Pancakeswap',
-      link: "https://pancakeswap.finance",
-      isNetworkImage: true,
-    ),
-    DApp(
-      description: "Buy, sell & trade Ethereum and other top tokens on Uniswap",
-      icon:
-          "https://raw.githubusercontent.com/trustwallet/assets/master/blockchains/ethereum/assets/0x1f9840a85d5aF5bf1D1762F925BDADdC4201F984/logo.png",
-      name: 'Uniswap',
-      link: "https://app.uniswap.org/swap",
-      isNetworkImage: true,
-    ),
-  ];
+
   List<HistoryItem> history = [];
-  AppColors colors = AppColors(
-      primaryColor: Color(0XFF0D0D0D),
-      themeColor: Colors.greenAccent,
-      greenColor: Colors.greenAccent,
-      secondaryColor: Color(0XFF121212),
-      grayColor: Color(0XFF353535),
-      textColor: Colors.white,
-      redColor: Colors.pinkAccent);
+  AppColors colors = AppColors.defaultTheme;
   Themes themes = Themes();
   String savedThemeName = "";
   Future<void> getSavedTheme() async {
@@ -114,55 +81,6 @@ class _DiscoverScreenState extends State<DiscoverScreen>
       });
     });
     getHistoryItem();
-    getSavedWallets();
-  }
-
-  Future<void> getSavedWallets() async {
-    try {
-      final web3Manager = WalletSaver();
-      final encryptService = EncryptService();
-      final savedData = await web3Manager.getPublicData();
-
-      final lastAccount = await encryptService.getLastConnectedAddress();
-      int count = 0;
-      if (savedData != null && lastAccount != null) {
-        for (final account in savedData) {
-          final newAccount = PublicData.fromJson(account);
-
-          setState(() {
-            accounts.add(newAccount);
-          });
-
-          count++;
-        }
-      }
-
-      log("Retrieved $count wallets");
-
-      for (final account in accounts) {
-        if (account.address == lastAccount) {
-          setState(() {
-            currentAccount = account;
-          });
-          log("Last account address ${currentAccount?.address}");
-
-          await getSavedCrypto(account: account);
-
-          log("The current wallet is ${json.encode(account.toJson())}");
-          break;
-        } else {
-          log("Not account found");
-          setState(() {
-            currentAccount = accounts[0];
-          });
-          log("first account address ${currentAccount?.address}");
-        }
-      }
-
-      log("Current account address ${currentAccount?.address}");
-    } catch (e) {
-      logError('Error getting saved wallets: $e');
-    }
   }
 
   Future<bool> deleteHistoryItem(int index) async {
@@ -318,37 +236,11 @@ class _DiscoverScreenState extends State<DiscoverScreen>
     }
   }
 
-  Future<void> getSavedCrypto({required PublicData account}) async {
-    try {
-      final savedCryptos =
-          await CryptoStorageManager().getSavedCryptos(wallet: account);
-      if (savedCryptos != null) {
-        log("Saved crypto ${savedCryptos.length}");
-        setState(() {
-          networks =
-              savedCryptos.where((c) => c.type == CryptoType.network).toList();
-        });
-      } else {
-        logError("No saved cryptos found");
-
-        showCustomSnackBar(
-            type: MessageType.error,
-            context: context,
-            message: "No saved cryptos found",
-            colors: colors);
-      }
-    } catch (e) {
-      logError('Error getting saved crypto: $e');
-    }
-  }
-
   Future<void> openBrowser(String url) async {
     try {
       if (currentAccount == null) {
         throw "No account found";
       }
-      await getSavedCrypto(account: currentAccount!)
-          .withLoading(context, colors);
 
       if (url.isEmpty) {
         showCustomSnackBar(
@@ -379,11 +271,12 @@ class _DiscoverScreenState extends State<DiscoverScreen>
               textColor: colors.textColor,
               chainId: networks[0].chainId ?? 204)
           .then((result) {
-        if (result && network != null) {
+        if (result && network != null && currentAccount != null) {
           Navigator.push(
             context,
             MaterialPageRoute(
               builder: (context) => Web3BrowserScreen(
+                account: currentAccount!,
                 url: url,
                 network: network,
               ),
@@ -407,6 +300,31 @@ class _DiscoverScreenState extends State<DiscoverScreen>
   Widget build(BuildContext context) {
     double width = MediaQuery.of(context).size.width;
     final textTheme = Theme.of(context).textTheme;
+    final currentAccountAsync = ref.watch(currentAccountProvider);
+    final accountListAsync = ref.watch(accountsNotifierProvider);
+    final assetsAsync = ref.watch(getSavedAssetsResponseProvider);
+
+    currentAccountAsync.whenData(
+      (value) {
+        setState(() {
+          currentAccount = value;
+        });
+      },
+    );
+    accountListAsync.whenData(
+      (value) {
+        accounts = value;
+      },
+    );
+    assetsAsync.whenData(
+      (value) {
+        networks = value?.cryptosList
+                .where((crypto) =>
+                    crypto.canDisplay && crypto.type == CryptoType.network)
+                .toList() ??
+            [];
+      },
+    );
     return Scaffold(
         backgroundColor: colors.primaryColor,
         appBar: AppBar(

@@ -127,11 +127,7 @@ List<Color> colorList = [
 final List<Map<String, dynamic>> appBarButtonOptions = [
   {
     'icon': LucideIcons.pencil,
-    'name': 'Edit name',
-  },
-  {
-    'icon': LucideIcons.palette,
-    'name': 'Edit Color',
+    'name': 'Edit Wallet',
   },
   {
     'icon': LucideIcons.copy,
@@ -258,3 +254,29 @@ Future<void> share(
     }
   }
 }
+
+final List<DApp> dapps = [
+  DApp(
+    description: "Moon BNB is Global smart contract for global earnings",
+    icon: "assets/image.png",
+    name: 'Moon BNB',
+    link: "https://moonbnb.pro",
+    isNetworkImage: false,
+  ),
+  DApp(
+    description: "Trade, earn, and own crypto on the all-in-one multichain DEX",
+    icon:
+        "https://tokens.pancakeswap.finance/images/0x0E09FaBB73Bd3Ade0a17ECC321fD13a19e81cE82.png",
+    name: 'Pancakeswap',
+    link: "https://pancakeswap.finance",
+    isNetworkImage: true,
+  ),
+  DApp(
+    description: "Buy, sell & trade Ethereum and other top tokens on Uniswap",
+    icon:
+        "https://raw.githubusercontent.com/trustwallet/assets/master/blockchains/ethereum/assets/0x1f9840a85d5aF5bf1D1762F925BDADdC4201F984/logo.png",
+    name: 'Uniswap',
+    link: "https://app.uniswap.org/swap",
+    isNetworkImage: true,
+  ),
+];

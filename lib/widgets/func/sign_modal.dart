@@ -110,6 +110,7 @@ Future<String?> showSignModal(
                             GestureDetector(
                               onTap: () {
                                 selectAnAccount(
+                                    currentAccount: currentAccount,
                                     colors: colors,
                                     context: context,
                                     accounts: accounts,

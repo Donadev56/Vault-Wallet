@@ -63,6 +63,92 @@ class CryptoStorageManager {
     }
   }
 
+  Future<List<Asset>?> getSavedAssets({required PublicData wallet}) async {
+    try {
+      final name = "assetsOf/${wallet.address}";
+      log("getting assets for address ${wallet.address}");
+
+      final String? cryptoDataString = await saver.getDynamicData(name: name);
+      if (cryptoDataString == null || cryptoDataString.isEmpty) {
+        logError("Crypto data not found");
+        return [];
+      }
+
+      final List<dynamic> savedAssetsJson = json.decode(cryptoDataString);
+      List<Asset> savedAssets = [];
+
+      for (final assetJson in savedAssetsJson) {
+        final newAsset = Asset.fromJson(assetJson);
+        savedAssets.add(newAsset);
+      }
+
+      if (savedAssets.isNotEmpty) {
+        return savedAssets;
+      }
+
+      logError("No assets found");
+
+      return null;
+    } catch (e) {
+      logError("Error getting saved assets: $e");
+      return null;
+    }
+  }
+
+  Future<UserAssetsResponse?> getSavedAssetsResponse(
+      {required PublicData wallet}) async {
+    try {
+      final name = "assetsResponseOf/${wallet.address}";
+      log("getting assets response for address ${wallet.address}");
+
+      final String? cryptoDataString = await saver.getDynamicData(name: name);
+      if (cryptoDataString == null || cryptoDataString.isEmpty) {
+        logError("Crypto data not found");
+        return null;
+      }
+
+      final dynamic savedAssetsJson = json.decode(cryptoDataString);
+      UserAssetsResponse savedAssets =
+          UserAssetsResponse.fromJson(savedAssetsJson);
+
+      return savedAssets;
+    } catch (e) {
+      logError("Error getting saved assets: $e");
+      return null;
+    }
+  }
+
+  Future<bool> saveAssetsResponse(
+      {required UserAssetsResponse assetsResponse,
+      required PublicData account}) async {
+    try {
+      final cryptoListString = assetsResponse.toJson();
+      final name = "assetsResponseOf/${account.address}";
+      log("Saving assets for address ${account.address}");
+      await saver.saveDynamicData(
+          boxName: name, data: json.encode(cryptoListString));
+      return true;
+    } catch (e) {
+      logError(e.toString());
+      return false;
+    }
+  }
+
+  Future<bool> saveListAssets(
+      {required List<Asset> assets, required PublicData account}) async {
+    try {
+      final cryptoListString = assets.map((c) => c.toJson()).toList();
+      final name = "assetsOf/${account.address}";
+      log("Saving assets for address ${account.address}");
+      await saver.saveDynamicData(
+          boxName: name, data: json.encode(cryptoListString));
+      return true;
+    } catch (e) {
+      logError(e.toString());
+      return false;
+    }
+  }
+
   Future<bool> toggleCanDisplay(
       {required String cryptoId,
       required bool value,

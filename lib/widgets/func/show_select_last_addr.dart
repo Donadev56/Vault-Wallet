@@ -70,6 +70,16 @@ void showSelectLastAddr(
                   child: Scaffold(
                     backgroundColor: colors.primaryColor,
                     appBar: AppBar(
+                      leading: IconButton(
+                          onPressed: () => Navigator.pop(context),
+                          icon: Icon(
+                            Icons.arrow_back,
+                            color: colors.textColor,
+                          )),
+                      title: Text(
+                        "List of wallets",
+                        style: textTheme.headlineMedium?.copyWith(fontSize: 18),
+                      ),
                       backgroundColor: colors.primaryColor,
                       bottom: TabBar(
                         labelStyle: textTheme.bodyMedium

@@ -3,6 +3,8 @@
 import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:flutter_feather_icons/flutter_feather_icons.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+
 import 'package:moonwallet/service/vibration.dart';
 import 'package:moonwallet/types/types.dart';
 import 'package:moonwallet/widgets/appBar/show_accounts_list.dart';
@@ -17,18 +19,15 @@ typedef ActionWithCryptoId = Future<bool> Function(
 typedef ReorderList = Future<void> Function(int oldIndex, int newIndex);
 typedef SearchWallet = void Function(String query);
 
-class CustomAppBar extends StatelessWidget implements PreferredSizeWidget {
+class CustomAppBar extends ConsumerWidget implements PreferredSizeWidget {
   final Color primaryColor;
   final Color textColor;
   final Color surfaceTintColor;
-  final PublicData currentAccount;
-  final List<PublicData> accounts;
   final List<Crypto> availableCryptos;
-  final EditWalletNameType editWalletName;
+  final List<PublicData> accounts;
   final double totalBalanceUsd;
-  final Future<void> Function(
-      {Color? color, required int index, IconData? icon}) editVisualData;
-  final ActionWithCryptoId deleteWallet;
+  final Future<bool> Function(String keyId) deleteWallet;
+  final PublicData currentAccount;
   final ActionWithIndexType changeAccount;
   final ActionWithIndexType showPrivateData;
   final ReorderList reorderList;
@@ -38,7 +37,6 @@ class CustomAppBar extends StatelessWidget implements PreferredSizeWidget {
   final double balanceOfAllAccounts;
   final bool isHidden;
   final AppColors colors;
-  final bool isTotalBalanceUpdated;
   final void Function(bool state) updateBioState;
 
   final void Function(File image) refreshProfile;
@@ -56,10 +54,6 @@ class CustomAppBar extends StatelessWidget implements PreferredSizeWidget {
       required this.primaryColor,
       required this.textColor,
       required this.surfaceTintColor,
-      required this.currentAccount,
-      required this.accounts,
-      required this.editWalletName,
-      required this.deleteWallet,
       required this.changeAccount,
       required this.secondaryColor,
       required this.reorderList,
@@ -68,16 +62,17 @@ class CustomAppBar extends StatelessWidget implements PreferredSizeWidget {
       required this.balanceOfAllAccounts,
       required this.isHidden,
       required this.colors,
-      required this.editVisualData,
-      required this.isTotalBalanceUpdated,
       required this.availableCryptos,
       required this.profileImage,
       required this.editWallet,
       required this.refreshProfile,
-      required this.updateBioState});
+      required this.updateBioState,
+      required this.deleteWallet,
+      required this.currentAccount,
+      required this.accounts});
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
     // ignore: no_leading_underscores_for_local_identifiers
     final textTheme = Theme.of(context).textTheme;
 
@@ -91,7 +86,7 @@ class CustomAppBar extends StatelessWidget implements PreferredSizeWidget {
                 updateBioState: updateBioState,
                 canUseBio: canUseBio,
                 deleteWallet: (acc) async {
-                  deleteWallet(acc.keyId, null);
+                  deleteWallet(acc.keyId);
                 },
                 refreshProfile: refreshProfile,
                 editWallet: editWallet,
@@ -122,20 +117,21 @@ class CustomAppBar extends StatelessWidget implements PreferredSizeWidget {
             borderRadius: BorderRadius.circular(10),
             onTap: () async {
               await vibrate(duration: 10);
+
               showAccountList(
-                  colors: colors,
-                  context: context,
-                  accounts: accounts,
-                  currentAccount: currentAccount,
-                  editWalletName: editWalletName,
-                  deleteWallet: (id) async {
-                    final res = await deleteWallet(id, context);
-                    return res;
-                  },
-                  changeAccount: changeAccount,
-                  showPrivateData: showPrivateData,
-                  reorderList: reorderList,
-                  editVisualData: editVisualData);
+                colors: colors,
+                context: context,
+                accounts: accounts,
+                currentAccount: currentAccount,
+                editWallet: editWallet,
+                deleteWallet: (id) async {
+                  final res = await deleteWallet(id);
+                  return res;
+                },
+                changeAccount: changeAccount,
+                showPrivateData: showPrivateData,
+                reorderList: reorderList,
+              );
             },
             child: Container(
               padding: const EdgeInsets.all(2),

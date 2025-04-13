@@ -12,7 +12,7 @@ void showCryptoModal(
     required Color textColor,
     required Color surfaceTintColor,
     required List<Crypto> reorganizedCrypto,
-    required String route}) {
+    required void Function(Crypto crypto) onSelect}) {
   showBarModalBottomSheet(
       backgroundColor: colors.primaryColor,
       isDismissible: true,
@@ -86,8 +86,7 @@ void showCryptoModal(
                         color: Colors.transparent,
                         child: ListTile(
                           onTap: () {
-                            Navigator.pushNamed(context, route,
-                                arguments: ({"id": net.cryptoId}));
+                            onSelect(net);
                           },
                           leading: CryptoPicture(
                               crypto: net, size: 35, colors: colors),

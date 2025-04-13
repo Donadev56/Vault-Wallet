@@ -1,7 +1,5 @@
 // ignore_for_file: deprecated_member_use
 
-import 'dart:convert';
-
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:lucide_icons_flutter/lucide_icons.dart';
@@ -18,8 +16,8 @@ import 'package:moonwallet/widgets/crypto_picture.dart';
 import 'package:qr_flutter/qr_flutter.dart';
 
 class ReceiveScreen extends StatefulWidget {
-  final AppColors? colors;
-  const ReceiveScreen({super.key, this.colors});
+  final WidgetInitialData initData;
+  const ReceiveScreen({super.key, required this.initData});
 
   @override
   State<ReceiveScreen> createState() => _ReceiveScreenState();
@@ -27,7 +25,6 @@ class ReceiveScreen extends StatefulWidget {
 
 class _ReceiveScreenState extends State<ReceiveScreen> {
   Color warningColor = Colors.orange;
-  bool _isInitialized = false;
   bool isDarkMode = false;
   final cryptoStorageManager = CryptoStorageManager();
 
@@ -43,7 +40,7 @@ class _ReceiveScreenState extends State<ReceiveScreen> {
   final encryptService = EncryptService();
   final priceManager = PriceManager();
   final publicDataManager = PublicDataManager();
-  Crypto currentNetwork = Crypto(
+  Crypto crypto = Crypto(
       name: "",
       color: Colors.transparent,
       type: CryptoType.network,
@@ -55,24 +52,23 @@ class _ReceiveScreenState extends State<ReceiveScreen> {
   @override
   void initState() {
     super.initState();
-    if (widget.colors != null) {
-      setState(() {
-        colors = widget.colors!;
-      });
-    }
+
     getSavedTheme();
+    init();
   }
 
-  AppColors colors = AppColors(
-      primaryColor: Color(0XFF0D0D0D),
-      themeColor: Colors.greenAccent,
-      greenColor: Colors.greenAccent,
-      secondaryColor: Color(0XFF121212),
-      grayColor: Color(0XFF353535),
-      textColor: Colors.white,
-      redColor: Colors.pinkAccent);
+  void init() async {
+    setState(() {
+      currentAccount = widget.initData.account;
+      crypto = widget.initData.crypto;
+      colors = widget.initData.colors;
+    });
+  }
+
+  AppColors colors = AppColors.defaultTheme;
   Themes themes = Themes();
   String savedThemeName = "";
+
   Future<void> getSavedTheme() async {
     try {
       final manager = ColorsManager();
@@ -86,66 +82,6 @@ class _ReceiveScreenState extends State<ReceiveScreen> {
       });
     } catch (e) {
       logError(e.toString());
-    }
-  }
-
-  Future<void> getSavedWallets() async {
-    try {
-      final savedData = await web3Manager.getPublicData();
-
-      final lastAccount = await encryptService.getLastConnectedAddress();
-
-      int count = 0;
-      if (savedData != null && lastAccount != null) {
-        for (final account in savedData) {
-          final newAccount = PublicData.fromJson(account);
-          setState(() {
-            accounts.add(newAccount);
-          });
-          count++;
-        }
-      }
-
-      log("Retrieved $count wallets");
-
-      for (final account in accounts) {
-        if (account.address == lastAccount) {
-          currentAccount = account;
-
-          log("The current wallet is ${json.encode(account.toJson())}");
-          break;
-        } else {
-          log("Not account found");
-          currentAccount = accounts[0];
-        }
-      }
-    } catch (e) {
-      logError('Error getting saved wallets: $e');
-    }
-  }
-
-  @override
-  void didChangeDependencies() async {
-    super.didChangeDependencies();
-    if (!_isInitialized) {
-      final data = ModalRoute.of(context)?.settings.arguments;
-      if (data != null && (data as Map<String, dynamic>)["id"] != null) {
-        final id = data["id"];
-        await getSavedWallets();
-        final savedCrypto =
-            await cryptoStorageManager.getSavedCryptos(wallet: currentAccount);
-        if (savedCrypto != null) {
-          for (final crypto in savedCrypto) {
-            if (crypto.cryptoId == id) {
-              setState(() {
-                currentNetwork = crypto;
-              });
-            }
-          }
-        }
-        log("Network sets to ${currentNetwork.binanceSymbol}");
-      }
-      _isInitialized = true;
     }
   }
 
@@ -203,7 +139,7 @@ class _ReceiveScreenState extends State<ReceiveScreen> {
                           textTheme.bodyMedium?.copyWith(color: warningColor),
                       children: [
                         TextSpan(
-                          text: currentNetwork.name,
+                          text: crypto.name,
                           style: textTheme.bodyMedium?.copyWith(
                               color: warningColor, fontWeight: FontWeight.bold),
                         ),
@@ -229,13 +165,12 @@ class _ReceiveScreenState extends State<ReceiveScreen> {
                   mainAxisAlignment: MainAxisAlignment.center,
                   crossAxisAlignment: CrossAxisAlignment.center,
                   children: [
-                    CryptoPicture(
-                        crypto: currentNetwork, size: 30, colors: colors),
+                    CryptoPicture(crypto: crypto, size: 30, colors: colors),
                     SizedBox(
                       width: 10,
                     ),
                     Text(
-                      currentNetwork.symbol,
+                      crypto.symbol,
                       style: textTheme.bodyMedium?.copyWith(
                           color: colors.textColor,
                           fontSize: 20,
@@ -267,14 +202,14 @@ class _ReceiveScreenState extends State<ReceiveScreen> {
                             version: 3,
                             size: width * 0.8,
                             gapless: false,
-                            embeddedImage: currentNetwork.icon != null &&
-                                    currentNetwork.icon!
+                            embeddedImage: crypto.icon != null &&
+                                    crypto.icon!
                                         .toLowerCase()
                                         .startsWith("http")
                                 ? NetworkImage(
-                                    currentNetwork.icon ?? "",
+                                    crypto.icon ?? "",
                                   )
-                                : AssetImage(currentNetwork.icon ?? ""),
+                                : AssetImage(crypto.icon ?? ""),
                             embeddedImageStyle: QrEmbeddedImageStyle(
                               size: Size(40, 40),
                             ),

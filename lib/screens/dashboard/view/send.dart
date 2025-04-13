@@ -7,11 +7,13 @@ import 'package:awesome_snackbar_content/awesome_snackbar_content.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_feather_icons/flutter_feather_icons.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_web3_webview/flutter_web3_webview.dart';
 import 'package:intl/intl.dart';
 import 'package:lucide_icons_flutter/lucide_icons.dart';
 import 'package:mobile_scanner/mobile_scanner.dart';
 import 'package:moonwallet/logger/logger.dart';
+import 'package:moonwallet/notifiers/providers.dart';
 import 'package:moonwallet/screens/dashboard/page_manager.dart';
 import 'package:moonwallet/service/crypto_storage_manager.dart';
 import 'package:moonwallet/service/number_formatter.dart';
@@ -32,15 +34,16 @@ import 'package:moonwallet/widgets/scanner/show_scanner.dart';
 import 'package:permission_handler/permission_handler.dart';
 import 'package:qr_code_scanner_plus/qr_code_scanner_plus.dart';
 
-class SendTransactionScreen extends StatefulWidget {
-  final AppColors? colors;
-  const SendTransactionScreen({super.key, this.colors});
+class SendTransactionScreen extends ConsumerStatefulWidget {
+  final WidgetInitialData initData;
+  const SendTransactionScreen({super.key, required this.initData});
 
   @override
-  State<SendTransactionScreen> createState() => _SendTransactionScreenState();
+  ConsumerState<SendTransactionScreen> createState() =>
+      _SendTransactionScreenState();
 }
 
-class _SendTransactionScreenState extends State<SendTransactionScreen> {
+class _SendTransactionScreenState extends ConsumerState<SendTransactionScreen> {
   final _formKey = GlobalKey<FormState>();
   final GlobalKey qrKey = GlobalKey(debugLabel: 'QR');
   QRViewController? controller;
@@ -48,15 +51,14 @@ class _SendTransactionScreenState extends State<SendTransactionScreen> {
   final MobileScannerController _mobileScannerController =
       MobileScannerController();
 
-  double userBalance = 0;
+  double nativeBalance = 0;
   double cryptoPrice = 0;
   double transactionFee = 0;
-  double nativeTokenBalance = 0;
+  double tokenBalance = 0;
   bool isAndroid = false;
   double networkBalance = 0;
   bool isDarkMode = false;
   Color darkNavigatorColor = Color(0XFF0D0D0D);
-  bool _isInitialized = false;
   List<PublicData> accounts = [];
   List<PublicData> filteredAccounts = [];
   List<dynamic> lastEthUsedAddresses = [];
@@ -71,7 +73,8 @@ class _SendTransactionScreenState extends State<SendTransactionScreen> {
   final encryptService = EncryptService();
   final priceManager = PriceManager();
   final publicDataManager = PublicDataManager();
-  Crypto currentNetwork = Crypto(
+
+  Crypto crypto = Crypto(
       name: "",
       color: Colors.transparent,
       type: CryptoType.network,
@@ -79,6 +82,7 @@ class _SendTransactionScreenState extends State<SendTransactionScreen> {
       cryptoId: "",
       canDisplay: false,
       symbol: "");
+
   final web3InteractManager = Web3InteractionManager();
   final TextEditingController _addressController = TextEditingController();
   final TextEditingController _amountController = TextEditingController();
@@ -105,14 +109,27 @@ class _SendTransactionScreenState extends State<SendTransactionScreen> {
     }
   }
 
+  Future<void> init() async {
+    setState(() {
+      currentAccount = widget.initData.account;
+      crypto = widget.initData.crypto;
+      colors = widget.initData.colors;
+      if (widget.initData.initialBalanceCrypto != null) {
+        if (crypto.type == CryptoType.token) {
+          tokenBalance = widget.initData.initialBalanceCrypto ?? 0;
+        } else {
+          nativeBalance = widget.initData.initialBalanceCrypto ?? 0;
+        }
+      }
+    });
+
+    getInitialData();
+  }
+
   @override
   void initState() {
     super.initState();
-    if (widget.colors != null) {
-      setState(() {
-        colors = widget.colors!;
-      });
-    }
+    init();
     getSavedTheme();
     askCamera();
   }
@@ -175,7 +192,7 @@ class _SendTransactionScreenState extends State<SendTransactionScreen> {
 
   Future<void> sendTransaction() async {
     try {
-      if (userBalance <= double.parse(_amountController.text)) {
+      if (nativeBalance <= double.parse(_amountController.text)) {
         throw Exception("Insufficient balance");
       }
       showLoader();
@@ -191,8 +208,7 @@ class _SendTransactionScreenState extends State<SendTransactionScreen> {
       log("Value : $valueHex and value wei $valueWei");
 
       final estimatedGas = await web3InteractManager.estimateGas(
-          rpcUrl:
-              currentNetwork.rpc ?? "https://opbnb-mainnet-rpc.bnbchain.org",
+          rpcUrl: crypto.rpc ?? "https://opbnb-mainnet-rpc.bnbchain.org",
           sender: currentAccount.address,
           to: _addressController.text,
           value: valueHex,
@@ -211,13 +227,13 @@ class _SendTransactionScreenState extends State<SendTransactionScreen> {
       if (mounted) {
         Navigator.pop(context);
         final tx = await web3InteractManager.sendEthTransaction(
-            crypto: currentNetwork,
+            crypto: crypto,
             colors: colors,
             data: transaction,
             mounted: mounted,
             context: context,
             currentAccount: currentAccount,
-            currentNetwork: currentNetwork,
+            currentNetwork: crypto,
             primaryColor: colors.primaryColor,
             textColor: colors.textColor,
             secondaryColor: colors.themeColor,
@@ -235,7 +251,7 @@ class _SendTransactionScreenState extends State<SendTransactionScreen> {
                     builder: (context) => PagesManagerView(
                           colors: colors,
                           currentAccount: currentAccount,
-                          crypto: currentNetwork,
+                          crypto: crypto,
                           transaction: TransactionDetails(
                               from: from,
                               to: to,
@@ -270,23 +286,6 @@ class _SendTransactionScreenState extends State<SendTransactionScreen> {
       }
     } catch (e) {
       logError(e.toString());
-      final snackBar = SnackBar(
-        /// need to set following properties for best effect of awesome_snackbar_content
-        elevation: 0,
-        behavior: SnackBarBehavior.floating,
-        backgroundColor: Colors.transparent,
-        content: AwesomeSnackbarContent(
-          title: 'Ho Ho!',
-          message: '${e.toString()}!',
-
-          /// change contentType to ContentType.success, ContentType.warning or ContentType.help for variants
-          contentType: ContentType.failure,
-        ),
-      );
-
-      ScaffoldMessenger.of(context)
-        ..hideCurrentSnackBar()
-        ..showSnackBar(snackBar);
     }
   }
 
@@ -295,12 +294,12 @@ class _SendTransactionScreenState extends State<SendTransactionScreen> {
       double amount = double.parse(_amountController.text);
       double roundedAmount = double.parse(amount.toStringAsFixed(8));
 
-      if (roundedAmount > userBalance) {
+      if (roundedAmount > tokenBalance) {
         throw Exception("Insufficient balance");
       }
-      if (nativeTokenBalance < transactionFee) {
+      if (nativeBalance < transactionFee) {
         throw Exception(
-            "Insufficient ${currentNetwork.network?.symbol} balance , add ${(transactionFee - nativeTokenBalance).toStringAsFixed(8)}");
+            "Insufficient ${crypto.network?.symbol} balance , add ${(transactionFee - nativeBalance).toStringAsFixed(8)}");
       }
       showLoader();
 
@@ -317,8 +316,8 @@ class _SendTransactionScreenState extends State<SendTransactionScreen> {
       final valueHex = (valueWei).toRadixString(16);
 
       final estimatedGas = await web3InteractManager.estimateGas(
-          rpcUrl: currentNetwork.network?.rpc ??
-              "https://opbnb-mainnet-rpc.bnbchain.org",
+          rpcUrl:
+              crypto.network?.rpc ?? "https://opbnb-mainnet-rpc.bnbchain.org",
           sender: currentAccount.address,
           to: _addressController.text,
           value: "0x0",
@@ -345,7 +344,7 @@ class _SendTransactionScreenState extends State<SendTransactionScreen> {
             mounted: mounted,
             context: context,
             currentAccount: currentAccount,
-            currentNetwork: currentNetwork,
+            currentNetwork: crypto,
             primaryColor: colors.primaryColor,
             textColor: colors.textColor,
             secondaryColor: colors.themeColor,
@@ -363,7 +362,7 @@ class _SendTransactionScreenState extends State<SendTransactionScreen> {
                     builder: (context) => PagesManagerView(
                           colors: colors,
                           currentAccount: currentAccount,
-                          crypto: currentNetwork,
+                          crypto: crypto,
                           transaction: TransactionDetails(
                               from: from,
                               to: to,
@@ -377,23 +376,6 @@ class _SendTransactionScreenState extends State<SendTransactionScreen> {
           }
         } else {
           log("Transaction failed");
-          final snackBar = SnackBar(
-            /// need to set following properties for best effect of awesome_snackbar_content
-            elevation: 0,
-            behavior: SnackBarBehavior.floating,
-            backgroundColor: Colors.transparent,
-            content: AwesomeSnackbarContent(
-              title: 'Ho Ho!',
-              message: 'Transaction failed!',
-
-              /// change contentType to ContentType.success, ContentType.warning or ContentType.help for variants
-              contentType: ContentType.failure,
-            ),
-          );
-
-          ScaffoldMessenger.of(context)
-            ..hideCurrentSnackBar()
-            ..showSnackBar(snackBar);
         }
       }
     } catch (e) {
@@ -415,41 +397,6 @@ class _SendTransactionScreenState extends State<SendTransactionScreen> {
       ScaffoldMessenger.of(context)
         ..hideCurrentSnackBar()
         ..showSnackBar(snackBar);
-    }
-  }
-
-  Future<void> getSavedWallets() async {
-    try {
-      final savedData = await web3Manager.getPublicData();
-
-      final lastAccount = await encryptService.getLastConnectedAddress();
-
-      int count = 0;
-      if (savedData != null && lastAccount != null) {
-        for (final account in savedData) {
-          final newAccount = PublicData.fromJson(account);
-          setState(() {
-            accounts.add(newAccount);
-          });
-          count++;
-        }
-      }
-
-      log("Retrieved $count wallets");
-
-      for (final account in accounts) {
-        if (account.address == lastAccount) {
-          currentAccount = account;
-
-          log("The current wallet is ${json.encode(account.toJson())}");
-          break;
-        } else {
-          log("Not account found");
-          currentAccount = accounts[0];
-        }
-      }
-    } catch (e) {
-      logError('Error getting saved wallets: $e');
     }
   }
 
@@ -493,32 +440,37 @@ class _SendTransactionScreenState extends State<SendTransactionScreen> {
       final results = await Future.wait([
         //1
         web3InteractManager.estimateGas(
-            rpcUrl: currentNetwork.type == CryptoType.token
-                ? currentNetwork.network?.rpc ?? ""
-                : currentNetwork.rpc ?? "",
+            rpcUrl: crypto.type == CryptoType.token
+                ? crypto.network?.rpc ?? ""
+                : crypto.rpc ?? "",
             sender: currentAccount.address,
             to: currentAccount.address,
             value: "0x0",
             data: ""),
         //2
-        priceManager
-            .getPriceUsingBinanceApi(currentNetwork.binanceSymbol ?? ""),
+        priceManager.getPriceUsingBinanceApi(crypto.binanceSymbol ?? ""),
         // 3
-        web3InteractManager.getBalance(currentAccount, currentNetwork),
+        web3InteractManager.getBalance(currentAccount, crypto),
         // 4
-        currentNetwork.type == CryptoType.token
-            ? web3InteractManager.getGasPrice(currentNetwork.network?.rpc ??
-                "https://opbnb-mainnet-rpc.bnbchain.org")
+        crypto.type == CryptoType.token
+            ? web3InteractManager.getGasPrice(
+                crypto.network?.rpc ?? "https://opbnb-mainnet-rpc.bnbchain.org")
             : web3InteractManager.getGasPrice(
-                currentNetwork.rpc ?? "https://opbnb-mainnet-rpc.bnbchain.org"),
+                crypto.rpc ?? "https://opbnb-mainnet-rpc.bnbchain.org"),
         // 5
         publicDataManager.getDataFromPrefs(
             key: "${currentAccount.address}/lastUsedAddresses")
       ]);
+
       final estimatedGas = (results[0] as BigInt?);
       log("estimated gas $estimatedGas");
       final price = results[1];
-      final balance = results[2];
+      final targetTokenBalance = results[2];
+      double nativeTargetTokenBalance = 0;
+      if (crypto.type == CryptoType.token) {
+        nativeTargetTokenBalance = await web3InteractManager.getBalance(
+            currentAccount, crypto.network!);
+      }
 
       BigInt gasPrice = (results[3] as BigInt?) ?? BigInt.from(1000000);
 
@@ -534,7 +486,15 @@ class _SendTransactionScreenState extends State<SendTransactionScreen> {
 
       setState(() {
         cryptoPrice = (price as double);
-        userBalance = (balance as double);
+        if (crypto.type == CryptoType.token) {
+          setState(() {
+            nativeBalance = nativeTargetTokenBalance;
+            tokenBalance = targetTokenBalance as double;
+          });
+        } else {
+          nativeBalance = (targetTokenBalance as double);
+        }
+
         final BigInt gas = estimatedGas != null
             ? (estimatedGas * BigInt.from(2))
             : BigInt.from(21000);
@@ -544,44 +504,10 @@ class _SendTransactionScreenState extends State<SendTransactionScreen> {
             BigInt.from(10).pow(18));
         log("Fees ${transactionFee.toStringAsFixed(8)}");
       });
-      if (currentNetwork.type == CryptoType.token) {
-        final networkBalance = await web3InteractManager.getBalance(
-            currentAccount, currentNetwork.network ?? currentNetwork);
-        setState(() {
-          nativeTokenBalance = networkBalance;
-        });
-      }
 
       log("Crypto price is $price");
     } catch (e) {
       logError(e.toString());
-    }
-  }
-
-  @override
-  void didChangeDependencies() async {
-    super.didChangeDependencies();
-    if (!_isInitialized) {
-      final data = ModalRoute.of(context)?.settings.arguments;
-      if (data != null && (data as Map<String, dynamic>)["id"] != null) {
-        final id = data["id"];
-        await getSavedWallets();
-        final savedCrypto =
-            await cryptoStorageManager.getSavedCryptos(wallet: currentAccount);
-        if (savedCrypto != null) {
-          for (final crypto in savedCrypto) {
-            if (crypto.cryptoId == id) {
-              setState(() {
-                currentNetwork = crypto;
-              });
-            }
-          }
-          await getInitialData();
-        }
-
-        log("Network sets to ${currentNetwork.binanceSymbol}");
-      }
-      _isInitialized = true;
     }
   }
 
@@ -597,6 +523,11 @@ class _SendTransactionScreenState extends State<SendTransactionScreen> {
   Widget build(BuildContext context) {
     final width = MediaQuery.of(context).size.width;
     final textTheme = Theme.of(context).textTheme;
+    final asyncAccounts = ref.watch(accountsNotifierProvider);
+    asyncAccounts.whenData((data) => setState(() {
+          filteredAccounts = data;
+          accounts = data;
+        }));
 
     return Scaffold(
       backgroundColor: colors.primaryColor,
@@ -645,7 +576,7 @@ class _SendTransactionScreenState extends State<SendTransactionScreen> {
                         spacing: 10,
                         children: [
                           CryptoPicture(
-                            crypto: currentNetwork,
+                            crypto: crypto,
                             size: 20,
                             colors: colors,
                             primaryColor: colors.secondaryColor,
@@ -664,6 +595,7 @@ class _SendTransactionScreenState extends State<SendTransactionScreen> {
                   InkWell(
                     onTap: () async {
                       selectAnAccount(
+                          currentAccount: currentAccount,
                           colors: colors,
                           context: context,
                           accounts: accounts.toSet().toList(),
@@ -703,7 +635,7 @@ class _SendTransactionScreenState extends State<SendTransactionScreen> {
                   spacing: 10,
                   children: [
                     CryptoPicture(
-                      crypto: currentNetwork,
+                      crypto: crypto,
                       size: 30,
                       colors: colors,
                       primaryColor: colors.secondaryColor,
@@ -712,7 +644,7 @@ class _SendTransactionScreenState extends State<SendTransactionScreen> {
                       spacing: 10,
                       children: [
                         Text(
-                          currentNetwork.symbol,
+                          crypto.symbol,
                           style: textTheme.bodyMedium?.copyWith(
                               color: colors.textColor,
                               fontWeight: FontWeight.bold),
@@ -742,7 +674,7 @@ class _SendTransactionScreenState extends State<SendTransactionScreen> {
                                 currentAccount: currentAccount,
                                 colors: colors,
                                 addressController: _addressController,
-                                currentNetwork: currentNetwork);
+                                currentNetwork: crypto);
                           },
                           icon: Icon(Icons.contact_page_outlined)),
                       IconButton(
@@ -835,10 +767,10 @@ class _SendTransactionScreenState extends State<SendTransactionScreen> {
                     ?.copyWith(color: colors.textColor.withOpacity(0.8)),
                 validator: (v) {
                   log("Value $v");
-                  if (double.parse(v ?? "") >= userBalance) {
+                  if (double.parse(v ?? "") >= nativeBalance) {
                     return "Amount exceeds balance";
-                  } else if (double.parse(v ?? "") == userBalance &&
-                      userBalance > 0) {
+                  } else if (double.parse(v ?? "") == nativeBalance &&
+                      nativeBalance > 0) {
                     return "Transaction fee must be deducted";
                   } else {
                     return null;
@@ -864,24 +796,24 @@ class _SendTransactionScreenState extends State<SendTransactionScreen> {
                   ),
                   filled: true,
                   fillColor: colors.grayColor.withOpacity(0.4),
-                  labelText: "Amount ${currentNetwork.symbol}",
+                  labelText: "Amount ${crypto.symbol}",
                   suffixIcon: Container(
                     margin: const EdgeInsets.all(5),
                     child: InkWell(
                       borderRadius: BorderRadius.circular(10),
                       onTap: () {
                         setState(() {
-                          if (currentNetwork.type == CryptoType.network) {
-                            final value = userBalance - transactionFee;
-                            log("value $value , balance $userBalance");
+                          if (crypto.type == CryptoType.network) {
+                            final value = nativeBalance - transactionFee;
+                            log("value $value , balance $nativeBalance");
                             _amountController.text = formatter.format(value);
                             _amountUsdController.text =
-                                ((userBalance) * cryptoPrice).toString();
+                                ((nativeBalance) * cryptoPrice).toString();
                           } else {
                             _amountController.text =
-                                formatter.format(userBalance);
+                                formatter.format(tokenBalance);
                             _amountUsdController.text =
-                                ((userBalance) * cryptoPrice).toString();
+                                ((tokenBalance) * cryptoPrice).toString();
                           }
                         });
                       },
@@ -963,7 +895,7 @@ class _SendTransactionScreenState extends State<SendTransactionScreen> {
               Align(
                 alignment: Alignment.topLeft,
                 child: Text(
-                  "Balance : ${formatCryptoValue(userBalance.toString())} ${currentNetwork.symbol}",
+                  "Balance : ${formatCryptoValue(crypto.type == CryptoType.network ? nativeBalance.toString() : tokenBalance.toString())} ${crypto.symbol}",
                   style: textTheme.bodyMedium
                       ?.copyWith(color: colors.textColor.withOpacity(0.7)),
                 ),
@@ -981,7 +913,7 @@ class _SendTransactionScreenState extends State<SendTransactionScreen> {
 
                       if (_formKey.currentState!.validate()) {
                         log("Validation success !");
-                        if (currentNetwork.type == CryptoType.network) {
+                        if (crypto.type == CryptoType.network) {
                           await sendTransaction();
                         } else {
                           await sendTokenTransaction();

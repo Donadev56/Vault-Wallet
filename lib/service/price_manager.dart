@@ -3,6 +3,7 @@ import 'dart:convert';
 import 'package:moonwallet/custom/candlesticks/lib/candlesticks.dart';
 import 'package:moonwallet/logger/logger.dart';
 import 'package:http/http.dart' as http;
+import 'package:moonwallet/types/types.dart';
 
 class PriceManager {
   Future<double> getPriceUsingBinanceApi(String symbol) async {
@@ -24,6 +25,33 @@ class PriceManager {
     } catch (e) {
       logError('Error getting price: $e');
       return 0;
+    }
+  }
+
+  Future<List<double>> getPriceOfAvailableCryptos(List<Crypto> crypto) async {
+    try {
+      final response = await http
+          .get(Uri.parse('https://api.binance.com/api/v3/ticker/price'));
+      if (response.statusCode == 200) {
+        final List<dynamic> data = json.decode(response.body);
+        List<double> prices = [];
+
+        for (var entry in data) {
+          String symbol = entry['symbol'];
+          double price = double.parse(entry['price']);
+          if (crypto.any((c) => c.binanceSymbol == symbol)) {
+            prices.add(price);
+          }
+        }
+        return prices;
+      } else {
+        logError(
+            'Error fetching available cryptos from Binance API: statusCode=${response.statusCode}');
+        return [];
+      }
+    } catch (e) {
+      logError('Error getting price of available cryptos: $e');
+      return [];
     }
   }
 

@@ -5,6 +5,7 @@ import 'dart:io';
 import 'package:fast_cached_network_image/fast_cached_network_image.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_web3_webview/flutter_web3_webview.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:moonwallet/logger/logger.dart';
@@ -45,7 +46,7 @@ void main() async {
 
   await FastCachedImageConfig.init(clearCacheAfter: const Duration(days: 15));
   Future.delayed(Duration(seconds: 2), () {
-    runApp(MyApp());
+    runApp(ProviderScope(child: MyApp()));
   });
 }
 
@@ -56,15 +57,13 @@ class Routes {
   static const String createAccountFromSed = '/createAccountFromSed';
 
   static const String discover = '/discover';
-  static const String browser = '/browser';
   static const String home = '/home';
   static const String addPrivateKey = '/addPrivateKey';
   static const String pinAuth = '/pinAuth';
   static const String addObservationWallet = '/addObservationWallet';
   static const String privateDataScreen = '/privateDataScreen';
-  static const String receiveScreen = '/receiveScreen';
-  static const String sendScreen = '/sendScreen';
   static const String settings = '/settings';
+
   static const String addCrypto = '/main/addCrypto';
   static const String pageManager = '/main/pageManager';
   static const String changeTheme = '/settings/changeColor';
@@ -74,7 +73,7 @@ class Routes {
 }
 
 class MyApp extends StatefulWidget {
-  const MyApp({Key? key}) : super(key: key);
+  const MyApp({super.key});
 
   @override
   _MyAppState createState() => _MyAppState();
@@ -82,14 +81,7 @@ class MyApp extends StatefulWidget {
 
 class _MyAppState extends State<MyApp> {
   Color themeColor = Colors.greenAccent;
-  AppColors colors = AppColors(
-      primaryColor: Color(0XFF0D0D0D),
-      themeColor: Colors.greenAccent,
-      greenColor: Colors.greenAccent,
-      secondaryColor: Color(0XFF121212),
-      grayColor: Color(0XFF353535),
-      textColor: Colors.white,
-      redColor: Colors.pinkAccent);
+  AppColors colors = AppColors.defaultTheme;
   String savedThemeName = "";
 
   @override
@@ -204,6 +196,11 @@ class _MyAppState extends State<MyApp> {
                 debugShowCheckedModeBanner: false,
                 title: 'Moon Wallet',
                 theme: ThemeData(
+                  dialogTheme: DialogTheme(
+                    shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(8)),
+                    backgroundColor: colors.primaryColor,
+                  ),
                   textTheme: TextTheme(
                     displayLarge: GoogleFonts.roboto(
                       fontSize: 57,
@@ -322,9 +319,6 @@ class _MyAppState extends State<MyApp> {
                   Routes.discover: (context) => DiscoverScreen(
                         colors: colors,
                       ),
-                  Routes.browser: (context) => Web3BrowserScreen(
-                        colors: colors,
-                      ),
                   Routes.home: (context) => HomeScreen(),
                   Routes.privateKeyCreator: (context) => CreatePrivateKey(),
                   Routes.addPrivateKey: (context) => AddPrivateKey(),
@@ -336,12 +330,6 @@ class _MyAppState extends State<MyApp> {
                   Routes.addObservationWallet: (context) =>
                       AddObservationWallet(),
                   Routes.privateDataScreen: (context) => PrivateKeyScreen(
-                        colors: colors,
-                      ),
-                  Routes.receiveScreen: (context) => ReceiveScreen(
-                        colors: colors,
-                      ),
-                  Routes.sendScreen: (context) => SendTransactionScreen(
                         colors: colors,
                       ),
                   Routes.settings: (context) => SettingsPage(),

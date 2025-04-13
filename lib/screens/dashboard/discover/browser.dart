@@ -28,8 +28,10 @@ class Web3BrowserScreen extends StatefulWidget {
   final String? url;
   final Crypto? network;
   final AppColors? colors;
+  final PublicData account;
 
-  const Web3BrowserScreen({super.key, this.url, this.network, this.colors});
+  const Web3BrowserScreen(
+      {super.key, required this.account, this.url, this.network, this.colors});
 
   @override
   Web3BrowserScreenState createState() => Web3BrowserScreenState();
@@ -246,28 +248,36 @@ class Web3BrowserScreenState extends State<Web3BrowserScreen> {
     super.initState();
 
     getSavedTheme();
-    getSavedWallets();
-    if (widget.network != null) {
-      currentNetwork = widget.network!;
-      _chainId = currentNetwork.chainId!;
-    }
+    init();
+  }
 
-    if (widget.colors != null) {
-      setState(() {
+  void init() {
+    setState(() {
+      currentAccount = widget.account;
+
+      if (widget.network != null) {
+        currentNetwork = widget.network!;
+        _chainId = currentNetwork.chainId!;
+      }
+
+      if (widget.colors != null) {
         colors = widget.colors!;
-      });
-    }
-    if (widget.url != null) {
-      String url = widget.url!;
-      if (!(url.startsWith("http://") || url.startsWith("https://"))) {
-        url = "https://$url";
       }
-      currentUrl = url;
-      if (_webViewController != null) {
-        _webViewController!
-            .loadUrl(urlRequest: URLRequest(url: WebUri(currentUrl)));
+
+      if (widget.url != null) {
+        String url = widget.url!;
+        if (!(url.startsWith("http://") || url.startsWith("https://"))) {
+          url = "https://$url";
+        }
+        currentUrl = url;
+        if (_webViewController != null) {
+          _webViewController!
+              .loadUrl(urlRequest: URLRequest(url: WebUri(currentUrl)));
+        }
       }
-    }
+
+      isLoading = false;
+    });
   }
 
   @override
@@ -276,48 +286,6 @@ class Web3BrowserScreenState extends State<Web3BrowserScreen> {
 
     if (_webViewController != null) {
       _webViewController!.dispose();
-    }
-  }
-
-  Future<void> getSavedWallets() async {
-    try {
-      final savedData = await web3Manager.getPublicData();
-
-      final lastAccount = await encryptService.getLastConnectedAddress();
-      int count = 0;
-      if (savedData != null && lastAccount != null) {
-        for (final account in savedData) {
-          final newAccount = PublicData.fromJson(account);
-
-          setState(() {
-            accounts.add(newAccount);
-          });
-
-          count++;
-        }
-      }
-
-      log("Retrieved $count wallets");
-
-      for (final account in accounts) {
-        if (account.address == lastAccount) {
-          currentAccount = account;
-          await getSavedCrypto(account: account);
-
-          isLoading = false;
-
-          log("The current wallet is ${json.encode(account.toJson())}");
-          break;
-        } else {
-          log("Not account found");
-          isLoading = false;
-
-          currentAccount = accounts[0];
-        }
-      }
-    } catch (e) {
-      logError('Error getting saved wallets: $e');
-      isLoading = false;
     }
   }
 

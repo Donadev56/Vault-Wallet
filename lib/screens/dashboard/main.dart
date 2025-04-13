@@ -5,17 +5,15 @@ import 'dart:convert';
 import 'dart:io';
 import 'package:currency_formatter/currency_formatter.dart';
 import 'package:device_info_plus/device_info_plus.dart';
-import 'package:internet_connection_checker/internet_connection_checker.dart';
-import 'package:internet_connection_checker_plus/internet_connection_checker_plus.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:loading_animation_widget/loading_animation_widget.dart';
 import 'package:moonwallet/custom/refresh/check_mark.dart';
-import 'package:moonwallet/custom/web3_webview/lib/utils/loading.dart';
+import 'package:moonwallet/notifiers/providers.dart';
+import 'package:moonwallet/screens/dashboard/view/recieve.dart';
+import 'package:moonwallet/screens/dashboard/view/send.dart';
 import 'package:moonwallet/screens/dashboard/view/wallet_overview.dart';
-import 'package:moonwallet/service/crypto_request_manager.dart';
-import 'package:moonwallet/service/crypto_storage_manager.dart';
 import 'package:moonwallet/service/network.dart';
 import 'package:moonwallet/service/number_formatter.dart';
-import 'package:moonwallet/service/wallet_saver.dart';
 import 'package:moonwallet/utils/colors.dart';
 import 'package:moonwallet/widgets/appBar/show_custom_drawer.dart';
 import 'package:moonwallet/widgets/crypto_picture.dart';
@@ -32,75 +30,62 @@ import 'package:intl/intl.dart';
 import 'package:lucide_icons_flutter/lucide_icons.dart';
 import 'package:moonwallet/logger/logger.dart';
 import 'package:moonwallet/main.dart';
-import 'package:moonwallet/service/price_manager.dart';
 import 'package:moonwallet/service/vibration.dart';
 import 'package:moonwallet/service/web3_interaction.dart';
 import 'package:moonwallet/types/types.dart';
 import 'package:moonwallet/utils/constant.dart';
-import 'package:moonwallet/utils/crypto.dart';
 import 'package:moonwallet/utils/prefs.dart';
 import 'package:moonwallet/widgets/actions.dart';
 import 'package:moonwallet/widgets/appBar.dart';
-import 'package:moonwallet/widgets/drawer.dart';
 import 'package:moonwallet/widgets/func/snackbar.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:simple_gesture_detector/simple_gesture_detector.dart';
 import 'package:http/http.dart';
 
-class MainDashboardScreen extends StatefulWidget {
+class MainDashboardScreen extends ConsumerStatefulWidget {
   final AppColors? colors;
   const MainDashboardScreen({super.key, this.colors});
 
   @override
-  State<MainDashboardScreen> createState() => _MainDashboardScreenState();
+  ConsumerState<MainDashboardScreen> createState() =>
+      _MainDashboardScreenState();
 }
 
-class _MainDashboardScreenState extends State<MainDashboardScreen>
+class _MainDashboardScreenState extends ConsumerState<MainDashboardScreen>
     with SingleTickerProviderStateMixin {
-  List<Balance> cryptosAndBalance = [];
-  List<Balance> initialListBalance = [];
-  bool isLoading = true;
+  List<Asset> initialAssets = [];
+  bool isLoading = false;
 
   final GlobalKey<RefreshIndicatorState> _refreshIndicatorKey =
       GlobalKey<RefreshIndicatorState>();
   final GlobalKey<ScaffoldState> _scaffoldKey = GlobalKey<ScaffoldState>();
   File? _profileImage;
-  File? _backgroundImage;
   String userName = "Moon User";
+  String lastAccount = '';
 
   AppColors colors = AppColors.defaultTheme;
-
-  List<PublicData> accounts = [];
   List<PublicData> filteredAccounts = [];
-  List<Crypto> reorganizedCrypto = [];
   final formatter = NumberFormat("0.########", "en_US");
 
-  PublicData? currentAccount;
-
-  final web3Manager = WalletSaver();
-  final encryptService = EncryptService();
-  final priceManager = PriceManager();
   final web3InteractManager = Web3InteractionManager();
   final publicDataManager = PublicDataManager();
-  final cryptoStorageManager = CryptoStorageManager();
   final connectivityManager = ConnectivityManager();
+  List<Crypto> reorganizedCrypto = [];
+  List<Asset> assets = [];
+
   bool canUseBio = false;
   int currentOrder = 0;
   String searchCryptoQuery = "";
 
-  bool isDarkMode = true;
   bool isHidden = false;
-  bool isTotalBalanceUpdated = false;
   final _cryptoSearchTextController = TextEditingController();
-  final connectionListener = InternetConnection();
-  final connectionChecker = InternetConnectionChecker.instance;
   late dynamic connectionSubscription;
 
   bool isConnected = false;
   bool wasDisconnected = false;
 
-  double totalBalanceUsd = 0;
   double balanceOfAllAccounts = 0;
+  double totalBalance = 0;
   String searchQuery = "";
 
   final List<Map<String, dynamic>> actionsData = [
@@ -121,39 +106,11 @@ class _MainDashboardScreenState extends State<MainDashboardScreen>
     }
     getIsHidden();
     getSavedTheme();
-    getSavedWallets();
-    calculateTotalBalanceOfAllWallets();
-
-    connectionListener.onStatusChange.listen(handleConnected);
 
     loadData();
     super.initState();
     checkCanUseBio();
     checkUserExistence();
-  }
-
-  Future<void> handleConnected(InternetStatus status) async {
-    switch (status) {
-      case InternetStatus.connected:
-        isConnected = true;
-        if (wasDisconnected) {
-          showCustomSnackBar(
-              context: context,
-              message: "Updating...",
-              colors: colors,
-              type: MessageType.success,
-              icon: Icons.check,
-              iconColor: colors.greenColor);
-          await getCryptoData(account: currentAccount!);
-        }
-
-        break;
-      case InternetStatus.disconnected:
-        isConnected = false;
-        wasDisconnected = true;
-
-        break;
-    }
   }
 
   Future<void> checkCanUseBio() async {
@@ -205,56 +162,6 @@ class _MainDashboardScreenState extends State<MainDashboardScreen>
     await publicDataManager.saveDataInPrefs(data: "$isHidden", key: "isHidden");
   }
 
-  Future<void> getSavedWallets() async {
-    try {
-      final savedData = await web3Manager.getPublicData();
-      log("Saved data : $savedData");
-
-      final lastAccount = await encryptService.getLastConnectedAddress();
-
-      int count = 0;
-      if (savedData != null && lastAccount != null) {
-        for (final account in savedData) {
-          final newAccount = PublicData.fromJson(account);
-          setState(() {
-            accounts.add(newAccount);
-          });
-          count++;
-        }
-      }
-
-      log("Retrieved $count wallets");
-      if (count == 0) {
-        showCustomSnackBar(
-            type: MessageType.error,
-            context: context,
-            message: "No wallet found",
-            colors: colors);
-        goToHome(context);
-      }
-
-      for (final account in accounts) {
-        if (account.address == lastAccount) {
-          currentAccount = account;
-          getCryptoData(account: account);
-          break;
-        }
-      }
-      if (accounts.isNotEmpty) {
-        if (currentAccount == null) {
-          log("No account found");
-          currentAccount = accounts[0];
-          await Future.wait([
-            getCryptoData(account: accounts[0]),
-            checkCryptoUpdate(account: accounts[0])
-          ]);
-        }
-      }
-    } catch (e) {
-      logError('Error getting saved wallets: $e');
-    }
-  }
-
   Future<bool> loadData() async {
     try {
       final PublicDataManager prefs = PublicDataManager();
@@ -272,8 +179,6 @@ class _MainDashboardScreenState extends State<MainDashboardScreen>
 
       final String profileFilePath =
           path.join(moonImagesPath, "profileName.png");
-      final String backgroundFilePath =
-          path.join(moonImagesPath, "backgroundName.png");
 
       final File profileImageFile = File(profileFilePath);
       if (await profileImageFile.exists()) {
@@ -282,412 +187,10 @@ class _MainDashboardScreenState extends State<MainDashboardScreen>
         });
       }
 
-      final File backgroundImageFile = File(backgroundFilePath);
-      if (await backgroundImageFile.exists()) {
-        setState(() {
-          _backgroundImage = backgroundImageFile;
-        });
-      }
-
       return true;
     } catch (e) {
       log("Error loading data: $e");
       return false;
-    }
-  }
-
-  Future<void> editWalletName(String name, int index) async {
-    try {
-      if (name.isEmpty) {
-        showCustomSnackBar(
-            type: MessageType.error,
-            colors: colors,
-            context: context,
-            message: "Name cannot be empty",
-            iconColor: Colors.pinkAccent);
-        Navigator.pop(context);
-        return;
-      }
-      final wallet = accounts[index];
-
-      final PublicData newWallet = PublicData(
-          walletColor: wallet.walletColor,
-          walletIcon: wallet.walletIcon,
-          isWatchOnly: wallet.isWatchOnly,
-          address: wallet.address,
-          walletName: name,
-          creationDate: wallet.creationDate,
-          keyId: wallet.keyId);
-      setState(() {
-        accounts[index] = newWallet;
-        currentAccount = newWallet;
-      });
-      final result = await web3Manager.saveListPublicData(accounts);
-      if (result) {
-        if (mounted) {
-          showCustomSnackBar(
-              type: MessageType.success,
-              icon: Icons.check,
-              colors: colors,
-              context: context,
-              message: "Name edit was successful",
-              iconColor: Colors.greenAccent);
-        }
-      } else {
-        if (mounted) {
-          showCustomSnackBar(
-              type: MessageType.error,
-              icon: Icons.check,
-              colors: colors,
-              context: context,
-              message: "Name edit failed",
-              iconColor: Colors.pinkAccent);
-          Navigator.pop(context);
-        }
-      }
-    } catch (e) {
-      logError(e.toString());
-      if (mounted) {
-        Navigator.pop(context);
-      }
-    }
-  }
-
-  Future<bool> editWallet(
-      {required PublicData account,
-      String? name,
-      IconData? icon,
-      Color? color}) async {
-    try {
-      final res = await web3Manager.editWallet(
-          account: account, newName: name, icon: icon, color: color);
-      if (res != null) {
-        setState(() {
-          accounts.clear();
-        });
-        await getSavedWallets();
-
-        return true;
-      }
-
-      return false;
-    } catch (e) {
-      logError(e.toString());
-      return false;
-    }
-  }
-
-  Future<void> editVisualData(
-      {Color? color, required int index, IconData? icon}) async {
-    try {
-      final wallet = accounts[index];
-      final PublicData newWallet = PublicData(
-          walletColor: color ?? wallet.walletColor,
-          walletIcon: icon ?? wallet.walletIcon,
-          isWatchOnly: wallet.isWatchOnly,
-          address: wallet.address,
-          walletName: wallet.walletName,
-          creationDate: wallet.creationDate,
-          keyId: wallet.keyId);
-      setState(() {
-        accounts[index] = newWallet;
-        currentAccount = newWallet;
-      });
-      final result = await web3Manager.saveListPublicData(accounts);
-      if (result) {
-        if (mounted) {
-          showCustomSnackBar(
-              type: MessageType.success,
-              icon: Icons.check,
-              colors: colors,
-              context: context,
-              message: "Data was successful",
-              iconColor: Colors.greenAccent);
-        }
-      } else {
-        if (mounted) {
-          showCustomSnackBar(
-              type: MessageType.error,
-              icon: Icons.check,
-              colors: colors,
-              context: context,
-              message: "Data edit failed",
-              iconColor: Colors.pinkAccent);
-          Navigator.pop(context);
-        }
-      }
-    } catch (e) {
-      logError(e.toString());
-      if (mounted) {
-        Navigator.pop(context);
-      }
-    }
-  }
-
-  Future<bool> deleteWallet(String walletId, BuildContext? ctx) async {
-    try {
-      final password = await askPassword(context: context, colors: colors);
-      final accountToRemove =
-          accounts.where((acc) => acc.keyId == walletId).first;
-
-      if (accountToRemove != null) {
-        if (password.isNotEmpty) {
-          final currentList = accounts;
-          final index = currentList.indexOf(accountToRemove);
-          if (currentList[index].keyId == currentAccount?.keyId && index > 0) {
-            await getCryptoData(account: accounts[index - 1])
-                .withLoading(context, colors, "Processing...");
-
-            setState(() {
-              currentAccount = accounts[index - 1];
-            });
-          }
-          await encryptService.saveLastConnectedData(currentAccount!.address);
-
-          currentList.removeAt(index);
-          setState(() {
-            accounts = currentList;
-          });
-
-          final result = await web3Manager.saveListPublicData(currentList);
-          if (result) {
-            if (mounted) {
-              showCustomSnackBar(
-                  type: MessageType.success,
-                  colors: colors,
-                  context: context,
-                  message: "Wallet deleted successfully",
-                  icon: Icons.check_circle,
-                  iconColor: Colors.greenAccent);
-
-              setState(() {
-                accounts = currentList;
-              });
-              if (accounts.isEmpty) {
-                goToHome(context);
-              }
-              Navigator.pop(context);
-
-              return true;
-            }
-            return false;
-          } else {
-            if (mounted) {
-              showCustomSnackBar(
-                  type: MessageType.error,
-                  colors: colors,
-                  context: context,
-                  message: "Wallet deletion failed",
-                  iconColor: Colors.pinkAccent);
-              Navigator.pop(context);
-              return false;
-            }
-            return false;
-          }
-        } else {
-          showCustomSnackBar(
-              type: MessageType.error,
-              colors: colors,
-              context: context,
-              message: "Incorrect password",
-              iconColor: Colors.pinkAccent);
-          Navigator.pop(context);
-          return false;
-        }
-      } else {
-        showCustomSnackBar(
-            type: MessageType.error,
-            colors: colors,
-            context: context,
-            message: "Wallet not found",
-            iconColor: Colors.pinkAccent);
-        Navigator.pop(context);
-        return false;
-      }
-    } catch (e) {
-      logError(e.toString());
-      showCustomSnackBar(
-          type: MessageType.error,
-          context: context,
-          message: e.toString(),
-          colors: colors);
-      return false;
-    }
-  }
-
-  Future<void> calculateTotalBalanceOfAllWallets() async {
-    try {
-      final savedData = await web3Manager.getPublicData();
-      List<PublicData> wallets = [];
-      double totalBalance = 0;
-
-      final lastAccount = await encryptService.getLastConnectedAddress();
-
-      if (savedData != null && lastAccount != null) {
-        for (final account in savedData) {
-          final newAccount = PublicData.fromJson(account);
-          setState(() {
-            wallets.add(newAccount);
-          });
-        }
-      }
-
-      if (wallets.isNotEmpty) {
-        for (final wallet in wallets) {
-          final dataName = "cryptoAndBalance/${wallet.address}";
-
-          final savedData =
-              await publicDataManager.getDataFromPrefs(key: dataName);
-          if (savedData != null) {
-            List<dynamic> savedDataString = json.decode(savedData);
-            for (final balance in savedDataString) {
-              totalBalance += balance["balanceUsd"] ?? 0;
-            }
-            isTotalBalanceUpdated = true;
-          }
-        }
-      }
-
-      setState(() {
-        balanceOfAllAccounts = totalBalance;
-      });
-    } catch (e) {
-      logError('Error getting saved wallets: $e');
-    }
-  }
-
-  Future<void> showPrivateData(int index) async {
-    try {
-      final wallet = accounts[index];
-      if (wallet.isWatchOnly) {
-        Navigator.pop(context);
-        showCustomSnackBar(
-            type: MessageType.error,
-            colors: colors,
-            context: context,
-            message: "This is a watch-only wallet.",
-            iconColor: Colors.pinkAccent);
-        return;
-      }
-      String userPassword = await askPassword(context: context, colors: colors);
-
-      if (mounted && userPassword.isNotEmpty) {
-        Navigator.pushNamed(context, Routes.privateDataScreen,
-            arguments: ({
-              "keyId": accounts[index].keyId,
-              "password": userPassword
-            }));
-      }
-    } catch (e) {
-      logError(e.toString());
-    }
-  }
-
-  Future<void> reorderList(int oldIndex, int newIndex) async {
-    try {
-      log(" old index : $oldIndex new index : $newIndex");
-      if (oldIndex < newIndex) {
-        newIndex -= 1;
-      }
-      final removedAccount = accounts.removeAt(oldIndex);
-      setState(() {
-        accounts.insert(newIndex, removedAccount);
-      });
-      final result = await web3Manager.saveListPublicData(accounts);
-      if (result) {
-      } else {
-        if (mounted) {
-          showCustomSnackBar(
-              type: MessageType.error,
-              colors: colors,
-              context: context,
-              message: "List reorder failed",
-              iconColor: Colors.pinkAccent);
-          Navigator.pop(context);
-        }
-      }
-    } catch (e) {
-      logError(e.toString());
-      if (mounted) {
-        Navigator.pop(context);
-      }
-    }
-  }
-
-  Future<void> changeWallet(int index) async {
-    try {
-      Navigator.pop(context);
-
-      final wallet = accounts[index];
-      setState(() {
-        currentAccount = wallet;
-        totalBalanceUsd = 0;
-      });
-
-      final changeResult = await web3Manager.saveLastAccount(wallet.address);
-      if (changeResult) {
-        if (mounted) {
-          await Future.wait([
-            getCryptoData(account: wallet),
-          ]);
-        }
-      } else {
-        if (mounted) {
-          showCustomSnackBar(
-              type: MessageType.error,
-              colors: colors,
-              context: context,
-              message: "Wallet change failed",
-              iconColor: Colors.pinkAccent);
-        }
-      }
-    } catch (e) {
-      logError(e.toString());
-      if (mounted) {
-        showCustomSnackBar(
-            type: MessageType.error,
-            context: context,
-            message: "$e",
-            colors: colors);
-      }
-    }
-  }
-
-  Future<double> getPrice(String symbol) async {
-    try {
-      if (symbol.isEmpty) return 0;
-      final result = await priceManager.getPriceUsingBinanceApi(symbol);
-      return result;
-    } catch (e) {
-      logError(e.toString());
-      return 0;
-    }
-  }
-
-  Future<double> getBalanceUsd(
-      {required Crypto crypto, required PublicData account}) async {
-    try {
-      if (crypto.type == CryptoType.token && crypto.contractAddress == null) {
-        return 0;
-      }
-      final symbol = crypto.binanceSymbol ?? "";
-
-      final price = await getPrice(symbol);
-
-      final balanceEth = await web3InteractManager.getBalance(account, crypto);
-
-      publicDataManager.saveDataInPrefs(
-          data: balanceEth.toString(),
-          key: "${account.address}/lastBalanceEth");
-
-      final balanceUsd = balanceEth * price;
-      if (balanceUsd > 0) {
-        return price * balanceEth;
-      }
-      return 0;
-    } catch (e) {
-      logError(e.toString());
-      return 0;
     }
   }
 
@@ -712,171 +215,6 @@ class _MainDashboardScreenState extends State<MainDashboardScreen>
 
   String formatCryptoValue(String value) {
     return NumberFormatter().formatCrypto(value: value);
-  }
-
-  Future<void> checkCryptoUpdate({required PublicData account}) async {
-    try {
-      final List<Crypto> standardCrypto =
-          await CryptoRequestManager().getAllCryptos();
-      final savedCrypto =
-          await cryptoStorageManager.getSavedCryptos(wallet: account);
-      List<Crypto> cryptosList = [];
-      if (savedCrypto != null && savedCrypto.isNotEmpty) {
-        cryptosList = savedCrypto;
-
-        Set<String> savedCryptoIds =
-            savedCrypto.map((crypto) => crypto.cryptoId).toSet();
-
-        for (final stCrypto in standardCrypto) {
-          if (!savedCryptoIds.contains(stCrypto.cryptoId)) {
-            cryptosList.add(stCrypto);
-          }
-        }
-
-        if (cryptosList.length > savedCrypto.length) {
-          log("${cryptosList.length - savedCrypto.length} new Crypto(s) found");
-          await cryptoStorageManager.saveListCrypto(
-              wallet: account, cryptos: cryptosList);
-        } else {
-          log("No new Crypto founded");
-        }
-      }
-    } catch (e) {
-      logError(e.toString());
-    }
-  }
-
-  // main function
-  Future<void> getCryptoData({required PublicData account}) async {
-    try {
-      final dataName = "cryptoAndBalance/${account.address}";
-      final savedDataResult = await Future.wait([
-        publicDataManager.getDataFromPrefs(key: dataName),
-        cryptoStorageManager.getSavedCryptos(wallet: account)
-      ]);
-
-      List<Crypto> standardCrypto = [];
-      try {
-        standardCrypto = await CryptoRequestManager().getAllCryptos();
-      } catch (e) {
-        logError(e.toString());
-      }
-
-      if (standardCrypto.isEmpty) {
-        standardCrypto.addAll(popularCrypto);
-      }
-
-      final savedData = (savedDataResult[0] as String?);
-      final savedCrypto = (savedDataResult[1] as List<Crypto>?);
-
-      List<Crypto> cryptosList = [];
-      List<Crypto> enabledCryptos = [];
-      List<Balance> cryptoBalance = [];
-      List<Crypto> availableCryptos = [];
-      double userBalanceUsd = 0;
-
-      if (savedData != null) {
-        List<Balance> balances = [];
-        List<dynamic> savedDataString = json.decode(savedData);
-        for (final balance in savedDataString) {
-          final newBalance = Balance.fromJson(balance);
-          balances.add(newBalance);
-          userBalanceUsd += newBalance.balanceUsd;
-          availableCryptos.add(newBalance.crypto);
-
-          if (balances.isNotEmpty) {
-            setState(() {
-              reorganizedCrypto = availableCryptos;
-              cryptosAndBalance = balances;
-              initialListBalance = balances;
-              totalBalanceUsd = userBalanceUsd;
-              isLoading = false;
-            });
-          }
-        }
-      }
-      if (savedCrypto == null || savedCrypto.isEmpty) {
-        cryptosList = standardCrypto;
-      } else {
-        cryptosList = savedCrypto;
-      }
-      if (cryptosList.isNotEmpty) {
-        enabledCryptos =
-            cryptosList.where((c) => c.canDisplay == true).toList();
-        userBalanceUsd = 0;
-        availableCryptos = [];
-        List<Map<String, Object>> results = [];
-
-        results = await Future.wait(enabledCryptos.map((crypto) async {
-          final balance = await web3InteractManager.getBalance(account, crypto);
-          final trend = await priceManager
-              .checkCryptoTrend(crypto.binanceSymbol ?? "${crypto.symbol}USDT");
-          final cryptoPrice = await priceManager.getPriceUsingBinanceApi(
-              crypto.binanceSymbol ?? "${crypto.symbol}USDT");
-          final balanceUsd = cryptoPrice * balance;
-
-          return {
-            "cryptoBalance": Balance(
-              crypto: crypto,
-              balanceUsd: balanceUsd,
-              balanceCrypto: balance,
-              cryptoTrendPercent: trend["percent"] ?? 0,
-              cryptoPrice: cryptoPrice,
-            ),
-            "availableCrypto": crypto,
-            "balanceUsd": balanceUsd
-          };
-        }));
-
-        cryptoBalance.addAll(results.map((r) => r["cryptoBalance"] as Balance));
-        availableCryptos
-            .addAll(results.map((r) => r["availableCrypto"] as Crypto));
-        userBalanceUsd +=
-            results.fold(0.0, (sum, r) => sum + (r["balanceUsd"] as double));
-
-        if (!isConnected &&
-            (await connectionListener.internetStatus
-                .then((st) => st == InternetStatus.disconnected))) {
-          logError("Not connected to the internet");
-          showCustomSnackBar(
-              context: context,
-              message: "Not connected to the internet",
-              colors: colors,
-              type: MessageType.error);
-          return;
-        }
-
-        setState(() {
-          cryptosAndBalance = cryptoBalance;
-          initialListBalance = cryptoBalance;
-          totalBalanceUsd = userBalanceUsd;
-          reorganizedCrypto = availableCryptos;
-          isLoading = false;
-        });
-
-        cryptoBalance.sort((a, b) => (b.balanceUsd).compareTo(a.balanceUsd));
-        setState(() {
-          cryptosAndBalance = cryptoBalance;
-          initialListBalance = cryptoBalance;
-        });
-
-        final cryptoListString = cryptoBalance.map((c) => c.toJson()).toList();
-
-        await Future.wait([
-          publicDataManager.saveDataInPrefs(
-              data: json.encode(cryptoListString), key: dataName),
-          cryptoStorageManager.saveListCrypto(
-              cryptos: cryptosList, wallet: account),
-        ]);
-      }
-    } catch (e) {
-      logError(e.toString());
-      showCustomSnackBar(
-          context: context,
-          message: e.toString(),
-          colors: colors,
-          type: MessageType.error);
-    }
   }
 
   Future<void> checkUserExistence() async {
@@ -928,40 +266,97 @@ class _MainDashboardScreenState extends State<MainDashboardScreen>
     }
   }
 
-  void showReceiveModal() {
-    showCryptoModal(
-        colors: colors,
-        context: context,
-        primaryColor: colors.primaryColor,
-        textColor: colors.textColor,
-        surfaceTintColor: colors.grayColor.withOpacity(0.6),
-        reorganizedCrypto: reorganizedCrypto,
-        route: Routes.receiveScreen);
-  }
-
-  void showSendModal() {
-    showCryptoModal(
-        colors: colors,
-        context: context,
-        primaryColor: colors.primaryColor,
-        textColor: colors.textColor,
-        surfaceTintColor: colors.grayColor.withOpacity(0.6),
-        reorganizedCrypto: reorganizedCrypto,
-        route: Routes.sendScreen);
-  }
-
   void showOptionsModal() async {
     showHomeOptionsDialog(
         context: context, toggleHidden: toggleHidden, colors: colors);
   }
 
+  void updateBioState(bool state) {
+    setState(() {
+      canUseBio = state;
+    });
+  }
+
+  void refreshProfile(File f) {
+    setState(() {
+      _profileImage = f;
+    });
+  }
+
+  notifySuccess(String message) => showCustomSnackBar(
+      context: context,
+      message: message,
+      colors: colors,
+      type: MessageType.success);
+  notifyError(String message) => showCustomSnackBar(
+      context: context,
+      message: message,
+      colors: colors,
+      type: MessageType.error);
+
   @override
   Widget build(BuildContext context) {
+    final textTheme = Theme.of(context).textTheme;
+    final accountsProvider = ref.watch(accountsNotifierProvider);
+    final accounts = accountsProvider.value;
+    final providerNotifier = ref.watch(accountsNotifierProvider.notifier);
+    final currentAccount = ref.watch(currentAccountProvider).value;
+    final assetsResponseNotifier = ref.watch(assetsResponseNotifierProvider);
+    final savedAssetsProvider = ref.watch(getSavedAssetsResponseProvider);
+
+    savedAssetsProvider.when(
+      loading: () {
+        setState(() {
+          isLoading = true;
+        });
+      },
+      error: (error, stackTrace) {
+        setState(() {
+          isLoading = true;
+        });
+      },
+      data: (data) {
+        if (data != null) {
+          setState(() {
+            initialAssets = data.assets;
+            assets = data.assets;
+            reorganizedCrypto = data.availableCryptos;
+            totalBalance = data.totalBalanceUsd;
+            isLoading = false;
+          });
+        } else {
+          setState(() {
+            isLoading = true;
+          });
+        }
+      },
+    );
+
+    assetsResponseNotifier.whenData((data) => {
+          if (data != null)
+            {
+              setState(() {
+                initialAssets = data.assets;
+                assets = data.assets;
+                reorganizedCrypto = data.availableCryptos;
+                totalBalance = data.totalBalanceUsd;
+                isLoading = false;
+              })
+            }
+        });
+
+    ref.listen<String?>(lastConnectedKeyIdNotifierProvider, (previous, next) {
+      if (next != null) {
+        ref.invalidate(currentAccountProvider);
+        ref.invalidate(getSavedAssetsResponseProvider);
+        ref.invalidate(assetsResponseNotifierProvider);
+      }
+    });
+
     double width = MediaQuery.of(context).size.width;
     // double height = MediaQuery.of(context).size.height;
-    final textTheme = Theme.of(context).textTheme;
 
-    if (reorganizedCrypto.isEmpty) {
+    if (reorganizedCrypto.isEmpty || isLoading) {
       return Container(
         decoration: BoxDecoration(color: colors.primaryColor),
         child: Center(
@@ -975,42 +370,189 @@ class _MainDashboardScreenState extends State<MainDashboardScreen>
       );
     }
 
-    void reorderCrypto(int order) async {
-      cryptosAndBalance = initialListBalance;
-      final lastList = cryptosAndBalance;
+    Future<bool> deleteWallet(String walletId) async {
+      try {
+        if (accounts == null) {
+          throw ("No account found");
+        }
+        final password = await askPassword(context: context, colors: colors);
+        final accountToRemove =
+            accounts.where((acc) => acc.keyId == walletId).first;
+        if (password.isNotEmpty) {
+          // validateThePassword
+          final result =
+              await providerNotifier.walletSaver.getDecryptedData(password);
+          if (result == null) {
+            throw ("Invalid password");
+          }
+          final deleteResult =
+              await providerNotifier.deleteWallet(accountToRemove);
+          if (deleteResult) {
+            notifySuccess("Account deleted successfully");
+            Navigator.pop(context);
+            return true;
+          } else {
+            throw ("Failed to delete account");
+          }
+        } else {
+          throw ("Password is required");
+        }
+      } catch (e) {
+        logError(e.toString());
+        notifyError(e.toString());
+        return false;
+      }
+    }
+
+    Future<bool> editWallet(
+        {required PublicData account,
+        Color? color,
+        IconData? icon,
+        String? name}) async {
+      try {
+        final result = await providerNotifier.editWallet(
+          account: account,
+          name: name,
+          icon: icon,
+          color: color,
+        );
+        if (result) {
+          notifySuccess("Account updated successfully");
+
+          return true;
+        } else {
+          throw ("Failed to update account");
+        }
+      } catch (e) {
+        logError(e.toString());
+        notifyError(e.toString());
+        return false;
+      }
+    }
+
+    void onHorizontalSwipe(SwipeDirection direction) {
+      setState(() {
+        if (direction == SwipeDirection.right) {
+          showCustomDrawer(
+              isHidden: isHidden,
+              updateBioState: updateBioState,
+              canUseBio: canUseBio,
+              deleteWallet: (acc) async {
+                deleteWallet(acc.keyId);
+              },
+              refreshProfile: refreshProfile,
+              editWallet: editWallet,
+              totalBalanceUsd: totalBalance,
+              context: context,
+              profileImage: _profileImage,
+              colors: colors,
+              account: currentAccount!,
+              availableCryptos: reorganizedCrypto);
+        }
+      });
+    }
+
+    Future<void> reorderList(int oldIndex, int newIndex) async {
+      try {
+        final result = await providerNotifier.reorderList(oldIndex, newIndex);
+        if (result) {
+          notifySuccess("List reordered successfully");
+        } else {
+          throw ("Failed to reorder list");
+        }
+      } catch (e) {
+        logError(e.toString());
+        if (mounted) {
+          Navigator.pop(context);
+        }
+      }
+    }
+
+    Future<void> showPrivateData(int index) async {
+      try {
+        if (accounts == null || accounts.isEmpty) {
+          throw ("No account found");
+        }
+        final wallet = accounts[index];
+        if (wallet.isWatchOnly) {
+          Navigator.pop(context);
+          throw ("This is a watch-only wallet.");
+        }
+        String userPassword =
+            await askPassword(context: context, colors: colors);
+
+        if (mounted && userPassword.isNotEmpty) {
+          Navigator.pushNamed(context, Routes.privateDataScreen,
+              arguments: ({
+                "keyId": accounts[index].keyId,
+                "password": userPassword
+              }));
+        }
+      } catch (e) {
+        logError(e.toString());
+        if (mounted) {
+          notifyError(e.toString());
+        }
+      }
+    }
+
+    Future<void> changeWallet(int index) async {
+      try {
+        if (accounts == null || accounts.isEmpty) {
+          throw ("No account found");
+        }
+        Navigator.pop(context);
+
+        final wallet = accounts[index];
+        await ref
+            .read(lastConnectedKeyIdNotifierProvider.notifier)
+            .updateKeyId(wallet.keyId);
+      } catch (e) {
+        logError(e.toString());
+        if (mounted) {
+          notifyError(e.toString());
+        }
+      }
+    }
+
+/*
+void reorderCrypto(int order) async {
+      assets = initialAssets;
+      final lastList = assets;
       lastList.sort((a, b) => (b.balanceUsd).compareTo(a.balanceUsd));
       setState(() {
         currentOrder = order;
       });
       if (currentOrder == 0) {
         setState(() {
-          cryptosAndBalance = lastList;
+          assets = lastList;
         });
       } else if (currentOrder == 1) {
-        final lastList = cryptosAndBalance;
+        final lastList = assets;
         lastList.sort((a, b) => (a.crypto.symbol).compareTo(b.crypto.symbol));
 
         setState(() {
-          cryptosAndBalance = lastList;
+          assets = lastList;
         });
       } else if (currentOrder == 2) {
         // reorder according to the network
         setState(() {
-          cryptosAndBalance = lastList
+          assets = lastList
               .where((c) => c.crypto.type == CryptoType.network)
               .toList();
         });
       } else if (currentOrder == 3) {
         // reorder according to the network
         setState(() {
-          cryptosAndBalance =
+          assets =
               lastList.where((c) => c.crypto.type == CryptoType.token).toList();
         });
       }
     }
+    */
 
-    List<Balance> getFilteredCryptos() {
-      return cryptosAndBalance
+    List<Asset> getFilteredCryptos() {
+      return assets
           .where((c) =>
               c.crypto.symbol
                   .toString()
@@ -1024,64 +566,77 @@ class _MainDashboardScreenState extends State<MainDashboardScreen>
           .toList();
     }
 
-    void updateBioState(bool state) {
-      setState(() {
-        canUseBio = state;
-      });
+    void showReceiveModal() {
+      showCryptoModal(
+          colors: colors,
+          context: context,
+          primaryColor: colors.primaryColor,
+          textColor: colors.textColor,
+          surfaceTintColor: colors.grayColor.withOpacity(0.6),
+          reorganizedCrypto: reorganizedCrypto,
+          onSelect: (c) => Navigator.push(
+              context,
+              MaterialPageRoute(
+                  builder: (ctx) => ReceiveScreen(
+                      initData: WidgetInitialData(
+                          account: currentAccount!,
+                          crypto: c,
+                          colors: colors,
+                          initialBalanceUsd: assets
+                              .where((as) => as.crypto.cryptoId == c.cryptoId)
+                              .first
+                              .balanceUsd,
+                          initialBalanceCrypto: assets
+                              .where((as) => as.crypto.cryptoId == c.cryptoId)
+                              .first
+                              .balanceCrypto)))));
     }
 
-    void refreshProfile(File f) {
-      setState(() {
-        _profileImage = f;
-      });
-    }
-
-    void onHorizontalSwipe(SwipeDirection direction) {
-      setState(() {
-        if (direction == SwipeDirection.right) {
-          showCustomDrawer(
-              isHidden: isHidden,
-              updateBioState: updateBioState,
-              canUseBio: canUseBio,
-              deleteWallet: (acc) async {
-                deleteWallet(acc.keyId, null);
-              },
-              refreshProfile: refreshProfile,
-              editWallet: editWallet,
-              totalBalanceUsd: totalBalanceUsd,
-              context: context,
-              profileImage: _profileImage,
-              colors: colors,
-              account: currentAccount!,
-              availableCryptos: reorganizedCrypto);
-        }
-      });
+    void showSendModal() {
+      showCryptoModal(
+          colors: colors,
+          context: context,
+          primaryColor: colors.primaryColor,
+          textColor: colors.textColor,
+          surfaceTintColor: colors.grayColor.withOpacity(0.6),
+          reorganizedCrypto: reorganizedCrypto,
+          onSelect: (c) => Navigator.push(
+              context,
+              MaterialPageRoute(
+                  builder: (ctx) => SendTransactionScreen(
+                      initData: WidgetInitialData(
+                          account: currentAccount!,
+                          crypto: c,
+                          colors: colors,
+                          initialBalanceUsd: assets
+                              .where((as) => as.crypto.cryptoId == c.cryptoId)
+                              .first
+                              .balanceUsd,
+                          initialBalanceCrypto: assets
+                              .where((as) => as.crypto.cryptoId == c.cryptoId)
+                              .first
+                              .balanceCrypto)))));
     }
 
     return Scaffold(
         key: _scaffoldKey,
         backgroundColor: colors.primaryColor,
-        drawer: MainDrawer(
-            isDarkMode: isDarkMode,
-            toggleMode: () {},
-            showSendModal: showSendModal,
-            showReceiveModal: showReceiveModal,
-            profileImage: _profileImage,
-            backgroundImage: _backgroundImage,
-            userName: userName,
-            scaffoldKey: _scaffoldKey,
-            primaryColor: colors.primaryColor,
-            textColor: colors.textColor,
-            surfaceTintColor: colors.secondaryColor),
         appBar: CustomAppBar(
+            accounts: accounts ?? [],
+            currentAccount: currentAccount ??
+                PublicData(
+                    keyId: "",
+                    creationDate: 0,
+                    walletName: "No Account",
+                    address: "",
+                    isWatchOnly: true),
+            deleteWallet: deleteWallet,
             updateBioState: updateBioState,
             canUseBio: canUseBio,
             refreshProfile: refreshProfile,
             editWallet: editWallet,
-            totalBalanceUsd: totalBalanceUsd,
+            totalBalanceUsd: totalBalance,
             availableCryptos: reorganizedCrypto,
-            isTotalBalanceUpdated: isTotalBalanceUpdated,
-            editVisualData: editVisualData,
             colors: colors,
             isHidden: isHidden,
             balanceOfAllAccounts: balanceOfAllAccounts,
@@ -1091,10 +646,6 @@ class _MainDashboardScreenState extends State<MainDashboardScreen>
             reorderList: reorderList,
             secondaryColor: colors.themeColor,
             changeAccount: changeWallet,
-            deleteWallet: deleteWallet,
-            editWalletName: editWalletName,
-            currentAccount: currentAccount!,
-            accounts: accounts,
             primaryColor: colors.primaryColor,
             textColor: colors.textColor,
             surfaceTintColor: colors.secondaryColor),
@@ -1114,7 +665,16 @@ class _MainDashboardScreenState extends State<MainDashboardScreen>
             onRefresh: () async {
               await vibrate(duration: 10);
               if (currentAccount != null) {
-                await getCryptoData(account: currentAccount ?? accounts[0]);
+                final result =
+                    await ref.refresh(assetsResponseNotifierProvider.future);
+                if (result != null) {
+                  setState(() {
+                    initialAssets = result.assets;
+                    assets = result.assets;
+                    reorganizedCrypto = result.availableCryptos;
+                    totalBalance = result.totalBalanceUsd;
+                  });
+                }
               }
             },
             child: SimpleGestureDetector(
@@ -1166,7 +726,7 @@ class _MainDashboardScreenState extends State<MainDashboardScreen>
                                       //   Icon(FeatherIcons.dollarSign, color: colors.textColor, size: textTheme.headlineLarge?.fontSize,),
                                       Text(
                                         !isHidden
-                                            ? "\$ ${formatUsd(totalBalanceUsd.toString())}"
+                                            ? "\$ ${formatUsd(totalBalance.toString())}"
                                             : "***",
                                         style: textTheme.headlineLarge,
                                       ),
@@ -1291,7 +851,7 @@ class _MainDashboardScreenState extends State<MainDashboardScreen>
                             itemBuilder: (ctx) => <PopupMenuEntry<dynamic>>[
                                   PopupMenuItem(
                                     onTap: () {
-                                      reorderCrypto(0);
+                                      //  reorderCrypto(0);
                                     },
                                     child: Row(children: [
                                       Icon(fixedAppBarOptions[0]["icon"],
@@ -1305,7 +865,7 @@ class _MainDashboardScreenState extends State<MainDashboardScreen>
                                   ),
                                   PopupMenuItem(
                                     onTap: () {
-                                      reorderCrypto(1);
+                                      // reorderCrypto(1);
                                     },
                                     child: Row(children: [
                                       Icon(fixedAppBarOptions[1]["icon"],
@@ -1319,7 +879,7 @@ class _MainDashboardScreenState extends State<MainDashboardScreen>
                                   CustomPopMenuDivider(colors: colors),
                                   PopupMenuItem(
                                     onTap: () {
-                                      reorderCrypto(2);
+                                      // reorderCrypto(2);
                                     },
                                     child: Row(children: [
                                       Icon(fixedAppBarOptions[2]["icon"],
@@ -1332,7 +892,7 @@ class _MainDashboardScreenState extends State<MainDashboardScreen>
                                   ),
                                   PopupMenuItem(
                                     onTap: () {
-                                      reorderCrypto(3);
+                                      // reorderCrypto(3);
                                     },
                                     child: Row(children: [
                                       Icon(fixedAppBarOptions[3]["icon"],
@@ -1364,7 +924,14 @@ class _MainDashboardScreenState extends State<MainDashboardScreen>
                     SliverList(
                       delegate: SliverChildBuilderDelegate(
                         (BuildContext context, int index) {
-                          final crypto = getFilteredCryptos()[index];
+                          final assetsFilteredList =
+                              getFilteredCryptos()[index];
+                          final crypto = assetsFilteredList.crypto;
+                          final trend = assetsFilteredList.cryptoTrendPercent;
+                          final tokenBalance = assetsFilteredList.balanceCrypto;
+                          final usdBalance = assetsFilteredList.balanceUsd;
+                          final cryptoPrice = assetsFilteredList.cryptoPrice;
+
                           return Padding(
                             padding: const EdgeInsets.symmetric(vertical: 5),
                             child: Material(
@@ -1374,20 +941,31 @@ class _MainDashboardScreenState extends State<MainDashboardScreen>
                                   splashColor:
                                       colors.textColor.withOpacity(0.05),
                                   onTap: () {
-                                    log("Crypto id ${crypto.crypto.cryptoId}");
+                                    log("Crypto id ${crypto.cryptoId}");
                                     Navigator.push(
                                         context,
                                         MaterialPageRoute(
-                                          builder: (context) =>
-                                              WalletViewScreen(
-                                            cryptoId: crypto.crypto.cryptoId,
-                                          ),
+                                          builder: (context) => WalletViewScreen(
+                                              initData: WidgetInitialData(
+                                                  account: currentAccount!,
+                                                  crypto: crypto,
+                                                  colors: colors,
+                                                  initialBalanceUsd: assets
+                                                      .where((as) =>
+                                                          as.crypto.cryptoId ==
+                                                          crypto.cryptoId)
+                                                      .first
+                                                      .balanceUsd,
+                                                  initialBalanceCrypto: assets
+                                                      .where((as) =>
+                                                          as.crypto.cryptoId ==
+                                                          crypto.cryptoId)
+                                                      .first
+                                                      .balanceCrypto)),
                                         ));
                                   },
                                   leading: CryptoPicture(
-                                      crypto: crypto.crypto,
-                                      size: 38,
-                                      colors: colors),
+                                      crypto: crypto, size: 38, colors: colors),
                                   title: LayoutBuilder(builder: (ctx, c) {
                                     return Row(
                                       spacing: 10,
@@ -1396,8 +974,7 @@ class _MainDashboardScreenState extends State<MainDashboardScreen>
                                           constraints: BoxConstraints(
                                               maxWidth: c.maxWidth * 0.9),
                                           child: Text(
-                                              crypto.crypto.symbol
-                                                  .toUpperCase(),
+                                              crypto.symbol.toUpperCase(),
                                               maxLines: 1,
                                               overflow: TextOverflow.ellipsis,
                                               style: textTheme.bodyMedium
@@ -1405,8 +982,7 @@ class _MainDashboardScreenState extends State<MainDashboardScreen>
                                                       fontWeight:
                                                           FontWeight.w400)),
                                         ),
-                                        if (crypto.crypto.type ==
-                                            CryptoType.token)
+                                        if (crypto.type == CryptoType.token)
                                           Container(
                                             padding: const EdgeInsets.symmetric(
                                                 horizontal: 10, vertical: 2),
@@ -1417,7 +993,7 @@ class _MainDashboardScreenState extends State<MainDashboardScreen>
                                                 borderRadius:
                                                     BorderRadius.circular(20)),
                                             child: Text(
-                                                "${crypto.crypto.network?.name}",
+                                                "${crypto.network?.name}",
                                                 style: textTheme.bodySmall
                                                     ?.copyWith(fontSize: 10)),
                                           )
@@ -1427,19 +1003,17 @@ class _MainDashboardScreenState extends State<MainDashboardScreen>
                                   subtitle: Row(
                                     spacing: 10,
                                     children: [
-                                      Text(
-                                          formatUsd(
-                                              crypto.cryptoPrice.toString()),
+                                      Text(formatUsd(cryptoPrice.toString()),
                                           style: textTheme.bodySmall?.copyWith(
                                             color: colors.textColor
                                                 .withOpacity(0.6),
                                             fontSize: 16,
                                           )),
-                                      if (crypto.cryptoTrendPercent != 0)
+                                      if (trend != 0)
                                         Text(
-                                          " ${(crypto.cryptoTrendPercent).toStringAsFixed(2)}%",
+                                          " ${(trend).toStringAsFixed(2)}%",
                                           style: textTheme.bodySmall?.copyWith(
-                                            color: crypto.cryptoTrendPercent > 0
+                                            color: trend > 0
                                                 ? colors.greenColor
                                                 : colors.redColor,
                                             fontSize: 14,
@@ -1459,9 +1033,8 @@ class _MainDashboardScreenState extends State<MainDashboardScreen>
                                         Text(
                                             isHidden
                                                 ? "***"
-                                                : formatCryptoValue(crypto
-                                                        .balanceCrypto
-                                                        .toString())
+                                                : formatCryptoValue(
+                                                        tokenBalance.toString())
                                                     .trim(),
                                             overflow: TextOverflow.ellipsis,
                                             maxLines: 1,
@@ -1473,7 +1046,7 @@ class _MainDashboardScreenState extends State<MainDashboardScreen>
                                         Text(
                                             isHidden
                                                 ? "***"
-                                                : "\$${formatUsd(crypto.balanceUsd.toString()).trim()}",
+                                                : "\$${formatUsd(usdBalance.toString()).trim()}",
                                             overflow: TextOverflow.ellipsis,
                                             maxLines: 1,
                                             style:

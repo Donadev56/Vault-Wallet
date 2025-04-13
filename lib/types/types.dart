@@ -565,32 +565,29 @@ class TransactionListResponseType {
   }
 }
 
-class Balance {
-  int id;
+class Asset {
   final Crypto crypto;
   final double balanceUsd;
   final double balanceCrypto;
   final double cryptoTrendPercent;
   final double cryptoPrice;
 
-  Balance({
+  Asset({
     required this.crypto,
     required this.balanceUsd,
     required this.balanceCrypto,
     required this.cryptoTrendPercent,
     required this.cryptoPrice,
-    this.id = 0,
   });
 
   // Convert a JSON Map to a HistoryItem instance
-  factory Balance.fromJson(Map<String, dynamic> json) {
-    return Balance(
+  factory Asset.fromJson(Map<String, dynamic> json) {
+    return Asset(
       crypto: Crypto.fromJson(json['crypto']),
       balanceUsd: json['balanceUsd'] ?? 0,
       balanceCrypto: json['balanceCrypto'] ?? 0,
       cryptoTrendPercent: json['cryptoTrendPercent'] ?? 0,
       cryptoPrice: json['cryptoPrice'] ?? 0,
-      id: json['id'] ?? 0,
     );
   }
 
@@ -602,7 +599,6 @@ class Balance {
       'balanceCrypto': balanceCrypto,
       'cryptoTrendPercent': cryptoTrendPercent,
       'cryptoPrice': cryptoPrice,
-      'id': id,
     };
   }
 }
@@ -762,4 +758,60 @@ class TransactionDetails {
       blockNumber: json['blockNumber'],
     );
   }
+}
+
+class UserAssetsResponse {
+  final List<Asset> assets;
+  final double totalBalanceUsd;
+  final List<Crypto> availableCryptos;
+  final List<Crypto> cryptosList;
+
+  UserAssetsResponse({
+    required this.assets,
+    required this.totalBalanceUsd,
+    required this.availableCryptos,
+    required this.cryptosList,
+  });
+
+  factory UserAssetsResponse.fromJson(Map<String, dynamic> json) {
+    return UserAssetsResponse(
+      assets: (json['assets'] as List<dynamic>)
+          .map((e) => Asset.fromJson(e))
+          .toList(),
+      totalBalanceUsd: json['totalBalanceUsd'].toDouble(),
+      availableCryptos: (json['availableCryptos'] as List<dynamic>)
+          .map((e) => Crypto.fromJson(e))
+          .toList(),
+      cryptosList: (json['cryptoList'] as List<dynamic>)
+          .map((e) => Crypto.fromJson(e))
+          .toList(),
+    );
+  }
+
+  Map<String, dynamic> toJson() {
+    return {
+      'assets': assets.map((e) => e.toJson()).toList(),
+      'totalBalanceUsd': totalBalanceUsd,
+      'availableCryptos': availableCryptos.map((e) => e.toJson()).toList(),
+      'cryptoList': cryptosList.map((e) => e.toJson()).toList(),
+    };
+  }
+}
+
+class WidgetInitialData {
+  final Crypto crypto;
+  final AppColors colors;
+  final double? initialBalanceUsd;
+  final double? initialBalanceCrypto;
+  final PublicData account;
+  final double? cryptoPrice;
+
+  WidgetInitialData({
+    required this.account,
+    required this.crypto,
+    this.initialBalanceCrypto,
+    this.initialBalanceUsd,
+    this.cryptoPrice,
+    required this.colors,
+  });
 }

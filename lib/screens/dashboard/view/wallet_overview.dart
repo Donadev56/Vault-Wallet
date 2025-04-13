@@ -11,7 +11,8 @@ import 'package:liquid_pull_to_refresh/liquid_pull_to_refresh.dart';
 import 'package:loading_animation_widget/loading_animation_widget.dart';
 import 'package:moonwallet/custom/candlesticks/lib/candlesticks.dart';
 import 'package:moonwallet/logger/logger.dart';
-import 'package:moonwallet/main.dart';
+import 'package:moonwallet/screens/dashboard/view/recieve.dart';
+import 'package:moonwallet/screens/dashboard/view/send.dart';
 import 'package:moonwallet/service/crypto_request_manager.dart';
 import 'package:moonwallet/service/crypto_storage_manager.dart';
 import 'package:moonwallet/service/number_formatter.dart';
@@ -34,9 +35,8 @@ import 'package:skeletonizer/skeletonizer.dart';
 import 'package:url_launcher/url_launcher.dart';
 
 class WalletViewScreen extends StatefulWidget {
-  final String cryptoId;
-  final AppColors? colors;
-  const WalletViewScreen({super.key, required this.cryptoId, this.colors});
+  final WidgetInitialData initData;
+  const WalletViewScreen({super.key, required this.initData});
 
   @override
   State<WalletViewScreen> createState() => _WalletViewScreenState();
@@ -70,7 +70,6 @@ class _WalletViewScreenState extends State<WalletViewScreen>
 
   List<Candle> cryptoData = [];
 
-  double totalBalanceUsd = 0;
   Crypto currentCrypto = Crypto(
       name: "",
       color: Colors.transparent,
@@ -81,24 +80,22 @@ class _WalletViewScreenState extends State<WalletViewScreen>
       symbol: "");
 
   double userLastBalance = 0;
-  double balance = 0;
+
+  double tokenBalance = 0;
+  double totalBalanceUsd = 0;
+
   bool isBalanceLoading = true;
   bool isTransactionLoading = true;
 
-  AppColors colors = AppColors(
-      primaryColor: Color(0XFF0D0D0D),
-      themeColor: Colors.greenAccent,
-      greenColor: Colors.greenAccent,
-      secondaryColor: Color(0XFF121212),
-      grayColor: Color(0XFF353535),
-      textColor: Colors.white,
-      redColor: Colors.pinkAccent);
+  AppColors colors = AppColors.defaultTheme;
   Themes themes = Themes();
   String savedThemeName = "";
   Future<void> getSavedTheme() async {
     try {
       final manager = ColorsManager();
       final savedName = await manager.getThemeName();
+      if (!mounted) return;
+
       setState(() {
         savedThemeName = savedName ?? "";
       });
@@ -108,36 +105,6 @@ class _WalletViewScreenState extends State<WalletViewScreen>
       });
     } catch (e) {
       logError(e.toString());
-    }
-  }
-
-  Future<void> getSavedWallets() async {
-    try {
-      final savedData = await web3Manager.getPublicData();
-
-      final lastAccount = await encryptService.getLastConnectedAddress();
-
-      if (savedData != null && lastAccount != null) {
-        for (final account in savedData) {
-          final newAccount = PublicData.fromJson(account);
-          setState(() {
-            accounts.add(newAccount);
-          });
-        }
-      }
-
-      for (final account in accounts) {
-        if (account.address == lastAccount) {
-          currentAccount = account;
-
-          break;
-        } else {
-          log("Not account found");
-          currentAccount = accounts[0];
-        }
-      }
-    } catch (e) {
-      logError('Error getting saved wallets: $e');
     }
   }
 
@@ -152,14 +119,16 @@ class _WalletViewScreenState extends State<WalletViewScreen>
     }
   }
 
-  Future<void> getBalanceOfUser(
+  Future<void> getTokenBalance(
       {required PublicData account, required Crypto crypto}) async {
     try {
       final userBalance = await web3InteractManager.getBalance(account, crypto);
+      if (!mounted) return;
+
       setState(() {
-        balance = userBalance;
+        tokenBalance = userBalance;
         isBalanceLoading = false;
-        log("Shib balance $balance");
+        log("balance $tokenBalance");
       });
     } catch (e) {
       logError(e.toString());
@@ -187,6 +156,7 @@ class _WalletViewScreenState extends State<WalletViewScreen>
       log("Saved transactions:${savedTransactions.length} ");
 
       if (savedTransactions.isNotEmpty) {
+        if (!mounted) return;
         setState(() {
           transactions = savedTransactions;
           isTransactionLoading = false;
@@ -199,6 +169,8 @@ class _WalletViewScreenState extends State<WalletViewScreen>
 
       if (userTransactions.isNotEmpty) {
         userTransactions.sort((a, b) => b.timeStamp.compareTo(a.timeStamp));
+        if (!mounted) return;
+
         setState(() {
           transactions = userTransactions;
           isTransactionLoading = false;
@@ -236,11 +208,7 @@ class _WalletViewScreenState extends State<WalletViewScreen>
   @override
   void initState() {
     super.initState();
-    if (widget.colors != null) {
-      setState(() {
-        colors = widget.colors!;
-      });
-    }
+
     getSavedTheme();
     reorganizeCrypto();
     _tabController = TabController(length: 3, vsync: this);
@@ -251,15 +219,60 @@ class _WalletViewScreenState extends State<WalletViewScreen>
   @override
   void dispose() {
     super.dispose();
-
     _scrollController.dispose();
     _tabController.dispose();
+  }
+
+  Future<void> init() async {
+    if (!mounted) return;
+
+    setState(() {
+      currentAccount = widget.initData.account;
+      currentCrypto = widget.initData.crypto;
+      colors = widget.initData.colors;
+      if (widget.initData.initialBalanceUsd != null) {
+        totalBalanceUsd = widget.initData.initialBalanceUsd ?? 0;
+        isBalanceLoading = false;
+      }
+      if (widget.initData.initialBalanceCrypto != null) {
+        tokenBalance = widget.initData.initialBalanceCrypto ?? 0;
+      }
+    });
+
+    refresh();
+  }
+
+  Future<void> refresh() async {
+    try {
+      if (!mounted) return;
+      await Future.wait([
+        fetchTransactions(),
+        getBalanceUsdOfAccount(widget.initData.crypto),
+        getTokenBalance(account: currentAccount, crypto: currentCrypto),
+      ]);
+    } catch (e) {
+      logError(e.toString());
+    }
+  }
+
+  Future<void> getBalanceUsdOfAccount(Crypto currentCrypto) async {
+    try {
+      final balance = await getBalanceUsd(currentCrypto);
+      if (!mounted) return;
+      setState(() {
+        totalBalanceUsd = balance;
+      });
+    } catch (e) {
+      logError(e.toString());
+    }
   }
 
   void _onScroll() {
     if (_scrollController.position.userScrollDirection ==
         ScrollDirection.forward) {
       log("scroll direction is forward");
+      if (!mounted) return;
+
       setState(() {
         isScrollingToTheBottom = false;
       });
@@ -269,28 +282,6 @@ class _WalletViewScreenState extends State<WalletViewScreen>
         isScrollingToTheBottom = true;
       });
       log("scroll direction is reverse");
-    }
-  }
-
-  Future<void> init() async {
-    try {
-      await getSavedWallets();
-      final savedCrypto =
-          await cryptoStorageManager.getSavedCryptos(wallet: currentAccount);
-      if (savedCrypto != null) {
-        for (final crypto in savedCrypto) {
-          if (crypto.cryptoId == widget.cryptoId) {
-            setState(() {
-              currentCrypto = crypto;
-            });
-            await getBalanceOfUser(account: currentAccount, crypto: crypto);
-          }
-        }
-      }
-
-      fetchTransactions();
-    } catch (e) {
-      logError('Error initializing: $e');
     }
   }
 
@@ -306,10 +297,13 @@ class _WalletViewScreenState extends State<WalletViewScreen>
     final savedCrypto =
         await cryptoStorageManager.getSavedCryptos(wallet: currentAccount);
     if (savedCrypto == null || savedCrypto.isEmpty) {
+      if (!mounted) return;
+
       setState(() {
         reorganizedCrypto = standardCrypto;
       });
     } else {
+      if (!mounted) return;
       setState(() {
         reorganizedCrypto = savedCrypto;
       });
@@ -416,7 +410,8 @@ class _WalletViewScreenState extends State<WalletViewScreen>
                                     width: width * 0.5,
                                     child: Center(
                                         child: Text(
-                                      (formatCryptoValue(balance.toString())),
+                                      (formatCryptoValue(
+                                          tokenBalance.toString())),
                                       overflow: TextOverflow.clip,
                                       maxLines: 1,
                                       style: textTheme.bodyMedium?.copyWith(
@@ -429,31 +424,12 @@ class _WalletViewScreenState extends State<WalletViewScreen>
                             ),
                             Skeletonizer(
                                 enabled: isBalanceLoading,
-                                child: FutureBuilder(
-                                    future: getBalanceUsd(currentCrypto),
-                                    builder: (BuildContext ctx,
-                                        AsyncSnapshot result) {
-                                      if (result.hasData) {
-                                        return Text(
-                                          "= \$ ${formatUsd((result.data as double).toString())}",
-                                          style: textTheme.bodySmall?.copyWith(
-                                              color: colors.textColor
-                                                  .withOpacity(0.5),
-                                              fontSize: 14),
-                                        );
-                                      } else {
-                                        return Skeletonizer(
-                                            enabled: isBalanceLoading,
-                                            child: Text(
-                                              " = \$0.00 ",
-                                              style: textTheme.bodySmall
-                                                  ?.copyWith(
-                                                      color: colors.textColor
-                                                          .withOpacity(0.5),
-                                                      fontSize: 14),
-                                            ));
-                                      }
-                                    })),
+                                child: Text(
+                                  "= \$ ${formatUsd((totalBalanceUsd).toString())}",
+                                  style: textTheme.bodySmall?.copyWith(
+                                      color: colors.textColor.withOpacity(0.5),
+                                      fontSize: 14),
+                                )),
                             SizedBox(
                               height: 15,
                             ),
@@ -464,22 +440,39 @@ class _WalletViewScreenState extends State<WalletViewScreen>
                                 WalletViewButtonAction(
                                     textColor: colors.textColor,
                                     onTap: () {
-                                      Navigator.pushNamed(
-                                          context, Routes.sendScreen,
-                                          arguments: ({
-                                            "id": currentCrypto.cryptoId
-                                          }));
+                                      Navigator.push(
+                                          context,
+                                          MaterialPageRoute(
+                                              builder: (ctx) =>
+                                                  SendTransactionScreen(
+                                                    initData: WidgetInitialData(
+                                                        account: currentAccount,
+                                                        crypto: currentCrypto,
+                                                        colors: colors,
+                                                        initialBalanceCrypto:
+                                                            tokenBalance,
+                                                        initialBalanceUsd:
+                                                            totalBalanceUsd),
+                                                  )));
                                     },
                                     bottomText: "Send",
                                     icon: Icons.arrow_upward),
                                 WalletViewButtonAction(
                                     textColor: colors.textColor,
                                     onTap: () {
-                                      Navigator.pushNamed(
-                                          context, Routes.receiveScreen,
-                                          arguments: ({
-                                            "id": currentCrypto.cryptoId
-                                          }));
+                                      Navigator.push(
+                                          context,
+                                          MaterialPageRoute(
+                                              builder: (ctx) => ReceiveScreen(
+                                                    initData: WidgetInitialData(
+                                                        account: currentAccount,
+                                                        crypto: currentCrypto,
+                                                        colors: colors,
+                                                        initialBalanceCrypto:
+                                                            tokenBalance,
+                                                        initialBalanceUsd:
+                                                            totalBalanceUsd),
+                                                  )));
                                     },
                                     bottomText: "Receive",
                                     icon: Icons.arrow_downward),
@@ -578,7 +571,7 @@ class _WalletViewScreenState extends State<WalletViewScreen>
                       color: colors.themeColor,
                       backgroundColor: colors.textColor.withOpacity(0.8),
                       onRefresh: () async {
-                        await init();
+                        await refresh();
                       },
                       child: ListView.builder(
                           shrinkWrap: true,

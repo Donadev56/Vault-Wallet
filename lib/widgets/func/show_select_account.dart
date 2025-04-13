@@ -1,3 +1,5 @@
+// ignore_for_file: deprecated_member_use
+
 import 'dart:ui';
 
 import 'package:flutter/material.dart';
@@ -9,7 +11,8 @@ selectAnAccount(
     {required AppColors colors,
     required BuildContext context,
     required List<PublicData> accounts,
-    required void Function(PublicData w) onTap}) {
+    required PublicData currentAccount,
+    required void Function(PublicData wallet) onTap}) {
   showModalBottomSheet(
       isScrollControlled: true,
       backgroundColor: Colors.transparent,
@@ -44,27 +47,44 @@ selectAnAccount(
                                 itemCount: accounts.length,
                                 itemBuilder: (ctx, i) {
                                   final w = accounts[i];
-                                  return ListTile(
-                                    onTap: () {
-                                      onTap(w);
-                                      Navigator.pop(context);
-                                    },
-                                    leading: Icon(
-                                      w.walletIcon ?? LucideIcons.walletCards,
-                                      color: colors.textColor,
-                                    ),
-                                    title: Text(
-                                      w.walletName,
-                                      style: textTheme.bodyMedium,
-                                    ),
-                                    subtitle: Text(
-                                      w.address,
-                                      overflow: TextOverflow.ellipsis,
-                                      maxLines: 1,
-                                      style: textTheme.bodySmall?.copyWith(
-                                          fontSize: 12,
-                                          color: colors.textColor
-                                              .withOpacity(0.5)),
+                                  return Material(
+                                    color: Colors.transparent,
+                                    child: Padding(
+                                      padding: const EdgeInsets.symmetric(
+                                          vertical: 5, horizontal: 10),
+                                      child: ListTile(
+                                        shape: RoundedRectangleBorder(
+                                            borderRadius:
+                                                BorderRadius.circular(10)),
+                                        visualDensity: VisualDensity(
+                                            horizontal: 0, vertical: -4),
+                                        tileColor: w.keyId ==
+                                                currentAccount.keyId
+                                            ? colors.themeColor.withOpacity(0.2)
+                                            : Colors.transparent,
+                                        onTap: () {
+                                          onTap(w);
+                                          Navigator.pop(context);
+                                        },
+                                        leading: Icon(
+                                          w.walletIcon ??
+                                              LucideIcons.walletCards,
+                                          color: colors.textColor,
+                                        ),
+                                        title: Text(
+                                          w.walletName,
+                                          style: textTheme.bodyMedium,
+                                        ),
+                                        subtitle: Text(
+                                          w.address,
+                                          overflow: TextOverflow.ellipsis,
+                                          maxLines: 1,
+                                          style: textTheme.bodySmall?.copyWith(
+                                              fontSize: 12,
+                                              color: colors.textColor
+                                                  .withOpacity(0.5)),
+                                        ),
+                                      ),
                                     ),
                                   );
                                 })),

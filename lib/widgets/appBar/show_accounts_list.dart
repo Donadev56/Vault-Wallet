@@ -2,16 +2,18 @@
 
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
-import 'package:jazzicon/jazzicon.dart';
-import 'package:jazzicon/jazziconshape.dart';
+import 'package:moonwallet/logger/logger.dart';
 
 import 'package:moonwallet/service/vibration.dart';
 import 'package:moonwallet/types/types.dart';
+import 'package:moonwallet/widgets/account_list_view_widget.dart';
 import 'package:moonwallet/widgets/appBar/show_account_options.dart';
 import 'package:moonwallet/widgets/appBar/show_wallet_actions.dart';
 import 'package:moonwallet/widgets/flowting_modat.dart';
 
-typedef EditWalletNameType = void Function(String newName, int index);
+typedef EditWalletNameType = Future<bool> Function(
+    {required PublicData account, String? name, IconData? icon, Color? color});
+
 typedef ActionWithIndexType = void Function(int index);
 typedef ActionWithCryptoId = void Function(String cryptoId);
 
@@ -23,19 +25,12 @@ void showAccountList({
   required BuildContext context,
   required List<PublicData> accounts,
   required PublicData currentAccount,
-  required EditWalletNameType editWalletName,
+  required EditWalletNameType editWallet,
   required Future<bool> Function(String keyId) deleteWallet,
   required ActionWithIndexType changeAccount,
   required ActionWithIndexType showPrivateData,
   required ReorderList reorderList,
-  required Future<void> Function(
-          {Color? color, required int index, IconData? icon})
-      editVisualData,
 }) async {
-  final height = MediaQuery.of(context).size.height;
-  final width = MediaQuery.of(context).size.width;
-  final textTheme = Theme.of(context).textTheme;
-
   Key widgetKey = UniqueKey();
   String searchQuery = "";
   List<PublicData> availableAccounts = accounts;
@@ -49,26 +44,16 @@ void showAccountList({
         .toList();
   }
 
-  JazziconData getJazzImage(String address) {
-    return Jazzicon.getJazziconData(35, address: address);
-  }
-
-  void rebuild() {
-    widgetKey = UniqueKey();
-  }
-
   showFloatingModalBottomSheet(
       enableDrag: false,
-      /* backgroundColor: colors.primaryColor,
-      enableDrag: false,
-      shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.only(
-              topLeft: Radius.circular(15), topRight: Radius.circular(15))),
-              */
       // ignore: use_build_context_synchronously
       context: context,
       builder: (BuildContext modalCtx) {
         return StatefulBuilder(builder: (BuildContext mainCtx, setModalState) {
+          final height = MediaQuery.of(mainCtx).size.height;
+          final width = MediaQuery.of(mainCtx).size.width;
+          final textTheme = Theme.of(mainCtx).textTheme;
+
           return Scaffold(
               backgroundColor: colors.primaryColor,
               appBar: AppBar(
@@ -83,7 +68,6 @@ void showAccountList({
               ),
               body: SingleChildScrollView(
                 child: Container(
-                  key: widgetKey,
                   alignment: Alignment.center,
                   decoration: BoxDecoration(
                       borderRadius: BorderRadius.only(
@@ -168,122 +152,35 @@ void showAccountList({
                                                         EdgeInsets.symmetric(
                                                             vertical: 4,
                                                             horizontal: 20),
-                                                    child: ListTile(
-                                                        visualDensity:
-                                                            VisualDensity(
-                                                                horizontal: 0,
-                                                                vertical: -4),
-                                                        contentPadding:
-                                                            const EdgeInsets.symmetric(
-                                                                vertical: 0,
-                                                                horizontal: 10),
-                                                        tileColor: (wallet
-                                                                    .keyId ==
-                                                                currentAccount
-                                                                    .keyId
-                                                            ? colors.themeColor
-                                                                .withOpacity(
-                                                                    0.2)
-                                                            : wallet.walletColor
-                                                                        ?.value !=
-                                                                    0x00000000
-                                                                ? wallet
-                                                                    .walletColor
-                                                                : Colors
-                                                                    .transparent),
-                                                        onTap: () async {
-                                                          await vibrate();
+                                                    child:
+                                                        AccountListViewWidget(
+                                                            colors: colors,
+                                                            tileColor: (wallet
+                                                                        .keyId ==
+                                                                    currentAccount
+                                                                        .keyId
+                                                                ? colors
+                                                                    .themeColor
+                                                                    .withOpacity(
+                                                                        0.2)
+                                                                : wallet.walletColor
+                                                                            ?.value !=
+                                                                        0x00000000
+                                                                    ? wallet
+                                                                        .walletColor
+                                                                    : Colors
+                                                                        .transparent),
+                                                            wallet: wallet,
+                                                            onTap: () async {
+                                                              await vibrate();
 
-                                                          changeAccount(index);
-                                                        },
-                                                        shape: RoundedRectangleBorder(
-                                                            borderRadius:
-                                                                BorderRadius.circular(
-                                                                    6)),
-                                                        leading:
-                                                            Jazzicon.getIconWidget(
-                                                                getJazzImage(wallet.address),
-                                                                size: 35),
-                                                        title: Row(
-                                                          spacing: 5,
-                                                          children: [
-                                                            LayoutBuilder(
-                                                                builder:
-                                                                    (ctx, c) {
-                                                              return ConstrainedBox(
-                                                                constraints: BoxConstraints(
-                                                                    maxWidth: wallet
-                                                                            .isWatchOnly
-                                                                        ? MediaQuery.of(context).size.width *
-                                                                            0.16
-                                                                        : MediaQuery.of(context).size.width *
-                                                                            0.4),
-                                                                child: Text(
-                                                                  wallet
-                                                                      .walletName,
-                                                                  overflow:
-                                                                      TextOverflow
-                                                                          .ellipsis,
-                                                                  style: textTheme.bodyMedium?.copyWith(
-                                                                      color: colors
-                                                                          .textColor,
-                                                                      fontWeight:
-                                                                          FontWeight
-                                                                              .w500,
-                                                                      fontSize:
-                                                                          16),
-                                                                ),
-                                                              );
-                                                            }),
-                                                            if (wallet
-                                                                .isWatchOnly)
-                                                              Container(
-                                                                padding: const EdgeInsets
-                                                                    .symmetric(
-                                                                    vertical: 3,
-                                                                    horizontal:
-                                                                        6),
-                                                                decoration: BoxDecoration(
-                                                                    borderRadius:
-                                                                        BorderRadius.circular(
-                                                                            20),
-                                                                    color: colors
-                                                                        .secondaryColor
-                                                                        .withOpacity(
-                                                                            0.2),
-                                                                    border: Border.all(
-                                                                        color: colors
-                                                                            .secondaryColor)),
-                                                                child: Text(
-                                                                  "Watch Only",
-                                                                  style: textTheme.bodySmall?.copyWith(
-                                                                      color: colors
-                                                                          .textColor
-                                                                          .withOpacity(
-                                                                              0.8),
-                                                                      fontSize:
-                                                                          11),
-                                                                ),
-                                                              )
-                                                          ],
-                                                        ),
-                                                        subtitle: Text(
-                                                          "${wallet.address.substring(0, 9)}...${wallet.address.substring(wallet.address.length - 6, wallet.address.length)}",
-                                                          maxLines: 1,
-                                                          overflow: TextOverflow
-                                                              .ellipsis,
-                                                          style: textTheme
-                                                              .bodySmall
-                                                              ?.copyWith(
-                                                                  color: colors
-                                                                      .textColor
-                                                                      .withOpacity(
-                                                                          0.4),
-                                                                  fontSize: 12),
-                                                        ),
-                                                        trailing: IconButton(
-                                                            onPressed: () async {
-                                                              showAccountOptions(
+                                                              changeAccount(
+                                                                  index);
+                                                            },
+                                                            onMoreTap:
+                                                                () async {
+                                                              try {
+                                                                showAccountOptions(
                                                                   originalList:
                                                                       availableAccounts,
                                                                   context:
@@ -298,8 +195,8 @@ void showAccountList({
                                                                               availableAccounts),
                                                                   wallet:
                                                                       wallet,
-                                                                  editWalletName:
-                                                                      editWalletName,
+                                                                  editWallet:
+                                                                      editWallet,
                                                                   deleteWallet:
                                                                       deleteWallet,
                                                                   updateListAccount:
@@ -310,22 +207,15 @@ void showAccountList({
                                                                           accounts;
                                                                     });
                                                                   },
-                                                                  rebuild: () {
-                                                                    setModalState(
-                                                                        () {});
-                                                                    rebuild();
-                                                                  },
                                                                   showPrivateData:
                                                                       showPrivateData,
                                                                   index: index,
-                                                                  editVisualData:
-                                                                      editVisualData);
-                                                            },
-                                                            icon: Icon(
-                                                              Icons.more_vert,
-                                                              color: colors
-                                                                  .textColor,
-                                                            ))),
+                                                                );
+                                                              } catch (e) {
+                                                                logError(e
+                                                                    .toString());
+                                                              }
+                                                            }),
                                                   )));
                                         },
 
