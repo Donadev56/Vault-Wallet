@@ -5,6 +5,7 @@ import 'dart:io';
 import 'package:fast_cached_network_image/fast_cached_network_image.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_web3_webview/flutter_web3_webview.dart';
 import 'package:google_fonts/google_fonts.dart';
@@ -21,7 +22,7 @@ import 'package:moonwallet/screens/dashboard/page_manager.dart';
 import 'package:moonwallet/screens/dashboard/wallet_actions/private/private_key_screen.dart';
 import 'package:moonwallet/screens/dashboard/settings/change_colors.dart';
 import 'package:moonwallet/screens/dashboard/settings/settings.dart';
-import 'package:moonwallet/screens/dashboard/view/recieve.dart';
+import 'package:moonwallet/screens/dashboard/view/receive.dart';
 import 'package:moonwallet/screens/dashboard/view/send.dart';
 import 'package:moonwallet/screens/dashboard/wallet_actions/add_w_o.dart';
 import 'package:moonwallet/screens/dashboard/wallet_actions/add_mnemonic.dart';
@@ -88,6 +89,7 @@ class _MyAppState extends State<MyApp> {
   void initState() {
     super.initState();
     getSavedTheme();
+
   }
 
   Future<void> getSavedTheme() async {
@@ -102,8 +104,16 @@ class _MyAppState extends State<MyApp> {
         themeColor = savedTheme.themeColor;
         colors = savedTheme;
       });
+      SystemChrome.setSystemUIOverlayStyle(SystemUiOverlayStyle(
+  systemNavigationBarColor: colors.primaryColor, 
+  systemNavigationBarIconBrightness: Brightness.light,
+));
+
+
+    
     } catch (e) {
       logError(e.toString());
+
     }
   }
 
@@ -202,78 +212,93 @@ class _MyAppState extends State<MyApp> {
                     backgroundColor: colors.primaryColor,
                   ),
                   textTheme: TextTheme(
-                    displayLarge: GoogleFonts.roboto(
+                    displayLarge: TextStyle(
+                      fontFamily: "roboto_reg",
                       fontSize: 57,
                       fontWeight: FontWeight.bold,
                       color: colors.textColor,
                       letterSpacing: -0.25,
                     ),
-                    displayMedium: GoogleFonts.roboto(
+                    displayMedium: TextStyle(
+                      fontFamily: "roboto_reg",
                       fontSize: 45,
                       fontWeight: FontWeight.bold,
                       color: colors.textColor,
                     ),
-                    displaySmall: GoogleFonts.roboto(
+                    displaySmall: TextStyle(
+                      fontFamily: "roboto_reg",
                       fontSize: 36,
                       fontWeight: FontWeight.w600,
                       color: colors.textColor,
                     ),
-                    headlineLarge: GoogleFonts.roboto(
+                    headlineLarge: TextStyle(
+                      fontFamily: "roboto_reg",
                       fontSize: 32,
                       fontWeight: FontWeight.w600,
                       color: colors.textColor,
                     ),
-                    headlineMedium: GoogleFonts.roboto(
+                    headlineMedium: TextStyle(
+                      fontFamily: "roboto_reg",
                       fontSize: 28,
                       fontWeight: FontWeight.w500,
                       color: colors.textColor,
                     ),
-                    headlineSmall: GoogleFonts.roboto(
+                    headlineSmall: TextStyle(
+                      fontFamily: "roboto_reg",
                       fontSize: 24,
                       fontWeight: FontWeight.w500,
                       color: colors.textColor,
                     ),
-                    titleLarge: GoogleFonts.roboto(
+                    titleLarge: TextStyle(
+                      fontFamily: "roboto_reg",
                       fontSize: 22,
                       fontWeight: FontWeight.bold,
                       color: colors.textColor,
                     ),
-                    titleMedium: GoogleFonts.roboto(
+                    titleMedium: TextStyle(
+                      fontFamily: "roboto_reg",
                       fontSize: 16,
                       fontWeight: FontWeight.w500,
                       color: colors.textColor.withOpacity(0.9),
                     ),
-                    titleSmall: GoogleFonts.roboto(
+                    titleSmall: TextStyle(
+                      fontFamily: "roboto_reg",
                       fontSize: 14,
                       fontWeight: FontWeight.w500,
                       color: colors.textColor.withOpacity(0.85),
                     ),
-                    bodyLarge: GoogleFonts.roboto(
+                    bodyLarge: TextStyle(
+                      fontFamily: "roboto_reg",
                       fontSize: 16,
                       fontWeight: FontWeight.normal,
                       color: colors.textColor,
                     ),
-                    bodyMedium: GoogleFonts.roboto(
+                    bodyMedium: TextStyle(
+                      fontFamily: "roboto_reg",
                       fontSize: 14,
                       fontWeight: FontWeight.normal,
                       color: colors.textColor.withOpacity(0.9),
                     ),
-                    bodySmall: GoogleFonts.roboto(
+                    bodySmall: TextStyle(
+                      fontFamily: "roboto_reg",
                       fontSize: 12,
                       fontWeight: FontWeight.normal,
                       color: colors.textColor.withOpacity(0.7),
                     ),
-                    labelLarge: GoogleFonts.roboto(
+                    labelLarge: TextStyle(
+                      fontFamily: "roboto_reg",
                       fontSize: 14,
                       fontWeight: FontWeight.w600,
                       color: colors.textColor,
                     ),
-                    labelMedium: GoogleFonts.roboto(
+                    labelMedium: TextStyle(
+                      fontFamily: "roboto_reg",
                       fontSize: 12,
                       fontWeight: FontWeight.w500,
                       color: colors.textColor.withOpacity(0.8),
                     ),
-                    labelSmall: GoogleFonts.roboto(
+                    labelSmall: TextStyle(
+                      fontFamily: "roboto_reg",
                       fontSize: 11,
                       fontWeight: FontWeight.w400,
                       color: colors.textColor.withOpacity(0.6),
@@ -342,9 +367,7 @@ class _MyAppState extends State<MyApp> {
                   Routes.changeTheme: (context) => ChangeThemeView(
                         colors: colors,
                       ),
-                  Routes.test: (context) => TestWidget(
-                        colors: colors,
-                      ),
+                  Routes.test: (context) => LineChartSample12(),
                 });
           } else {
             return Center(

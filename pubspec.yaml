@@ -157,6 +157,11 @@ flutter_native_splash:
 
 # The following section is specific to Flutter packages.
 flutter:
+  fonts:
+    - family: roboto_reg
+      fonts:
+        - asset: assets/fonts/roboto_regular.ttf
+        
   assets:
   - assets/4.png
   - assets/b1.webp
@@ -191,6 +196,8 @@ flutter:
 
   - assets/i1.png
   - assets/bnb.png
+  - assets/sonic.png
+
   - assets/bg/i2.png
   - assets/pro/image.png
   - assets/logos/usdt2.png
@@ -209,6 +216,9 @@ flutter:
   - assets/home/39.png
   - assets/home/40.png
   - assets/home/41.png
+  - assets/data/btc_price.json
+
+  
 
   # The following line ensures that the Material Icons font is
   # included with your application, so that you can use the icons in

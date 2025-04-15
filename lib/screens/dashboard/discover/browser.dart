@@ -27,11 +27,17 @@ import 'package:moonwallet/widgets/func/browser/show_bottom_options.dart';
 class Web3BrowserScreen extends StatefulWidget {
   final String? url;
   final Crypto? network;
+  final List<Crypto> networks;
   final AppColors? colors;
   final PublicData account;
 
   const Web3BrowserScreen(
-      {super.key, required this.account, this.url, this.network, this.colors});
+      {super.key,
+      required this.networks,
+      required this.account,
+      this.url,
+      this.network,
+      this.colors});
 
   @override
   Web3BrowserScreenState createState() => Web3BrowserScreenState();
@@ -254,6 +260,7 @@ class Web3BrowserScreenState extends State<Web3BrowserScreen> {
   void init() {
     setState(() {
       currentAccount = widget.account;
+      networks = widget.networks;
 
       if (widget.network != null) {
         currentNetwork = widget.network!;

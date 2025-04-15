@@ -127,7 +127,11 @@ List<Color> colorList = [
 final List<Map<String, dynamic>> appBarButtonOptions = [
   {
     'icon': LucideIcons.pencil,
-    'name': 'Edit Wallet',
+    'name': 'Edit name',
+  },
+  {
+    'icon': LucideIcons.palette,
+    'name': 'Edit Color',
   },
   {
     'icon': LucideIcons.copy,

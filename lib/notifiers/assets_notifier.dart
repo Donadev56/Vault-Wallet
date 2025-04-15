@@ -11,17 +11,16 @@ class AssetsNotifier extends AsyncNotifier<UserAssetsResponse?> {
   late final web3InteractionManager = ref.read(web3InteractionProvider);
   late final priceManager = ref.read(priceProvider);
   late final internetChecker = ref.read(internetConnectionProvider);
+
   @override
   Future<UserAssetsResponse?> build() async {
     try {
-      final account = ref.watch(currentAccountProvider).value;
-
+      PublicData? account  = await getAccount();
       if (account == null) {
-        log("No current account selected");
-
-        return null;
+        logError("The account is null");
+        return null ;
       }
-      final userAssets = await getUserAssets(account: account);
+      final  userAssets = await getUserAssets(account: account);
       return userAssets;
     } catch (e) {
       logError(e.toString());
@@ -29,12 +28,68 @@ class AssetsNotifier extends AsyncNotifier<UserAssetsResponse?> {
     }
   }
 
+  Future<PublicData?> getAccount () async {
+    try {
+      PublicData? account ;
+      final savedAccount =  ref.read(currentAccountProvider).value; 
+      if (savedAccount != null) {
+        return savedAccount ;
+      }
+
+        final accounts  = await ref.read(accountsNotifierProvider.notifier).getPublicData() ;
+        if (accounts.isNotEmpty) {
+          account = accounts[0] ;
+          log("Account found ${account.address}");
+          await ref.read(accountsNotifierProvider.notifier).saveLastConnectedAccount(account.keyId);
+          return account ;
+
+        } else {
+          logError("The account list is empty");
+          return null ;
+        }
+      
+    } catch (e) {
+      logError(e.toString());
+      return null ;
+      
+    }
+  }
   Future<bool> saveListCrypto(List<Crypto> cryptos, PublicData account) async {
     try {
       final result =
           await cryptoStorage.saveListCrypto(cryptos: cryptos, wallet: account);
       ref.invalidate(getSavedCryptosProvider);
       return result;
+    } catch (e) {
+      logError(e.toString());
+      return false;
+    }
+  }
+  Future<void> rebuild(PublicData account ) async {
+    try {
+      state = AsyncData((await getUserAssets(account: account)));
+    } catch (e) {
+      logError(e.toString());
+      
+    }
+  }
+
+  Future<bool> toggleCanDisplay(Crypto crypto, bool value) async {
+    try {
+      final account = ref.watch(currentAccountProvider).value;
+      if (account == null) {
+        logError("No account found");
+        return false;
+      }
+      final result = await cryptoStorage.toggleCanDisplay(
+          wallet: account, cryptoId: crypto.cryptoId, value: value);
+      if (result) {
+        ref.invalidate(getSavedCryptosProvider);
+        rebuild(account);
+        return true;
+      }
+
+      return false;
     } catch (e) {
       logError(e.toString());
       return false;
@@ -77,11 +132,13 @@ class AssetsNotifier extends AsyncNotifier<UserAssetsResponse?> {
       } catch (e) {
         logError(e.toString());
       }
+
       if (standardCrypto.isEmpty) {
         standardCrypto.addAll(popularCrypto);
       }
 
-      final savedCrypto = (savedDataResult);
+      final savedCrypto = savedDataResult ?? []; 
+
 
       List<Crypto> cryptosList = [];
       List<Crypto> enabledCryptos = [];
@@ -89,8 +146,10 @@ class AssetsNotifier extends AsyncNotifier<UserAssetsResponse?> {
       List<Crypto> availableCryptos = [];
       double userBalanceUsd = 0;
 
-      if (savedCrypto == null || savedCrypto.isEmpty) {
+      if ( savedCrypto.isEmpty) {
         cryptosList = standardCrypto;
+        await cryptoStorage.saveListCrypto(
+            cryptos: cryptosList, wallet: account);
       } else {
         cryptosList = savedCrypto;
       }
@@ -103,12 +162,19 @@ class AssetsNotifier extends AsyncNotifier<UserAssetsResponse?> {
         List<Map<String, Object>> results = [];
 
         results = await Future.wait(enabledCryptos.map((crypto) async {
-          final balance =
-              await web3InteractionManager.getBalance(account, crypto);
-          final trend = await priceManager
-              .checkCryptoTrend(crypto.binanceSymbol ?? "${crypto.symbol}USDT");
-          final cryptoPrice = await priceManager.getPriceUsingBinanceApi(
-              crypto.binanceSymbol ?? "${crypto.symbol}USDT");
+          final response = await Future.wait([
+            web3InteractionManager.getBalance(account, crypto),
+            priceManager.checkCryptoTrend(
+                crypto.binanceSymbol ?? "${crypto.symbol}USDT"),
+            priceManager.getPriceUsingBinanceApi(
+                crypto.binanceSymbol ?? "${crypto.symbol}USDT")
+          ]);
+          final balance = response[0] as double;
+
+          final trend = response[1] as dynamic;
+
+          final cryptoPrice = response[2] as double;
+
           final balanceUsd = cryptoPrice * balance;
 
           return {

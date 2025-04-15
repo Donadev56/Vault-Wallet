@@ -156,7 +156,7 @@ class PublicData {
               fontPackage: json['walletIcon']['fontPackage'])
           : Icons.wallet,
       walletColor: json['walletColor'] != null
-          ? Color(json['walletColor'])
+          ? Color(json['walletColor'] ?? 0x00000000)
           : Colors.transparent,
       id: json['id'] ?? 0,
     );
@@ -273,71 +273,72 @@ class Crypto {
   final bool canDisplay;
   final String symbol;
   final bool isNetworkIcon;
+  final String? cgSymbol;
 
-  Crypto({
-    required this.name,
-    this.icon,
-    this.chainId,
-    required this.color,
-    this.rpc,
-    this.binanceSymbol,
-    required this.type,
-    this.explorer,
-    this.network,
-    this.contractAddress,
-    this.decimals,
-    required this.valueUsd,
-    required this.cryptoId,
-    required this.canDisplay,
-    required this.symbol,
-    this.isNetworkIcon = false,
-  });
+  Crypto(
+      {required this.name,
+      this.icon,
+      this.chainId,
+      required this.color,
+      this.rpc,
+      this.binanceSymbol,
+      required this.type,
+      this.explorer,
+      this.network,
+      this.contractAddress,
+      this.decimals,
+      required this.valueUsd,
+      required this.cryptoId,
+      required this.canDisplay,
+      required this.symbol,
+      this.isNetworkIcon = false,
+      this.cgSymbol});
   factory Crypto.fromJsonRequest(Map<String, dynamic> cryptoJson) {
     return Crypto(
-      canDisplay: cryptoJson["canDisplay"],
-      cryptoId: cryptoJson["cryptoId"],
-      name: cryptoJson["name"],
-      color: Color(cryptoJson["color"] ?? 0x00000000),
-      type: CryptoType.values[cryptoJson["type"]],
-      icon: cryptoJson["icon"],
-      rpc: cryptoJson["rpc"],
-      decimals: cryptoJson["decimals"],
-      chainId: cryptoJson["chainId"],
-      binanceSymbol: cryptoJson["binanceSymbol"],
-      network: cryptoJson["network"] != null
-          ? Crypto.fromJsonRequest(cryptoJson["network"])
-          : null,
-      contractAddress: cryptoJson["contractAddress"],
-      explorer: cryptoJson["explorer"],
-      valueUsd: cryptoJson["valueUsd"],
-      symbol: cryptoJson["symbol"],
-      isNetworkIcon: cryptoJson["isNetworkIcon"] ?? false,
-    );
+        canDisplay: cryptoJson["canDisplay"],
+        cryptoId: cryptoJson["cryptoId"],
+        name: cryptoJson["name"],
+        color: Color(cryptoJson["color"] ?? 0x00000000),
+        type: CryptoType.values[cryptoJson["type"]],
+        icon: cryptoJson["icon"],
+        rpc: cryptoJson["rpc"],
+        decimals: cryptoJson["decimals"],
+        chainId: cryptoJson["chainId"],
+        binanceSymbol: cryptoJson["binanceSymbol"],
+        network: cryptoJson["network"] != null
+            ? Crypto.fromJsonRequest(cryptoJson["network"])
+            : null,
+        contractAddress: cryptoJson["contractAddress"],
+        explorer: cryptoJson["explorer"],
+        valueUsd: cryptoJson["valueUsd"],
+        symbol: cryptoJson["symbol"],
+        isNetworkIcon: cryptoJson["isNetworkIcon"] ?? false,
+        cgSymbol: cryptoJson["cgSymbol"] ?? "");
   }
 
   factory Crypto.fromJson(Map<String, dynamic> cryptoJson) {
     return Crypto(
-      canDisplay: cryptoJson["canDisplay"],
-      cryptoId: cryptoJson["cryptoId"],
-      name: cryptoJson["name"],
-      color: cryptoJson["color"] != null
-          ? Color(cryptoJson["color"])
-          : Colors.transparent,
-      type: CryptoType.values[cryptoJson["type"]],
-      icon: cryptoJson["icon"],
-      rpc: cryptoJson["rpc"],
-      decimals: cryptoJson["decimals"],
-      chainId: cryptoJson["chainId"],
-      binanceSymbol: cryptoJson["binanceSymbol"],
-      network: cryptoJson["network"] != null
-          ? Crypto.fromJson(cryptoJson["network"])
-          : null,
-      contractAddress: cryptoJson["contractAddress"],
-      explorer: cryptoJson["explorer"],
-      valueUsd: cryptoJson["valueUsd"],
-      symbol: cryptoJson["symbol"],
-      isNetworkIcon: cryptoJson["isNetworkIcon"] ?? false,
-    );
+        canDisplay: cryptoJson["canDisplay"],
+        cryptoId: cryptoJson["cryptoId"],
+        name: cryptoJson["name"],
+        color: cryptoJson["color"] != null
+            ? Color(cryptoJson["color"])
+            : Colors.transparent,
+        type: CryptoType.values[cryptoJson["type"]],
+        icon: cryptoJson["icon"],
+        rpc: cryptoJson["rpc"],
+        decimals: cryptoJson["decimals"],
+        chainId: cryptoJson["chainId"],
+        binanceSymbol: cryptoJson["binanceSymbol"],
+        network: cryptoJson["network"] != null
+            ? Crypto.fromJson(cryptoJson["network"])
+            : null,
+        contractAddress: cryptoJson["contractAddress"],
+        explorer: cryptoJson["explorer"],
+        valueUsd: cryptoJson["valueUsd"],
+        symbol: cryptoJson["symbol"],
+        isNetworkIcon: cryptoJson["isNetworkIcon"] ?? false,
+        cgSymbol: cryptoJson["cgSymbol"] ?? "");
   }
 
   Map<String, dynamic> toJson() {
@@ -358,6 +359,7 @@ class Crypto {
       "valueUsd": valueUsd,
       "symbol": symbol,
       "isNetworkIcon": isNetworkIcon,
+      "cgSymbol": cgSymbol
     };
   }
 }
@@ -814,4 +816,34 @@ class WidgetInitialData {
     this.cryptoPrice,
     required this.colors,
   });
+}
+
+class DataWithCache {
+  final int lastUpdate;
+  final int validationTime;
+  final String currentData;
+  final List<String> lastVersions;
+
+  DataWithCache(
+      {required this.currentData,
+      required this.lastUpdate,
+      required this.lastVersions,
+      required this.validationTime});
+
+  factory DataWithCache.fromJson(Map<String, dynamic> json) {
+    return DataWithCache(
+        currentData: json["current_data"],
+        lastUpdate: json["lastUpdate"],
+        validationTime: json["validationTime"],
+        lastVersions: json["last_versions"]);
+  }
+
+  Map<dynamic, dynamic> toJson() {
+    return {
+      "lastUpdate": lastUpdate,
+      "validationTime": validationTime,
+      "current_data": currentData,
+      "last_versions": lastVersions
+    };
+  }
 }

@@ -11,7 +11,7 @@ class CryptoStorageManager {
 
   Future<List<Crypto>?> getSavedCryptos({required PublicData wallet}) async {
     try {
-      final name = "savedCrypto/test2/${wallet.address}";
+      final name = "savedCrypto/test4/${wallet.address}";
       log("getting crypto for address ${wallet.address}");
 
       final String? cryptoDataString = await saver.getDynamicData(name: name);
@@ -44,7 +44,7 @@ class CryptoStorageManager {
   Future<bool> saveListCrypto(
       {required List<Crypto> cryptos, required PublicData wallet}) async {
     try {
-      final name = "savedCrypto/test2/${wallet.address}";
+      final name = "savedCrypto/test4/${wallet.address}";
       log("Saving crypto for address ${wallet.address}");
 
       List<dynamic> cryptoJson = cryptos.map((c) => c.toJson()).toList();
@@ -92,6 +92,36 @@ class CryptoStorageManager {
     } catch (e) {
       logError("Error getting saved assets: $e");
       return null;
+    }
+  }
+
+  Future<List<dynamic>?> getSavedCryptoPriceData(
+      {required Crypto crypto, required String interval}) async {
+    try {
+      final name = "cryptoData/of/${crypto.cgSymbol}/at/$interval/";
+      final String? cryptoDataString = await saver.getDynamicData(name: name);
+      if (cryptoDataString == null) {
+        logError("Crypto data not found");
+        return [];
+      }
+      return json.decode(cryptoDataString);
+    } catch (e) {
+      logError("Error getting saved assets: $e");
+      return null;
+    }
+  }
+
+  Future<bool> saveCryptoPriceData(
+      {required Crypto crypto,
+      required String interval,
+      required List<dynamic>? data}) async {
+    try {
+      final name = "cryptoData/of/${crypto.cgSymbol}/at/$interval/";
+      await saver.saveDynamicData(boxName: name, data: json.encode(data));
+      return true;
+    } catch (e) {
+      logError(e.toString());
+      return false;
     }
   }
 

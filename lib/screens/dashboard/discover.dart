@@ -276,6 +276,7 @@ class _DiscoverScreenState extends ConsumerState<DiscoverScreen>
             context,
             MaterialPageRoute(
               builder: (context) => Web3BrowserScreen(
+                networks: networks,
                 account: currentAccount!,
                 url: url,
                 network: network,

@@ -23,18 +23,18 @@ class FloatingModal extends StatelessWidget {
   }
 }
 
-Future<T> showFloatingModalBottomSheet<T>({
-  required BuildContext context,
-  required WidgetBuilder builder,
-  Color? backgroundColor,
-  bool isDismissible = true,
-  bool enableDrag = true,
-}) async {
+Future<T> showFloatingModalBottomSheet<T>(
+    {required BuildContext context,
+    required WidgetBuilder builder,
+    Color? backgroundColor,
+    bool isDismissible = true,
+    bool enableDrag = true,
+    Color barrierColor = const Color.fromARGB(179, 0, 0, 0)}) async {
   final result = await showCustomModalBottomSheet(
       isDismissible: isDismissible,
       enableDrag: enableDrag,
       elevation: 0,
-      barrierColor: const Color.fromARGB(179, 0, 0, 0),
+      barrierColor: barrierColor,
       context: context,
       builder: builder,
       containerWidget: (_, animation, child) => FloatingModal(

@@ -1,13 +1,16 @@
 // ignore_for_file: deprecated_member_use, use_build_context_synchronously
 
-import 'dart:convert';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:moonwallet/custom/web3_webview/lib/utils/loading.dart';
 import 'package:moonwallet/main.dart';
+import 'package:moonwallet/notifiers/providers.dart';
 import 'package:moonwallet/service/wallet_saver.dart';
 import 'package:moonwallet/utils/colors.dart';
 import 'package:moonwallet/utils/crypto.dart';
 import 'package:moonwallet/utils/themes.dart';
 import 'package:moonwallet/widgets/crypto_picture.dart';
 import 'package:moonwallet/widgets/func/show_add_token.dart';
+import 'package:moonwallet/widgets/func/snackbar.dart';
 import 'package:ulid/ulid.dart';
 
 import 'package:flutter/material.dart';
@@ -18,15 +21,15 @@ import 'package:moonwallet/service/token_manager.dart';
 import 'package:moonwallet/types/types.dart';
 import 'package:moonwallet/utils/prefs.dart';
 
-class AddCryptoView extends StatefulWidget {
+class AddCryptoView extends ConsumerStatefulWidget {
   final AppColors? colors;
   const AddCryptoView({super.key, this.colors});
 
   @override
-  State<AddCryptoView> createState() => _AddCryptoViewState();
+  ConsumerState<AddCryptoView> createState() => _AddCryptoViewState();
 }
 
-class _AddCryptoViewState extends State<AddCryptoView> {
+class _AddCryptoViewState extends ConsumerState<AddCryptoView> {
   bool isDarkMode = true;
   Crypto? selectedNetwork;
   List<Crypto> reorganizedCrypto = [];
@@ -78,77 +81,58 @@ class _AddCryptoViewState extends State<AddCryptoView> {
       });
     }
     getSavedTheme();
-    getSavedWallets();
   }
 
   String generateUUID() {
     return Ulid().toUuid();
   }
 
-  Future<void> getSavedWallets() async {
-    try {
-      final savedData = await web3Manager.getPublicData();
-
-      final lastAccount = await encryptService.getLastConnectedAddress();
-      log("Last account $lastAccount");
-
-      int count = 0;
-      if (savedData != null) {
-        for (final account in savedData) {
-          final newAccount = PublicData.fromJson(account);
-          setState(() {
-            accounts.add(newAccount);
-          });
-          count++;
-        }
-      }
-
-      log("Retrieved $count wallets");
-      bool found = false;
-      for (final account in accounts) {
-        if (account.address == lastAccount) {
-          currentAccount = account;
-          await reorganizeCrypto(account: account);
-          found = true;
-
-          log("The current wallet is ${json.encode(account.toJson())}");
-          break;
-        }
-      }
-      if (!found) {
-        logger.w("Not account found");
-        currentAccount = accounts[0];
-        await encryptService.saveLastConnectedData(currentAccount!.address);
-      }
-    } catch (e) {
-      logError('Error getting saved wallets: $e');
-    }
-  }
-
-  Future<void> reorganizeCrypto({required PublicData account}) async {
-    if (currentAccount == null) {
-      logError("The current account is null");
-      return;
-    }
-    List<Crypto> newCryptos = [];
-    final savedCrypto =
-        await cryptoStorageManager.getSavedCryptos(wallet: account);
-    if (savedCrypto != null) {
-      newCryptos.addAll(savedCrypto);
-    }
-
-    newCryptos.sort((a, b) => (a.name).compareTo(b.name));
-    log("New cryptos ${newCryptos.length}");
-
-    setState(() {
-      reorganizedCrypto = newCryptos;
-    });
-  }
-
   @override
   Widget build(BuildContext context) {
     final textTheme = Theme.of(context).textTheme;
     final width = MediaQuery.of(context).size.width;
+    final savedAssetsAsync = ref.watch(getSavedAssetsResponseProvider);
+    
+
+    final assetsAsync = ref.watch(assetsResponseNotifierProvider);
+    final assetsProvider = ref.watch(assetsResponseNotifierProvider.notifier);
+    final currentAccountAsync = ref.watch(currentAccountProvider);
+
+    final accountsProvider = ref.watch(accountsNotifierProvider);
+    savedAssetsAsync.whenData((data) => {
+          setState(() {
+            final cryptos = data?.cryptosList;
+            if (cryptos != null) {
+              cryptos.sort((a, b) => a.symbol.compareTo(b.symbol));
+              setState(() {
+                reorganizedCrypto = cryptos;
+              });
+            }
+          })
+        });
+
+    accountsProvider.whenData((data) => {
+          setState(() {
+            accounts = data;
+          })
+        });
+
+    assetsAsync.whenData((data) => {
+          setState(() {
+            final cryptos = data?.cryptosList;
+            if (cryptos != null) {
+              cryptos.sort((a, b) => a.symbol.compareTo(b.symbol));
+              setState(() {
+                reorganizedCrypto = cryptos;
+              });
+            }
+          })
+        });
+
+    currentAccountAsync.whenData((value) => setState(() {
+          currentAccount = value;
+        }));
+
     return Scaffold(
       backgroundColor: colors.primaryColor,
       appBar: AppBar(
@@ -271,17 +255,22 @@ class _AddCryptoViewState extends State<AddCryptoView> {
                       trailing: Switch(
                           value: crypto.canDisplay,
                           onChanged: (newVal) async {
-                            final result =
-                                await cryptoStorageManager.toggleCanDisplay(
-                                    wallet: currentAccount ?? nullAccount,
-                                    cryptoId: crypto.cryptoId,
-                                    value: newVal);
-                            if (result) {
-                              log("State changed successfully");
-                              await reorganizeCrypto(
-                                  account: currentAccount ?? nullAccount);
-                            } else {
-                              log("Error changing state");
+                            try {
+                              final result = await assetsProvider
+                                  .toggleCanDisplay(crypto, newVal)
+                                  .withLoading(context, colors);
+                              if (result) {
+                                log("State changed successfully");
+                              } else {
+                                log("Error changing state");
+                              }
+                            } catch (e) {
+                              logError(e.toString());
+                              showCustomSnackBar(
+                                  context: context,
+                                  message: e.toString(),
+                                  colors: colors,
+                                  type: MessageType.error);
                             }
                           }),
                     ),

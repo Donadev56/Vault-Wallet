@@ -11,7 +11,7 @@ import 'package:liquid_pull_to_refresh/liquid_pull_to_refresh.dart';
 import 'package:loading_animation_widget/loading_animation_widget.dart';
 import 'package:moonwallet/custom/candlesticks/lib/candlesticks.dart';
 import 'package:moonwallet/logger/logger.dart';
-import 'package:moonwallet/screens/dashboard/view/recieve.dart';
+import 'package:moonwallet/screens/dashboard/view/receive.dart';
 import 'package:moonwallet/screens/dashboard/view/send.dart';
 import 'package:moonwallet/service/crypto_request_manager.dart';
 import 'package:moonwallet/service/crypto_storage_manager.dart';
@@ -26,11 +26,11 @@ import 'package:moonwallet/utils/colors.dart';
 import 'package:moonwallet/utils/crypto.dart';
 import 'package:moonwallet/utils/prefs.dart';
 import 'package:moonwallet/utils/themes.dart';
+import 'package:moonwallet/widgets/actions.dart';
 import 'package:moonwallet/widgets/crypto_picture.dart';
 import 'package:moonwallet/widgets/view/other_options.dart';
 import 'package:moonwallet/widgets/view/show_crypto_candle_data.dart';
 import 'package:moonwallet/widgets/view/transactions.dart';
-import 'package:moonwallet/widgets/view/view_button_action.dart';
 import 'package:skeletonizer/skeletonizer.dart';
 import 'package:url_launcher/url_launcher.dart';
 
@@ -437,45 +437,47 @@ class _WalletViewScreenState extends State<WalletViewScreen>
                               mainAxisAlignment: MainAxisAlignment.spaceAround,
                               crossAxisAlignment: CrossAxisAlignment.center,
                               children: [
-                                WalletViewButtonAction(
+                                ActionsWidgets(
+                                    size: 50,
+                                    iconSize: 22,
+                                    color: colors.secondaryColor,
+                                    actIcon: Icons.arrow_upward,
                                     textColor: colors.textColor,
-                                    onTap: () {
-                                      Navigator.push(
-                                          context,
-                                          MaterialPageRoute(
-                                              builder: (ctx) =>
-                                                  SendTransactionScreen(
-                                                    initData: WidgetInitialData(
-                                                        account: currentAccount,
-                                                        crypto: currentCrypto,
-                                                        colors: colors,
-                                                        initialBalanceCrypto:
-                                                            tokenBalance,
-                                                        initialBalanceUsd:
-                                                            totalBalanceUsd),
-                                                  )));
-                                    },
-                                    bottomText: "Send",
-                                    icon: Icons.arrow_upward),
-                                WalletViewButtonAction(
+                                    text: "Send",
+                                    onTap: () => Navigator.push(
+                                        context,
+                                        MaterialPageRoute(
+                                            builder: (ctx) =>
+                                                SendTransactionScreen(
+                                                  initData: WidgetInitialData(
+                                                      account: currentAccount,
+                                                      crypto: currentCrypto,
+                                                      colors: colors,
+                                                      initialBalanceCrypto:
+                                                          tokenBalance,
+                                                      initialBalanceUsd:
+                                                          totalBalanceUsd),
+                                                )))),
+                                ActionsWidgets(
+                                   size: 50,
+                                    iconSize: 22,
+                                    color: colors.secondaryColor,
+                                    actIcon: Icons.arrow_downward,
                                     textColor: colors.textColor,
-                                    onTap: () {
-                                      Navigator.push(
-                                          context,
-                                          MaterialPageRoute(
-                                              builder: (ctx) => ReceiveScreen(
-                                                    initData: WidgetInitialData(
-                                                        account: currentAccount,
-                                                        crypto: currentCrypto,
-                                                        colors: colors,
-                                                        initialBalanceCrypto:
-                                                            tokenBalance,
-                                                        initialBalanceUsd:
-                                                            totalBalanceUsd),
-                                                  )));
-                                    },
-                                    bottomText: "Receive",
-                                    icon: Icons.arrow_downward),
+                                    text: "Receive",
+                                    onTap: () => Navigator.push(
+                                        context,
+                                        MaterialPageRoute(
+                                            builder: (ctx) => ReceiveScreen(
+                                                  initData: WidgetInitialData(
+                                                      account: currentAccount,
+                                                      crypto: currentCrypto,
+                                                      colors: colors,
+                                                      initialBalanceCrypto:
+                                                          tokenBalance,
+                                                      initialBalanceUsd:
+                                                          totalBalanceUsd),
+                                                )))),
                               ],
                             ),
                           ],

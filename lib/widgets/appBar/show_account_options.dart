@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
-import 'package:moonwallet/screens/dashboard/settings/edit_wallet.dart';
 import 'package:moonwallet/service/vibration.dart';
 import 'package:moonwallet/types/types.dart';
 import 'package:moonwallet/widgets/flowting_modat.dart';
@@ -11,19 +10,13 @@ import '../../logger/logger.dart';
 
 typedef EditWalletNameType = Future<bool> Function(
     {required PublicData account, String? name, IconData? icon, Color? color});
-
 void showAccountOptions({
   required BuildContext context,
   required AppColors colors,
   required List<PublicData> availableAccounts,
   required List<PublicData> originalList,
   required PublicData wallet,
-  required Future<bool> Function(
-          {required PublicData account,
-          String? name,
-          IconData? icon,
-          Color? color})
-      editWallet,
+  required EditWalletNameType editWallet,
   required Future<bool> Function(String keyId) deleteWallet,
   required void Function(List<PublicData> accounts) updateListAccount,
   required void Function(int index) showPrivateData,
@@ -71,16 +64,7 @@ void showAccountOptions({
                         vibrate();
 
                         if (i == 0) {
-                          Navigator.push(
-                            context,
-                            MaterialPageRoute(
-                                builder: (context) => EditWalletView(
-                                      wallet: originalAccount,
-                                    )),
-                          );
-                          // go to to edit wallet
-
-                          /*   textController.text =
+                          textController.text =
                               availableAccounts[index].walletName;
                           showChangeTextDialog(
                               context: context,
@@ -89,10 +73,13 @@ void showAccountOptions({
                               onSubmit: (v) async {
                                 log("Submitted $v");
 
-                                editWallet(name: v, account: originalAccount);
+                                editWallet(
+                                  account: originalAccount,
+                                  name: v,
+                                );
                                 textController.text = "";
-                              });  */
-                        } else if (i == appBarButtonOptions.length - 1) {
+                              });
+                        } else if (i == 4) {
                           final response = await deleteWallet(wallet.keyId);
 
                           if (response == true) {
@@ -102,12 +89,21 @@ void showAccountOptions({
                                 .toList());
                             Navigator.pop(context);
                           }
-                        } else if (i == 1) {
+                        } else if (i == 2) {
                           Clipboard.setData(
                               ClipboardData(text: wallet.address));
-                        } else if (i == 2) {
+                        } else if (i == 3) {
                           showPrivateData(
                               originalList.indexOf(originalAccount));
+                        } else if (i == 1) {
+                          showColorPicker(
+                              onSelect: (c) async {
+                                await editWallet(
+                                    account: originalAccount,
+                                    color: colorList[c]);
+                              },
+                              context: context,
+                              colors: colors);
                         }
                       }));
             });

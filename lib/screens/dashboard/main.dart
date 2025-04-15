@@ -6,10 +6,9 @@ import 'dart:io';
 import 'package:currency_formatter/currency_formatter.dart';
 import 'package:device_info_plus/device_info_plus.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:loading_animation_widget/loading_animation_widget.dart';
 import 'package:moonwallet/custom/refresh/check_mark.dart';
 import 'package:moonwallet/notifiers/providers.dart';
-import 'package:moonwallet/screens/dashboard/view/recieve.dart';
+import 'package:moonwallet/screens/dashboard/view/receive.dart';
 import 'package:moonwallet/screens/dashboard/view/send.dart';
 import 'package:moonwallet/screens/dashboard/view/wallet_overview.dart';
 import 'package:moonwallet/service/network.dart';
@@ -356,7 +355,7 @@ class _MainDashboardScreenState extends ConsumerState<MainDashboardScreen>
     double width = MediaQuery.of(context).size.width;
     // double height = MediaQuery.of(context).size.height;
 
-    if (reorganizedCrypto.isEmpty || isLoading) {
+   /* if (reorganizedCrypto.isEmpty || isLoading) {
       return Container(
         decoration: BoxDecoration(color: colors.primaryColor),
         child: Center(
@@ -368,67 +367,7 @@ class _MainDashboardScreenState extends ConsumerState<MainDashboardScreen>
           ),
         ),
       );
-    }
-
-    Future<bool> deleteWallet(String walletId) async {
-      try {
-        if (accounts == null) {
-          throw ("No account found");
-        }
-        final password = await askPassword(context: context, colors: colors);
-        final accountToRemove =
-            accounts.where((acc) => acc.keyId == walletId).first;
-        if (password.isNotEmpty) {
-          // validateThePassword
-          final result =
-              await providerNotifier.walletSaver.getDecryptedData(password);
-          if (result == null) {
-            throw ("Invalid password");
-          }
-          final deleteResult =
-              await providerNotifier.deleteWallet(accountToRemove);
-          if (deleteResult) {
-            notifySuccess("Account deleted successfully");
-            Navigator.pop(context);
-            return true;
-          } else {
-            throw ("Failed to delete account");
-          }
-        } else {
-          throw ("Password is required");
-        }
-      } catch (e) {
-        logError(e.toString());
-        notifyError(e.toString());
-        return false;
-      }
-    }
-
-    Future<bool> editWallet(
-        {required PublicData account,
-        Color? color,
-        IconData? icon,
-        String? name}) async {
-      try {
-        final result = await providerNotifier.editWallet(
-          account: account,
-          name: name,
-          icon: icon,
-          color: color,
-        );
-        if (result) {
-          notifySuccess("Account updated successfully");
-
-          return true;
-        } else {
-          throw ("Failed to update account");
-        }
-      } catch (e) {
-        logError(e.toString());
-        notifyError(e.toString());
-        return false;
-      }
-    }
+    }  */
 
     void onHorizontalSwipe(SwipeDirection direction) {
       setState(() {
@@ -437,16 +376,11 @@ class _MainDashboardScreenState extends ConsumerState<MainDashboardScreen>
               isHidden: isHidden,
               updateBioState: updateBioState,
               canUseBio: canUseBio,
-              deleteWallet: (acc) async {
-                deleteWallet(acc.keyId);
-              },
               refreshProfile: refreshProfile,
-              editWallet: editWallet,
               totalBalanceUsd: totalBalance,
               context: context,
               profileImage: _profileImage,
               colors: colors,
-              account: currentAccount!,
               availableCryptos: reorganizedCrypto);
         }
       });
@@ -515,14 +449,14 @@ class _MainDashboardScreenState extends ConsumerState<MainDashboardScreen>
       }
     }
 
-/*
-void reorderCrypto(int order) async {
+    void reorderCrypto(int order) async {
       assets = initialAssets;
       final lastList = assets;
       lastList.sort((a, b) => (b.balanceUsd).compareTo(a.balanceUsd));
       setState(() {
         currentOrder = order;
       });
+
       if (currentOrder == 0) {
         setState(() {
           assets = lastList;
@@ -537,19 +471,19 @@ void reorderCrypto(int order) async {
       } else if (currentOrder == 2) {
         // reorder according to the network
         setState(() {
-          assets = lastList
+          assets = initialAssets
               .where((c) => c.crypto.type == CryptoType.network)
               .toList();
         });
       } else if (currentOrder == 3) {
         // reorder according to the network
         setState(() {
-          assets =
-              lastList.where((c) => c.crypto.type == CryptoType.token).toList();
+          assets = initialAssets
+              .where((c) => c.crypto.type == CryptoType.token)
+              .toList();
         });
       }
     }
-    */
 
     List<Asset> getFilteredCryptos() {
       return assets
@@ -623,18 +557,9 @@ void reorderCrypto(int order) async {
         backgroundColor: colors.primaryColor,
         appBar: CustomAppBar(
             accounts: accounts ?? [],
-            currentAccount: currentAccount ??
-                PublicData(
-                    keyId: "",
-                    creationDate: 0,
-                    walletName: "No Account",
-                    address: "",
-                    isWatchOnly: true),
-            deleteWallet: deleteWallet,
             updateBioState: updateBioState,
             canUseBio: canUseBio,
             refreshProfile: refreshProfile,
-            editWallet: editWallet,
             totalBalanceUsd: totalBalance,
             availableCryptos: reorganizedCrypto,
             colors: colors,
@@ -726,9 +651,12 @@ void reorderCrypto(int order) async {
                                       //   Icon(FeatherIcons.dollarSign, color: colors.textColor, size: textTheme.headlineLarge?.fontSize,),
                                       Text(
                                         !isHidden
-                                            ? "\$ ${formatUsd(totalBalance.toString())}"
+                                            ? "\$${formatUsd(totalBalance.toString())}"
                                             : "***",
-                                        style: textTheme.headlineLarge,
+                                        overflow: TextOverflow.clip,
+                                        maxLines: 1,
+                                        style: textTheme.headlineLarge
+                                            ?.copyWith(fontSize: 36),
                                       ),
                                     ],
                                   )
@@ -736,7 +664,6 @@ void reorderCrypto(int order) async {
                               ),
                             ),
                             Container(
-                              margin: const EdgeInsets.only(top: 20),
                               alignment: Alignment.center,
                               child: Row(
                                   crossAxisAlignment: CrossAxisAlignment.center,
@@ -745,24 +672,24 @@ void reorderCrypto(int order) async {
                                       (index) {
                                     final action = actionsData[index];
                                     return ActionsWidgets(
-                                      onTap: () {
-                                        if (index == 1) {
-                                          showReceiveModal();
-                                        } else if (index == 0) {
-                                          showSendModal();
-                                        } else if (index == 3) {
-                                          showOptionsModal();
-                                        } else if (index == 2) {
-                                          Navigator.pushNamed(
-                                              context, Routes.addCrypto);
-                                        }
-                                      },
-                                      text: action["name"],
-                                      actIcon: action["icon"],
-                                      textColor: colors.textColor,
-                                      actionsColor:
-                                          colors.grayColor.withOpacity(0.3),
-                                    );
+                                        onTap: () {
+                                          if (index == 1) {
+                                            showReceiveModal();
+                                          } else if (index == 0) {
+                                            showSendModal();
+                                          } else if (index == 3) {
+                                            showOptionsModal();
+                                          } else if (index == 2) {
+                                            Navigator.pushNamed(
+                                                context, Routes.addCrypto);
+                                          }
+                                        },
+                                        text: action["name"],
+                                        actIcon: action["icon"],
+                                        textColor: colors.textColor,
+                                        size: 50,
+                                        iconSize: 20,
+                                        color: colors.secondaryColor);
                                   })),
                             ),
                             SizedBox(
@@ -851,7 +778,7 @@ void reorderCrypto(int order) async {
                             itemBuilder: (ctx) => <PopupMenuEntry<dynamic>>[
                                   PopupMenuItem(
                                     onTap: () {
-                                      //  reorderCrypto(0);
+                                      reorderCrypto(0);
                                     },
                                     child: Row(children: [
                                       Icon(fixedAppBarOptions[0]["icon"],
@@ -865,7 +792,7 @@ void reorderCrypto(int order) async {
                                   ),
                                   PopupMenuItem(
                                     onTap: () {
-                                      // reorderCrypto(1);
+                                      reorderCrypto(1);
                                     },
                                     child: Row(children: [
                                       Icon(fixedAppBarOptions[1]["icon"],
@@ -873,33 +800,6 @@ void reorderCrypto(int order) async {
                                               .withOpacity(0.4)),
                                       SizedBox(width: 8),
                                       Text(fixedAppBarOptions[1]["name"],
-                                          style: textTheme.bodyMedium),
-                                    ]),
-                                  ),
-                                  CustomPopMenuDivider(colors: colors),
-                                  PopupMenuItem(
-                                    onTap: () {
-                                      // reorderCrypto(2);
-                                    },
-                                    child: Row(children: [
-                                      Icon(fixedAppBarOptions[2]["icon"],
-                                          color: colors.textColor
-                                              .withOpacity(0.4)),
-                                      SizedBox(width: 8),
-                                      Text(fixedAppBarOptions[2]["name"],
-                                          style: textTheme.bodyMedium),
-                                    ]),
-                                  ),
-                                  PopupMenuItem(
-                                    onTap: () {
-                                      // reorderCrypto(3);
-                                    },
-                                    child: Row(children: [
-                                      Icon(fixedAppBarOptions[3]["icon"],
-                                          color: colors.textColor
-                                              .withOpacity(0.4)),
-                                      SizedBox(width: 8),
-                                      Text(fixedAppBarOptions[3]["name"],
                                           style: textTheme.bodyMedium),
                                     ]),
                                   ),
@@ -972,7 +872,7 @@ void reorderCrypto(int order) async {
                                       children: [
                                         ConstrainedBox(
                                           constraints: BoxConstraints(
-                                              maxWidth: c.maxWidth * 0.9),
+                                              maxWidth: c.maxWidth * 0.4),
                                           child: Text(
                                               crypto.symbol.toUpperCase(),
                                               maxLines: 1,
@@ -982,26 +882,27 @@ void reorderCrypto(int order) async {
                                                       fontWeight:
                                                           FontWeight.w400)),
                                         ),
-                                        if (crypto.type == CryptoType.token)
-                                          Container(
-                                            padding: const EdgeInsets.symmetric(
-                                                horizontal: 10, vertical: 2),
-                                            decoration: BoxDecoration(
-                                                color: colors.grayColor
-                                                    .withOpacity(0.9)
-                                                    .withOpacity(0.2),
-                                                borderRadius:
-                                                    BorderRadius.circular(20)),
-                                            child: Text(
-                                                "${crypto.network?.name}",
-                                                style: textTheme.bodySmall
-                                                    ?.copyWith(fontSize: 10)),
-                                          )
+                                        Container(
+                                          padding: const EdgeInsets.symmetric(
+                                              horizontal: 10, vertical: 2),
+                                          decoration: BoxDecoration(
+                                              color: colors.grayColor
+                                                  .withOpacity(0.9)
+                                                  .withOpacity(0.2),
+                                              borderRadius:
+                                                  BorderRadius.circular(20)),
+                                          child: Text(
+                                              crypto.type == CryptoType.token
+                                                  ? "${crypto.network?.name}"
+                                                  : crypto.name,
+                                              style: textTheme.bodySmall
+                                                  ?.copyWith(fontSize: 10)),
+                                        )
                                       ],
                                     );
                                   }),
                                   subtitle: Row(
-                                    spacing: 10,
+                                    spacing: 2,
                                     children: [
                                       Text(formatUsd(cryptoPrice.toString()),
                                           style: textTheme.bodySmall?.copyWith(
@@ -1040,6 +941,7 @@ void reorderCrypto(int order) async {
                                             maxLines: 1,
                                             style: textTheme.bodyMedium
                                                 ?.copyWith(
+                                                    fontSize: 15,
                                                     color: colors.textColor,
                                                     fontWeight:
                                                         FontWeight.w400)),
@@ -1054,9 +956,9 @@ void reorderCrypto(int order) async {
                                                     ?.copyWith(
                                                         color: colors.textColor
                                                             .withOpacity(0.6),
-                                                        fontSize: 14,
+                                                        fontSize: 15,
                                                         fontWeight:
-                                                            FontWeight.w400))
+                                                            FontWeight.w500))
                                       ],
                                     ),
                                   ),

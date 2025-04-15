@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:modal_bottom_sheet/modal_bottom_sheet.dart';
 import 'package:moonwallet/types/types.dart';
 import 'package:moonwallet/widgets/crypto_picture.dart';
+import 'package:moonwallet/widgets/flowting_modat.dart';
 
 void showCryptoModal(
     {required BuildContext context,
@@ -13,24 +14,17 @@ void showCryptoModal(
     required Color surfaceTintColor,
     required List<Crypto> reorganizedCrypto,
     required void Function(Crypto crypto) onSelect}) {
+  String searchQuery = "";
+
   showBarModalBottomSheet(
       backgroundColor: colors.primaryColor,
       isDismissible: true,
-      duration: const Duration(
-        milliseconds: 200,
-      ),
-      closeProgressThreshold: 0.2,
-      shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.only(
-              topLeft: Radius.circular(30), topRight: Radius.circular(30))),
       context: context,
       builder: (BuildContext btmCtx) {
-        String searchQuery = "";
-
         return StatefulBuilder(builder: (ctx, setLocalState) {
           final textTheme = Theme.of(context).textTheme;
 
-          return Column(
+          return ListView(
             children: [
               Container(
                   padding: const EdgeInsets.all(20),
@@ -102,20 +96,21 @@ void showCryptoModal(
                                   fontSize: 16,
                                 ),
                               ),
-                              if (net.type == CryptoType.token)
-                                Container(
-                                  padding: const EdgeInsets.symmetric(
-                                      horizontal: 10, vertical: 2),
-                                  decoration: BoxDecoration(
-                                      color: surfaceTintColor.withOpacity(0.2),
-                                      borderRadius: BorderRadius.circular(20)),
-                                  child: Text(
-                                    "${net.network?.name}",
-                                    style: textTheme.bodySmall?.copyWith(
-                                      color: textColor.withOpacity(0.8),
-                                    ),
+                              Container(
+                                padding: const EdgeInsets.symmetric(
+                                    horizontal: 10, vertical: 2),
+                                decoration: BoxDecoration(
+                                    color: surfaceTintColor.withOpacity(0.2),
+                                    borderRadius: BorderRadius.circular(20)),
+                                child: Text(
+                                  net.type == CryptoType.token
+                                      ? "${net.network?.name}"
+                                      : net.name,
+                                  style: textTheme.bodySmall?.copyWith(
+                                    color: textColor.withOpacity(0.8),
                                   ),
-                                )
+                                ),
+                              )
                             ],
                           ),
                         ),

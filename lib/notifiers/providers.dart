@@ -1,9 +1,10 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:internet_connection_checker_plus/internet_connection_checker_plus.dart';
+import 'package:moonwallet/logger/logger.dart';
 import 'package:moonwallet/notifiers/accounts_notifier.dart';
 import 'package:moonwallet/notifiers/assets_notifier.dart';
-import 'package:moonwallet/notifiers/colors_notfier.dart';
-import 'package:moonwallet/notifiers/last_account_notfier.dart';
+import 'package:moonwallet/notifiers/colors_notifier.dart';
+import 'package:moonwallet/notifiers/last_account_notifier.dart';
 import 'package:moonwallet/service/crypto_storage_manager.dart';
 import 'package:moonwallet/service/price_manager.dart';
 import 'package:moonwallet/service/wallet_saver.dart';
@@ -73,7 +74,14 @@ final allAccountsProvider = FutureProvider<List<PublicData>>((ref) async {
 });
 
 final currentAccountProvider = FutureProvider<PublicData?>((ref) async {
-  final accounts = await ref.watch(accountsNotifierProvider.future);
+  final accountWatchRequest = await ref.watch(accountsNotifierProvider.future) ;
+  final accountDirectRequest = await ref.watch(accountsNotifierProvider.notifier).getPublicData() ;
+
+  if (accountWatchRequest.isNotEmpty && accountDirectRequest.isEmpty) {
+    logError("No account found");
+  }
+  final accounts = accountWatchRequest.isNotEmpty ? accountWatchRequest : accountDirectRequest ;
+
   final lastKeyId = ref.watch(lastConnectedKeyIdNotifierProvider);
 
   if (lastKeyId != null) {
