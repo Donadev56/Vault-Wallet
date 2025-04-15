@@ -6,6 +6,7 @@ import 'package:flutter/services.dart';
 // ignore: depend_on_referenced_packages
 
 import 'package:flutter/material.dart';
+import 'package:internet_connection_checker_plus/internet_connection_checker_plus.dart';
 import 'package:intl/intl.dart';
 import 'package:liquid_pull_to_refresh/liquid_pull_to_refresh.dart';
 import 'package:loading_animation_widget/loading_animation_widget.dart';
@@ -46,6 +47,7 @@ class _WalletViewScreenState extends State<WalletViewScreen>
     with SingleTickerProviderStateMixin {
   late TabController _tabController;
   List<EsTransaction> transactions = [];
+  late InternetConnection internetChecker  ;
   PublicData currentAccount = PublicData(
       keyId: "",
       creationDate: 0,
@@ -124,7 +126,10 @@ class _WalletViewScreenState extends State<WalletViewScreen>
     try {
       final userBalance = await web3InteractManager.getBalance(account, crypto);
       if (!mounted) return;
-
+       if ((await internetChecker.internetStatus
+            .then((st) => st == InternetStatus.disconnected))) {
+          throw ("Not connected to the internet");
+        }
       setState(() {
         tokenBalance = userBalance;
         isBalanceLoading = false;
@@ -163,6 +168,11 @@ class _WalletViewScreenState extends State<WalletViewScreen>
         });
       }
 
+       if ((await internetChecker.internetStatus
+            .then((st) => st == InternetStatus.disconnected))) {
+          throw ("Not connected to the internet");
+        }
+
       final userTransactions = await TransactionRequestManager()
           .getAllTransactions(
               crypto: currentCrypto, address: currentAccount.address);
@@ -176,7 +186,7 @@ class _WalletViewScreenState extends State<WalletViewScreen>
           isTransactionLoading = false;
         });
 
-        await storage.saveTransactions(transactions);
+        await storage.patchTransactions(transactions);
       }
     } catch (e) {
       logError('Error getting transactions: $e');
@@ -211,6 +221,7 @@ class _WalletViewScreenState extends State<WalletViewScreen>
 
     getSavedTheme();
     reorganizeCrypto();
+    internetChecker = InternetConnection();
     _tabController = TabController(length: 3, vsync: this);
     _scrollController.addListener(_onScroll);
     init();
@@ -245,6 +256,7 @@ class _WalletViewScreenState extends State<WalletViewScreen>
   Future<void> refresh() async {
     try {
       if (!mounted) return;
+      
       await Future.wait([
         fetchTransactions(),
         getBalanceUsdOfAccount(widget.initData.crypto),
@@ -258,6 +270,10 @@ class _WalletViewScreenState extends State<WalletViewScreen>
   Future<void> getBalanceUsdOfAccount(Crypto currentCrypto) async {
     try {
       final balance = await getBalanceUsd(currentCrypto);
+       if ((await internetChecker.internetStatus
+            .then((st) => st == InternetStatus.disconnected))) {
+          throw ("Not connected to the internet");
+        }
       if (!mounted) return;
       setState(() {
         totalBalanceUsd = balance;

@@ -90,3 +90,21 @@ final currentAccountProvider = FutureProvider<PublicData?>((ref) async {
 final lastConnectedKeyIdNotifierProvider =
     AsyncNotifierProvider<LastConnectedKeyIdNotifier, String?>(
         LastConnectedKeyIdNotifier.new);
+
+
+final cryptoSymbolsStreamUrlProvider = FutureProvider<String>((ref) async {
+  final savedCryptos = await ref.watch(savedCryptosProviderNotifier.future);
+  final streams = savedCryptos
+      .where((c) =>
+          c.binanceSymbol != null &&
+          c.binanceSymbol!.toLowerCase().contains('usdt'))
+      .map((c) => '${c.binanceSymbol!.toLowerCase()}@trade')
+      .toList();
+
+  if (streams.isEmpty) {
+    throw Exception("No crypto to listen");
+  }
+
+  final combinedStreams = streams.join('/');
+  return 'wss://stream.binance.com:9443/stream?streams=$combinedStreams';
+});

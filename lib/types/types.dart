@@ -809,3 +809,18 @@ class DataWithCache {
     };
   }
 }
+
+
+class TradeData {
+  final double price;
+  final String binanceSymbol ;
+
+  TradeData({required this.price, required this.binanceSymbol });
+
+  factory TradeData.fromJson(Map<String, dynamic> json) {
+    return TradeData(
+      price: json['p'],
+      binanceSymbol:  json['s']
+    );
+  }
+}

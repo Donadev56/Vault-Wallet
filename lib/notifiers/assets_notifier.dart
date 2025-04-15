@@ -75,21 +75,9 @@ class AssetsNotifier extends AsyncNotifier<List<Asset>> {
     }
   }
 
-  Future<List<Asset>> getUserAssets({required PublicData account}) async {
+  Future<Map<String ,dynamic>> getAssetData (Crypto crypto , PublicData account) async{
     try {
-      log("Updating assets");
-      final savedCrypto = await ref.watch(savedCryptosProviderNotifier.future);
 
-      List<Crypto> enabledCryptos = [];
-      List<Asset> cryptoBalance = [];
-
-      if (savedCrypto.isNotEmpty) {
-        enabledCryptos =
-            savedCrypto.where((c) => c.canDisplay == true).toList();
-
-        List<Map<String, Object>> results = [];
-
-        results = await Future.wait(enabledCryptos.map((crypto) async {
           final response = await Future.wait([
             web3InteractionManager.getBalance(account, crypto),
             priceManager.checkCryptoTrend(
@@ -105,7 +93,7 @@ class AssetsNotifier extends AsyncNotifier<List<Asset>> {
 
           final balanceUsd = cryptoPrice * balance;
 
-          return {
+          return  {
             "cryptoBalance": Asset(
               crypto: crypto,
               balanceUsd: balanceUsd,
@@ -116,7 +104,30 @@ class AssetsNotifier extends AsyncNotifier<List<Asset>> {
             "availableCrypto": crypto,
             "balanceUsd": balanceUsd
           };
-        }));
+    } catch (e) {
+      logError(e.toString());
+      return <String, dynamic >{} ;
+      
+    }
+  }
+
+  Future<List<Asset>> getUserAssets({required PublicData account}) async {
+    try {
+      log("Updating assets");
+      final savedCrypto = await ref.watch(savedCryptosProviderNotifier.future);
+
+      List<Crypto> enabledCryptos = [];
+      List<Asset> cryptoBalance = [];
+
+      if (savedCrypto.isNotEmpty) {
+        enabledCryptos =
+            savedCrypto.where((c) => c.canDisplay == true).toList();
+
+        List<Map<String, dynamic>> results = [];
+
+        results = await Future.wait(enabledCryptos.map((crypto) async {
+          return await getAssetData(crypto  , account) ;
+        } ));
 
         cryptoBalance.addAll(results.map((r) => r["cryptoBalance"] as Asset));
 
@@ -170,4 +181,6 @@ class AssetsNotifier extends AsyncNotifier<List<Asset>> {
       logError(e.toString());
     }
   }
+
+  
 }

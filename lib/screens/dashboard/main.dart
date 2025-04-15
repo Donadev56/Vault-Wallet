@@ -8,6 +8,7 @@ import 'package:device_info_plus/device_info_plus.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:loading_animation_widget/loading_animation_widget.dart';
 import 'package:moonwallet/custom/refresh/check_mark.dart';
+import 'package:moonwallet/notifiers/price_notifier.dart';
 import 'package:moonwallet/notifiers/providers.dart';
 import 'package:moonwallet/screens/dashboard/view/receive.dart';
 import 'package:moonwallet/screens/dashboard/view/send.dart';
@@ -304,6 +305,7 @@ class _MainDashboardScreenState extends ConsumerState<MainDashboardScreen>
     final assetsNotifier = ref.watch(assetsNotifierProvider);
     final savedAssetsProvider = ref.watch(getSavedAssetsProvider);
     final savedCryptoAsync = ref.watch(savedCryptosProviderNotifier);
+    
 
     savedAssetsProvider.whenData(
       (data) {

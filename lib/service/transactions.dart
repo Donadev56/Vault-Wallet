@@ -44,20 +44,48 @@ class TransactionStorage {
   Future<List<EsTransaction>> getTransactions() async {
     try {
       final List<dynamic> transactions =
-          await getDynamicData(name: "$accountKey/$cryptoId");
+          await getDynamicData(name: "transaction/of/$accountKey/$cryptoId");
       return transactions.map((t) => EsTransaction.fromJson(t)).toList();
     } catch (e) {
       logError('Error getting transactions: $e');
       return [];
     }
   }
+  Future<bool> patchTransactions (List<EsTransaction> transactions) async {
+    try {
+      final savedTransactions = await getTransactions();
+      List<EsTransaction> transactionsToSave = [];
 
+      if (savedTransactions.isNotEmpty) {
+        final filteredTransaction = savedTransactions..sort((a, b) =>
+        (int.tryParse(b.timeStamp) ?? 0).compareTo(int.tryParse(a.timeStamp) ?? 0));
+
+        transactionsToSave.addAll(filteredTransaction);
+
+        final lastUpdateDate = int.tryParse(filteredTransaction.first.timeStamp) ?? 0;
+        for (final trx in transactions) {
+           log("New transaction found ${trx.toJson()}");
+          if ((int.tryParse(trx.timeStamp)  ?? 0) > lastUpdateDate ) {
+            transactionsToSave.add(trx);
+
+          }
+        }
+      }
+
+    return  await saveTransactions(transactionsToSave);
+       
+    } catch (e) {
+      logError(e.toString());
+      return false ;
+      
+    }
+  }
   Future<bool> saveTransactions(List<EsTransaction> transactions) async {
     try {
       List<Map<dynamic, dynamic>> jsonTransactions =
           transactions.map((t) => t.toJson()).toList();
       return await saveDynamicData(
-          data: jsonTransactions, boxName: "$accountKey/$cryptoId");
+          data: jsonTransactions, boxName: "transaction/of/$accountKey/$cryptoId");
     } catch (e) {
       logError('Error saving transactions: $e');
       return false;

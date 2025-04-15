@@ -101,6 +101,7 @@ dependencies:
   internet_connection_checker: ^3.0.1
   smooth_list_view: ^2.0.2
   flutter_riverpod: ^2.6.1
+  web_socket_channel: ^2.4.0
   
 
 

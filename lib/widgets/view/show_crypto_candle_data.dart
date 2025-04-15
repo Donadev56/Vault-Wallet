@@ -6,6 +6,7 @@ import 'package:flutter_feather_icons/flutter_feather_icons.dart';
 import 'package:moonwallet/service/price_manager.dart';
 import 'package:moonwallet/types/types.dart';
 import 'package:moonwallet/utils/app_utils.dart';
+import 'package:moonwallet/widgets/charts_/line_chart.dart';
 import 'package:moonwallet/widgets/flowting_modat.dart';
 import 'package:skeletonizer/skeletonizer.dart';
 
@@ -173,66 +174,7 @@ void showCryptoCandleModal(
                                     color: colors.themeColor,
                                   ),
                                 )
-                              : LineChart(
-                                  transformationConfig: FlTransformationConfig(
-                                    scaleAxis: FlScaleAxis.horizontal,
-                                    minScale: 1.0,
-                                    maxScale: 25.0,
-                                    transformationController:
-                                        transformationController,
-                                  ),
-                                  LineChartData(
-                                    borderData: FlBorderData(show: false),
-                                    gridData: FlGridData(show: false),
-                                    lineBarsData: [
-                                      LineChartBarData(
-                                        isCurved: true,
-                                        spots: cryptoData
-                                                ?.asMap()
-                                                .entries
-                                                .map((e) {
-                                              final index = e.key;
-                                              final item = e.value;
-                                              final value = item.$2;
-
-                                              return FlSpot(
-                                                  index.toDouble(), value);
-                                            }).toList() ??
-                                            [],
-                                        dotData: const FlDotData(show: false),
-                                        color: isPositive
-                                            ? colors.themeColor
-                                            : colors.redColor,
-                                        barWidth: 2,
-                                        shadow: Shadow(
-                                          color: Colors.transparent,
-                                          blurRadius: 2,
-                                        ),
-                                        belowBarData: BarAreaData(
-                                          show: true,
-                                          gradient: LinearGradient(
-                                            colors: [
-                                              isPositive
-                                                  ? colors.themeColor
-                                                      .withValues(alpha: 0.2)
-                                                  : colors.redColor
-                                                      .withValues(alpha: 0.2),
-                                              isPositive
-                                                  ? colors.themeColor
-                                                      .withValues(alpha: 0.0)
-                                                  : colors.redColor
-                                                      .withValues(alpha: 0.0),
-                                            ],
-                                            stops: const [0.5, 1.0],
-                                            begin: Alignment.topCenter,
-                                            end: Alignment.bottomCenter,
-                                          ),
-                                        ),
-                                      ),
-                                    ],
-                                    lineTouchData: LineTouchData(
-                                      handleBuiltInTouches: true,
-                                      touchCallback: (FlTouchEvent event,
+                              : CustomLineChart(colors: colors, isPositive: isPositive , chartData: cryptoData, transformationController: transformationController, onTouchCallback:(FlTouchEvent event,
                                           LineTouchResponse? response) {
                                         if (event is FlTapUpEvent ||
                                             event is FlPanUpdateEvent) {
@@ -269,119 +211,7 @@ void showCryptoCandleModal(
                                             }
                                           }
                                         }
-                                      },
-                                      enabled: true,
-                                      touchSpotThreshold: 5,
-                                      getTouchLineStart: (_, __) =>
-                                          -double.infinity,
-                                      getTouchLineEnd: (_, __) =>
-                                          double.infinity,
-                                      getTouchedSpotIndicator:
-                                          (LineChartBarData barData,
-                                              List<int> spotIndexes) {
-                                        return spotIndexes.map((spotIndex) {
-                                          return TouchedSpotIndicatorData(
-                                            FlLine(
-                                              color: !isPositive
-                                                  ? colors.redColor
-                                                  : colors.themeColor,
-                                              strokeWidth: 1,
-                                            ),
-                                            FlDotData(
-                                              show: true,
-                                              getDotPainter: (spot, percent,
-                                                  barData, index) {
-                                                return FlDotCirclePainter(
-                                                  radius: 6,
-                                                  color: isPositive
-                                                      ? colors.themeColor
-                                                      : colors.redColor,
-                                                  strokeWidth: 0,
-                                                  strokeColor: isPositive
-                                                      ? colors.themeColor
-                                                      : colors.redColor,
-                                                );
-                                              },
-                                            ),
-                                          );
-                                        }).toList();
-                                      },
-                                      touchTooltipData: LineTouchTooltipData(
-                                        tooltipRoundedRadius: 2,
-                                        getTooltipItems: (List<LineBarSpot>
-                                            touchedBarSpots) {
-                                          return touchedBarSpots.map((barSpot) {
-                                            final price = barSpot.y;
-                                            final date =
-                                                cryptoData![barSpot.x.toInt()]
-                                                    .$1;
-                                            return LineTooltipItem(
-                                              textAlign: TextAlign.left,
-                                              '',
-                                              textTheme.bodyMedium!.copyWith(
-                                                color: colors.secondaryColor,
-                                                fontWeight: FontWeight.bold,
-                                              ),
-                                              children: [
-                                                TextSpan(
-                                                  text:
-                                                      '${date.year}-${date.month}-${date.day} ${date.hour}:${date.minute}',
-                                                  style: textTheme.bodySmall
-                                                      ?.copyWith(
-                                                    color: colors.textColor,
-                                                    fontWeight: FontWeight.bold,
-                                                    fontSize: 9,
-                                                  ),
-                                                ),
-                                                TextSpan(
-                                                  text:
-                                                      '\n${AppUtils.getFormattedCurrency(
-                                                    context,
-                                                    price,
-                                                    noDecimals: true,
-                                                  )}',
-                                                  style: textTheme.bodyMedium
-                                                      ?.copyWith(
-                                                    color: isPositive
-                                                        ? colors.themeColor
-                                                        : colors.redColor,
-                                                    fontWeight: FontWeight.bold,
-                                                    fontSize: 11,
-                                                  ),
-                                                ),
-                                              ],
-                                            );
-                                          }).toList();
-                                        },
-                                        getTooltipColor:
-                                            (LineBarSpot barSpot) =>
-                                                colors.secondaryColor,
-                                      ),
-                                    ),
-                                    titlesData: FlTitlesData(
-                                      show: true,
-                                      rightTitles: const AxisTitles(
-                                        sideTitles:
-                                            SideTitles(showTitles: false),
-                                      ),
-                                      topTitles: const AxisTitles(
-                                        sideTitles:
-                                            SideTitles(showTitles: false),
-                                      ),
-                                      leftTitles: const AxisTitles(
-                                        sideTitles: SideTitles(
-                                          showTitles: false,
-                                        ),
-                                      ),
-                                      bottomTitles: AxisTitles(
-                                        sideTitles: SideTitles(
-                                          showTitles: false,
-                                        ),
-                                      ),
-                                    ),
-                                  ),
-                                  duration: Duration.zero,
-                                )),
+                                          })),
                     ),
                   ),
                   SizedBox(height: 15),

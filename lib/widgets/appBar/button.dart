@@ -30,7 +30,7 @@ class AddWalletButton extends StatelessWidget {
         ),
         title: Text(
           text,
-          style: textTheme.bodyMedium,
+          style: textTheme.bodyMedium?.copyWith(color: textColor),
         ),
       ),
     );
