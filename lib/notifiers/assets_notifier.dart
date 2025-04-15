@@ -3,96 +3,63 @@ import 'package:moonwallet/logger/logger.dart';
 import 'package:moonwallet/notifiers/providers.dart';
 import 'package:moonwallet/service/crypto_request_manager.dart';
 import 'package:moonwallet/types/types.dart';
-import 'package:moonwallet/utils/constant.dart';
 import 'package:riverpod/riverpod.dart';
 
-class AssetsNotifier extends AsyncNotifier<UserAssetsResponse?> {
+class AssetsNotifier extends AsyncNotifier<List<Asset>> {
   late final cryptoStorage = ref.read(cryptoStorageProvider);
   late final web3InteractionManager = ref.read(web3InteractionProvider);
   late final priceManager = ref.read(priceProvider);
   late final internetChecker = ref.read(internetConnectionProvider);
 
   @override
-  Future<UserAssetsResponse?> build() async {
+  Future<List<Asset>> build() async {
     try {
-      PublicData? account  = await getAccount();
+      PublicData? account = await getAccount();
       if (account == null) {
         logError("The account is null");
-        return null ;
+        return [];
       }
-      final  userAssets = await getUserAssets(account: account);
+      final userAssets = await getUserAssets(account: account);
       return userAssets;
+    } catch (e) {
+      logError(e.toString());
+      return [];
+    }
+  }
+
+  Future<PublicData?> getAccount() async {
+    try {
+      PublicData? account;
+      final savedAccount = await ref.read(currentAccountProvider.future);
+      if (savedAccount != null) {
+        return savedAccount;
+      }
+
+      final accounts =
+          await ref.read(accountsNotifierProvider.notifier).getPublicData();
+      if (accounts.isNotEmpty) {
+        account = accounts[0];
+        log("Account found ${account.address}");
+        await ref
+            .read(accountsNotifierProvider.notifier)
+            .saveLastConnectedAccount(account.keyId);
+        return account;
+      } else {
+        logError("The account list is empty");
+        return null;
+      }
     } catch (e) {
       logError(e.toString());
       return null;
     }
   }
 
-  Future<PublicData?> getAccount () async {
-    try {
-      PublicData? account ;
-      final savedAccount =  ref.read(currentAccountProvider).value; 
-      if (savedAccount != null) {
-        return savedAccount ;
-      }
-
-        final accounts  = await ref.read(accountsNotifierProvider.notifier).getPublicData() ;
-        if (accounts.isNotEmpty) {
-          account = accounts[0] ;
-          log("Account found ${account.address}");
-          await ref.read(accountsNotifierProvider.notifier).saveLastConnectedAccount(account.keyId);
-          return account ;
-
-        } else {
-          logError("The account list is empty");
-          return null ;
-        }
-      
-    } catch (e) {
-      logError(e.toString());
-      return null ;
-      
-    }
-  }
-  Future<bool> saveListCrypto(List<Crypto> cryptos, PublicData account) async {
-    try {
-      final result =
-          await cryptoStorage.saveListCrypto(cryptos: cryptos, wallet: account);
-      ref.invalidate(getSavedCryptosProvider);
-      return result;
-    } catch (e) {
-      logError(e.toString());
-      return false;
-    }
-  }
-  Future<void> rebuild(PublicData account ) async {
+  Future<void> rebuild(PublicData account) async {
     try {
       state = AsyncData((await getUserAssets(account: account)));
+      ref.invalidate(savedCryptosProviderNotifier);
     } catch (e) {
       logError(e.toString());
-      
-    }
-  }
-
-  Future<bool> toggleCanDisplay(Crypto crypto, bool value) async {
-    try {
-      final account = ref.watch(currentAccountProvider).value;
-      if (account == null) {
-        logError("No account found");
-        return false;
-      }
-      final result = await cryptoStorage.toggleCanDisplay(
-          wallet: account, cryptoId: crypto.cryptoId, value: value);
-      if (result) {
-        ref.invalidate(getSavedCryptosProvider);
-        rebuild(account);
-        return true;
-      }
-
-      return false;
-    } catch (e) {
-      logError(e.toString());
-      return false;
     }
   }
 
@@ -108,57 +75,19 @@ class AssetsNotifier extends AsyncNotifier<UserAssetsResponse?> {
     }
   }
 
-  Future<bool> saveListAssetsResponse(
-      UserAssetsResponse assetsResponse, PublicData account) async {
+  Future<List<Asset>> getUserAssets({required PublicData account}) async {
     try {
-      final result = await cryptoStorage.saveAssetsResponse(
-          assetsResponse: assetsResponse, account: account);
-      ref.invalidate(getSavedAssetsResponseProvider);
-      return result;
-    } catch (e) {
-      logError(e.toString());
-      return false;
-    }
-  }
+      log("Updating assets");
+      final savedCrypto = await ref.watch(savedCryptosProviderNotifier.future)
+          ;
 
-  Future<UserAssetsResponse?> getUserAssets(
-      {required PublicData account}) async {
-    try {
-      final savedDataResult = await ref.read(getSavedCryptosProvider.future);
-
-      List<Crypto> standardCrypto = [];
-      try {
-        standardCrypto = await CryptoRequestManager().getAllCryptos();
-      } catch (e) {
-        logError(e.toString());
-      }
-
-      if (standardCrypto.isEmpty) {
-        standardCrypto.addAll(popularCrypto);
-      }
-
-      final savedCrypto = savedDataResult ?? []; 
-
-
-      List<Crypto> cryptosList = [];
       List<Crypto> enabledCryptos = [];
       List<Asset> cryptoBalance = [];
-      List<Crypto> availableCryptos = [];
-      double userBalanceUsd = 0;
 
-      if ( savedCrypto.isEmpty) {
-        cryptosList = standardCrypto;
-        await cryptoStorage.saveListCrypto(
-            cryptos: cryptosList, wallet: account);
-      } else {
-        cryptosList = savedCrypto;
-      }
-
-      if (cryptosList.isNotEmpty) {
+      if (savedCrypto.isNotEmpty) {
         enabledCryptos =
-            cryptosList.where((c) => c.canDisplay == true).toList();
-        userBalanceUsd = 0;
-        availableCryptos = [];
+            savedCrypto.where((c) => c.canDisplay == true).toList();
+
         List<Map<String, Object>> results = [];
 
         results = await Future.wait(enabledCryptos.map((crypto) async {
@@ -192,11 +121,6 @@ class AssetsNotifier extends AsyncNotifier<UserAssetsResponse?> {
 
         cryptoBalance.addAll(results.map((r) => r["cryptoBalance"] as Asset));
 
-        availableCryptos
-            .addAll(results.map((r) => r["availableCrypto"] as Crypto));
-        userBalanceUsd +=
-            results.fold(0.0, (sum, r) => sum + (r["balanceUsd"] as double));
-
         if ((await internetChecker.internetStatus
             .then((st) => st == InternetStatus.disconnected))) {
           throw ("Not connected to the internet");
@@ -204,20 +128,16 @@ class AssetsNotifier extends AsyncNotifier<UserAssetsResponse?> {
 
         cryptoBalance.sort((a, b) => (b.balanceUsd).compareTo(a.balanceUsd));
 
-        final userAssets = UserAssetsResponse(
-            assets: cryptoBalance,
-            totalBalanceUsd: userBalanceUsd,
-            availableCryptos: availableCryptos,
-            cryptosList: cryptosList);
+        final userAssets = cryptoBalance;
         await saveListAssets(cryptoBalance, account);
-        await saveListAssetsResponse(userAssets, account);
+        // await saveListAssetsResponse(userAssets, account);
         return userAssets;
       }
 
       throw ("No crypto found");
     } catch (e) {
       logError(e.toString());
-      return null;
+      return [];
     }
   }
 

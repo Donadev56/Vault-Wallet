@@ -20,6 +20,7 @@ class AccountsNotifier extends AsyncNotifier<List<PublicData>> {
       await ref
           .read(lastConnectedKeyIdNotifierProvider.notifier)
           .updateKeyId(keyId);
+
       return true;
     } catch (e) {
       logError(e.toString());
@@ -35,14 +36,13 @@ class AccountsNotifier extends AsyncNotifier<List<PublicData>> {
     try {
       final savedData = await walletSaver.getPublicData();
       List<PublicData> accounts = [];
-      if (savedData != null && savedData.isNotEmpty)  {
-      
+      if (savedData != null && savedData.isNotEmpty) {
         for (final account in savedData) {
           final newAccount = PublicData.fromJson(account);
           accounts.add(newAccount);
         }
       }
-     log("Accounts length ${accounts.length}");
+      log("Accounts length ${accounts.length}");
       return accounts;
     } catch (e) {
       logError(e.toString());

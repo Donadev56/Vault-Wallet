@@ -762,44 +762,6 @@ class TransactionDetails {
   }
 }
 
-class UserAssetsResponse {
-  final List<Asset> assets;
-  final double totalBalanceUsd;
-  final List<Crypto> availableCryptos;
-  final List<Crypto> cryptosList;
-
-  UserAssetsResponse({
-    required this.assets,
-    required this.totalBalanceUsd,
-    required this.availableCryptos,
-    required this.cryptosList,
-  });
-
-  factory UserAssetsResponse.fromJson(Map<String, dynamic> json) {
-    return UserAssetsResponse(
-      assets: (json['assets'] as List<dynamic>)
-          .map((e) => Asset.fromJson(e))
-          .toList(),
-      totalBalanceUsd: json['totalBalanceUsd'].toDouble(),
-      availableCryptos: (json['availableCryptos'] as List<dynamic>)
-          .map((e) => Crypto.fromJson(e))
-          .toList(),
-      cryptosList: (json['cryptoList'] as List<dynamic>)
-          .map((e) => Crypto.fromJson(e))
-          .toList(),
-    );
-  }
-
-  Map<String, dynamic> toJson() {
-    return {
-      'assets': assets.map((e) => e.toJson()).toList(),
-      'totalBalanceUsd': totalBalanceUsd,
-      'availableCryptos': availableCryptos.map((e) => e.toJson()).toList(),
-      'cryptoList': cryptosList.map((e) => e.toJson()).toList(),
-    };
-  }
-}
-
 class WidgetInitialData {
   final Crypto crypto;
   final AppColors colors;

@@ -5,6 +5,7 @@ import 'package:moonwallet/notifiers/accounts_notifier.dart';
 import 'package:moonwallet/notifiers/assets_notifier.dart';
 import 'package:moonwallet/notifiers/colors_notifier.dart';
 import 'package:moonwallet/notifiers/last_account_notifier.dart';
+import 'package:moonwallet/notifiers/saved_crypto.dart';
 import 'package:moonwallet/service/crypto_storage_manager.dart';
 import 'package:moonwallet/service/price_manager.dart';
 import 'package:moonwallet/service/wallet_saver.dart';
@@ -24,9 +25,8 @@ final accountsNotifierProvider =
     AsyncNotifierProvider<AccountsNotifier, List<PublicData>>(
         AccountsNotifier.new);
 
-final assetsResponseNotifierProvider =
-    AsyncNotifierProvider<AssetsNotifier, UserAssetsResponse?>(
-        AssetsNotifier.new);
+final assetsNotifierProvider =
+    AsyncNotifierProvider<AssetsNotifier, List<Asset>>(AssetsNotifier.new);
 
 final colorsNotifierProvider =
     AsyncNotifierProvider<ColorsNotifier, AppColors?>(ColorsNotifier.new);
@@ -41,32 +41,18 @@ final priceProvider = Provider((ref) => PriceManager());
 final publicDataProvider = Provider((ref) => (PublicDataManager()));
 final cryptoStorageProvider = Provider((ref) => (CryptoStorageManager()));
 
-final getSavedCryptosProvider = FutureProvider<List<Crypto>?>((ref) async {
-  final cryptoStorage = ref.watch(cryptoStorageProvider);
-  final account = await ref.watch(currentAccountProvider.future);
-  if (account != null) {
-    return await cryptoStorage.getSavedCryptos(wallet: account);
-  }
-  return [];
-});
-
-final getSavedAssetsResponseProvider =
-    FutureProvider<UserAssetsResponse?>((ref) async {
-  final cryptoStorage = ref.watch(cryptoStorageProvider);
-  final account = await ref.watch(currentAccountProvider.future);
-  if (account != null) {
-    return await cryptoStorage.getSavedAssetsResponse(wallet: account);
-  }
-  return null;
-});
+final savedCryptosProviderNotifier =
+    AsyncNotifierProvider<SavedCryptoProvider, List<Crypto>>(
+        SavedCryptoProvider.new);
 
 final getSavedAssetsProvider = FutureProvider<List<Asset>?>((ref) async {
   final cryptoStorage = ref.watch(cryptoStorageProvider);
   final account = await ref.watch(currentAccountProvider.future);
   if (account != null) {
+    log("Getting saved assets");
     return await cryptoStorage.getSavedAssets(wallet: account);
   }
-  return [];
+  return null;
 });
 
 final allAccountsProvider = FutureProvider<List<PublicData>>((ref) async {
@@ -74,23 +60,33 @@ final allAccountsProvider = FutureProvider<List<PublicData>>((ref) async {
 });
 
 final currentAccountProvider = FutureProvider<PublicData?>((ref) async {
-  final accountWatchRequest = await ref.watch(accountsNotifierProvider.future) ;
-  final accountDirectRequest = await ref.watch(accountsNotifierProvider.notifier).getPublicData() ;
-
-  if (accountWatchRequest.isNotEmpty && accountDirectRequest.isEmpty) {
-    logError("No account found");
-  }
-  final accounts = accountWatchRequest.isNotEmpty ? accountWatchRequest : accountDirectRequest ;
-
+  final accounts = await ref.watch(accountsNotifierProvider.future);
   final lastKeyId = ref.watch(lastConnectedKeyIdNotifierProvider);
-
-  if (lastKeyId != null) {
-    return accounts.firstWhere((acc) => acc.keyId == lastKeyId,
-        orElse: () => accounts.first);
+  if (accounts.isEmpty) {
+    throw ("No account found");
   }
-  return accounts.firstOrNull;
+
+  return lastKeyId.when(data: (data) {
+    if (data != null) {
+      final accountFounded = accounts.firstWhere(
+        (acc) => acc.keyId.toLowerCase().trim() == data.toLowerCase().trim(),
+        orElse: () => accounts.first,
+      );
+      log("Last account id: $data");
+
+      log("Account founded: ${accountFounded.toJson()}");
+      return accountFounded;
+    }
+    return accounts.firstOrNull;
+  }, error: (err, stack) {
+    logError(err.toString());
+    return accounts.firstOrNull;
+  }, loading: () {
+    log("Loading..");
+    throw const AsyncLoading();
+  });
 });
 
 final lastConnectedKeyIdNotifierProvider =
-    StateNotifierProvider<LastConnectedKeyIdNotifier, String?>(
-        (ref) => LastConnectedKeyIdNotifier(ref));
+    AsyncNotifierProvider<LastConnectedKeyIdNotifier, String?>(
+        LastConnectedKeyIdNotifier.new);

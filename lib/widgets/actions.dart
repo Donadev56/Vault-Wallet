@@ -31,22 +31,23 @@ class ActionsWidgets extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final textTheme = Theme.of(context).textTheme;
-
+    
     return Container(
       margin: const EdgeInsets.all(10),
-      child: Column(
-        children: [
-          Container(
-              margin: const EdgeInsets.all(5),
-              width: size,
-              height: size,
-              decoration: BoxDecoration(
-                  color: color, borderRadius: BorderRadius.circular(radius)),
-              child: Material(
-                  color: Colors.transparent,
-                  child: InkWell(
-                    borderRadius: BorderRadius.circular(radius),
-                    onTap: onTap,
+      child: InkWell(
+          borderRadius: BorderRadius.circular(radius),
+          onTap: onTap,
+          child: Column(
+            children: [
+              Container(
+                  margin: const EdgeInsets.all(5),
+                  width: size,
+                  height: size,
+                  decoration: BoxDecoration(
+                      color: color,
+                      borderRadius: BorderRadius.circular(radius)),
+                  child: Material(
+                    color: Colors.transparent,
                     child: Align(
                       alignment: alignment ?? Alignment.center,
                       child: Icon(
@@ -55,10 +56,10 @@ class ActionsWidgets extends StatelessWidget {
                         size: iconSize,
                       ),
                     ),
-                  ))),
-          if (showName) Text(text, style: style ?? textTheme.bodySmall)
-        ],
-      ),
+                  )),
+              if (showName) Text(text, style: style ?? textTheme.bodySmall)
+            ],
+          )),
     );
   }
 }

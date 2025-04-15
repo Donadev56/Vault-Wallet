@@ -125,6 +125,7 @@ class CryptoStorageManager {
     }
   }
 
+/*
   Future<UserAssetsResponse?> getSavedAssetsResponse(
       {required PublicData wallet}) async {
     try {
@@ -163,7 +164,7 @@ class CryptoStorageManager {
       return false;
     }
   }
-
+*/
   Future<bool> saveListAssets(
       {required List<Asset> assets, required PublicData account}) async {
     try {
@@ -180,47 +181,36 @@ class CryptoStorageManager {
   }
 
   Future<bool> toggleCanDisplay(
-      {required String cryptoId,
+      {required Crypto crypto,
       required bool value,
       required PublicData wallet}) async {
     try {
       final List<Crypto>? savedCryptos = await getSavedCryptos(wallet: wallet);
-      Crypto? cryptoToEdit;
-      if (savedCryptos != null) {
-        for (final crypto in savedCryptos) {
-          if (crypto.cryptoId.trim() == cryptoId.trim()) {
-            cryptoToEdit = crypto;
-          }
-        }
-        if (cryptoToEdit != null) {
-          final index = savedCryptos.indexOf(cryptoToEdit);
-          final newCrypto = Crypto(
-              isNetworkIcon: cryptoToEdit.isNetworkIcon,
-              symbol: cryptoToEdit.symbol,
-              name: cryptoToEdit.name,
-              color: cryptoToEdit.color,
-              type: cryptoToEdit.type,
-              valueUsd: cryptoToEdit.valueUsd,
-              cryptoId: cryptoToEdit.cryptoId,
-              canDisplay: value,
-              network: cryptoToEdit.network,
-              icon: cryptoToEdit.icon,
-              chainId: cryptoToEdit.chainId,
-              contractAddress: cryptoToEdit.contractAddress,
-              explorer: cryptoToEdit.explorer,
-              rpc: cryptoToEdit.rpc,
-              binanceSymbol: cryptoToEdit.binanceSymbol,
-              decimals: cryptoToEdit.decimals);
-          savedCryptos[index] = newCrypto;
-          return await saveListCrypto(cryptos: savedCryptos, wallet: wallet);
-        } else {
-          logError("Crypto is null");
-          return false;
-        }
-      } else {
-        logError("No saved cryptos to toggle canDisplay");
-        return false;
+      final cryptoToEdit = crypto;
+      if (savedCryptos == null) {
+        throw 'Saved data is null';
       }
+      final index =
+          savedCryptos.indexWhere((c) => c.cryptoId == cryptoToEdit.cryptoId);
+      final newCrypto = Crypto(
+          isNetworkIcon: cryptoToEdit.isNetworkIcon,
+          symbol: cryptoToEdit.symbol,
+          name: cryptoToEdit.name,
+          color: cryptoToEdit.color,
+          type: cryptoToEdit.type,
+          valueUsd: cryptoToEdit.valueUsd,
+          cryptoId: cryptoToEdit.cryptoId,
+          canDisplay: value,
+          network: cryptoToEdit.network,
+          icon: cryptoToEdit.icon,
+          chainId: cryptoToEdit.chainId,
+          contractAddress: cryptoToEdit.contractAddress,
+          explorer: cryptoToEdit.explorer,
+          rpc: cryptoToEdit.rpc,
+          binanceSymbol: cryptoToEdit.binanceSymbol,
+          decimals: cryptoToEdit.decimals);
+      savedCryptos[index] = newCrypto;
+      return await saveListCrypto(cryptos: savedCryptos, wallet: wallet);
     } catch (e) {
       logError("Error : $e");
       return false;

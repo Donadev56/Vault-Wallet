@@ -6,6 +6,7 @@ import 'dart:io';
 import 'package:currency_formatter/currency_formatter.dart';
 import 'package:device_info_plus/device_info_plus.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:loading_animation_widget/loading_animation_widget.dart';
 import 'package:moonwallet/custom/refresh/check_mark.dart';
 import 'package:moonwallet/notifiers/providers.dart';
 import 'package:moonwallet/screens/dashboard/view/receive.dart';
@@ -300,28 +301,22 @@ class _MainDashboardScreenState extends ConsumerState<MainDashboardScreen>
     final accounts = accountsProvider.value;
     final providerNotifier = ref.watch(accountsNotifierProvider.notifier);
     final currentAccount = ref.watch(currentAccountProvider).value;
-    final assetsResponseNotifier = ref.watch(assetsResponseNotifierProvider);
-    final savedAssetsProvider = ref.watch(getSavedAssetsResponseProvider);
+    final assetsNotifier = ref.watch(assetsNotifierProvider);
+    final savedAssetsProvider = ref.watch(getSavedAssetsProvider);
+    final savedCryptoAsync = ref.watch(savedCryptosProviderNotifier);
 
-    savedAssetsProvider.when(
-      loading: () {
-        setState(() {
-          isLoading = true;
-        });
-      },
-      error: (error, stackTrace) {
-        setState(() {
-          isLoading = true;
-        });
-      },
-      data: (data) {
+    savedAssetsProvider.whenData(
+      (data) {
         if (data != null) {
           setState(() {
-            initialAssets = data.assets;
-            assets = data.assets;
-            reorganizedCrypto = data.availableCryptos;
-            totalBalance = data.totalBalanceUsd;
+            initialAssets = data;
+            assets = data;
             isLoading = false;
+            double balance = 0;
+            for (final asset in assets) {
+              balance += asset.balanceUsd;
+            }
+            totalBalance = balance;
           });
         } else {
           setState(() {
@@ -330,32 +325,28 @@ class _MainDashboardScreenState extends ConsumerState<MainDashboardScreen>
         }
       },
     );
-
-    assetsResponseNotifier.whenData((data) => {
-          if (data != null)
-            {
-              setState(() {
-                initialAssets = data.assets;
-                assets = data.assets;
-                reorganizedCrypto = data.availableCryptos;
-                totalBalance = data.totalBalanceUsd;
-                isLoading = false;
-              })
-            }
+    savedCryptoAsync.whenData((data) {
+      reorganizedCrypto = data;
+    });
+    assetsNotifier.whenData((data) {
+      if (data.isNotEmpty) {
+        setState(() {
+          initialAssets = data;
+          assets = data;
+          isLoading = false;
+          double balance = 0;
+          for (final asset in assets) {
+            balance += asset.balanceUsd;
+          }
+          totalBalance = balance;
         });
-
-    ref.listen<String?>(lastConnectedKeyIdNotifierProvider, (previous, next) {
-      if (next != null) {
-        ref.invalidate(currentAccountProvider);
-        ref.invalidate(getSavedAssetsResponseProvider);
-        ref.invalidate(assetsResponseNotifierProvider);
       }
     });
 
     double width = MediaQuery.of(context).size.width;
     // double height = MediaQuery.of(context).size.height;
 
-   /* if (reorganizedCrypto.isEmpty || isLoading) {
+    if (reorganizedCrypto.isEmpty || isLoading) {
       return Container(
         decoration: BoxDecoration(color: colors.primaryColor),
         child: Center(
@@ -367,12 +358,83 @@ class _MainDashboardScreenState extends ConsumerState<MainDashboardScreen>
           ),
         ),
       );
-    }  */
+    }
+
+    Future<bool> deleteWallet(String walletId) async {
+      try {
+        if (accounts == null) {
+          logError("No account found ");
+          return false;
+        }
+        if (accounts.isEmpty) {
+          throw ("No account found");
+        }
+        final password = await askPassword(context: context, colors: colors);
+        final accountToRemove =
+            accounts.where((acc) => acc.keyId == walletId).first;
+        if (password.isNotEmpty) {
+          // validateThePassword
+          final result =
+              await providerNotifier.walletSaver.getDecryptedData(password);
+          if (result == null) {
+            throw ("Invalid password");
+          }
+          final deleteResult =
+              await providerNotifier.deleteWallet(accountToRemove);
+          if (deleteResult) {
+            notifySuccess("Account deleted successfully");
+            Navigator.pop(context);
+            return true;
+          } else {
+            throw ("Failed to delete account");
+          }
+        } else {
+          throw ("Password is required");
+        }
+      } catch (e) {
+        logError(e.toString());
+        notifyError(e.toString());
+        return false;
+      }
+    }
+
+    Future<bool> editWallet(
+        {required PublicData account,
+        Color? color,
+        IconData? icon,
+        String? name}) async {
+      try {
+        final result = await providerNotifier.editWallet(
+          account: account,
+          name: name,
+          icon: icon,
+          color: color,
+        );
+        if (result) {
+          notifySuccess("Account updated successfully");
+
+          return true;
+        } else {
+          throw ("Failed to update account");
+        }
+      } catch (e) {
+        logError(e.toString());
+        notifyError(e.toString());
+        return false;
+      }
+    }
 
     void onHorizontalSwipe(SwipeDirection direction) {
       setState(() {
         if (direction == SwipeDirection.right) {
+          if (currentAccount == null) {
+            return;
+          }
+
           showCustomDrawer(
+              editWallet: editWallet,
+              deleteWallet: (w) => deleteWallet(w.keyId),
+              account: currentAccount,
               isHidden: isHidden,
               updateBioState: updateBioState,
               canUseBio: canUseBio,
@@ -449,40 +511,30 @@ class _MainDashboardScreenState extends ConsumerState<MainDashboardScreen>
       }
     }
 
-    void reorderCrypto(int order) async {
-      assets = initialAssets;
-      final lastList = assets;
-      lastList.sort((a, b) => (b.balanceUsd).compareTo(a.balanceUsd));
+    void reorderCrypto(int order) {
       setState(() {
         currentOrder = order;
+        switch (order) {
+          case 0:
+            assets = List.from(initialAssets)
+              ..sort((a, b) => b.balanceUsd.compareTo(a.balanceUsd));
+            break;
+          case 1:
+            assets = List.from(initialAssets)
+              ..sort((a, b) => a.crypto.symbol.compareTo(b.crypto.symbol));
+            break;
+          case 2:
+            assets = initialAssets
+                .where((a) => a.crypto.type == CryptoType.network)
+                .toList();
+            break;
+          case 3:
+            assets = initialAssets
+                .where((a) => a.crypto.type == CryptoType.token)
+                .toList();
+            break;
+        }
       });
-
-      if (currentOrder == 0) {
-        setState(() {
-          assets = lastList;
-        });
-      } else if (currentOrder == 1) {
-        final lastList = assets;
-        lastList.sort((a, b) => (a.crypto.symbol).compareTo(b.crypto.symbol));
-
-        setState(() {
-          assets = lastList;
-        });
-      } else if (currentOrder == 2) {
-        // reorder according to the network
-        setState(() {
-          assets = initialAssets
-              .where((c) => c.crypto.type == CryptoType.network)
-              .toList();
-        });
-      } else if (currentOrder == 3) {
-        // reorder according to the network
-        setState(() {
-          assets = initialAssets
-              .where((c) => c.crypto.type == CryptoType.token)
-              .toList();
-        });
-      }
     }
 
     List<Asset> getFilteredCryptos() {
@@ -556,6 +608,15 @@ class _MainDashboardScreenState extends ConsumerState<MainDashboardScreen>
         key: _scaffoldKey,
         backgroundColor: colors.primaryColor,
         appBar: CustomAppBar(
+            currentAccount: currentAccount ??
+                PublicData(
+                    keyId: "",
+                    creationDate: 0,
+                    walletName: "",
+                    address: "",
+                    isWatchOnly: true),
+            editWallet: editWallet,
+            deleteWallet: deleteWallet,
             accounts: accounts ?? [],
             updateBioState: updateBioState,
             canUseBio: canUseBio,
@@ -590,14 +651,16 @@ class _MainDashboardScreenState extends ConsumerState<MainDashboardScreen>
             onRefresh: () async {
               await vibrate(duration: 10);
               if (currentAccount != null) {
-                final result =
-                    await ref.refresh(assetsResponseNotifierProvider.future);
-                if (result != null) {
+                final result = await ref.refresh(assetsNotifierProvider.future);
+                if (result.isNotEmpty) {
                   setState(() {
-                    initialAssets = result.assets;
-                    assets = result.assets;
-                    reorganizedCrypto = result.availableCryptos;
-                    totalBalance = result.totalBalanceUsd;
+                    initialAssets = result;
+                    assets = result;
+                    double balance = 0;
+                    for (final asset in assets) {
+                      balance += asset.balanceUsd;
+                    }
+                    totalBalance = balance;
                   });
                 }
               }
@@ -665,7 +728,12 @@ class _MainDashboardScreenState extends ConsumerState<MainDashboardScreen>
                             ),
                             Container(
                               alignment: Alignment.center,
-                              child: Row(
+                              child: SingleChildScrollView(
+                                physics: BouncingScrollPhysics(),
+                                            scrollDirection: Axis.horizontal, 
+
+                                child :
+                               Row(
                                   crossAxisAlignment: CrossAxisAlignment.center,
                                   mainAxisAlignment: MainAxisAlignment.center,
                                   children: List.generate(actionsData.length,
@@ -687,10 +755,10 @@ class _MainDashboardScreenState extends ConsumerState<MainDashboardScreen>
                                         text: action["name"],
                                         actIcon: action["icon"],
                                         textColor: colors.textColor,
-                                        size: 50,
+                                        size: width <= 330 ? 40 : 50,
                                         iconSize: 20,
                                         color: colors.secondaryColor);
-                                  })),
+                                  }))),
                             ),
                             SizedBox(
                               height: 20,

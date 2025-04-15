@@ -1,7 +1,6 @@
 // ignore_for_file: deprecated_member_use, use_build_context_synchronously
 
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:moonwallet/custom/web3_webview/lib/utils/loading.dart';
 import 'package:moonwallet/main.dart';
 import 'package:moonwallet/notifiers/providers.dart';
 import 'package:moonwallet/service/wallet_saver.dart';
@@ -91,18 +90,16 @@ class _AddCryptoViewState extends ConsumerState<AddCryptoView> {
   Widget build(BuildContext context) {
     final textTheme = Theme.of(context).textTheme;
     final width = MediaQuery.of(context).size.width;
-    final savedAssetsAsync = ref.watch(getSavedAssetsResponseProvider);
-    
-
-    final assetsAsync = ref.watch(assetsResponseNotifierProvider);
-    final assetsProvider = ref.watch(assetsResponseNotifierProvider.notifier);
     final currentAccountAsync = ref.watch(currentAccountProvider);
-
+    final savedCryptoAsync = ref.watch(savedCryptosProviderNotifier);
+    final savedCryptoProvider =
+        ref.watch(savedCryptosProviderNotifier.notifier);
     final accountsProvider = ref.watch(accountsNotifierProvider);
-    savedAssetsAsync.whenData((data) => {
+
+    savedCryptoAsync.whenData((data) => {
           setState(() {
-            final cryptos = data?.cryptosList;
-            if (cryptos != null) {
+            final cryptos = data;
+            if (cryptos.isNotEmpty) {
               cryptos.sort((a, b) => a.symbol.compareTo(b.symbol));
               setState(() {
                 reorganizedCrypto = cryptos;
@@ -114,18 +111,6 @@ class _AddCryptoViewState extends ConsumerState<AddCryptoView> {
     accountsProvider.whenData((data) => {
           setState(() {
             accounts = data;
-          })
-        });
-
-    assetsAsync.whenData((data) => {
-          setState(() {
-            final cryptos = data?.cryptosList;
-            if (cryptos != null) {
-              cryptos.sort((a, b) => a.symbol.compareTo(b.symbol));
-              setState(() {
-                reorganizedCrypto = cryptos;
-              });
-            }
           })
         });
 
@@ -152,8 +137,6 @@ class _AddCryptoViewState extends ConsumerState<AddCryptoView> {
                     context: context,
                     colors: colors,
                     width: width,
-                    reorganizedCrypto: reorganizedCrypto,
-                    currentAccount: currentAccount ?? nullAccount,
                     hasSaved: hasSaved);
               },
               icon: Icon(
@@ -256,9 +239,8 @@ class _AddCryptoViewState extends ConsumerState<AddCryptoView> {
                           value: crypto.canDisplay,
                           onChanged: (newVal) async {
                             try {
-                              final result = await assetsProvider
-                                  .toggleCanDisplay(crypto, newVal)
-                                  .withLoading(context, colors);
+                              final result = await savedCryptoProvider
+                                  .toggleCanDisplay(crypto, newVal);
                               if (result) {
                                 log("State changed successfully");
                               } else {

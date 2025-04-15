@@ -4,7 +4,6 @@ import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:flutter_feather_icons/flutter_feather_icons.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:moonwallet/notifiers/providers.dart';
 
 import 'package:moonwallet/service/vibration.dart';
 import 'package:moonwallet/types/types.dart';
@@ -27,6 +26,8 @@ class CustomAppBar extends ConsumerWidget implements PreferredSizeWidget {
   final List<Crypto> availableCryptos;
   final List<PublicData> accounts;
   final double totalBalanceUsd;
+  final Future<bool> Function(String keyId) deleteWallet;
+  final PublicData currentAccount;
   final ActionWithIndexType changeAccount;
   final ActionWithIndexType showPrivateData;
   final ReorderList reorderList;
@@ -40,6 +41,11 @@ class CustomAppBar extends ConsumerWidget implements PreferredSizeWidget {
 
   final void Function(File image) refreshProfile;
   final bool canUseBio;
+  final Future<bool> Function(
+      {required PublicData account,
+      String? name,
+      IconData? icon,
+      Color? color}) editWallet;
 
   const CustomAppBar(
       {super.key,
@@ -58,8 +64,11 @@ class CustomAppBar extends ConsumerWidget implements PreferredSizeWidget {
       required this.colors,
       required this.availableCryptos,
       required this.profileImage,
+      required this.editWallet,
       required this.refreshProfile,
       required this.updateBioState,
+      required this.deleteWallet,
+      required this.currentAccount,
       required this.accounts});
 
   @override
@@ -76,11 +85,16 @@ class CustomAppBar extends ConsumerWidget implements PreferredSizeWidget {
                 isHidden: isHidden,
                 updateBioState: updateBioState,
                 canUseBio: canUseBio,
+                deleteWallet: (acc) async {
+                  deleteWallet(acc.keyId);
+                },
                 refreshProfile: refreshProfile,
+                editWallet: editWallet,
                 totalBalanceUsd: totalBalanceUsd,
                 context: context,
                 profileImage: profileImage,
                 colors: colors,
+                account: currentAccount,
                 availableCryptos: availableCryptos);
           },
           icon: profileImage != null
@@ -107,51 +121,36 @@ class CustomAppBar extends ConsumerWidget implements PreferredSizeWidget {
               showAccountList(
                 colors: colors,
                 context: context,
+                accounts: accounts,
+                currentAccount: currentAccount,
+                editWallet: editWallet,
+                deleteWallet: (id) async {
+                  final res = await deleteWallet(id);
+                  return res;
+                },
                 changeAccount: changeAccount,
                 showPrivateData: showPrivateData,
                 reorderList: reorderList,
               );
             },
-            child: Consumer(builder: (ctx, ref, child) {
-              final accountAsync = ref.watch(currentAccountProvider);
-
-              return Container(
-                padding: const EdgeInsets.all(2),
-                child: Row(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: [
-                    accountAsync.when(
-                      error: (error, stack) {
-                        return Text(
-                          error.toString(),
-                          style: textTheme.bodyMedium
-                              ?.copyWith(color: colors.redColor),
-                        );
-                      },
-                      loading: () {
-                        return Text("Loading",
-                            style: textTheme.bodyMedium?.copyWith(
-                                fontSize: 16,
-                                color: colors.textColor.withOpacity(0.8)));
-                      },
-                      data: (data) {
-                        return Text(data?.walletName ?? "Not Found",
-                            style: textTheme.bodyMedium?.copyWith(
-                                fontSize: 16,
-                                color: textColor.withOpacity(0.8)));
-                      },
-                    ),
-                    SizedBox(
-                      width: 5,
-                    ),
-                    Icon(
-                      FeatherIcons.chevronDown,
-                      color: textColor,
-                    )
-                  ],
-                ),
-              );
-            })),
+            child: Container(
+              padding: const EdgeInsets.all(2),
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  Text(currentAccount.walletName,
+                      style: textTheme.bodyMedium?.copyWith(
+                          fontSize: 16, color: textColor.withOpacity(0.8))),
+                  SizedBox(
+                    width: 5,
+                  ),
+                  Icon(
+                    FeatherIcons.chevronDown,
+                    color: textColor,
+                  )
+                ],
+              ),
+            )),
       ),
       actions: <Widget>[
         IconButton(

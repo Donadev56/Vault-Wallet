@@ -303,7 +303,7 @@ class _DiscoverScreenState extends ConsumerState<DiscoverScreen>
     final textTheme = Theme.of(context).textTheme;
     final currentAccountAsync = ref.watch(currentAccountProvider);
     final accountListAsync = ref.watch(accountsNotifierProvider);
-    final assetsAsync = ref.watch(getSavedAssetsResponseProvider);
+    final savedCryptoAsync = ref.watch(savedCryptosProviderNotifier);
 
     currentAccountAsync.whenData(
       (value) {
@@ -317,13 +317,12 @@ class _DiscoverScreenState extends ConsumerState<DiscoverScreen>
         accounts = value;
       },
     );
-    assetsAsync.whenData(
+    savedCryptoAsync.whenData(
       (value) {
-        networks = value?.cryptosList
-                .where((crypto) =>
-                    crypto.canDisplay && crypto.type == CryptoType.network)
-                .toList() ??
-            [];
+        networks = value
+            .where((crypto) =>
+                crypto.canDisplay && crypto.type == CryptoType.network)
+            .toList();
       },
     );
     return Scaffold(

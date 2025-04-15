@@ -89,7 +89,6 @@ class _MyAppState extends State<MyApp> {
   void initState() {
     super.initState();
     getSavedTheme();
-
   }
 
   Future<void> getSavedTheme() async {
@@ -105,15 +104,11 @@ class _MyAppState extends State<MyApp> {
         colors = savedTheme;
       });
       SystemChrome.setSystemUIOverlayStyle(SystemUiOverlayStyle(
-  systemNavigationBarColor: colors.primaryColor, 
-  systemNavigationBarIconBrightness: Brightness.light,
-));
-
-
-    
+        systemNavigationBarColor: colors.primaryColor,
+        systemNavigationBarIconBrightness: Brightness.light,
+      ));
     } catch (e) {
       logError(e.toString());
-
     }
   }
 

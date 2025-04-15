@@ -459,7 +459,7 @@ class _WalletViewScreenState extends State<WalletViewScreen>
                                                           totalBalanceUsd),
                                                 )))),
                                 ActionsWidgets(
-                                   size: 50,
+                                    size: 50,
                                     iconSize: 22,
                                     color: colors.secondaryColor,
                                     actIcon: Icons.arrow_downward,
