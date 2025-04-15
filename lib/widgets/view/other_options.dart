@@ -77,7 +77,8 @@ void showOtherOptions(
                                   ),
                                   title: Text(
                                     "Network",
-                                    style: textTheme.bodyMedium,
+                                    style: textTheme.bodyMedium
+                                        ?.copyWith(color: colors.textColor),
                                   ),
                                   trailing: Text(
                                     "${currentCrypto.type == CryptoType.network ? currentCrypto.name : currentCrypto.network?.name}",
@@ -139,7 +140,8 @@ void showOtherOptions(
                                     ),
                                     title: Text(
                                       "View on Explorer",
-                                      style: textTheme.bodyMedium,
+                                      style: textTheme.bodyMedium
+                                          ?.copyWith(color: colors.textColor),
                                     ),
                                     trailing: Icon(
                                       Icons.chevron_right,

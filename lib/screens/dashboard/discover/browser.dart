@@ -1,6 +1,5 @@
 // ignore_for_file: deprecated_member_use
 
-import 'package:flutter/cupertino.dart';
 import 'package:http/http.dart' as http;
 import 'package:moonwallet/service/crypto_storage_manager.dart';
 import 'package:moonwallet/service/price_manager.dart';
@@ -18,10 +17,7 @@ import 'package:moonwallet/utils/constant.dart';
 import 'package:moonwallet/utils/crypto.dart';
 import 'package:moonwallet/utils/prefs.dart';
 import 'package:moonwallet/utils/themes.dart';
-import 'package:moonwallet/custom/web3_webview/lib/models/network_config.dart';
-import 'package:moonwallet/custom/web3_webview/lib/models/web3_wallet_config.dart';
 import 'package:moonwallet/custom/web3_webview/lib/web3_webview.dart';
-import 'package:moonwallet/custom/web3_webview/lib/web3_webview_eip1193.dart';
 import 'package:moonwallet/widgets/func/browser/show_bottom_options.dart';
 
 class Web3BrowserScreen extends StatefulWidget {

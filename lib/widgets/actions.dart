@@ -31,7 +31,7 @@ class ActionsWidgets extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final textTheme = Theme.of(context).textTheme;
-    
+
     return Container(
       margin: const EdgeInsets.all(10),
       child: InkWell(
@@ -57,7 +57,10 @@ class ActionsWidgets extends StatelessWidget {
                       ),
                     ),
                   )),
-              if (showName) Text(text, style: style ?? textTheme.bodySmall)
+              if (showName)
+                Text(text,
+                    style: style ??
+                        textTheme.bodySmall?.copyWith(color: textColor))
             ],
           )),
     );

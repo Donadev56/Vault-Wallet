@@ -78,8 +78,7 @@ class AssetsNotifier extends AsyncNotifier<List<Asset>> {
   Future<List<Asset>> getUserAssets({required PublicData account}) async {
     try {
       log("Updating assets");
-      final savedCrypto = await ref.watch(savedCryptosProviderNotifier.future)
-          ;
+      final savedCrypto = await ref.watch(savedCryptosProviderNotifier.future);
 
       List<Crypto> enabledCryptos = [];
       List<Asset> cryptoBalance = [];

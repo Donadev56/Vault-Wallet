@@ -355,18 +355,20 @@ class _WalletViewScreenState extends State<WalletViewScreen>
                 fontSize: 22),
           ),
           actions: [
-            IconButton(
-              onPressed: () {
-                showCryptoCandleModal(
-                    context: context,
-                    colors: colors,
-                    currentCrypto: currentCrypto);
-              },
-              icon: Icon(
-                Icons.candlestick_chart_rounded,
-                color: colors.textColor,
+            if (currentCrypto.cgSymbol != null ||
+                currentCrypto.cgSymbol?.isEmpty == false)
+              IconButton(
+                onPressed: () {
+                  showCryptoCandleModal(
+                      context: context,
+                      colors: colors,
+                      currentCrypto: currentCrypto);
+                },
+                icon: Icon(
+                  Icons.candlestick_chart_rounded,
+                  color: colors.textColor,
+                ),
               ),
-            ),
             IconButton(
               onPressed: () {
                 showOtherOptions(

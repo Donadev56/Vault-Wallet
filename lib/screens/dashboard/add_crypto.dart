@@ -30,9 +30,7 @@ class AddCryptoView extends ConsumerStatefulWidget {
 
 class _AddCryptoViewState extends ConsumerState<AddCryptoView> {
   bool isDarkMode = true;
-  Crypto? selectedNetwork;
   List<Crypto> reorganizedCrypto = [];
-  SearchingContractInfo? searchingContractInfo;
   final cryptoStorageManager = CryptoStorageManager();
   final tokenManager = TokenManager();
   List<PublicData> accounts = [];
@@ -86,6 +84,17 @@ class _AddCryptoViewState extends ConsumerState<AddCryptoView> {
     return Ulid().toUuid();
   }
 
+  notifySuccess(String message) => showCustomSnackBar(
+      context: context,
+      message: message,
+      colors: colors,
+      type: MessageType.success);
+  notifyError(String message) => showCustomSnackBar(
+      context: context,
+      message: message,
+      colors: colors,
+      type: MessageType.error);
+
   @override
   Widget build(BuildContext context) {
     final textTheme = Theme.of(context).textTheme;
@@ -118,6 +127,41 @@ class _AddCryptoViewState extends ConsumerState<AddCryptoView> {
           currentAccount = value;
         }));
 
+    Future<void> addCrypto(SearchingContractInfo? contractInfo,
+        String contractAddress, Crypto? network) async {
+      try {
+        {
+          final newCrypto = Crypto(
+              isNetworkIcon: false,
+              symbol: contractInfo?.symbol ?? "",
+              name: contractInfo?.name ?? "Unknown ",
+              color: network?.color ?? Colors.white,
+              type: CryptoType.token,
+              valueUsd: 0,
+              cryptoId: generateUUID(),
+              canDisplay: true,
+              network: network,
+              decimals: contractInfo?.decimals.toInt(),
+              binanceSymbol: "${contractInfo?.symbol}USDT",
+              contractAddress: contractAddress);
+
+          final saveResult = await savedCryptoProvider.addCrypto(newCrypto);
+          if (saveResult) {
+            hasSaved = true;
+            notifySuccess('Token added successfully.');
+
+            Navigator.pop(context);
+          } else {
+            notifyError('Error adding token.');
+            Navigator.pop(context);
+          }
+        }
+      } catch (e) {
+        logError(e.toString());
+        notifyError(e.toString());
+      }
+    }
+
     return Scaffold(
       backgroundColor: colors.primaryColor,
       appBar: AppBar(
@@ -134,6 +178,10 @@ class _AddCryptoViewState extends ConsumerState<AddCryptoView> {
             child: IconButton(
               onPressed: () {
                 showAddToken(
+                    reorganizedCrypto: reorganizedCrypto,
+                    notifyError: notifyError,
+                    notifySuccess: notifySuccess,
+                    addCrypto: addCrypto,
                     context: context,
                     colors: colors,
                     width: width,

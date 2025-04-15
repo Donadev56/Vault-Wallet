@@ -692,7 +692,8 @@ class _MainDashboardScreenState extends ConsumerState<MainDashboardScreen>
                                     children: [
                                       Text(
                                         "Balance",
-                                        style: textTheme.bodyMedium,
+                                        style: textTheme.bodyMedium
+                                            ?.copyWith(color: colors.textColor),
                                       ),
                                       IconButton(
                                           onPressed: toggleHidden,
@@ -719,7 +720,9 @@ class _MainDashboardScreenState extends ConsumerState<MainDashboardScreen>
                                         overflow: TextOverflow.clip,
                                         maxLines: 1,
                                         style: textTheme.headlineLarge
-                                            ?.copyWith(fontSize: 36),
+                                            ?.copyWith(
+                                                fontSize: 36,
+                                                color: colors.textColor),
                                       ),
                                     ],
                                   )
@@ -729,36 +732,36 @@ class _MainDashboardScreenState extends ConsumerState<MainDashboardScreen>
                             Container(
                               alignment: Alignment.center,
                               child: SingleChildScrollView(
-                                physics: BouncingScrollPhysics(),
-                                            scrollDirection: Axis.horizontal, 
-
-                                child :
-                               Row(
-                                  crossAxisAlignment: CrossAxisAlignment.center,
-                                  mainAxisAlignment: MainAxisAlignment.center,
-                                  children: List.generate(actionsData.length,
-                                      (index) {
-                                    final action = actionsData[index];
-                                    return ActionsWidgets(
-                                        onTap: () {
-                                          if (index == 1) {
-                                            showReceiveModal();
-                                          } else if (index == 0) {
-                                            showSendModal();
-                                          } else if (index == 3) {
-                                            showOptionsModal();
-                                          } else if (index == 2) {
-                                            Navigator.pushNamed(
-                                                context, Routes.addCrypto);
-                                          }
-                                        },
-                                        text: action["name"],
-                                        actIcon: action["icon"],
-                                        textColor: colors.textColor,
-                                        size: width <= 330 ? 40 : 50,
-                                        iconSize: 20,
-                                        color: colors.secondaryColor);
-                                  }))),
+                                  physics: BouncingScrollPhysics(),
+                                  scrollDirection: Axis.horizontal,
+                                  child: Row(
+                                      crossAxisAlignment:
+                                          CrossAxisAlignment.center,
+                                      mainAxisAlignment:
+                                          MainAxisAlignment.center,
+                                      children: List.generate(
+                                          actionsData.length, (index) {
+                                        final action = actionsData[index];
+                                        return ActionsWidgets(
+                                            onTap: () {
+                                              if (index == 1) {
+                                                showReceiveModal();
+                                              } else if (index == 0) {
+                                                showSendModal();
+                                              } else if (index == 3) {
+                                                showOptionsModal();
+                                              } else if (index == 2) {
+                                                Navigator.pushNamed(
+                                                    context, Routes.addCrypto);
+                                              }
+                                            },
+                                            text: action["name"],
+                                            actIcon: action["icon"],
+                                            textColor: colors.textColor,
+                                            size: width <= 330 ? 40 : 50,
+                                            iconSize: 20,
+                                            color: colors.secondaryColor);
+                                      }))),
                             ),
                             SizedBox(
                               height: 20,
@@ -791,8 +794,8 @@ class _MainDashboardScreenState extends ConsumerState<MainDashboardScreen>
                                       });
                                     },
                                     controller: _cryptoSearchTextController,
-                                    style: textTheme.bodySmall
-                                        ?.copyWith(fontSize: 13),
+                                    style: textTheme.bodySmall?.copyWith(
+                                        fontSize: 13, color: colors.textColor),
                                     decoration: InputDecoration(
                                         prefixIcon: Icon(
                                           Icons.search,
@@ -868,7 +871,8 @@ class _MainDashboardScreenState extends ConsumerState<MainDashboardScreen>
                                               .withOpacity(0.4)),
                                       SizedBox(width: 8),
                                       Text(fixedAppBarOptions[1]["name"],
-                                          style: textTheme.bodyMedium),
+                                          style: textTheme.bodyMedium?.copyWith(
+                                              color: colors.textColor)),
                                     ]),
                                   ),
                                   CustomPopMenuDivider(colors: colors),
@@ -883,7 +887,8 @@ class _MainDashboardScreenState extends ConsumerState<MainDashboardScreen>
                                               .withOpacity(0.4)),
                                       SizedBox(width: 8),
                                       Text(fixedAppBarOptions[4]["name"],
-                                          style: textTheme.bodyMedium),
+                                          style: textTheme.bodyMedium?.copyWith(
+                                              color: colors.textColor)),
                                     ]),
                                   ),
                                 ])
@@ -948,7 +953,8 @@ class _MainDashboardScreenState extends ConsumerState<MainDashboardScreen>
                                               style: textTheme.bodyMedium
                                                   ?.copyWith(
                                                       fontWeight:
-                                                          FontWeight.w400)),
+                                                          FontWeight.w400,
+                                                      color: colors.textColor)),
                                         ),
                                         Container(
                                           padding: const EdgeInsets.symmetric(
@@ -964,7 +970,9 @@ class _MainDashboardScreenState extends ConsumerState<MainDashboardScreen>
                                                   ? "${crypto.network?.name}"
                                                   : crypto.name,
                                               style: textTheme.bodySmall
-                                                  ?.copyWith(fontSize: 10)),
+                                                  ?.copyWith(
+                                                      fontSize: 10,
+                                                      color: colors.textColor)),
                                         )
                                       ],
                                     );

@@ -10,7 +10,6 @@ class SavedCryptoProvider extends AsyncNotifier<List<Crypto>> {
 
   @override
   Future<List<Crypto>> build() => getSavedCrypto();
-  
 
   Future<List<Crypto>> getSavedCrypto() async {
     try {
