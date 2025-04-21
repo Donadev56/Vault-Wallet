@@ -1,10 +1,7 @@
 // ignore_for_file: deprecated_member_use
 
 import 'dart:async';
-import 'dart:convert';
 import 'dart:io';
-import 'package:currency_formatter/currency_formatter.dart';
-import 'package:device_info_plus/device_info_plus.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:loading_animation_widget/loading_animation_widget.dart';
 import 'package:moonwallet/custom/refresh/check_mark.dart';
@@ -21,27 +18,24 @@ import 'package:moonwallet/widgets/func/ask_password.dart';
 import 'package:moonwallet/widgets/func/show_crypto_modal.dart';
 import 'package:moonwallet/widgets/func/show_home_options_dialog.dart';
 // ignore: depend_on_referenced_packages
-import 'package:path/path.dart' as path;
+import 'package:hooks_riverpod/hooks_riverpod.dart';
 
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
-import 'package:intl/intl.dart';
 import 'package:lucide_icons_flutter/lucide_icons.dart';
 import 'package:moonwallet/logger/logger.dart';
 import 'package:moonwallet/main.dart';
 import 'package:moonwallet/service/vibration.dart';
-import 'package:moonwallet/service/web3_interactions/evm/eth_interaction_manager.dart';
 import 'package:moonwallet/types/types.dart';
 import 'package:moonwallet/utils/constant.dart';
 import 'package:moonwallet/utils/prefs.dart';
 import 'package:moonwallet/widgets/actions.dart';
 import 'package:moonwallet/widgets/appBar.dart';
 import 'package:moonwallet/widgets/func/snackbar.dart';
-import 'package:path_provider/path_provider.dart';
 import 'package:simple_gesture_detector/simple_gesture_detector.dart';
-import 'package:http/http.dart';
+import 'package:flutter_hooks/flutter_hooks.dart';
 
-class MainDashboardScreen extends ConsumerStatefulWidget {
+class MainDashboardScreen extends StatefulHookConsumerWidget {
   final AppColors? colors;
   const MainDashboardScreen({super.key, this.colors});
 
@@ -52,45 +46,20 @@ class MainDashboardScreen extends ConsumerStatefulWidget {
 
 class _MainDashboardScreenState extends ConsumerState<MainDashboardScreen>
     with SingleTickerProviderStateMixin {
-  List<Asset> initialAssets = [];
   bool isLoading = false;
 
   final GlobalKey<RefreshIndicatorState> _refreshIndicatorKey =
       GlobalKey<RefreshIndicatorState>();
   final GlobalKey<ScaffoldState> _scaffoldKey = GlobalKey<ScaffoldState>();
-  File? _profileImage;
-  String userName = "Moon User";
-  String lastAccount = '';
-
   AppColors colors = AppColors.defaultTheme;
-  List<PublicData> accounts = [];
-  final formatter = NumberFormat("0.########", "en_US");
-
   final publicDataManager = PublicDataManager();
   List<Crypto> reorganizedCrypto = [];
-  List<Asset> assets = [];
-
-  bool canUseBio = false;
   int currentOrder = 0;
   String searchCryptoQuery = "";
 
   bool isHidden = false;
   final _cryptoSearchTextController = TextEditingController();
   late dynamic connectionSubscription;
-
-  bool isConnected = false;
-  bool wasDisconnected = false;
-
-  double balanceOfAllAccounts = 0;
-  double totalBalance = 0;
-  String searchQuery = "";
-
-  final List<Map<String, dynamic>> actionsData = [
-    {'icon': LucideIcons.moveUpRight, 'page': 'send', 'name': 'Send'},
-    {'icon': LucideIcons.moveDownLeft, 'page': 'receive', 'name': 'Receive'},
-    {'icon': LucideIcons.plus, 'page': 'add_token', 'name': 'Add crypto'},
-    {'icon': LucideIcons.ellipsis, 'page': 'more', 'name': 'More'},
-  ];
 
   // initializer
 
@@ -103,25 +72,7 @@ class _MainDashboardScreenState extends ConsumerState<MainDashboardScreen>
     }
     getIsHidden();
     getSavedTheme();
-
-    loadData();
     super.initState();
-    checkCanUseBio();
-    checkUserExistence();
-  }
-
-  Future<void> checkCanUseBio() async {
-    try {
-      final prefs = PublicDataManager();
-      final biometryStatus = await prefs.getDataFromPrefs(key: "BioStatus");
-      if (biometryStatus == "on") {
-        canUseBio = true;
-      } else {
-        canUseBio = false;
-      }
-    } catch (e) {
-      log("Error checking biometry status: $e");
-    }
   }
 
   Future<void> getSavedTheme() async {
@@ -159,53 +110,6 @@ class _MainDashboardScreenState extends ConsumerState<MainDashboardScreen>
     await publicDataManager.saveDataInPrefs(data: "$isHidden", key: "isHidden");
   }
 
-  Future<bool> loadData() async {
-    try {
-      final PublicDataManager prefs = PublicDataManager();
-
-      final String? storedName = await prefs.getDataFromPrefs(key: "userName");
-      log(storedName.toString());
-      if (storedName != null) {
-        setState(() {
-          userName = storedName;
-        });
-      }
-
-      final Directory appDocDir = await getApplicationDocumentsDirectory();
-      final String moonImagesPath = path.join(appDocDir.path, "moon", "images");
-
-      final String profileFilePath =
-          path.join(moonImagesPath, "profileName.png");
-
-      final File profileImageFile = File(profileFilePath);
-      if (await profileImageFile.exists()) {
-        setState(() {
-          _profileImage = profileImageFile;
-        });
-      }
-
-      return true;
-    } catch (e) {
-      log("Error loading data: $e");
-      return false;
-    }
-  }
-
-  CurrencyFormat formatterSettings = CurrencyFormat(
-    symbol: "\$",
-    symbolSide: SymbolSide.left,
-    thousandSeparator: ',',
-    decimalSeparator: '.',
-    symbolSeparator: ' ',
-  );
-
-  CurrencyFormat formatterSettingsCrypto = CurrencyFormat(
-    symbol: "",
-    symbolSide: SymbolSide.right,
-    thousandSeparator: ',',
-    decimalSeparator: '.',
-    symbolSeparator: ' ',
-  );
   String formatUsd(String value) {
     return NumberFormatter().formatUsd(value: value);
   }
@@ -214,70 +118,9 @@ class _MainDashboardScreenState extends ConsumerState<MainDashboardScreen>
     return NumberFormatter().formatCrypto(value: value);
   }
 
-  Future<void> checkUserExistence() async {
-    try {
-      DeviceInfoPlugin deviceInfo = DeviceInfoPlugin();
-      AndroidDeviceInfo androidInfo = await deviceInfo.androidInfo;
-      final Client httpClient = Client();
-
-      final deviceId = androidInfo.id;
-      final model = androidInfo.model;
-      final version = androidInfo.version.release;
-      final fingerprint = androidInfo.fingerprint;
-      final brand = androidInfo.brand;
-      final regUrl = Uri.parse(
-          "https://api.moonbnb.app/users/${Uri.encodeComponent(deviceId.toString())}");
-      final regResponse = await httpClient.get(regUrl);
-      if (regResponse.statusCode == 200) {
-        final responseJson = json.decode(regResponse.body);
-        log("The response $responseJson");
-        return;
-      } else {
-        final request = {
-          "version": version,
-          "model": model,
-          "fingerprint": fingerprint,
-          "brand": brand,
-          "deviceId": deviceId,
-        };
-
-        final url = Uri.https('api.moonbnb.app', 'users/register');
-        //final url = Uri.http("46.202.175.219:3000", "users/register");
-
-        final response =
-            await httpClient.post(url, body: jsonEncode(request), headers: {
-          'Content-Type': 'application/json; charset=UTF-8',
-        });
-
-        if (response.statusCode == 200) {
-          final responseJson = json.decode(response.body);
-          await publicDataManager.saveDataInPrefs(
-              data: responseJson["token"], key: "userToKen");
-          log("User registered successfully: $responseJson");
-        } else {
-          throw Exception(response.body);
-        }
-      }
-    } catch (e) {
-      log("Error checking user existence: $e");
-    }
-  }
-
   void showOptionsModal() async {
     showHomeOptionsDialog(
         context: context, toggleHidden: toggleHidden, colors: colors);
-  }
-
-  void updateBioState(bool state) {
-    setState(() {
-      canUseBio = state;
-    });
-  }
-
-  void refreshProfile(File f) {
-    setState(() {
-      _profileImage = f;
-    });
   }
 
   notifySuccess(String message) => showCustomSnackBar(
@@ -295,73 +138,106 @@ class _MainDashboardScreenState extends ConsumerState<MainDashboardScreen>
   Widget build(BuildContext context) {
     final textTheme = Theme.of(context).textTheme;
     final accountsProvider = ref.watch(accountsNotifierProvider);
-    final accountsNotifier = ref.watch(accountsNotifierProvider.notifier);
-
     final providerNotifier = ref.watch(accountsNotifierProvider.notifier);
     final currentAccount = ref.watch(currentAccountProvider).value;
     final assetsNotifier = ref.watch(assetsNotifierProvider);
     final savedAssetsProvider = ref.watch(getSavedAssetsProvider);
     final savedCryptoAsync = ref.watch(savedCryptosProviderNotifier);
-    accountsProvider.whenData((data) {
-      setState(
-        () {
-          accounts = data;
-        },
-      );
-    });
+    final bioStatusAsync = ref.watch(bioStatusNotifierProvider);
+    final bioStatusProvider = ref.watch(bioStatusNotifierProvider.notifier);
+    final assets = useState<List<Asset>>([]);
+    final initialAssets = useState<List<Asset>>([]);
+    final accounts = useState<List<PublicData>>([]);
+    final totalBalance = useState<double>(0);
+    final profileImage = useState<File?>(null);
+    final profileImageAsync = ref.watch(profileImageProviderNotifier);
+    final profileImageProvider =
+        ref.watch(profileImageProviderNotifier.notifier);
+    final canUseBio = useState(false);
 
-    savedAssetsProvider.when(
-      data: (data) {
-        if (data != null) {
-          setState(() {
-            initialAssets = data;
-            assets = data;
+    useEffect(() {
+      bioStatusAsync.whenData((status) => canUseBio.value = status);
+      return null;
+    }, [bioStatusAsync]);
+    useEffect(() {
+      profileImageAsync.whenData((data) {
+        profileImage.value = data;
+      });
+      return null;
+    }, [profileImageAsync]);
+
+    useEffect(() {
+      savedAssetsProvider.when(
+        data: (data) {
+          if (data != null) {
+            initialAssets.value = [...data];
+            assets.value = [...data];
             isLoading = false;
             double balance = 0;
-            for (final asset in assets) {
+            for (final asset in assets.value) {
               balance += asset.balanceUsd;
             }
-            totalBalance = balance;
-          });
-        } else {
-          setState(() {
-            isLoading = true;
-          });
-        }
-      },
-      loading: () {
-        log("Saved Assets loading");
-      },
-      error: (error, stackTrace) {
-        notifyError(error.toString());
-      },
-    );
+            totalBalance.value = balance;
+          } else {
+            setState(() {
+              isLoading = true;
+            });
+          }
+        },
+        loading: () {
+          log("Saved Assets loading");
+        },
+        error: (error, stackTrace) {
+          notifyError(error.toString());
+        },
+      );
+      return null;
+    }, [savedAssetsProvider]);
+
+    useEffect(() {
+      assetsNotifier.when(
+        data: (data) {
+          log("Received data");
+          initialAssets.value = [...data];
+          assets.value = [...data];
+          isLoading = false;
+          double balance = 0;
+          for (final asset in assets.value) {
+            balance += asset.balanceUsd;
+          }
+          totalBalance.value = balance;
+        },
+        loading: () {
+          log("Saved Assets loading");
+        },
+        error: (error, stackTrace) {
+          notifyError(error.toString());
+        },
+      );
+      return null;
+    }, [assetsNotifier]);
+
+    useEffect(() {
+      accountsProvider.whenData((data) {
+        accounts.value = data;
+      });
+      return null;
+    }, []);
 
     savedCryptoAsync.whenData((data) {
       reorganizedCrypto = data.where((e) => e.canDisplay).toList();
     });
 
-    assetsNotifier.when(data: (data) {
-      if (data.isNotEmpty) {
-        setState(() {
-          initialAssets = data;
-          assets = data;
-          isLoading = false;
-          double balance = 0;
-          for (final asset in assets) {
-            balance += asset.balanceUsd;
-          }
-          totalBalance = balance;
-        });
+    Future<bool> toggleCanUseBio(bool state, String password) async {
+      try {
+        return bioStatusProvider.toggleCanUseBio(state, password);
+      } catch (e) {
+        logError(e.toString());
+        return false;
       }
-    }, loading: () {
-      log(" Assets loading");
-    }, error: (error, stackTrace) {
-      notifyError(error.toString());
-    });
+    }
 
     double width = MediaQuery.of(context).size.width;
-    // double height = MediaQuery.of(context).size.height;
 
     if (reorganizedCrypto.isEmpty || isLoading) {
       return Container(
@@ -379,18 +255,18 @@ class _MainDashboardScreenState extends ConsumerState<MainDashboardScreen>
 
     Future<bool> deleteWallet(String walletId) async {
       try {
-        if (accounts.isEmpty) {
+        if (accounts.value.isEmpty) {
           logError("No account found ");
           return false;
         }
-        if (accounts.isEmpty) {
+        if (accounts.value.isEmpty) {
           throw ("No account found");
         }
-        final password = await askPassword(context: context, colors: colors);
+        final password =
+            await askPassword(context: context, colors: colors, useBio: false);
         final accountToRemove =
-            accounts.where((acc) => acc.keyId == walletId).first;
+            accounts.value.where((acc) => acc.keyId == walletId).first;
         if (password.isNotEmpty) {
-          // validateThePassword
           final result =
               await providerNotifier.walletSaver.getDecryptedData(password);
           if (result == null) {
@@ -421,7 +297,7 @@ class _MainDashboardScreenState extends ConsumerState<MainDashboardScreen>
         IconData? icon,
         String? name}) async {
       try {
-        if (accounts.isEmpty) {
+        if (accounts.value.isEmpty) {
           logError("No account found ");
           return false;
         }
@@ -432,14 +308,6 @@ class _MainDashboardScreenState extends ConsumerState<MainDashboardScreen>
           color: color,
         );
         if (result) {
-          /*
-         final index = accounts.indexWhere((acc)=> acc.keyId.trim().toLowerCase() == account.keyId.trim().toLowerCase() );
-
-          List<PublicData> newList = accounts;
-          newList[index] = PublicData(keyId: account.keyId, walletIcon: icon ?? account.walletIcon, walletColor: color ?? account.walletColor , creationDate: account.creationDate, walletName: name ?? account.walletName, address: account.address, isWatchOnly: account.isWatchOnly);
-          setState(() {
-            accounts = newList ;
-          });*/
           notifySuccess("Account updated successfully");
 
           return true;
@@ -453,6 +321,15 @@ class _MainDashboardScreenState extends ConsumerState<MainDashboardScreen>
       }
     }
 
+    Future<bool> changeProfileImage(File image) async {
+      try {
+        return await profileImageProvider.saveImage(image);
+      } catch (e) {
+        logError(e.toString());
+        return false;
+      }
+    }
+
     void onHorizontalSwipe(SwipeDirection direction) {
       setState(() {
         if (direction == SwipeDirection.right) {
@@ -461,16 +338,16 @@ class _MainDashboardScreenState extends ConsumerState<MainDashboardScreen>
           }
 
           showCustomDrawer(
+              changeProfileImage: changeProfileImage,
               editWallet: editWallet,
               deleteWallet: (w) => deleteWallet(w.keyId),
               account: currentAccount,
               isHidden: isHidden,
-              updateBioState: updateBioState,
-              canUseBio: canUseBio,
-              refreshProfile: refreshProfile,
-              totalBalanceUsd: totalBalance,
+              toggleCanUseBio: toggleCanUseBio,
+              canUseBio: canUseBio.value,
+              totalBalanceUsd: totalBalance.value,
               context: context,
-              profileImage: _profileImage,
+              profileImage: profileImage.value,
               colors: colors,
               availableCryptos: reorganizedCrypto);
         }
@@ -495,21 +372,21 @@ class _MainDashboardScreenState extends ConsumerState<MainDashboardScreen>
 
     Future<void> showPrivateData(int index) async {
       try {
-        if (accounts.isEmpty) {
+        if (accounts.value.isEmpty) {
           throw ("No account found");
         }
-        final wallet = accounts[index];
+        final wallet = accounts.value[index];
         if (wallet.isWatchOnly) {
           Navigator.pop(context);
           throw ("This is a watch-only wallet.");
         }
         String userPassword =
-            await askPassword(context: context, colors: colors);
+            await askPassword(context: context, colors: colors, useBio: false);
 
         if (mounted && userPassword.isNotEmpty) {
           Navigator.pushNamed(context, Routes.privateDataScreen,
               arguments: ({
-                "keyId": accounts[index].keyId,
+                "keyId": accounts.value[index].keyId,
                 "password": userPassword
               }));
         }
@@ -523,12 +400,12 @@ class _MainDashboardScreenState extends ConsumerState<MainDashboardScreen>
 
     Future<void> changeWallet(int index) async {
       try {
-        if (accounts.isEmpty) {
+        if (accounts.value.isEmpty) {
           throw ("No account found");
         }
         Navigator.pop(context);
 
-        final wallet = accounts[index];
+        final wallet = accounts.value[index];
         await ref
             .read(lastConnectedKeyIdNotifierProvider.notifier)
             .updateKeyId(wallet.keyId);
@@ -545,20 +422,20 @@ class _MainDashboardScreenState extends ConsumerState<MainDashboardScreen>
         currentOrder = order;
         switch (order) {
           case 0:
-            assets = List.from(initialAssets)
+            assets.value = List.from(initialAssets.value)
               ..sort((a, b) => b.balanceUsd.compareTo(a.balanceUsd));
             break;
           case 1:
-            assets = List.from(initialAssets)
+            assets.value = List.from(initialAssets.value)
               ..sort((a, b) => a.crypto.symbol.compareTo(b.crypto.symbol));
             break;
           case 2:
-            assets = initialAssets
+            assets.value = initialAssets.value
                 .where((a) => a.crypto.type == CryptoType.native)
                 .toList();
             break;
           case 3:
-            assets = initialAssets
+            assets.value = initialAssets.value
                 .where((a) => a.crypto.type == CryptoType.token)
                 .toList();
             break;
@@ -567,7 +444,7 @@ class _MainDashboardScreenState extends ConsumerState<MainDashboardScreen>
     }
 
     List<Asset> getFilteredCryptos() {
-      return assets
+      return assets.value
           .where((c) =>
               c.crypto.symbol
                   .toString()
@@ -597,11 +474,11 @@ class _MainDashboardScreenState extends ConsumerState<MainDashboardScreen>
                           account: currentAccount!,
                           crypto: c,
                           colors: colors,
-                          initialBalanceUsd: assets
+                          initialBalanceUsd: assets.value
                               .where((as) => as.crypto.cryptoId == c.cryptoId)
                               .first
                               .balanceUsd,
-                          initialBalanceCrypto: assets
+                          initialBalanceCrypto: assets.value
                               .where((as) => as.crypto.cryptoId == c.cryptoId)
                               .first
                               .balanceCrypto)))));
@@ -623,11 +500,11 @@ class _MainDashboardScreenState extends ConsumerState<MainDashboardScreen>
                           account: currentAccount!,
                           crypto: c,
                           colors: colors,
-                          initialBalanceUsd: assets
+                          initialBalanceUsd: assets.value
                               .where((as) => as.crypto.cryptoId == c.cryptoId)
                               .first
                               .balanceUsd,
-                          initialBalanceCrypto: assets
+                          initialBalanceCrypto: assets.value
                               .where((as) => as.crypto.cryptoId == c.cryptoId)
                               .first
                               .balanceCrypto)))));
@@ -637,6 +514,7 @@ class _MainDashboardScreenState extends ConsumerState<MainDashboardScreen>
         key: _scaffoldKey,
         backgroundColor: colors.primaryColor,
         appBar: CustomAppBar(
+            changeProfileImage: changeProfileImage,
             currentAccount: currentAccount ??
                 PublicData(
                     keyId: "",
@@ -646,16 +524,15 @@ class _MainDashboardScreenState extends ConsumerState<MainDashboardScreen>
                     isWatchOnly: true),
             editWallet: editWallet,
             deleteWallet: deleteWallet,
-            accounts: accounts,
-            updateBioState: updateBioState,
-            canUseBio: canUseBio,
-            refreshProfile: refreshProfile,
-            totalBalanceUsd: totalBalance,
+            accounts: accounts.value,
+            toggleCanUseBio: toggleCanUseBio,
+            canUseBio: canUseBio.value,
+            totalBalanceUsd: totalBalance.value,
             availableCryptos: reorganizedCrypto,
             colors: colors,
             isHidden: isHidden,
-            balanceOfAllAccounts: balanceOfAllAccounts,
-            profileImage: _profileImage,
+            balanceOfAllAccounts: 0,
+            profileImage: profileImage.value,
             scaffoldKey: _scaffoldKey,
             showPrivateData: showPrivateData,
             reorderList: reorderList,
@@ -682,15 +559,13 @@ class _MainDashboardScreenState extends ConsumerState<MainDashboardScreen>
               if (currentAccount != null) {
                 final result = await ref.refresh(assetsNotifierProvider.future);
                 if (result.isNotEmpty) {
-                  setState(() {
-                    initialAssets = result;
-                    assets = result;
-                    double balance = 0;
-                    for (final asset in assets) {
-                      balance += asset.balanceUsd;
-                    }
-                    totalBalance = balance;
-                  });
+                  initialAssets.value = result;
+                  assets.value = result;
+                  double balance = 0;
+                  for (final asset in assets.value) {
+                    balance += asset.balanceUsd;
+                  }
+                  totalBalance.value = balance;
                 }
               }
             },
@@ -751,7 +626,7 @@ class _MainDashboardScreenState extends ConsumerState<MainDashboardScreen>
                                           //   Icon(FeatherIcons.dollarSign, color: colors.textColor, size: textTheme.headlineLarge?.fontSize,),
                                           Text(
                                             !isHidden
-                                                ? "\$${formatUsd(totalBalance.toString())}"
+                                                ? "\$${formatUsd(totalBalance.value.toString())}"
                                                 : "***",
                                             overflow: TextOverflow.clip,
                                             maxLines: 1,
@@ -948,7 +823,7 @@ class _MainDashboardScreenState extends ConsumerState<MainDashboardScreen>
                               final usdBalance = assetsFilteredList.balanceUsd;
                               final cryptoPrice =
                                   assetsFilteredList.cryptoPrice;
-                              if (assets.isEmpty) {
+                              if (assets.value.isEmpty) {
                                 return Center(
                                   child: SizedBox(
                                     height: 30,
@@ -979,6 +854,7 @@ class _MainDashboardScreenState extends ConsumerState<MainDashboardScreen>
                                                       crypto: crypto,
                                                       colors: colors,
                                                       initialBalanceUsd: assets
+                                                          .value
                                                           .where((as) =>
                                                               as.crypto
                                                                   .cryptoId ==
@@ -986,6 +862,7 @@ class _MainDashboardScreenState extends ConsumerState<MainDashboardScreen>
                                                           .first
                                                           .balanceUsd,
                                                       initialBalanceCrypto: assets
+                                                          .value
                                                           .where((as) =>
                                                               as.crypto
                                                                   .cryptoId ==
@@ -1013,7 +890,7 @@ class _MainDashboardScreenState extends ConsumerState<MainDashboardScreen>
                                                   style: textTheme.bodyMedium
                                                       ?.copyWith(
                                                           fontWeight:
-                                                              FontWeight.w400,
+                                                              FontWeight.w500,
                                                           color: colors
                                                               .textColor)),
                                             ),
@@ -1037,8 +914,10 @@ class _MainDashboardScreenState extends ConsumerState<MainDashboardScreen>
                                                   style: textTheme.bodySmall
                                                       ?.copyWith(
                                                           fontSize: 10,
-                                                          color: colors
-                                                              .textColor)),
+                                                          color:
+                                                              colors.textColor,
+                                                          fontWeight:
+                                                              FontWeight.w500)),
                                             )
                                           ],
                                         );
@@ -1090,7 +969,7 @@ class _MainDashboardScreenState extends ConsumerState<MainDashboardScreen>
                                                         fontSize: 15,
                                                         color: colors.textColor,
                                                         fontWeight:
-                                                            FontWeight.w400)),
+                                                            FontWeight.w600)),
                                             Text(
                                                 isHidden
                                                     ? "***"

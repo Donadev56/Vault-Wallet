@@ -10,6 +10,7 @@ import 'package:moonwallet/widgets/func/snackbar.dart';
 Future<String> askPassword(
     {required BuildContext context,
     required AppColors colors,
+    bool useBio = true,
     String title = "Enter Password"}) async {
   String userPassword = "";
   int attempt = 0;
@@ -17,19 +18,23 @@ Future<String> askPassword(
   bool didAuthenticate = false;
   final manager = WalletSaver();
 
-  final biometryStatus =
-      await PublicDataManager().getDataFromPrefs(key: "BioStatus");
-  if (biometryStatus == "on") {
-    try {
-      didAuthenticate = await auth.authenticate(
-          localizedReason: 'Please authenticate to continue');
-    } catch (e) {
-      logError(e.toString());
+  if (useBio) {
+    final biometryStatus =
+        await PublicDataManager().getDataFromPrefs(key: "BioStatus");
+
+    if (biometryStatus == "on") {
+      try {
+        didAuthenticate = await auth.authenticate(
+            localizedReason: 'Please authenticate to continue');
+      } catch (e) {
+        logError(e.toString());
+        didAuthenticate = false;
+      }
+    } else {
       didAuthenticate = false;
     }
-  } else {
-    didAuthenticate = false;
   }
+
   if (didAuthenticate) {
     final savedKey = await manager.getSavedPassword();
     if (savedKey != null) {
@@ -38,6 +43,7 @@ Future<String> askPassword(
       return "";
     }
   }
+
   final res = await showPinModalBottomSheet(
       colors: colors,
       // ignore: use_build_context_synchronously

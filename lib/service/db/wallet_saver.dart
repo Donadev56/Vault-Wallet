@@ -351,6 +351,16 @@ class WalletSaver {
     }
   }
 
+  Future<bool> isPasswordValid(String password) async {
+    try {
+      final data = await getDecryptedData(password);
+      return data != null && data.isNotEmpty;
+    } catch (e) {
+      logError(e.toString());
+      return false;
+    }
+  }
+
   /* Future<bool> saveListPublicData ({required List<PublicData> wallets}) async {
     try {
       final Store store = await openStore(directory: 'person-db');

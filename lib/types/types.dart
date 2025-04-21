@@ -335,7 +335,7 @@ class Crypto {
                 .map((e) => e.toString())
                 .toList()
             : null,
-        decimals: cryptoJson["decimals"],
+        decimals: cryptoJson["decimals"] ?? 18,
         chainId: cryptoJson["chainId"],
         network: cryptoJson["network"] != null
             ? Crypto.fromJson(cryptoJson["network"])
@@ -346,7 +346,7 @@ class Crypto {
                 .map((e) => e.toString())
                 .toList()
             : null,
-        valueUsd: cryptoJson["valueUsd"],
+        valueUsd: cryptoJson["valueUsd"] ?? 0,
         symbol: cryptoJson["symbol"],
         cgSymbol: cryptoJson["cgSymbol"] ?? "");
   }

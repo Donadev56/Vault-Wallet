@@ -7,7 +7,6 @@ import 'package:moonwallet/service/db/wallet_saver.dart';
 import 'package:moonwallet/types/types.dart';
 import 'package:moonwallet/widgets/func/ask_user_for_conf.dart';
 import 'package:moonwallet/widgets/func/ask_password.dart';
-import 'package:moonwallet/widgets/func/show_loader.dart';
 import 'package:moonwallet/widgets/func/snackbar.dart';
 import 'package:web3dart/web3dart.dart';
 import 'package:http/http.dart';
@@ -96,7 +95,8 @@ class EthInteractionManager {
         logError("Address is empty");
         throw Exception("Address is empty");
       }
-      final password = await askPassword(context: context, colors: colors);
+      final password =
+          await askPassword(context: context, colors: colors, useBio: true);
       if (password.isNotEmpty) {
         try {
           final cred =
@@ -484,7 +484,8 @@ class EthInteractionManager {
         data: transData.isEmpty ? null : hexToUint8List(transData),
       );
 
-      String userPassword = await askPassword(context: context, colors: colors);
+      String userPassword =
+          await askPassword(context: context, colors: colors, useBio: true);
 
       if (userPassword.isNotEmpty) {
         final result = await sendTransaction(

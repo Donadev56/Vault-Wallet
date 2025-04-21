@@ -159,7 +159,7 @@ class TokenManager {
       final transferFunction = contract.function("transfer");
 
       if (account.isWatchOnly) {
-        showWatchOnlyWaring(colors, context);
+        showWatchOnlyWaring(colors: colors, context: context);
         throw Exception(
             "This account is a watch-only account, you can't send transactions.");
       }
@@ -228,7 +228,8 @@ class TokenManager {
       );
 
       String userPassword = "";
-      userPassword = await askPassword(context: context, colors: colors);
+      userPassword =
+          await askPassword(context: context, colors: colors, useBio: true);
 
       if (userPassword.isNotEmpty) {
         final result = await web3InteractionManager

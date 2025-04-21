@@ -5,11 +5,8 @@ import 'package:flutter/material.dart';
 import 'package:flutter_feather_icons/flutter_feather_icons.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:moonwallet/screens/dashboard/main/edit_wallets.dart';
-import 'package:moonwallet/screens/dashboard/page_manager.dart';
-
 import 'package:moonwallet/service/vibration.dart';
 import 'package:moonwallet/types/types.dart';
-import 'package:moonwallet/widgets/appBar/show_accounts_list.dart';
 import 'package:moonwallet/widgets/appBar/show_custom_drawer.dart';
 import 'package:moonwallet/widgets/appBar/show_wallet_actions.dart';
 import 'package:page_transition/page_transition.dart';
@@ -40,9 +37,8 @@ class CustomAppBar extends ConsumerWidget implements PreferredSizeWidget {
   final double balanceOfAllAccounts;
   final bool isHidden;
   final AppColors colors;
-  final void Function(bool state) updateBioState;
-
-  final void Function(File image) refreshProfile;
+  final Future<bool> Function(File) changeProfileImage;
+  final Future<bool> Function(bool state, String password) toggleCanUseBio;
   final bool canUseBio;
   final Future<bool> Function(
       {required PublicData account,
@@ -68,10 +64,10 @@ class CustomAppBar extends ConsumerWidget implements PreferredSizeWidget {
       required this.availableCryptos,
       required this.profileImage,
       required this.editWallet,
-      required this.refreshProfile,
-      required this.updateBioState,
+      required this.toggleCanUseBio,
       required this.deleteWallet,
       required this.currentAccount,
+      required this.changeProfileImage,
       required this.accounts});
 
   @override
@@ -85,13 +81,13 @@ class CustomAppBar extends ConsumerWidget implements PreferredSizeWidget {
       leading: IconButton(
           onPressed: () {
             showCustomDrawer(
+                changeProfileImage: changeProfileImage,
                 isHidden: isHidden,
-                updateBioState: updateBioState,
+                toggleCanUseBio: toggleCanUseBio,
                 canUseBio: canUseBio,
                 deleteWallet: (acc) async {
                   deleteWallet(acc.keyId);
                 },
-                refreshProfile: refreshProfile,
                 editWallet: editWallet,
                 totalBalanceUsd: totalBalanceUsd,
                 context: context,

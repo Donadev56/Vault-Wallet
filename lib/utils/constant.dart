@@ -38,6 +38,13 @@ String formatTimeElapsed(int timestamp) {
   }
 }
 
+final List<Map<String, dynamic>> actionsData = [
+  {'icon': LucideIcons.moveUpRight, 'page': 'send', 'name': 'Send'},
+  {'icon': LucideIcons.moveDownLeft, 'page': 'receive', 'name': 'Receive'},
+  {'icon': LucideIcons.plus, 'page': 'add_token', 'name': 'Add crypto'},
+  {'icon': LucideIcons.ellipsis, 'page': 'more', 'name': 'More'},
+];
+
 void goToHome(BuildContext context) {
   Navigator.push(
       context, MaterialPageRoute(builder: (context) => HomeScreen()));
@@ -281,3 +288,53 @@ final List<DApp> dapps = [
     isNetworkImage: true,
   ),
 ];
+/*
+  Future<void> checkUserExistence() async {
+    try {
+      DeviceInfoPlugin deviceInfo = DeviceInfoPlugin();
+      AndroidDeviceInfo androidInfo = await deviceInfo.androidInfo;
+      final Client httpClient = Client();
+
+      final deviceId = androidInfo.id;
+      final model = androidInfo.model;
+      final version = androidInfo.version.release;
+      final fingerprint = androidInfo.fingerprint;
+      final brand = androidInfo.brand;
+      final regUrl = Uri.parse(
+          "https://api.moonbnb.app/users/${Uri.encodeComponent(deviceId.toString())}");
+      final regResponse = await httpClient.get(regUrl);
+      if (regResponse.statusCode == 200) {
+        final responseJson = json.decode(regResponse.body);
+        log("The response $responseJson");
+        return;
+      } else {
+        final request = {
+          "version": version,
+          "model": model,
+          "fingerprint": fingerprint,
+          "brand": brand,
+          "deviceId": deviceId,
+        };
+
+        final url = Uri.https('api.moonbnb.app', 'users/register');
+        //final url = Uri.http("46.202.175.219:3000", "users/register");
+
+        final response =
+            await httpClient.post(url, body: jsonEncode(request), headers: {
+          'Content-Type': 'application/json; charset=UTF-8',
+        });
+
+        if (response.statusCode == 200) {
+          final responseJson = json.decode(response.body);
+          await publicDataManager.saveDataInPrefs(
+              data: responseJson["token"], key: "userToKen");
+          log("User registered successfully: $responseJson");
+        } else {
+          throw Exception(response.body);
+        }
+      }
+    } catch (e) {
+      log("Error checking user existence: $e");
+    }
+  }
+*/

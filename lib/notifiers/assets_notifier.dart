@@ -30,7 +30,7 @@ class AssetsNotifier extends AsyncNotifier<List<Asset>> {
   Future<PublicData?> getAccount() async {
     try {
       PublicData? account;
-      final savedAccount = await ref.read(currentAccountProvider.future);
+      final savedAccount = await ref.watch(currentAccountProvider.future);
       if (savedAccount != null) {
         return savedAccount;
       }
@@ -67,6 +67,7 @@ class AssetsNotifier extends AsyncNotifier<List<Asset>> {
     try {
       final result =
           await cryptoStorage.saveListAssets(assets: assets, account: account);
+
       ref.invalidate(getSavedAssetsProvider);
       return result;
     } catch (e) {
@@ -85,6 +86,7 @@ class AssetsNotifier extends AsyncNotifier<List<Asset>> {
               d.id.toLowerCase().trim() ==
               crypto.cgSymbol?.toLowerCase().trim())
           .firstOrNull;
+
       final balance = cryptoBalance;
       log("Balance $balance");
 
@@ -93,6 +95,7 @@ class AssetsNotifier extends AsyncNotifier<List<Asset>> {
       final cryptoPrice = tokenData?.currentPrice ?? 0;
 
       final balanceUsd = cryptoPrice * balance;
+
       return {
         "cryptoBalance": Asset(
             crypto: crypto,

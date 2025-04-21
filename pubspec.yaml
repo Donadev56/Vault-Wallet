@@ -111,6 +111,8 @@ dependencies:
   animated_toggle_switch: ^0.8.4
   page_transition: ^2.2.1
   cached_network_image: ^3.4.1
+  hooks_riverpod: ^2.6.1
+  flutter_hooks: ^0.21.2
 
 
 

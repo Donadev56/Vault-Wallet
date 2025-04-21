@@ -1,7 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:moonwallet/types/types.dart';
 
-void showWatchOnlyWaring(AppColors colors, BuildContext context) {
+void showWatchOnlyWaring(
+    {required AppColors colors,
+    String text =
+        "This is a watch wallet only, it does not contain any valid keys.",
+    required BuildContext context}) {
   showDialog(
       context: context,
       builder: (BuildContext wOCtx) {
@@ -14,7 +18,7 @@ void showWatchOnlyWaring(AppColors colors, BuildContext context) {
             style: textTheme.headlineMedium?.copyWith(color: colors.textColor),
           ),
           content: Text(
-            "This a watch-only account, you won't be able to send the transaction on the blockchain.",
+            text,
             style: textTheme.bodyMedium?.copyWith(color: colors.redColor),
           ),
           actions: [

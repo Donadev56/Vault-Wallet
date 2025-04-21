@@ -1,9 +1,13 @@
+import 'dart:io';
+
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:internet_connection_checker_plus/internet_connection_checker_plus.dart';
 import 'package:moonwallet/logger/logger.dart';
 import 'package:moonwallet/notifiers/accounts_notifier.dart';
 import 'package:moonwallet/notifiers/assets_notifier.dart';
+import 'package:moonwallet/notifiers/bio_status_notifier.dart';
 import 'package:moonwallet/notifiers/last_account_notifier.dart';
+import 'package:moonwallet/notifiers/profile_image_notifier.dart';
 import 'package:moonwallet/notifiers/saved_crypto.dart';
 import 'package:moonwallet/notifiers/web3_notifier.dart';
 import 'package:moonwallet/service/db/crypto_storage_manager.dart';
@@ -28,6 +32,10 @@ final assetsNotifierProvider =
     AsyncNotifierProvider<AssetsNotifier, List<types.Asset>>(
         AssetsNotifier.new);
 
+final profileImageProviderNotifier =
+    AsyncNotifierProvider<ProfileImageNotifier, File?>(
+        ProfileImageNotifier.new);
+
 final colorsManagerProvider = Provider((ref) => ColorsManager());
 
 final walletSaverProvider = Provider((ref) => WalletSaver());
@@ -41,12 +49,18 @@ final savedCryptosProviderNotifier =
     AsyncNotifierProvider<SavedCryptoProvider, List<types.Crypto>>(
         SavedCryptoProvider.new);
 
+final bioStatusNotifierProvider =
+    AsyncNotifierProvider<BioStatusNotifier, bool>(BioStatusNotifier.new);
+
 final getSavedAssetsProvider = FutureProvider<List<types.Asset>?>((ref) async {
   final cryptoStorage = ref.watch(cryptoStorageProvider);
   final account = await ref.watch(currentAccountProvider.future);
   if (account != null) {
     log("Getting saved assets");
-    return await cryptoStorage.getSavedAssets(wallet: account);
+    final savedAssets = await cryptoStorage.getSavedAssets(wallet: account);
+    log("Saved Assets len ${savedAssets?.length}");
+
+    return savedAssets;
   }
   return null;
 });
@@ -78,26 +92,6 @@ final currentAccountProvider = FutureProvider<types.PublicData?>((ref) async {
 final lastConnectedKeyIdNotifierProvider =
     AsyncNotifierProvider<LastConnectedKeyIdNotifier, String?>(
         LastConnectedKeyIdNotifier.new);
-
-/*
-final cryptoSymbolsStreamUrlProvider = FutureProvider<String>((ref) async {
-  final savedCryptos = await ref.watch(savedCryptosProviderNotifier.future);
-
-  final streams = savedCryptos
-      .where((c) =>
-          c.binanceSymbol != null &&
-          c.binanceSymbol!.toLowerCase().contains('usdt'))
-      .map((c) => '${c.binanceSymbol!.toLowerCase()}@trade')
-      .toList();
-
-  if (streams.isEmpty) {
-    throw Exception("No crypto to listen");
-  }
-
-  final combinedStreams = streams.join('/');
-  return 'wss://stream.binance.com:9443/stream?streams=$combinedStreams';
-});
-*/
 
 final web3ProviderNotifier = Provider<Web3Notifier>((ref) {
   return Web3Notifier(ref);

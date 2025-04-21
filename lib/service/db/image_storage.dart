@@ -2,11 +2,11 @@ import 'dart:io';
 import 'package:path_provider/path_provider.dart';
 import 'package:path/path.dart' as path;
 
-import '../logger/logger.dart';
+import '../../logger/logger.dart';
 
 class ImageStorageManager {
-  Future<bool> saveData(
-      {required File image, String pathName = "profileName.png"}) async {
+  Future<bool> saveImage(
+      {required File image, required String fileName}) async {
     try {
       final Directory appDocDir = await getApplicationDocumentsDirectory();
 
@@ -17,7 +17,7 @@ class ImageStorageManager {
         await moonImagesDir.create(recursive: true);
       }
 
-      final String profileFilePath = path.join(moonImagesPath, pathName);
+      final String profileFilePath = path.join(moonImagesPath, fileName);
       await image.copy(profileFilePath);
 
       return true;
@@ -27,14 +27,14 @@ class ImageStorageManager {
     }
   }
 
-  Future<File?> getProfileImage({String pathName = "profileName.png"}) async {
+  Future<File?> getProfileImage({required String fileName}) async {
     try {
       // Retrieve the app's documents directory.
       final Directory appDocDir = await getApplicationDocumentsDirectory();
       final String moonImagesPath = path.join(appDocDir.path, "moon", "images");
 
       // Define file paths for the profile and background images.
-      final String profileFilePath = path.join(moonImagesPath, pathName);
+      final String profileFilePath = path.join(moonImagesPath, fileName);
 
       // Check if the profile image exists and update the state.
       final File profileImageFile = File(profileFilePath);

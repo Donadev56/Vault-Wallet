@@ -2,98 +2,77 @@
 
 import 'dart:io';
 import 'dart:ui';
-
-import 'package:animated_toggle_switch/animated_toggle_switch.dart';
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
-import 'package:image_picker/image_picker.dart';
-import 'package:local_auth/local_auth.dart';
 import 'package:lucide_icons_flutter/lucide_icons.dart';
 import 'package:moonwallet/screens/dashboard/wallet_actions/private/private_key_screen.dart';
 import 'package:moonwallet/screens/dashboard/settings/change_colors.dart';
 import 'package:moonwallet/utils/number_formatter.dart';
-import 'package:moonwallet/service/profile_image_manager.dart';
-import 'package:moonwallet/service/db/wallet_saver.dart';
 import 'package:moonwallet/types/types.dart';
-import 'package:moonwallet/utils/prefs.dart';
 import 'package:moonwallet/widgets/avatar_modal.dart';
-import 'package:moonwallet/widgets/bottom_pin_copy.dart';
 import 'package:moonwallet/widgets/crypto_picture.dart';
 import 'package:moonwallet/widgets/custom_options.dart';
-import 'package:moonwallet/widgets/flowting_modat.dart';
 import 'package:moonwallet/widgets/func/ask_password.dart';
+import 'package:moonwallet/widgets/func/show_change_password_procedure.dart';
+import 'package:moonwallet/widgets/func/show_profile_image_picker.dart';
+import 'package:moonwallet/widgets/func/show_watch_only_warning.dart';
 import 'package:moonwallet/widgets/func/snackbar.dart';
+import 'package:moonwallet/widgets/profile_placeholder.dart';
 import 'package:simple_gesture_detector/simple_gesture_detector.dart';
 
-import '../../logger/logger.dart';
-
-void showCustomDrawer(
-    {required BuildContext context,
-    File? profileImage,
-    required AppColors colors,
-    required List<Crypto> availableCryptos,
-    required double totalBalanceUsd,
-    required PublicData account,
-    required Future<void> Function(PublicData account) deleteWallet,
-    required bool canUseBio,
-    required void Function(bool state) updateBioState,
-    required bool isHidden,
-    required Future Function(
-            {required PublicData account,
-            String? name,
-            IconData? icon,
-            Color? color})
-        editWallet,
-    required void Function(File file) refreshProfile}) {
+void showCustomDrawer({
+  required BuildContext context,
+  File? profileImage,
+  required Future<bool> Function(File) changeProfileImage,
+  required AppColors colors,
+  required List<Crypto> availableCryptos,
+  required double totalBalanceUsd,
+  required PublicData account,
+  required Future<void> Function(PublicData account) deleteWallet,
+  required bool canUseBio,
+  required Future<bool> Function(bool state, String password) toggleCanUseBio,
+  required bool isHidden,
+  required Future Function(
+          {required PublicData account,
+          String? name,
+          IconData? icon,
+          Color? color})
+      editWallet,
+}) {
   bool canEditWalletName = false;
   TextEditingController textController = TextEditingController();
   String walletName = account.walletName;
   File? currentImage = profileImage;
-  final ImagePicker picker = ImagePicker();
-  final ImageStorageManager storageManager = ImageStorageManager();
-  String newPassword = "";
-  String confirmPassword = "";
 
   String formatUsd(String value) {
     return NumberFormatter().formatUsd(value: value);
   }
 
-  Future<File?> pickImage() async {
-    final XFile? image = await picker.pickImage(source: ImageSource.gallery);
-    if (image != null) {
-      return File(image.path);
-    } else {
-      return null;
-    }
-  }
-
-  Future<void> pickProfileImage() async {
-    log("Picking profile image");
-    final File? image = await pickImage();
-    if (image != null) {
-      currentImage = image;
-    }
-  }
-
   showAvatarModalBottomSheet(
       avatarChild: currentImage != null
           ? Image.file(
-              currentImage ?? File(""),
+              currentImage,
               width: 70,
               height: 70,
               fit: BoxFit.cover,
             )
-          : Image.asset(
-              "assets/pro/image.png",
-              width: 70,
-              height: 70,
-              fit: BoxFit.cover,
-            ),
+          : ProfilePlaceholder(colors: colors),
       colors: colors,
       context: context,
       profileImage: currentImage,
       builder: (context) {
         final textTheme = Theme.of(context).textTheme;
+
+        notifySuccess(String message) => showCustomSnackBar(
+            context: context,
+            message: message,
+            colors: colors,
+            type: MessageType.success);
+        notifyError(String message) => showCustomSnackBar(
+            context: context,
+            message: message,
+            colors: colors,
+            type: MessageType.error);
 
         return StatefulBuilder(builder: (context, st) {
           return SimpleGestureDetector(
@@ -298,7 +277,7 @@ void showCustomDrawer(
                             options: [
                               Option(
                                   tileColor:
-                                      colors.secondaryColor.withOpacity(0.5),
+                                      colors.secondaryColor.withOpacity(0.7),
                                   title: "Change App Theme",
                                   icon: Icon(
                                     LucideIcons.palette,
@@ -327,7 +306,7 @@ void showCustomDrawer(
                                   titleStyle: textTheme.bodySmall?.copyWith(
                                       color: colors.textColor, fontSize: 14))
                             ],
-                            onTap: (i) {
+                            onTap: (i) async {
                               if (i == 0) {
                                 Navigator.push(
                                     context,
@@ -335,189 +314,16 @@ void showCustomDrawer(
                                       builder: (context) => ChangeThemeView(),
                                     ));
                               } else if (i == 1) {
-                                showFloatingModalBottomSheet(
-                                    backgroundColor: colors.primaryColor,
+                                final file = await showProfileImagePicker(
+                                    colors: colors,
                                     context: context,
-                                    builder: (ctx) {
-                                      return StatefulBuilder(
-                                          builder: (ctx, setFState) {
-                                        return ListView(
-                                          shrinkWrap: true,
-                                          children: [
-                                            Material(
-                                                color: Colors.transparent,
-                                                child: InkWell(
-                                                  onTap: () async {
-                                                    await pickProfileImage();
-                                                    setFState(() {});
-                                                    st(() {});
-                                                    refreshProfile(
-                                                        currentImage!);
-                                                  },
-                                                  child: Padding(
-                                                    padding:
-                                                        const EdgeInsets.all(
-                                                            10),
-                                                    child: Align(
-                                                        alignment:
-                                                            Alignment.center,
-                                                        child: Stack(
-                                                          children: [
-                                                            ClipRRect(
-                                                              borderRadius:
-                                                                  BorderRadius
-                                                                      .circular(
-                                                                          50),
-                                                              child:
-                                                                  currentImage !=
-                                                                          null
-                                                                      ? Image
-                                                                          .file(
-                                                                          currentImage ??
-                                                                              File(""),
-                                                                          width:
-                                                                              70,
-                                                                          height:
-                                                                              70,
-                                                                          fit: BoxFit
-                                                                              .cover,
-                                                                        )
-                                                                      : Image
-                                                                          .asset(
-                                                                          "assets/pro/image.png",
-                                                                          width:
-                                                                              70,
-                                                                          height:
-                                                                              70,
-                                                                          fit: BoxFit
-                                                                              .cover,
-                                                                        ),
-                                                            ),
-                                                            Positioned(
-                                                                left: 16,
-                                                                top: 16,
-                                                                child: SizedBox(
-                                                                  width: 40,
-                                                                  height: 40,
-                                                                  child:
-                                                                      ClipRRect(
-                                                                    borderRadius:
-                                                                        BorderRadius.circular(
-                                                                            50),
-                                                                    child:
-                                                                        BackdropFilter(
-                                                                      filter: ImageFilter.blur(
-                                                                          sigmaX:
-                                                                              8,
-                                                                          sigmaY:
-                                                                              8),
-                                                                      child:
-                                                                          Icon(
-                                                                        LucideIcons
-                                                                            .camera,
-                                                                        color: Colors
-                                                                            .white,
-                                                                      ),
-                                                                    ),
-                                                                  ),
-                                                                ))
-                                                          ],
-                                                        )),
-                                                  ),
-                                                )),
-                                            LayoutBuilder(builder: (ctx, c) {
-                                              return Align(
-                                                alignment: Alignment.center,
-                                                child: Row(
-                                                  mainAxisAlignment:
-                                                      MainAxisAlignment.center,
-                                                  spacing: 5,
-                                                  children: [
-                                                    SizedBox(
-                                                      width: c.maxWidth * 0.55,
-                                                      child: ElevatedButton(
-                                                          onPressed: () async {
-                                                            if (currentImage !=
-                                                                null) {
-                                                              final res =
-                                                                  await storageManager
-                                                                      .saveData(
-                                                                          image:
-                                                                              currentImage!);
-                                                              if (res) {
-                                                                setFState(
-                                                                    () {});
-                                                                st(() {});
-                                                                Navigator.pop(
-                                                                    ctx);
-                                                              }
-                                                            }
-                                                          },
-                                                          style: ElevatedButton.styleFrom(
-                                                              shape: RoundedRectangleBorder(
-                                                                  borderRadius:
-                                                                      BorderRadius
-                                                                          .circular(
-                                                                              8)),
-                                                              padding:
-                                                                  const EdgeInsets
-                                                                      .symmetric(
-                                                                      vertical:
-                                                                          0),
-                                                              backgroundColor:
-                                                                  colors
-                                                                      .themeColor),
-                                                          child: Text(
-                                                            "Save",
-                                                            style: textTheme
-                                                                .bodySmall
-                                                                ?.copyWith(
-                                                                    color: colors
-                                                                        .primaryColor),
-                                                          )),
-                                                    ),
-                                                    SizedBox(
-                                                      width: c.maxWidth * 0.3,
-                                                      child: ElevatedButton(
-                                                          onPressed: () {
-                                                            Navigator.pop(ctx);
-                                                          },
-                                                          style: ElevatedButton.styleFrom(
-                                                              shape: RoundedRectangleBorder(
-                                                                  borderRadius:
-                                                                      BorderRadius
-                                                                          .circular(
-                                                                              8)),
-                                                              padding:
-                                                                  const EdgeInsets
-                                                                      .symmetric(
-                                                                      vertical:
-                                                                          0),
-                                                              elevation: 0,
-                                                              backgroundColor:
-                                                                  Colors
-                                                                      .transparent,
-                                                              side: BorderSide(
-                                                                  width: 2,
-                                                                  color: colors
-                                                                      .redColor)),
-                                                          child: Text(
-                                                            "Cancel",
-                                                            style: textTheme
-                                                                .bodySmall
-                                                                ?.copyWith(
-                                                                    color: colors
-                                                                        .redColor),
-                                                          )),
-                                                    )
-                                                  ],
-                                                ),
-                                              );
-                                            })
-                                          ],
-                                        );
-                                      });
-                                    });
+                                    currentImage: currentImage);
+                                if (file != null) {
+                                  st(() {
+                                    currentImage = file;
+                                  });
+                                  changeProfileImage(file);
+                                }
                               }
                             }),
                         SizedBox(
@@ -538,7 +344,7 @@ void showCustomDrawer(
                             options: [
                               Option(
                                   tileColor:
-                                      colors.secondaryColor.withOpacity(0.5),
+                                      colors.secondaryColor.withOpacity(0.7),
                                   title: "View private data",
                                   icon: Icon(
                                     LucideIcons.key,
@@ -552,7 +358,7 @@ void showCustomDrawer(
                                       color: colors.textColor, fontSize: 14)),
                               Option(
                                   tileColor:
-                                      colors.secondaryColor.withOpacity(0.5),
+                                      colors.secondaryColor.withOpacity(0.7),
                                   title: "Change password",
                                   icon: Icon(
                                     LucideIcons.keySquare,
@@ -570,16 +376,14 @@ void showCustomDrawer(
                             onTap: (i) async {
                               if (i == 0) {
                                 if (account.isWatchOnly) {
-                                  showCustomSnackBar(
-                                      context: context,
-                                      message:
-                                          "A watch-only wallet does not store private data",
-                                      type: MessageType.error,
-                                      colors: colors);
+                                  showWatchOnlyWaring(
+                                      colors: colors, context: context);
                                   return;
                                 }
                                 final password = await askPassword(
-                                    context: context, colors: colors);
+                                    useBio: false,
+                                    context: context,
+                                    colors: colors);
                                 if (password.isNotEmpty) {
                                   Navigator.push(
                                       context,
@@ -591,83 +395,8 @@ void showCustomDrawer(
                                               )));
                                 }
                               } else if (i == 1) {
-                                final password = await askPassword(
-                                    context: context,
-                                    colors: colors,
-                                    title: "Old Password");
-                                if (password.isEmpty) {
-                                  showCustomSnackBar(
-                                      context: context,
-                                      message: "Incorrect password",
-                                      type: MessageType.error,
-                                      colors: colors);
-                                  return;
-                                }
-
-                                final res = await showPinModalBottomSheet(
-                                    canApplyBlur: true,
-                                    context: context,
-                                    handleSubmit: (password) async {
-                                      if (newPassword.isEmpty) {
-                                        newPassword = password;
-                                        return PinSubmitResult(
-                                            success: true,
-                                            repeat: true,
-                                            newTitle: "Repeat Password");
-                                      } else {
-                                        if (newPassword.trim() !=
-                                            password.trim()) {
-                                          newPassword = "";
-                                          return PinSubmitResult(
-                                              success: false,
-                                              repeat: true,
-                                              newTitle: "New password",
-                                              error: "Password does not match");
-                                        } else {
-                                          confirmPassword = newPassword;
-                                          return PinSubmitResult(
-                                              success: true, repeat: false);
-                                        }
-                                      }
-                                    },
-                                    colors: colors,
-                                    title: "New password");
-
-                                if (res) {
-                                  if (password == confirmPassword) {
-                                    showCustomSnackBar(
-                                        type: MessageType.error,
-                                        context: context,
-                                        message:
-                                            "The old password and the new one are the same",
-                                        colors: colors);
-                                    newPassword = "";
-                                    confirmPassword = "";
-                                  } else {
-                                    final walletManager = WalletSaver();
-                                    final result =
-                                        await walletManager.changePassword(
-                                            password, confirmPassword);
-                                    if (!result) {
-                                      showCustomSnackBar(
-                                          context: context,
-                                          message: "Failed to change password",
-                                          type: MessageType.error,
-                                          colors: colors);
-                                      newPassword = "";
-                                      confirmPassword = "";
-                                    } else {
-                                      showCustomSnackBar(
-                                          icon: Icons.check,
-                                          iconColor: colors.greenColor,
-                                          context: context,
-                                          message:
-                                              "Password changed successfully",
-                                          type: MessageType.success,
-                                          colors: colors);
-                                    }
-                                  }
-                                }
+                                showChangePasswordProcedure(
+                                    context: context, colors: colors);
                               }
                             }),
                         CustomOptionWidget(
@@ -693,138 +422,21 @@ void showCustomDrawer(
                                   trailing: Switch(
                                       value: canUseBio,
                                       onChanged: (v) async {
-                                        if (v) {
-                                          final LocalAuthentication auth =
-                                              LocalAuthentication();
-                                          final bool
-                                              canAuthenticateWithBiometrics =
-                                              await auth.canCheckBiometrics;
-                                          final bool canAuthenticate =
-                                              canAuthenticateWithBiometrics ||
-                                                  await auth
-                                                      .isDeviceSupported();
-
-                                          if (canAuthenticate) {
-                                            try {
-                                              final web3manager = WalletSaver();
-
-                                              String userPassword = "";
-                                              int attempts = 0;
-
-                                              final result =
-                                                  await showPinModalBottomSheet(
-                                                      colors: colors,
-                                                      context: context,
-                                                      handleSubmit:
-                                                          (password) async {
-                                                        final savedPassword =
-                                                            await web3manager
-                                                                .getSavedPassword();
-                                                        if (password.trim() !=
-                                                            savedPassword) {
-                                                          attempts++;
-                                                          if (attempts >= 3) {
-                                                            showCustomSnackBar(
-                                                                context:
-                                                                    context,
-                                                                message:
-                                                                    "Too many attempts",
-                                                                type:
-                                                                    MessageType
-                                                                        .error,
-                                                                colors: colors,
-                                                                icon:
-                                                                    Icons.error,
-                                                                iconColor:
-                                                                    Colors.red);
-                                                            attempts = 0;
-                                                            return PinSubmitResult(
-                                                              success: false,
-                                                              repeat: false,
-                                                            );
-                                                          }
-                                                          return PinSubmitResult(
-                                                              success: false,
-                                                              repeat: true,
-                                                              error:
-                                                                  "Invalid password",
-                                                              newTitle:
-                                                                  "Try again");
-                                                        } else {
-                                                          userPassword =
-                                                              password.trim();
-
-                                                          return PinSubmitResult(
-                                                              success: true,
-                                                              repeat: false);
-                                                        }
-                                                      },
-                                                      title: "Enter Password");
-                                              if (result) {
-                                                final data = await WalletSaver()
-                                                    .getDecryptedData(
-                                                        userPassword);
-                                                if (data == null ||
-                                                    data.isEmpty) {
-                                                  throw Exception(
-                                                      "Wrong password");
-                                                }
-                                                final bool didAuthenticate =
-                                                    await auth.authenticate(
-                                                        localizedReason:
-                                                            "Enabled to use biometric authentication");
-
-                                                if (didAuthenticate) {
-                                                  final res =
-                                                      await PublicDataManager()
-                                                          .saveDataInPrefs(
-                                                              data: v
-                                                                  ? "on"
-                                                                  : "off",
-                                                              key: "BioStatus");
-
-                                                  showCustomSnackBar(
-                                                      context: context,
-                                                      message: "Enabled",
-                                                      type: MessageType.success,
-                                                      colors: colors,
-                                                      icon: Icons.check_circle,
-                                                      iconColor:
-                                                          colors.themeColor);
-
-                                                  if (res) {
-                                                    st(() {
-                                                      canUseBio = v;
-                                                    });
-                                                    updateBioState(v);
-                                                  }
-                                                }
-                                              }
-                                            } catch (e) {
-                                              showCustomSnackBar(
-                                                colors: colors,
-                                                type: MessageType.error,
-                                                icon: Icons.error,
-                                                iconColor: Colors.red,
-                                                context: context,
-                                                message: "Failed : $e",
-                                              );
-                                              logError(e.toString());
-                                            }
-                                          }
-                                        } else {
-                                          final res = await PublicDataManager()
-                                              .saveDataInPrefs(
-                                                  data: "off",
-                                                  key: "BioStatus");
-                                          if (res) {
-                                            st(() {
-                                              canUseBio = v;
-                                            });
-
-                                            updateBioState(v);
-                                          }
+                                        final password = await askPassword(
+                                            context: context, colors: colors);
+                                        if (password.isEmpty) {
+                                          notifyError("Invalid password");
+                                          return;
                                         }
+                                        final result =
+                                            await toggleCanUseBio(v, password);
+                                        if (result) {
+                                          notifySuccess(
+                                              v ? "Enabled" : "Disabled");
+                                          return;
+                                        }
+
+                                        notifyError("An error has occurred");
                                       }),
                                   color: colors.textColor,
                                   titleStyle: textTheme.bodySmall?.copyWith(
