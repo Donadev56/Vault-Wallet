@@ -3,14 +3,13 @@ import 'package:internet_connection_checker_plus/internet_connection_checker_plu
 import 'package:moonwallet/logger/logger.dart';
 import 'package:moonwallet/notifiers/accounts_notifier.dart';
 import 'package:moonwallet/notifiers/assets_notifier.dart';
-import 'package:moonwallet/notifiers/colors_notifier.dart';
 import 'package:moonwallet/notifiers/last_account_notifier.dart';
 import 'package:moonwallet/notifiers/saved_crypto.dart';
-import 'package:moonwallet/service/crypto_storage_manager.dart';
-import 'package:moonwallet/service/price_manager.dart';
-import 'package:moonwallet/service/wallet_saver.dart';
-import 'package:moonwallet/service/web3_interaction.dart';
-import 'package:moonwallet/types/types.dart';
+import 'package:moonwallet/notifiers/web3_notifier.dart';
+import 'package:moonwallet/service/db/crypto_storage_manager.dart';
+import 'package:moonwallet/service/external_data/price_manager.dart';
+import 'package:moonwallet/service/db/wallet_saver.dart';
+import 'package:moonwallet/types/types.dart' as types;
 import 'package:moonwallet/utils/colors.dart';
 import 'package:moonwallet/utils/crypto.dart';
 import 'package:moonwallet/utils/prefs.dart';
@@ -22,30 +21,27 @@ final internetConnectionProvider =
     Provider<InternetConnection>((ref) => InternetConnection());
 
 final accountsNotifierProvider =
-    AsyncNotifierProvider<AccountsNotifier, List<PublicData>>(
+    AsyncNotifierProvider<AccountsNotifier, List<types.PublicData>>(
         AccountsNotifier.new);
 
 final assetsNotifierProvider =
-    AsyncNotifierProvider<AssetsNotifier, List<Asset>>(AssetsNotifier.new);
-
-final colorsNotifierProvider =
-    AsyncNotifierProvider<ColorsNotifier, AppColors?>(ColorsNotifier.new);
+    AsyncNotifierProvider<AssetsNotifier, List<types.Asset>>(
+        AssetsNotifier.new);
 
 final colorsManagerProvider = Provider((ref) => ColorsManager());
 
 final walletSaverProvider = Provider((ref) => WalletSaver());
 final encryptServiceProvider = Provider((ref) => EncryptService());
-final web3InteractionProvider = Provider((ref) => Web3InteractionManager());
 final priceProvider = Provider((ref) => PriceManager());
 
 final publicDataProvider = Provider((ref) => (PublicDataManager()));
 final cryptoStorageProvider = Provider((ref) => (CryptoStorageManager()));
 
 final savedCryptosProviderNotifier =
-    AsyncNotifierProvider<SavedCryptoProvider, List<Crypto>>(
+    AsyncNotifierProvider<SavedCryptoProvider, List<types.Crypto>>(
         SavedCryptoProvider.new);
 
-final getSavedAssetsProvider = FutureProvider<List<Asset>?>((ref) async {
+final getSavedAssetsProvider = FutureProvider<List<types.Asset>?>((ref) async {
   final cryptoStorage = ref.watch(cryptoStorageProvider);
   final account = await ref.watch(currentAccountProvider.future);
   if (account != null) {
@@ -55,45 +51,38 @@ final getSavedAssetsProvider = FutureProvider<List<Asset>?>((ref) async {
   return null;
 });
 
-final allAccountsProvider = FutureProvider<List<PublicData>>((ref) async {
+final allAccountsProvider = FutureProvider<List<types.PublicData>>((ref) async {
   return await ref.watch(accountsNotifierProvider.future);
 });
 
-final currentAccountProvider = FutureProvider<PublicData?>((ref) async {
+final currentAccountProvider = FutureProvider<types.PublicData?>((ref) async {
   final accounts = await ref.watch(accountsNotifierProvider.future);
-  final lastKeyId = ref.watch(lastConnectedKeyIdNotifierProvider);
+  final lastKeyId = await ref.watch(lastConnectedKeyIdNotifierProvider.future);
   if (accounts.isEmpty) {
     throw ("No account found");
   }
 
-  return lastKeyId.when(data: (data) {
-    if (data != null) {
-      final accountFounded = accounts.firstWhere(
-        (acc) => acc.keyId.toLowerCase().trim() == data.toLowerCase().trim(),
-        orElse: () => accounts.first,
-      );
-      log("Last account id: $data");
+  if (lastKeyId != null) {
+    final accountFounded = accounts.firstWhere(
+      (acc) => acc.keyId.toLowerCase().trim() == lastKeyId.toLowerCase().trim(),
+      orElse: () => accounts.first,
+    );
+    log("Last account id: $lastKeyId");
 
-      log("Account founded: ${accountFounded.toJson()}");
-      return accountFounded;
-    }
-    return accounts.firstOrNull;
-  }, error: (err, stack) {
-    logError(err.toString());
-    return accounts.firstOrNull;
-  }, loading: () {
-    log("Loading..");
-    throw const AsyncLoading();
-  });
+    log("Account founded: ${accountFounded.toJson()}");
+    return accountFounded;
+  }
+  return accounts.firstOrNull;
 });
 
 final lastConnectedKeyIdNotifierProvider =
     AsyncNotifierProvider<LastConnectedKeyIdNotifier, String?>(
         LastConnectedKeyIdNotifier.new);
 
-
+/*
 final cryptoSymbolsStreamUrlProvider = FutureProvider<String>((ref) async {
   final savedCryptos = await ref.watch(savedCryptosProviderNotifier.future);
+
   final streams = savedCryptos
       .where((c) =>
           c.binanceSymbol != null &&
@@ -107,4 +96,9 @@ final cryptoSymbolsStreamUrlProvider = FutureProvider<String>((ref) async {
 
   final combinedStreams = streams.join('/');
   return 'wss://stream.binance.com:9443/stream?streams=$combinedStreams';
+});
+*/
+
+final web3ProviderNotifier = Provider<Web3Notifier>((ref) {
+  return Web3Notifier(ref);
 });

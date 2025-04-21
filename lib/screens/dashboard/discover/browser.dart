@@ -1,16 +1,15 @@
 // ignore_for_file: deprecated_member_use
 
 import 'package:http/http.dart' as http;
-import 'package:moonwallet/service/crypto_storage_manager.dart';
-import 'package:moonwallet/service/price_manager.dart';
+import 'package:moonwallet/service/db/crypto_storage_manager.dart';
+import 'package:moonwallet/service/external_data/price_manager.dart';
 
 import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:lucide_icons_flutter/lucide_icons.dart';
 import 'package:moonwallet/logger/logger.dart';
-import 'package:moonwallet/service/wallet_saver.dart';
-import 'package:moonwallet/service/web3_interaction.dart';
+import 'package:moonwallet/service/db/wallet_saver.dart';
 import 'package:moonwallet/types/types.dart';
 import 'package:moonwallet/utils/colors.dart';
 import 'package:moonwallet/utils/constant.dart';
@@ -54,14 +53,7 @@ class Web3BrowserScreenState extends State<Web3BrowserScreen> {
   bool isLoading = true;
   bool isPageLoading = false;
 
-  Crypto currentNetwork = Crypto(
-      name: "",
-      color: Colors.transparent,
-      type: CryptoType.network,
-      valueUsd: 0,
-      cryptoId: "",
-      canDisplay: false,
-      symbol: "");
+  Crypto? currentCrypto;
 
   InAppWebViewController? _webViewController;
   bool _isInitialized = false;
@@ -70,7 +62,6 @@ class Web3BrowserScreenState extends State<Web3BrowserScreen> {
   List<Crypto> networks = [];
   PublicData? currentAccount;
   final web3Manager = WalletSaver();
-  final web3IntManager = Web3InteractionManager();
   final priceManager = PriceManager();
 
   final encryptService = EncryptService();
@@ -127,6 +118,10 @@ class Web3BrowserScreenState extends State<Web3BrowserScreen> {
 
   Future<bool> changeNetwork(Crypto network) async {
     log("Changing the network id");
+    if (currentCrypto == null) {
+      log("Current crypto is null");
+      return false;
+    }
 
     int requestedChainId = network.chainId ?? 1;
 
@@ -135,9 +130,9 @@ class Web3BrowserScreenState extends State<Web3BrowserScreen> {
 
       if (net.chainId == requestedChainId) {
         setState(() {
-          currentNetwork = net;
+          currentCrypto = net;
           _chainId = requestedChainId;
-          log("Switched to network: ${currentNetwork.name}");
+          log("Switched to network: ${currentCrypto!.name}");
         });
 
         return true;
@@ -155,7 +150,7 @@ class Web3BrowserScreenState extends State<Web3BrowserScreen> {
       for (final net in networks) {
         if (net.chainId == requestedChainId) {
           setState(() {
-            currentNetwork = net;
+            currentCrypto = net;
             _chainId = requestedChainId;
           });
           webViewKey.currentState?.changeNetwork(
@@ -237,7 +232,7 @@ class Web3BrowserScreenState extends State<Web3BrowserScreen> {
       if (savedCryptos != null) {
         setState(() {
           networks =
-              savedCryptos.where((c) => c.type == CryptoType.network).toList();
+              savedCryptos.where((c) => c.type == CryptoType.native).toList();
         });
       }
     } catch (e) {
@@ -259,8 +254,8 @@ class Web3BrowserScreenState extends State<Web3BrowserScreen> {
       networks = widget.networks;
 
       if (widget.network != null) {
-        currentNetwork = widget.network!;
-        _chainId = currentNetwork.chainId!;
+        currentCrypto = widget.network!;
+        _chainId = widget.network!.chainId!;
       }
 
       if (widget.colors != null) {
@@ -430,7 +425,7 @@ class Web3BrowserScreenState extends State<Web3BrowserScreen> {
                           title: _title,
                           networks: networks,
                           manualChangeNetwork: manualChangeNetwork,
-                          currentNetwork: currentNetwork,
+                          currentNetwork: currentCrypto!,
                           chainId: _chainId,
                           currentUrl: currentUrl,
                           reload: _reload,
@@ -501,25 +496,19 @@ class Web3BrowserScreenState extends State<Web3BrowserScreen> {
                             icon: "https://moonbnb.pro/moon.png",
                             address: currentAccount?.address,
                             currentNetwork: NetworkConfig(
-                                blockExplorerUrls: [
-                                  currentNetwork.explorer ?? ""
-                                ],
+                                blockExplorerUrls: currentCrypto?.explorers,
                                 chainId:
-                                    "0x${(currentNetwork.chainId ?? 1).toRadixString(16)}",
-                                chainName: currentNetwork.name,
-                                rpcUrls: [currentNetwork.rpc ?? ""]),
+                                    "0x${(currentCrypto!.chainId ?? 1).toRadixString(16)}",
+                                chainName: currentCrypto!.name,
+                                rpcUrls: currentCrypto!.rpcUrls ?? []),
                             supportNetworks:
                                 List.generate(networks.length, (i) {
                               return NetworkConfig(
                                   chainId:
                                       "0x${networks[i].chainId?.toRadixString(16)}",
                                   chainName: networks[i].name,
-                                  rpcUrls: [
-                                    networks[i].rpc ?? ""
-                                  ],
-                                  blockExplorerUrls: [
-                                    networks[i].explorer ?? ""
-                                  ]);
+                                  rpcUrls: networks[i].rpcUrls ?? [],
+                                  blockExplorerUrls: networks[i].explorers);
                             })),
                         initialUrlRequest: URLRequest(
                           url: WebUri(

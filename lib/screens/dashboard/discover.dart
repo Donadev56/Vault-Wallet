@@ -321,7 +321,7 @@ class _DiscoverScreenState extends ConsumerState<DiscoverScreen>
       (value) {
         networks = value
             .where((crypto) =>
-                crypto.canDisplay && crypto.type == CryptoType.network)
+                crypto.canDisplay && crypto.type == CryptoType.native)
             .toList();
       },
     );

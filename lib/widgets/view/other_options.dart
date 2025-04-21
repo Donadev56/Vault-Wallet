@@ -81,7 +81,7 @@ void showOtherOptions(
                                         ?.copyWith(color: colors.textColor),
                                   ),
                                   trailing: Text(
-                                    "${currentCrypto.type == CryptoType.network ? currentCrypto.name : currentCrypto.network?.name}",
+                                    "${currentCrypto.type == CryptoType.native ? currentCrypto.name : currentCrypto.network?.name}",
                                     style: textTheme.bodyMedium?.copyWith(
                                         color:
                                             colors.textColor.withOpacity(0.5)),
@@ -89,8 +89,8 @@ void showOtherOptions(
                                 ),
                                 ListTile(
                                   onTap: () {
-                                    if (currentCrypto.type ==
-                                        CryptoType.network) return;
+                                    if (currentCrypto.type == CryptoType.native)
+                                      return;
                                     Clipboard.setData(ClipboardData(
                                         text: currentCrypto.contractAddress ??
                                             ""));
@@ -128,10 +128,10 @@ void showOtherOptions(
                                       if (currentCrypto.type ==
                                           CryptoType.token) {
                                         launchUrl(Uri.parse(
-                                            '${currentCrypto.network?.explorer}/address/${currentCrypto.contractAddress}'));
+                                            '${currentCrypto.network?.explorers![0]}/address/${currentCrypto.contractAddress}'));
                                       } else {
                                         launchUrl(Uri.parse(
-                                            '${currentCrypto.explorer}'));
+                                            currentCrypto.explorers![0]));
                                       }
                                     },
                                     leading: Icon(

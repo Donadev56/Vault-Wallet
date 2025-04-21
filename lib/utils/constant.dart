@@ -171,33 +171,30 @@ final List<Map<String, dynamic>> appBarButtonOptions = [
   } */
 
 final opBNbNetwork = Crypto(
-  isNetworkIcon: false,
   symbol: "OpBNB",
-
+  decimals: 18,
   canDisplay: true,
   valueUsd: 0,
-  explorer: "https://opbnb.bscscan.com",
-  rpc: "https://opbnb-mainnet-rpc.bnbchain.org",
+  explorers: ["https://opbnb.bscscan.com"],
+  rpcUrls: ["https://opbnb-mainnet-rpc.bnbchain.org"],
   name: "opBNB",
   icon: "assets/b1.webp",
-  binanceSymbol: "BNBUSDT",
   chainId: 204,
-  type: CryptoType.network,
+  type: CryptoType.native,
   color: Color(0xFFFFA500), // Colors.orange.value
   cryptoId: "a6717b9f-a1a9-4b48-82ed-d01c7d251794",
 );
 
 final binanceNetwork = Crypto(
-  isNetworkIcon: false,
+  decimals: 18,
   symbol: "BNB",
 
   canDisplay: true,
   valueUsd: 0,
-  type: CryptoType.network,
-  explorer: "https://bscscan.com",
-  rpc: "https://bsc-dataseed.binance.org",
+  type: CryptoType.native,
+  explorers: ["https://bscscan.com"],
+  rpcUrls: ["https://bsc-dataseed.binance.org"],
   name: "BNB",
-  binanceSymbol: "BNBUSDT",
   icon: "assets/bnb.png",
   chainId: 56,
   color: Color(0xFFFFA500), // Colors.orange.value
@@ -205,16 +202,16 @@ final binanceNetwork = Crypto(
 );
 
 final polygonNetwork = Crypto(
-  isNetworkIcon: false,
+  decimals: 18,
+
   symbol: "POL",
 
   canDisplay: false,
   valueUsd: 0,
-  type: CryptoType.network,
-  explorer: "https://polygonscan.com/",
-  rpc: "https://polygon-rpc.com",
+  type: CryptoType.native,
+  explorers: ["https://polygonscan.com/"],
+  rpcUrls: ["https://polygon-rpc.com"],
   name: "POL",
-  binanceSymbol: "POLUSDT",
   icon: "assets/logos/pol.webp",
   chainId: 137,
   color: Color(0xFF7E57C2), // Colors.deepPurpleAccent.value
@@ -222,16 +219,16 @@ final polygonNetwork = Crypto(
 );
 
 final ethereumNetwork = Crypto(
-  isNetworkIcon: false,
+  decimals: 18,
+
   symbol: "ETH",
 
   canDisplay: false,
   valueUsd: 0,
-  type: CryptoType.network,
-  explorer: "https://etherscan.io/",
-  rpc: "https://rpc.ankr.com/eth",
+  type: CryptoType.native,
+  explorers: ["https://etherscan.io/"],
+  rpcUrls: ["https://rpc.ankr.com/eth"],
   name: "ETH",
-  binanceSymbol: "ETHUSDT",
   icon: "assets/logos/eth.png",
   chainId: 1,
   color: Color(0xFF9E9E9E), // Colors.grey.value

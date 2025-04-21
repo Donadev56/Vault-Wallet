@@ -2,7 +2,7 @@
 import 'dart:convert';
 import 'dart:typed_data';
 import 'package:hex/hex.dart';
-import 'package:moonwallet/service/web3_interaction.dart';
+import 'package:moonwallet/service/web3_interactions/evm/eth_interaction_manager.dart';
 import 'package:web3dart/crypto.dart';
 import 'package:web3dart/web3dart.dart';
 import '../../../../logger/logger.dart';
@@ -101,7 +101,7 @@ class SigningHandler {
 
   Future<String> _signTypedDataV1(dynamic message) async {
     try {
-      final privateKey = await Web3InteractionManager()
+      final privateKey = await EthInteractionManager()
           .getPrivateKey(address: _credentials.address.hex);
       log("Message : $message");
       String? signature;
@@ -172,7 +172,7 @@ class SigningHandler {
 */
   Future<String> _signTypedDataV3(dynamic message) async {
     try {
-      final privateKey = await Web3InteractionManager()
+      final privateKey = await EthInteractionManager()
           .getPrivateKey(address: _credentials.address.hex);
       log("Message : $message");
       String? signature;
@@ -198,7 +198,7 @@ class SigningHandler {
 
   Future<String> _signTypedDataV4(dynamic message) async {
     try {
-      final privateKey = await Web3InteractionManager()
+      final privateKey = await EthInteractionManager()
           .getPrivateKey(address: _credentials.address.hex);
       log("Message : $message");
       String? signature;

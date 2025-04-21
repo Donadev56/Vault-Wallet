@@ -36,6 +36,7 @@ void showTransactionDetails(
               },
             ),
             backgroundColor: colors.primaryColor,
+            centerTitle: true,
             title: Text(
               isFrom ? "Transfer" : "Receive",
               style: textTheme.headlineSmall?.copyWith(
@@ -299,7 +300,7 @@ void showTransactionDetails(
                         borderRadius: BorderRadius.circular(10),
                         onTap: () async {
                           final url =
-                              "${currentNetwork.type == CryptoType.token ? currentNetwork.network?.explorer : currentNetwork.explorer}/tx/${tr.hash}";
+                              "${currentNetwork.type == CryptoType.token ? currentNetwork.network?.explorers![0] : currentNetwork.explorers![0]}/tx/${tr.hash}";
                           log("The url is $url");
                           await launchUrl(Uri.parse(url));
                         },
@@ -327,7 +328,7 @@ void showTransactionDetails(
                         borderRadius: BorderRadius.circular(10),
                         onTap: () async {
                           final text =
-                              "${currentNetwork.type == CryptoType.token ? currentNetwork.network?.explorer : currentNetwork.explorer}/tx/${tr.hash}";
+                              "${currentNetwork.type == CryptoType.token ? currentNetwork.network?.explorers![0] : currentNetwork.explorers![0]}/tx/${tr.hash}";
                           share(text: text, subject: "Share Transaction Hash");
                         },
                         child: Container(

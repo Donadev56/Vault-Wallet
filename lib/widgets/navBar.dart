@@ -1,6 +1,7 @@
 // ignore_for_file: deprecated_member_use
 
 import 'package:flutter/material.dart';
+import 'package:lucide_icons_flutter/lucide_icons.dart';
 
 class BottomNav extends StatelessWidget {
   final int currentIndex;
@@ -25,6 +26,16 @@ class BottomNav extends StatelessWidget {
     final List<Map<String, dynamic>> navItems = [
       {'icon': Icons.home_filled, "filled": Icons.home_filled, 'label': 'Home'},
       {
+        'icon': Icons.sync_alt,
+        "filled": Icons.sync_alt_rounded,
+        'label': 'Swap'
+      },
+      {
+        'icon': LucideIcons.chartNoAxesCombined,
+        "filled": LucideIcons.chartNoAxesCombined,
+        'label': 'Trending'
+      },
+      {
         'icon': Icons.explore_outlined,
         "filled": Icons.explore,
         'label': 'Discover'
@@ -34,22 +45,23 @@ class BottomNav extends StatelessWidget {
     return Container(
       decoration: BoxDecoration(
           border: Border(
-              top: BorderSide(color: textColor.withOpacity(0.1), width: 0.1))),
+              top: BorderSide(color: textColor.withOpacity(0.2), width: 0.1))),
       child: Theme(
         data: Theme.of(context).copyWith(
           splashFactory: InkRipple.splashFactory,
         ),
         child: BottomNavigationBar(
-          elevation: 20,
+          enableFeedback: true,
+          elevation: 0,
           backgroundColor: primaryColor,
           currentIndex: currentIndex,
           onTap: onTap,
           type: BottomNavigationBarType.fixed,
           selectedItemColor: secondaryColor,
           unselectedItemColor: textColor,
-          selectedLabelStyle: textTheme.bodySmall?.copyWith(fontSize: 12),
+          selectedLabelStyle: textTheme.bodySmall?.copyWith(fontSize: 10),
           unselectedLabelStyle: textTheme.bodySmall?.copyWith(
-            fontSize: 12,
+            fontSize: 10,
             color: textColor.withOpacity(0.5),
           ),
           items: List.generate(navItems.length, (index) {
@@ -58,6 +70,10 @@ class BottomNav extends StatelessWidget {
 
             return BottomNavigationBarItem(
               backgroundColor: primaryColor,
+              activeIcon: Icon(
+                item['filled'] as IconData,
+                size: 25,
+              ),
               icon: AnimatedContainer(
                 duration: const Duration(milliseconds: 300),
                 padding: const EdgeInsets.all(5),
@@ -66,8 +82,8 @@ class BottomNav extends StatelessWidget {
                   duration: const Duration(milliseconds: 300),
                   curve: Curves.easeInOut,
                   child: Icon(
-                    isSelected ? item['filled'] : item['icon'] as IconData,
-                    size: 30,
+                    item['icon'] as IconData,
+                    size: 25,
                   ),
                 ),
               ),

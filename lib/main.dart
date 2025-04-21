@@ -9,6 +9,7 @@ import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_web3_webview/flutter_web3_webview.dart';
 import 'package:moonwallet/logger/logger.dart';
+import 'package:moonwallet/screens/dashboard/main/account_data.dart';
 import 'package:moonwallet/screens/dashboard/add_crypto.dart';
 import 'package:moonwallet/screens/auth/add_private_key.dart';
 import 'package:moonwallet/screens/auth/home.dart';
@@ -25,8 +26,8 @@ import 'package:moonwallet/screens/dashboard/wallet_actions/add_mnemonic.dart';
 import 'package:moonwallet/screens/dashboard/wallet_actions/add_private_key.dart';
 import 'package:moonwallet/screens/dashboard/wallet_actions/create_private_key.dart';
 import 'package:moonwallet/screens/test/test.dart';
-import 'package:moonwallet/service/wallet_saver.dart';
-import 'package:moonwallet/service/web3.dart';
+import 'package:moonwallet/service/db/old_db.dart';
+import 'package:moonwallet/service/db/wallet_saver.dart';
 import 'package:moonwallet/types/types.dart';
 import 'package:moonwallet/utils/colors.dart';
 import 'package:moonwallet/utils/prefs.dart';
@@ -65,6 +66,8 @@ class Routes {
   static const String pageManager = '/main/pageManager';
   static const String changeTheme = '/settings/changeColor';
   static const String test = '/tets';
+  static const String accountData = '/account_data';
+  static const String editWallet = '/editWallet';
 
   static const String privateKeyCreator = '/privatekeyCreator';
 }
@@ -359,6 +362,7 @@ class _MyAppState extends State<MyApp> {
                         colors: colors,
                       ),
                   Routes.test: (context) => LineChartSample12(),
+                  Routes.accountData: (context) => AccountDataView(),
                 });
           } else {
             return Center(

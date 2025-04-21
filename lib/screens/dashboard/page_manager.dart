@@ -2,8 +2,10 @@ import 'package:flutter/material.dart';
 import 'package:moonwallet/logger/logger.dart';
 import 'package:moonwallet/screens/dashboard/discover.dart';
 import 'package:moonwallet/screens/dashboard/main.dart';
+import 'package:moonwallet/screens/dashboard/swap.dart';
+import 'package:moonwallet/screens/dashboard/trending.dart';
 import 'package:moonwallet/service/vibration.dart';
-import 'package:moonwallet/types/types.dart';
+import 'package:moonwallet/types/types.dart' as types;
 import 'package:moonwallet/utils/colors.dart';
 import 'package:moonwallet/utils/prefs.dart';
 import 'package:moonwallet/utils/themes.dart';
@@ -11,10 +13,10 @@ import 'package:moonwallet/widgets/navBar.dart';
 import 'package:moonwallet/widgets/view/show_transaction_details.dart';
 
 class PagesManagerView extends StatefulWidget {
-  final AppColors? colors;
-  final PublicData? currentAccount;
-  final Crypto? crypto;
-  final TransactionDetails? transaction;
+  final types.AppColors? colors;
+  final types.PublicData? currentAccount;
+  final types.Crypto? crypto;
+  final types.TransactionDetails? transaction;
 
   const PagesManagerView(
       {super.key,
@@ -32,13 +34,13 @@ class _PagesManagerViewState extends State<PagesManagerView> {
   int currentIndex = 2;
 
   bool _isInitialized = false;
-  PublicData? currentAccount;
-  Crypto? crypto;
-  TransactionDetails? transaction;
+  types.PublicData? currentAccount;
+  types.Crypto? crypto;
+  types.TransactionDetails? transaction;
   final publicDataManager = PublicDataManager();
   bool isDarkMode = false;
 
-  AppColors colors = AppColors.defaultTheme;
+  types.AppColors colors = types.AppColors.defaultTheme;
   Themes themes = Themes();
   String savedThemeName = "";
   Future<void> getSavedTheme() async {
@@ -63,8 +65,14 @@ class _PagesManagerViewState extends State<PagesManagerView> {
         key: ValueKey<int>(0),
         colors: widget.colors,
       ),
-      DiscoverScreen(
+      SwapScreen(
         key: ValueKey<int>(1),
+      ),
+      TrendingScreen(
+        key: ValueKey<int>(2),
+      ),
+      DiscoverScreen(
+        key: ValueKey<int>(3),
       ),
     ];
   }

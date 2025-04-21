@@ -54,6 +54,7 @@ dependencies:
   vibration: ^3.1.2
   url_launcher: ^6.3.1
   fl_chart: ^0.70.2
+  custom_cached_image: ^1.0.5
 
   k_chart_plus_deeping: ^1.0.2-5.2.2.3
   qr_flutter: ^4.1.0
@@ -102,7 +103,14 @@ dependencies:
   smooth_list_view: ^2.0.2
   flutter_riverpod: ^2.6.1
   web_socket_channel: ^2.4.0
-  
+  flashy_tab_bar2: ^0.0.10
+  flutter_skeleton_ui: ^0.0.6
+  elegant_nav_bar: ^0.0.22
+  salomon_bottom_bar: ^3.3.2
+  moment_dart: ^5.1.0
+  animated_toggle_switch: ^0.8.4
+  page_transition: ^2.2.1
+  cached_network_image: ^3.4.1
 
 
 

@@ -7,7 +7,7 @@ import 'package:lucide_icons_flutter/lucide_icons.dart';
 import 'package:modal_bottom_sheet/modal_bottom_sheet.dart';
 import 'package:moonwallet/custom/web3_webview/lib/utils/loading.dart';
 import 'package:moonwallet/main.dart';
-import 'package:moonwallet/service/token_manager.dart';
+import 'package:moonwallet/service/web3_interactions/evm/token_manager.dart';
 import 'package:moonwallet/types/types.dart';
 import 'package:moonwallet/widgets/crypto_picture.dart';
 import 'package:moonwallet/widgets/custom_dialog.dart';
@@ -268,12 +268,12 @@ void showAddToken(
                                   shrinkWrap: true,
                                   itemCount: reorganizedCrypto
                                       .where((crypto) =>
-                                          crypto.type == CryptoType.network)
+                                          crypto.type == CryptoType.native)
                                       .length,
                                   itemBuilder: (ctx, i) {
                                     final crypto = reorganizedCrypto
                                         .where((crypto) =>
-                                            crypto.type == CryptoType.network)
+                                            crypto.type == CryptoType.native)
                                         .toList()[i];
                                     return ListTile(
                                       leading: CryptoPicture(

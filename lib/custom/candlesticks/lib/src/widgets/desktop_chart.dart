@@ -65,14 +65,7 @@ class _DesktopChartState extends State<DesktopChart> {
   double? mouseHoverY;
   bool isDragging = false;
   double additionalVerticalPadding = 0;
-  AppColors colors = AppColors(
-      primaryColor: Color(0XFF0D0D0D),
-      themeColor: Colors.greenAccent,
-      greenColor: Colors.greenAccent,
-      secondaryColor: Color(0XFF121212),
-      grayColor: Color(0XFF353535),
-      textColor: Colors.white,
-      redColor: Colors.pinkAccent);
+  AppColors colors = AppColors.defaultTheme;
 
   void _onMouseExit(PointerEvent details) {
     setState(() {

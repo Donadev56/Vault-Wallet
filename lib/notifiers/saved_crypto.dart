@@ -1,7 +1,7 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:moonwallet/logger/logger.dart';
 import 'package:moonwallet/notifiers/providers.dart';
-import 'package:moonwallet/service/crypto_request_manager.dart';
+import 'package:moonwallet/service/external_data/crypto_request_manager.dart';
 import 'package:moonwallet/types/types.dart';
 import 'package:moonwallet/utils/constant.dart';
 
@@ -14,12 +14,19 @@ class SavedCryptoProvider extends AsyncNotifier<List<Crypto>> {
   Future<List<Crypto>> getSavedCrypto() async {
     try {
       final account = await ref.watch(currentAccountProvider.future);
+
       if (account == null) {
-        throw ("No active account");
+        logError("No active account");
+        return [];
       }
       List<Crypto> listCrypto = [];
-      final cryptos =
-          await cryptoStorage.getSavedCryptos(wallet: account) ?? [];
+
+      List<Crypto> cryptos = [];
+      try {
+        cryptos = await cryptoStorage.getSavedCryptos(wallet: account) ?? [];
+      } catch (e) {
+        logError(e.toString());
+      }
 
       if (cryptos.isNotEmpty) {
         return cryptos;
@@ -29,6 +36,7 @@ class SavedCryptoProvider extends AsyncNotifier<List<Crypto>> {
 
       try {
         standardCrypto = await CryptoRequestManager().getAllCryptos();
+        log("All Crypto ${standardCrypto.map((c) => c.toJson()).toList()}");
       } catch (e) {
         logError(e.toString());
       }
@@ -101,7 +109,7 @@ class SavedCryptoProvider extends AsyncNotifier<List<Crypto>> {
 
   Future<bool> toggleCanDisplay(Crypto crypto, bool value) async {
     try {
-      final account = ref.watch(currentAccountProvider).value;
+      final account = await ref.watch(currentAccountProvider.future);
       if (account == null) {
         logError("No account found");
         return false;

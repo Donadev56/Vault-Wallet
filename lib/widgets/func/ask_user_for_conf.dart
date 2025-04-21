@@ -2,16 +2,15 @@
 
 import 'package:flutter/material.dart';
 import 'package:flutter_feather_icons/flutter_feather_icons.dart';
-import 'package:flutter_web3_webview/flutter_web3_webview.dart';
 import 'package:lucide_icons_flutter/lucide_icons.dart';
 import 'package:modal_bottom_sheet/modal_bottom_sheet.dart';
 import 'package:moonwallet/logger/logger.dart';
-import 'package:moonwallet/service/number_formatter.dart';
+import 'package:moonwallet/utils/number_formatter.dart';
 import 'package:moonwallet/types/types.dart';
 
 Future<UserRequestResponse> askUserForConfirmation(
     {Crypto? crypto,
-    required JsTransactionObject txData,
+    required TransactionToConfirm txData,
     required BuildContext context,
     required AppColors colors,
     PublicData? currentAccount,
@@ -67,7 +66,7 @@ Future<UserRequestResponse> askUserForConfirmation(
   ];
   String getValue() {
     final valueInWei =
-        BigInt.parse(txData.value!.replaceFirst("0x", ""), radix: 16);
+        BigInt.parse(txData.value.replaceFirst("0x", ""), radix: 16);
     final double tokenAmount = double.parse(valueInWei.toString()) / 1e18;
 
     return NumberFormatter().formatCrypto(value: tokenAmount.toString());
@@ -168,7 +167,7 @@ Future<UserRequestResponse> askUserForConfirmation(
                           mainAxisAlignment: MainAxisAlignment.center,
                           children: [
                             Text(
-                              txData.value != null ? "${getValue()} " : "0 ",
+                              getValue(),
                               overflow: TextOverflow.clip,
                               maxLines: 1,
                               style: textTheme.bodyMedium?.copyWith(
@@ -249,9 +248,7 @@ Future<UserRequestResponse> askUserForConfirmation(
                                       color: colors.textColor, fontSize: 14),
                                 ),
                           Text(
-                            txData.to != null
-                                ? "${txData.to!.substring(0, 6)}...${txData.to!.substring(txData.to!.length - 6)}"
-                                : "",
+                            "${txData.addressTo.substring(0, 6)}...${txData.addressTo.substring(txData.addressTo.length - 6)}",
                             style: textTheme.bodyMedium?.copyWith(
                                 color: colors.textColor, fontSize: 14),
                           ),

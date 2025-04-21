@@ -1,13 +1,13 @@
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:internet_connection_checker_plus/internet_connection_checker_plus.dart';
 import 'package:moonwallet/logger/logger.dart';
 import 'package:moonwallet/notifiers/providers.dart';
-import 'package:moonwallet/service/crypto_request_manager.dart';
+import 'package:moonwallet/service/external_data/crypto_request_manager.dart';
+import 'package:moonwallet/service/web3_interactions/evm/eth_interaction_manager.dart';
 import 'package:moonwallet/types/types.dart';
-import 'package:riverpod/riverpod.dart';
 
 class AssetsNotifier extends AsyncNotifier<List<Asset>> {
   late final cryptoStorage = ref.read(cryptoStorageProvider);
-  late final web3InteractionManager = ref.read(web3InteractionProvider);
   late final priceManager = ref.read(priceProvider);
   late final internetChecker = ref.read(internetConnectionProvider);
 
@@ -75,46 +75,47 @@ class AssetsNotifier extends AsyncNotifier<List<Asset>> {
     }
   }
 
-  Future<Map<String ,dynamic>> getAssetData (Crypto crypto , PublicData account) async{
+  Future<Map<String, dynamic>> getAssetData(Crypto crypto, PublicData account,
+      List<CryptoMarketData> listTokenData) async {
     try {
+      final cryptoBalance =
+          await EthInteractionManager().getBalance(account, crypto);
+      final tokenData = listTokenData
+          .where((d) =>
+              d.id.toLowerCase().trim() ==
+              crypto.cgSymbol?.toLowerCase().trim())
+          .firstOrNull;
+      final balance = cryptoBalance;
+      log("Balance $balance");
 
-          final response = await Future.wait([
-            web3InteractionManager.getBalance(account, crypto),
-            priceManager.checkCryptoTrend(
-                crypto.binanceSymbol ?? "${crypto.symbol}USDT"),
-            priceManager.getPriceUsingBinanceApi(
-                crypto.binanceSymbol ?? "${crypto.symbol}USDT")
-          ]);
-          final balance = response[0] as double;
+      final trend = tokenData?.priceChangePercentage24h ?? 0;
 
-          final trend = response[1] as dynamic;
+      final cryptoPrice = tokenData?.currentPrice ?? 0;
 
-          final cryptoPrice = response[2] as double;
-
-          final balanceUsd = cryptoPrice * balance;
-
-          return  {
-            "cryptoBalance": Asset(
-              crypto: crypto,
-              balanceUsd: balanceUsd,
-              balanceCrypto: balance,
-              cryptoTrendPercent: trend["percent"] ?? 0,
-              cryptoPrice: cryptoPrice,
-            ),
-            "availableCrypto": crypto,
-            "balanceUsd": balanceUsd
-          };
+      final balanceUsd = cryptoPrice * balance;
+      return {
+        "cryptoBalance": Asset(
+            crypto: crypto,
+            balanceUsd: balanceUsd,
+            balanceCrypto: balance,
+            cryptoTrendPercent: trend,
+            cryptoPrice: cryptoPrice,
+            marketData: tokenData),
+        "availableCrypto": crypto,
+        "balanceUsd": balanceUsd,
+        "marketData": tokenData
+      };
     } catch (e) {
       logError(e.toString());
-      return <String, dynamic >{} ;
-      
+      return <String, dynamic>{};
     }
   }
 
   Future<List<Asset>> getUserAssets({required PublicData account}) async {
     try {
       log("Updating assets");
-      final savedCrypto = await ref.watch(savedCryptosProviderNotifier.future);
+      final savedCrypto = await ref.read(savedCryptosProviderNotifier.future);
+      log("Saved crypto ${savedCrypto.length}");
 
       List<Crypto> enabledCryptos = [];
       List<Asset> cryptoBalance = [];
@@ -124,10 +125,10 @@ class AssetsNotifier extends AsyncNotifier<List<Asset>> {
             savedCrypto.where((c) => c.canDisplay == true).toList();
 
         List<Map<String, dynamic>> results = [];
-
+        final listTokenData = await priceManager.getListTokensMarketData();
         results = await Future.wait(enabledCryptos.map((crypto) async {
-          return await getAssetData(crypto  , account) ;
-        } ));
+          return await getAssetData(crypto, account, listTokenData);
+        }));
 
         cryptoBalance.addAll(results.map((r) => r["cryptoBalance"] as Asset));
 
@@ -157,6 +158,7 @@ class AssetsNotifier extends AsyncNotifier<List<Asset>> {
           await CryptoRequestManager().getAllCryptos();
       final savedCrypto = await cryptoStorage.getSavedCryptos(wallet: account);
       List<Crypto> cryptosList = [];
+
       if (savedCrypto != null && savedCrypto.isNotEmpty) {
         cryptosList = savedCrypto;
 
@@ -181,6 +183,4 @@ class AssetsNotifier extends AsyncNotifier<List<Asset>> {
       logError(e.toString());
     }
   }
-
-  
 }

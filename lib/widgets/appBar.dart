@@ -4,12 +4,15 @@ import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:flutter_feather_icons/flutter_feather_icons.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:moonwallet/screens/dashboard/main/edit_wallets.dart';
+import 'package:moonwallet/screens/dashboard/page_manager.dart';
 
 import 'package:moonwallet/service/vibration.dart';
 import 'package:moonwallet/types/types.dart';
 import 'package:moonwallet/widgets/appBar/show_accounts_list.dart';
 import 'package:moonwallet/widgets/appBar/show_custom_drawer.dart';
 import 'package:moonwallet/widgets/appBar/show_wallet_actions.dart';
+import 'package:page_transition/page_transition.dart';
 
 typedef EditWalletNameType = void Function(String newName, int index);
 typedef ActionWithIndexType = void Function(int index);
@@ -118,7 +121,13 @@ class CustomAppBar extends ConsumerWidget implements PreferredSizeWidget {
             onTap: () async {
               await vibrate(duration: 10);
 
-              showAccountList(
+              Navigator.of(context).push(PageTransition(
+                  type: PageTransitionType.rightToLeftWithFade,
+                  child: EditWalletsView(
+                    colors: colors,
+                    account: currentAccount,
+                  )));
+              /*  showAccountList(
                 colors: colors,
                 context: context,
                 accounts: accounts,
@@ -131,7 +140,7 @@ class CustomAppBar extends ConsumerWidget implements PreferredSizeWidget {
                 changeAccount: changeAccount,
                 showPrivateData: showPrivateData,
                 reorderList: reorderList,
-              );
+              ); */
             },
             child: Container(
               padding: const EdgeInsets.all(2),

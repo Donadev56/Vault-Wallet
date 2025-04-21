@@ -3,7 +3,9 @@
 import 'package:flutter/material.dart';
 import 'package:lucide_icons_flutter/lucide_icons.dart';
 
-enum CryptoType { network, token }
+enum CryptoType { native, token }
+
+enum ColorType { dark, light, other }
 
 enum MessageType { success, error, warning, info }
 
@@ -262,17 +264,15 @@ class Crypto {
   final int? chainId;
   final Crypto? network;
   final Color? color;
-  final String? rpc;
-  final String? binanceSymbol;
-  final String? explorer;
+  final List<String>? rpcUrls;
+  final List<String>? explorers;
   final CryptoType type;
   final String? contractAddress;
-  final int? decimals;
+  final int decimals;
   final double valueUsd;
   final String cryptoId;
   final bool canDisplay;
   final String symbol;
-  final bool isNetworkIcon;
   final String? cgSymbol;
 
   Crypto(
@@ -280,18 +280,16 @@ class Crypto {
       this.icon,
       this.chainId,
       required this.color,
-      this.rpc,
-      this.binanceSymbol,
+      this.rpcUrls,
       required this.type,
-      this.explorer,
+      this.explorers,
       this.network,
       this.contractAddress,
-      this.decimals,
+      required this.decimals,
       required this.valueUsd,
       required this.cryptoId,
       required this.canDisplay,
       required this.symbol,
-      this.isNetworkIcon = false,
       this.cgSymbol});
   factory Crypto.fromJsonRequest(Map<String, dynamic> cryptoJson) {
     return Crypto(
@@ -301,18 +299,24 @@ class Crypto {
         color: Color(cryptoJson["color"] ?? 0x00000000),
         type: CryptoType.values[cryptoJson["type"]],
         icon: cryptoJson["icon"],
-        rpc: cryptoJson["rpc"],
+        rpcUrls: cryptoJson["rpcUrls"] != null
+            ? (cryptoJson["rpcUrls"] as List<dynamic>)
+                .map((e) => e.toString())
+                .toList()
+            : null,
         decimals: cryptoJson["decimals"],
         chainId: cryptoJson["chainId"],
-        binanceSymbol: cryptoJson["binanceSymbol"],
         network: cryptoJson["network"] != null
             ? Crypto.fromJsonRequest(cryptoJson["network"])
             : null,
         contractAddress: cryptoJson["contractAddress"],
-        explorer: cryptoJson["explorer"],
+        explorers: cryptoJson["explorers"] != null
+            ? (cryptoJson["explorers"] as List<dynamic>)
+                .map((e) => e.toString())
+                .toList()
+            : null,
         valueUsd: cryptoJson["valueUsd"],
         symbol: cryptoJson["symbol"],
-        isNetworkIcon: cryptoJson["isNetworkIcon"] ?? false,
         cgSymbol: cryptoJson["cgSymbol"] ?? "");
   }
 
@@ -326,18 +330,24 @@ class Crypto {
             : Colors.transparent,
         type: CryptoType.values[cryptoJson["type"]],
         icon: cryptoJson["icon"],
-        rpc: cryptoJson["rpc"],
+        rpcUrls: cryptoJson["rpcUrls"] != null
+            ? (cryptoJson["rpcUrls"] as List<dynamic>)
+                .map((e) => e.toString())
+                .toList()
+            : null,
         decimals: cryptoJson["decimals"],
         chainId: cryptoJson["chainId"],
-        binanceSymbol: cryptoJson["binanceSymbol"],
         network: cryptoJson["network"] != null
             ? Crypto.fromJson(cryptoJson["network"])
             : null,
         contractAddress: cryptoJson["contractAddress"],
-        explorer: cryptoJson["explorer"],
+        explorers: cryptoJson["explorers"] != null
+            ? (cryptoJson["explorers"] as List<dynamic>)
+                .map((e) => e.toString())
+                .toList()
+            : null,
         valueUsd: cryptoJson["valueUsd"],
         symbol: cryptoJson["symbol"],
-        isNetworkIcon: cryptoJson["isNetworkIcon"] ?? false,
         cgSymbol: cryptoJson["cgSymbol"] ?? "");
   }
 
@@ -349,17 +359,15 @@ class Crypto {
       "color": color?.value ?? Colors.orangeAccent.value,
       "type": type.index,
       "icon": icon,
-      "rpc": rpc,
+      "rpcUrls": rpcUrls,
       "decimals": decimals,
       "chainId": chainId,
-      "binanceSymbol": binanceSymbol,
       "network": network?.toJson(),
       "contractAddress": contractAddress,
-      "explorer": explorer,
+      "explorers": explorers,
       "valueUsd": valueUsd,
       "symbol": symbol,
-      "isNetworkIcon": isNetworkIcon,
-      "cgSymbol": cgSymbol
+      "cgSymbol": cgSymbol,
     };
   }
 }
@@ -573,24 +581,27 @@ class Asset {
   final double balanceCrypto;
   final double cryptoTrendPercent;
   final double cryptoPrice;
+  final CryptoMarketData? marketData;
 
-  Asset({
-    required this.crypto,
-    required this.balanceUsd,
-    required this.balanceCrypto,
-    required this.cryptoTrendPercent,
-    required this.cryptoPrice,
-  });
+  Asset(
+      {required this.crypto,
+      required this.balanceUsd,
+      required this.balanceCrypto,
+      required this.cryptoTrendPercent,
+      required this.cryptoPrice,
+      this.marketData});
 
   // Convert a JSON Map to a HistoryItem instance
   factory Asset.fromJson(Map<String, dynamic> json) {
     return Asset(
-      crypto: Crypto.fromJson(json['crypto']),
-      balanceUsd: json['balanceUsd'] ?? 0,
-      balanceCrypto: json['balanceCrypto'] ?? 0,
-      cryptoTrendPercent: json['cryptoTrendPercent'] ?? 0,
-      cryptoPrice: json['cryptoPrice'] ?? 0,
-    );
+        crypto: Crypto.fromJson(json['crypto']),
+        balanceUsd: json['balanceUsd'] ?? 0,
+        balanceCrypto: json['balanceCrypto'] ?? 0,
+        cryptoTrendPercent: json['cryptoTrendPercent'] ?? 0,
+        cryptoPrice: json['cryptoPrice'] ?? 0,
+        marketData: json["marketData"] != null
+            ? CryptoMarketData.fromJson(json["marketData"])
+            : null);
   }
 
   // Convert a HistoryItem instance to a JSON Map
@@ -601,6 +612,7 @@ class Asset {
       'balanceCrypto': balanceCrypto,
       'cryptoTrendPercent': cryptoTrendPercent,
       'cryptoPrice': cryptoPrice,
+      "marketData": marketData?.toJson()
     };
   }
 }
@@ -613,6 +625,7 @@ class AppColors {
   final Color grayColor;
   final Color textColor;
   final Color redColor;
+  final ColorType type;
 
   const AppColors({
     required this.primaryColor,
@@ -621,27 +634,29 @@ class AppColors {
     required this.secondaryColor,
     required this.grayColor,
     required this.textColor,
+    required this.type,
     required this.redColor,
   });
 
   static const defaultTheme = AppColors(
-      primaryColor: Color(0XFF0D0D0D),
-      themeColor: Colors.greenAccent,
-      greenColor: Colors.greenAccent,
-      secondaryColor: Color(0XFF121212),
-      grayColor: Color(0XFF353535),
+      primaryColor: Color(0XFF2C2C2C),
+      themeColor: Colors.blueAccent,
+      greenColor: Color.fromARGB(255, 0, 175, 90),
+      secondaryColor: Color(0XFF3A3A3A),
+      grayColor: Color(0XFF707070),
       textColor: Colors.white,
-      redColor: Colors.pinkAccent);
+      redColor: Colors.pinkAccent,
+      type: ColorType.dark);
 
   static const lightColors = AppColors(
-    primaryColor: Color(0XFFFFFFFF),
-    themeColor: Colors.lightBlueAccent,
-    greenColor: const Color.fromARGB(255, 3, 244, 127),
-    secondaryColor: Color(0XFFF0F0F0),
-    grayColor: Color(0XFFBDBDBD),
-    textColor: Colors.black,
-    redColor: Colors.redAccent,
-  );
+      primaryColor: Color(0XFFF8F8F8),
+      themeColor: Color.fromARGB(255, 0, 193, 100),
+      greenColor: Color.fromARGB(255, 0, 193, 100),
+      secondaryColor: Color(0XFFF0F0F0),
+      grayColor: Color(0XFFBDBDBD),
+      textColor: Colors.black87,
+      redColor: Color.fromARGB(255, 248, 107, 64),
+      type: ColorType.light);
 
   Map<String, dynamic> toJson() {
     return {
@@ -652,11 +667,13 @@ class AppColors {
       'grayColor': grayColor.value,
       'textColor': textColor.value,
       'redColor': redColor.value,
+      "type": type.index
     };
   }
 
   factory AppColors.fromJson(Map<String, dynamic> json) {
     return AppColors(
+      type: ColorType.values[int.tryParse(json["type"]) ?? 0],
       primaryColor: Color(json['primaryColor'] ?? Colors.black.value),
       themeColor: Color(json['themeColor'] ?? Colors.black.value),
       greenColor: Color(json['greenColor'] ?? Colors.black.value),
@@ -810,17 +827,268 @@ class DataWithCache {
   }
 }
 
-
 class TradeData {
   final double price;
-  final String binanceSymbol ;
+  final String binanceSymbol;
 
-  TradeData({required this.price, required this.binanceSymbol });
+  TradeData({required this.price, required this.binanceSymbol});
 
   factory TradeData.fromJson(Map<String, dynamic> json) {
-    return TradeData(
-      price: json['p'],
-      binanceSymbol:  json['s']
+    return TradeData(price: json['p'], binanceSymbol: json['s']);
+  }
+}
+
+/*
+
+class Chain {
+  final int chainId;
+  final String name;
+  final NetworkType type;
+  final String keyId;
+  final String symbol;
+  final String path;
+  final String imageUrl;
+  final Crypto nativeToken;
+  final Color color;
+  final List<String> rpcUrls;
+  final List<String> explorers;
+
+  Chain({
+    required this.chainId,
+    required this.keyId,
+    required this.name,
+    required this.symbol,
+    required this.path,
+    required this.nativeToken,
+    required this.explorers,
+    required this.imageUrl,
+    required this.rpcUrls,
+    required this.color,
+    required this.type,
+  });
+
+  Map<String, dynamic> toJson() {
+    return {
+      'chainId': chainId,
+      'keyId': keyId,
+      'name': name,
+      'symbol': symbol,
+      'path': path,
+      'nativeToken': nativeToken.toJson(), 
+      'explorers': explorers,
+      'imageUrl': imageUrl,
+      'rpcUrls': rpcUrls,
+      'color': color.value,
+      'type': type.index
+    };
+  }
+
+  factory Chain.fromJson(Map<String, dynamic> json) {
+    return Chain(
+      chainId: json['chainId'],
+      keyId: json['keyId'],
+      name: json['name'],
+      symbol: json['symbol'],
+      path: json['path'],
+      nativeToken: Crypto.fromJson(json['nativeToken']),
+      explorers: List<String>.from(json['explorers']),
+      imageUrl: json['imageUrl'],
+      rpcUrls: List<String>.from(json['rpcUrls']),
+      color: Color(json['color']),
+      type: NetworkType.values[json["type"] as int] 
+      
     );
   }
+}
+*/
+
+class CryptoMarketData {
+  final String id;
+  final String symbol;
+  final String name;
+  final String? image;
+  final double currentPrice;
+  final double? marketCap;
+  final int? marketCapRank;
+  final double? fullyDilutedValuation;
+  final double? totalVolume;
+  final double? high24h;
+  final double? low24h;
+  final double? priceChange24h;
+  final double priceChangePercentage24h;
+  final double? marketCapChange24h;
+  final double? marketCapChangePercentage24h;
+  final double? circulatingSupply;
+  final double? totalSupply;
+  final double? maxSupply;
+  final double? ath;
+  final double? athChangePercentage;
+  final DateTime? athDate;
+  final double? atl;
+  final double? atlChangePercentage;
+  final DateTime? atlDate;
+  final Roi? roi;
+  final DateTime lastUpdated;
+
+  CryptoMarketData({
+    required this.id,
+    required this.symbol,
+    required this.name,
+    this.image,
+    required this.currentPrice,
+    this.marketCap,
+    this.marketCapRank,
+    this.fullyDilutedValuation,
+    this.totalVolume,
+    this.high24h,
+    this.low24h,
+    this.priceChange24h,
+    required this.priceChangePercentage24h,
+    this.marketCapChange24h,
+    this.marketCapChangePercentage24h,
+    this.circulatingSupply,
+    this.totalSupply,
+    this.maxSupply,
+    this.ath,
+    this.athChangePercentage,
+    this.athDate,
+    this.atl,
+    this.atlChangePercentage,
+    this.atlDate,
+    this.roi,
+    required this.lastUpdated,
+  });
+
+  Map<String, dynamic> toJson() {
+    return {
+      'id': id,
+      'symbol': symbol,
+      'name': name,
+      'image': image,
+      'current_price': currentPrice,
+      'market_cap': marketCap,
+      'market_cap_rank': marketCapRank,
+      'fully_diluted_valuation': fullyDilutedValuation,
+      'total_volume': totalVolume,
+      'high_24h': high24h,
+      'low_24h': low24h,
+      'price_change_24h': priceChange24h,
+      'price_change_percentage_24h': priceChangePercentage24h,
+      'market_cap_change_24h': marketCapChange24h,
+      'market_cap_change_percentage_24h': marketCapChangePercentage24h,
+      'circulating_supply': circulatingSupply,
+      'total_supply': totalSupply,
+      'max_supply': maxSupply,
+      'ath': ath,
+      'ath_change_percentage': athChangePercentage,
+      'ath_date': athDate?.toIso8601String(),
+      'atl': atl,
+      'atl_change_percentage': atlChangePercentage,
+      'atl_date': atlDate?.toIso8601String(),
+      'roi': roi?.toJson(),
+      'last_updated': lastUpdated.toIso8601String(),
+    };
+  }
+
+  factory CryptoMarketData.fromJson(Map<String, dynamic> json) {
+    double? parseDouble(dynamic value) =>
+        value != null ? (value as num).toDouble() : null;
+
+    DateTime? parseDate(dynamic value) =>
+        value != null ? DateTime.tryParse(value) : null;
+
+    return CryptoMarketData(
+      id: json['id'] ?? '',
+      symbol: json['symbol'] ?? '',
+      name: json['name'] ?? '',
+      image: json['image'],
+      currentPrice: (json['current_price'] as num).toDouble(),
+      marketCap: parseDouble(json['market_cap']),
+      marketCapRank: json['market_cap_rank'],
+      fullyDilutedValuation: parseDouble(json['fully_diluted_valuation']),
+      totalVolume: parseDouble(json['total_volume']),
+      high24h: parseDouble(json['high_24h']),
+      low24h: parseDouble(json['low_24h']),
+      priceChange24h: parseDouble(json['price_change_24h']),
+      priceChangePercentage24h:
+          parseDouble(json['price_change_percentage_24h']) ?? 0.0,
+      marketCapChange24h: parseDouble(json['market_cap_change_24h']),
+      marketCapChangePercentage24h:
+          parseDouble(json['market_cap_change_percentage_24h']),
+      circulatingSupply: parseDouble(json['circulating_supply']),
+      totalSupply: parseDouble(json['total_supply']),
+      maxSupply: parseDouble(json['max_supply']),
+      ath: parseDouble(json['ath']),
+      athChangePercentage: parseDouble(json['ath_change_percentage']),
+      athDate: parseDate(json['ath_date']),
+      atl: parseDouble(json['atl']),
+      atlChangePercentage: parseDouble(json['atl_change_percentage']),
+      atlDate: parseDate(json['atl_date']),
+      roi: json['roi'] != null ? Roi.fromJson(json['roi']) : null,
+      lastUpdated: DateTime.parse(json['last_updated']),
+    );
+  }
+}
+
+class Roi {
+  final double times;
+  final String currency;
+  final double percentage;
+
+  Roi({
+    required this.times,
+    required this.currency,
+    required this.percentage,
+  });
+
+  Map<String, dynamic> toJson() {
+    return {
+      'times': times,
+      'currency': currency,
+      'percentage': percentage,
+    };
+  }
+
+  factory Roi.fromJson(Map<String, dynamic> json) {
+    double? parseDouble(dynamic value) =>
+        value != null ? (value as num).toDouble() : 0.0;
+
+    return Roi(
+      times: parseDouble(json['times']) ?? 0.0,
+      currency: json['currency'] ?? '',
+      percentage: parseDouble(json['percentage']) ?? 0.0,
+    );
+  }
+}
+
+class BasicTransactionData {
+  final String addressTo;
+  final double amount;
+  final Crypto crypto;
+  final PublicData account;
+
+  BasicTransactionData(
+      {required this.addressTo,
+      required this.amount,
+      required this.account,
+      required this.crypto});
+}
+
+class TransactionToConfirm {
+  final String addressTo;
+  final String value;
+  final Crypto crypto;
+  final PublicData account;
+  final String? gasHex;
+  final BigInt? gasBigint;
+  final String? data;
+
+  TransactionToConfirm(
+      {required this.addressTo,
+      required this.value,
+      required this.account,
+      required this.crypto,
+      this.gasBigint,
+      this.gasHex,
+      this.data});
 }

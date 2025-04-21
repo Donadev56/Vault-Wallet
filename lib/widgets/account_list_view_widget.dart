@@ -10,10 +10,14 @@ class AccountListViewWidget extends StatelessWidget {
   final Function() onTap;
   final Function() onMoreTap;
   final Color? tileColor;
+  final bool showMore;
+  final bool isCurrent;
 
   final AppColors colors;
   const AccountListViewWidget(
       {super.key,
+      this.showMore = true,
+      this.isCurrent = false,
       required this.colors,
       required this.wallet,
       required this.onTap,
@@ -75,11 +79,25 @@ class AccountListViewWidget extends StatelessWidget {
           style: textTheme.bodySmall?.copyWith(
               color: colors.textColor.withOpacity(0.4), fontSize: 12),
         ),
-        trailing: IconButton(
-            onPressed: onMoreTap,
-            icon: Icon(
-              Icons.more_vert,
-              color: colors.textColor,
-            )));
+        trailing: ConstrainedBox(
+          constraints: BoxConstraints(maxWidth: 80),
+          child: Row(
+            mainAxisAlignment: MainAxisAlignment.end,
+            children: [
+              if (isCurrent)
+                Icon(
+                  Icons.check_circle,
+                  color: colors.greenColor,
+                ),
+              if (showMore)
+                IconButton(
+                    onPressed: onMoreTap,
+                    icon: Icon(
+                      Icons.more_vert,
+                      color: colors.textColor,
+                    ))
+            ],
+          ),
+        ));
   }
 }

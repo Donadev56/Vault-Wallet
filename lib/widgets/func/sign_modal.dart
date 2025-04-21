@@ -1,10 +1,12 @@
+/*
+
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_web3_webview/flutter_web3_webview.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:lucide_icons_flutter/lucide_icons.dart';
 import 'package:moonwallet/logger/logger.dart';
-import 'package:moonwallet/service/web3_interaction.dart';
+import 'package:moonwallet/service/web3_interactions/evm/eth_interaction_manager.dart';
 import 'package:moonwallet/types/types.dart';
 import 'package:moonwallet/widgets/barre.dart';
 import 'package:moonwallet/widgets/func/ask_password.dart';
@@ -22,9 +24,11 @@ Future<String?> showSignModal(
     required AppColors colors,
     required void Function(PublicData) onTap,
     required Crypto currentNetwork}) async {
+
   if (currentAccount.isWatchOnly) {
     throw Exception("Signing with a watch-only wallet is not supported.");
   }
+
   final width = MediaQuery.of(context).size.width;
   final res = showModalBottomSheet<String?>(
       backgroundColor: Colors.transparent,
@@ -291,7 +295,7 @@ Future<String?> showSignModal(
                                       });
                                   String? res;
                                   final web3IntManager =
-                                      Web3InteractionManager();
+                                      EthInteractionManager();
                                   if (type ==
                                       SignatureRequestType.ethPersonalSign) {
                                     res = await web3IntManager.personalSign(
@@ -349,3 +353,4 @@ Future<String?> showSignModal(
       });
   return res;
 }
+*/

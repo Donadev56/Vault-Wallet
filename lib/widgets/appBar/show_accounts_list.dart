@@ -3,6 +3,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:moonwallet/logger/logger.dart';
+import 'package:moonwallet/screens/dashboard/main/edit_wallets.dart';
 
 import 'package:moonwallet/service/vibration.dart';
 import 'package:moonwallet/types/types.dart';
@@ -65,6 +66,17 @@ void showAccountList({
                   ),
                   onPressed: () => Navigator.pop(context),
                 ),
+                actions: [
+                  IconButton(
+                      onPressed: () => Navigator.of(context).push(
+                          MaterialPageRoute(
+                              builder: (context) => EditWalletsView(
+                                  account: currentAccount, colors: colors))),
+                      icon: Icon(
+                        Icons.filter_list,
+                        color: colors.textColor.withValues(alpha: 0.4),
+                      ))
+                ],
               ),
               body: SingleChildScrollView(
                 child: Container(
@@ -154,6 +166,7 @@ void showAccountList({
                                                             horizontal: 20),
                                                     child:
                                                         AccountListViewWidget(
+                                                            showMore: false,
                                                             colors: colors,
                                                             tileColor: (wallet
                                                                         .keyId ==
@@ -195,10 +208,44 @@ void showAccountList({
                                                                               availableAccounts),
                                                                   wallet:
                                                                       wallet,
-                                                                  editWallet:
-                                                                      editWallet,
+                                                                  editWallet: (
+                                                                      {required PublicData
+                                                                          account,
+                                                                      Color?
+                                                                          color,
+                                                                      IconData?
+                                                                          icon,
+                                                                      String?
+                                                                          name}) async {
+                                                                    final res = await editWallet(
+                                                                        account:
+                                                                            account,
+                                                                        color:
+                                                                            color,
+                                                                        icon:
+                                                                            icon,
+                                                                        name:
+                                                                            name);
+                                                                    if (res) {
+                                                                      setModalState(
+                                                                          () {
+                                                                        widgetKey =
+                                                                            UniqueKey();
+                                                                      });
+
+                                                                      return res;
+                                                                    }
+                                                                    return res;
+                                                                  },
                                                                   deleteWallet:
-                                                                      deleteWallet,
+                                                                      (keyId) async {
+                                                                    final res =
+                                                                        await deleteWallet(
+                                                                            keyId);
+                                                                    setModalState(
+                                                                        () {});
+                                                                    return res;
+                                                                  },
                                                                   updateListAccount:
                                                                       (accounts) {
                                                                     setModalState(

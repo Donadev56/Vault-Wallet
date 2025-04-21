@@ -1,10 +1,14 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:lucide_icons_flutter/lucide_icons.dart';
 import 'package:mobile_scanner/mobile_scanner.dart';
+import 'package:moonwallet/custom/web3_webview/lib/utils/loading.dart';
 import 'package:moonwallet/logger/logger.dart';
 import 'package:moonwallet/main.dart';
-import 'package:moonwallet/service/wallet_saver.dart';
+import 'package:moonwallet/notifiers/providers.dart';
+import 'package:moonwallet/screens/dashboard/page_manager.dart';
+import 'package:moonwallet/service/db/wallet_saver.dart';
 import 'package:moonwallet/types/types.dart';
 import 'package:moonwallet/utils/colors.dart';
 import 'package:moonwallet/utils/prefs.dart';
@@ -12,15 +16,16 @@ import 'package:moonwallet/utils/themes.dart';
 import 'package:moonwallet/widgets/func/ask_password.dart';
 import 'package:moonwallet/widgets/func/snackbar.dart';
 import 'package:moonwallet/widgets/scanner/show_scanner.dart';
+import 'package:page_transition/page_transition.dart';
 
-class AddMnemonicScreen extends StatefulWidget {
+class AddMnemonicScreen extends ConsumerStatefulWidget {
   const AddMnemonicScreen({super.key});
 
   @override
-  State<AddMnemonicScreen> createState() => _AddPrivateKeyState();
+  ConsumerState<AddMnemonicScreen> createState() => _AddPrivateKeyState();
 }
 
-class _AddPrivateKeyState extends State<AddMnemonicScreen> {
+class _AddPrivateKeyState extends ConsumerState<AddMnemonicScreen> {
   late TextEditingController _textController;
   final _formKey = GlobalKey<FormState>();
   String userPassword = "";
@@ -60,73 +65,6 @@ class _AddPrivateKeyState extends State<AddMnemonicScreen> {
     getSavedTheme();
   }
 
-  Future<void> handleSubmit() async {
-    try {
-      final password = await askPassword(context: context, colors: colors);
-      if (password.isNotEmpty) {
-        setState(() {
-          userPassword = password;
-        });
-        saveData();
-      }
-    } catch (e) {
-      logError(e.toString());
-      showCustomSnackBar(
-          colors: colors,
-          type: MessageType.error,
-          context: context,
-          message: "Error occurred while creating private key.",
-          icon: Icons.error,
-          iconColor: Colors.redAccent);
-    }
-  }
-
-  Future<void> saveData() async {
-    try {
-      final bool testResult = keyTester(_textController.text);
-
-      if (!testResult) {
-        throw Exception("Invalid Seed.");
-      }
-      if (_textController.text.isEmpty) {
-        throw Exception("No Seed generated yet.");
-      }
-      final secretData =
-          await web3Manager.createPrivatekeyFromSeed(_textController.text);
-
-      final key = secretData["key"];
-      if (userPassword.isEmpty) {
-        throw Exception("passwords must not be empty ");
-      }
-      final result = await web3Manager.savePrivatekeyInStorage(
-          key, userPassword, "New Wallet", _textController.text);
-      if (result) {
-        if (!mounted) return;
-        showCustomSnackBar(
-            colors: colors,
-            type: MessageType.success,
-            context: context,
-            message: "Data saved successfully",
-            icon: Icons.check_circle,
-            iconColor: colors.themeColor);
-        Navigator.pushNamed(context, Routes.pageManager);
-      } else {
-        throw Exception("Failed to save the key.");
-      }
-    } catch (e) {
-      logError(e.toString());
-      showCustomSnackBar(
-          colors: colors,
-          type: MessageType.error,
-          context: context,
-          message: "Failed to save the key.",
-          iconColor: Colors.pinkAccent);
-      setState(() {
-        userPassword = "";
-      });
-    }
-  }
-
   bool keyTester(String data) {
     try {
       if (data.trim() != data) return false;
@@ -145,9 +83,69 @@ class _AddPrivateKeyState extends State<AddMnemonicScreen> {
     }
   }
 
+  notifySuccess(String message) => showCustomSnackBar(
+      context: context,
+      message: message,
+      colors: colors,
+      type: MessageType.success);
+  notifyError(String message) => showCustomSnackBar(
+      context: context,
+      message: message,
+      colors: colors,
+      type: MessageType.error);
   @override
   Widget build(BuildContext context) {
     final textTheme = Theme.of(context).textTheme;
+    final web3Provider = ref.read(web3ProviderNotifier);
+
+    Future<void> saveData() async {
+      try {
+        final bool testResult = keyTester(_textController.text);
+
+        if (!testResult) {
+          throw Exception("Invalid Seed.");
+        }
+        if (_textController.text.isEmpty) {
+          throw Exception("No Seed generated yet.");
+        }
+        final result = await web3Provider
+            .saveSeed(_textController.text, userPassword)
+            .withLoading(context, colors, "Creating Wallet");
+        if (result) {
+          notifySuccess("Wallet created successfully");
+          Navigator.of(context).push(PageTransition(
+              type: PageTransitionType.leftToRight, child: PagesManagerView()));
+        }
+      } catch (e) {
+        logError(e.toString());
+        notifyError("Failed to save the key.");
+        setState(() {
+          userPassword = "";
+        });
+      }
+    }
+
+    Future<void> handleSubmit() async {
+      try {
+        final password = await askPassword(context: context, colors: colors);
+        if (password.isNotEmpty) {
+          setState(() {
+            userPassword = password;
+          });
+          saveData();
+        }
+      } catch (e) {
+        logError(e.toString());
+        showCustomSnackBar(
+            colors: colors,
+            type: MessageType.error,
+            context: context,
+            message: "Error occurred while creating private key.",
+            icon: Icons.error,
+            iconColor: Colors.redAccent);
+      }
+    }
+
     return Scaffold(
         backgroundColor: colors.primaryColor,
         body: Form(

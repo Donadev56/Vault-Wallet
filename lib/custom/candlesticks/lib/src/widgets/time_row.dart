@@ -29,14 +29,7 @@ class TimeRow extends StatefulWidget {
 
 class _TimeRowState extends State<TimeRow> {
   final ScrollController _scrollController = new ScrollController();
-  AppColors colors = AppColors(
-      primaryColor: Color(0XFF0D0D0D),
-      themeColor: Colors.greenAccent,
-      greenColor: Colors.greenAccent,
-      secondaryColor: Color(0XFF121212),
-      grayColor: Color(0XFF353535),
-      textColor: Colors.white,
-      redColor: Colors.pinkAccent);
+  AppColors colors = AppColors.defaultTheme;
   Future<void> getSavedTheme() async {
     try {
       final manager = ColorsManager();

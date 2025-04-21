@@ -1,33 +1,33 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_web3_webview/flutter_web3_webview.dart';
 import 'package:moonwallet/custom/web3_webview/lib/utils/loading.dart';
 import 'package:moonwallet/logger/logger.dart';
-import 'package:moonwallet/service/price_manager.dart';
-import 'package:moonwallet/service/web3.dart';
-import 'package:moonwallet/service/web3_interaction.dart';
+import 'package:moonwallet/service/external_data/price_manager.dart';
+import 'package:moonwallet/service/web3_interactions/evm/eth_interaction_manager.dart';
 import 'package:moonwallet/types/types.dart';
 import 'package:moonwallet/widgets/func/ask_user_for_conf.dart';
 import 'package:moonwallet/widgets/func/ask_password.dart';
+import 'package:moonwallet/widgets/func/show_watch_only_warning.dart';
 import 'package:web3dart/web3dart.dart';
 import 'package:http/http.dart';
 
 class TokenManager {
   final httpClient = Client();
   final priceManager = PriceManager();
-  final web3manager = Web3Manager();
 
   Future<double> getTokenBalance(Crypto token, String address) async {
     try {
-      if (token.network?.rpc == null && token.rpc == null) {
+      if (token.network?.rpcUrls == null || token.rpcUrls?.isEmpty == true) {
         throw Exception('RPC URL  is not provided');
       }
+
       if (token.contractAddress == null ||
           (token.contractAddress as String).isEmpty) {
         logError('Contract address is not provided');
         return 0;
       }
-      final client =
-          Web3Client(token.network?.rpc ?? token.rpc ?? "", httpClient);
+      final client = Web3Client(
+          token.network?.rpcUrls?.first ?? token.rpcUrls?.first ?? "",
+          httpClient);
       final EthereumAddress contractAddr =
           EthereumAddress.fromHex(token.contractAddress as String);
       final contract = DeployedContract(
@@ -37,7 +37,7 @@ class TokenManager {
           contract: contract,
           function: balanceFunction,
           params: [EthereumAddress.fromHex(address)]);
-      return ((result.first as BigInt).toDouble() / 1e18);
+      return ((result.first as BigInt) / BigInt.from(10).pow(token.decimals));
     } catch (e) {
       logError(e.toString());
       return 0;
@@ -47,11 +47,11 @@ class TokenManager {
   Future<String?> getTokenName(
       {required Crypto network, required String contractAddress}) async {
     try {
-      if (network.rpc == null) {
+      if (network.rpcUrls == null) {
         throw Exception('RPC URL  is not provided');
       }
 
-      final client = Web3Client(network.rpc ?? "", httpClient);
+      final client = Web3Client(network.rpcUrls?.first ?? "", httpClient);
       final EthereumAddress contractAddr =
           EthereumAddress.fromHex(contractAddress);
       final contract = DeployedContract(
@@ -69,11 +69,11 @@ class TokenManager {
   Future<BigInt?> getTokenDecimals(
       {required Crypto network, required String contractAddress}) async {
     try {
-      if (network.rpc == null) {
+      if (network.rpcUrls == null) {
         throw Exception('RPC URL  is not provided');
       }
 
-      final client = Web3Client(network.rpc ?? "", httpClient);
+      final client = Web3Client(network.rpcUrls?.first ?? "", httpClient);
       final EthereumAddress contractAddr =
           EthereumAddress.fromHex(contractAddress);
       final contract = DeployedContract(
@@ -91,11 +91,11 @@ class TokenManager {
   Future<String?> getTokenSymbol(
       {required Crypto network, required String contractAddress}) async {
     try {
-      if (network.rpc == null) {
+      if (network.rpcUrls == null) {
         throw Exception('RPC URL  is not provided');
       }
 
-      final client = Web3Client(network.rpc ?? "", httpClient);
+      final client = Web3Client(network.rpcUrls?.first ?? "", httpClient);
       final EthereumAddress contractAddr =
           EthereumAddress.fromHex(contractAddress);
       final contract = DeployedContract(
@@ -133,25 +133,24 @@ class TokenManager {
     }
   }
 
-  Future<String?> transferToken(
-      {required JsTransactionObject data,
-      required bool mounted,
+  Future<String?> approveTokenTransfer(
+      {required TransactionToConfirm data,
       required BuildContext context,
-      required PublicData currentAccount,
-      required Crypto currentNetwork,
-      required Color primaryColor,
-      required Color textColor,
-      required Color secondaryColor,
       required AppColors colors,
-      required Color actionsColor,
       required int operationType}) async {
     try {
-      final web3InteractionManager = Web3InteractionManager();
+      final web3InteractionManager = EthInteractionManager();
+      final from = data.account.address;
+      final to = data.addressTo;
+      final token = data.crypto;
+      final account = data.account;
 
-      final EthereumAddress sender = EthereumAddress.fromHex(data.from ?? "");
-      final EthereumAddress receiver = EthereumAddress.fromHex(data.to ?? "");
+      final network = token.network;
+
+      final EthereumAddress sender = EthereumAddress.fromHex(from);
+      final EthereumAddress receiver = EthereumAddress.fromHex(to);
       final EthereumAddress tokenContract =
-          EthereumAddress.fromHex(currentNetwork.contractAddress ?? "");
+          EthereumAddress.fromHex(token.contractAddress ?? "");
 
       final contract = DeployedContract(
         ContractAbi.fromJson(standardTokenAbi, "Token"),
@@ -159,82 +158,44 @@ class TokenManager {
       );
       final transferFunction = contract.function("transfer");
 
-      if (currentAccount.isWatchOnly) {
-        showDialog(
-            context: context,
-            builder: (BuildContext wOCtx) {
-              return AlertDialog(
-                title: Text("Warning"),
-                content: Text(
-                  "This a watch-only account, you won't be able to send the transaction on the blockchain.",
-                ),
-                actions: [
-                  ElevatedButton(
-                    child: Text("Ok"),
-                    onPressed: () {
-                      Navigator.pop(wOCtx);
-                    },
-                  ),
-                ],
-              );
-            });
+      if (account.isWatchOnly) {
+        showWatchOnlyWaring(colors, context);
         throw Exception(
             "This account is a watch-only account, you can't send transactions.");
       }
-      if (data.from != null &&
-          data.from?.trim().toLowerCase() !=
-              currentAccount.address.trim().toLowerCase()) {
-        throw Exception(
-            "Different address detected : \n  it seems like ${data.from} is different from the connected address  ${currentAccount.address} , please check again your transaction data .");
-      }
 
-      if (currentNetwork.network?.rpc == null) {
+      if (network?.rpcUrls == null) {
         throw Exception('RPC URL is not provided');
       }
 
-      BigInt? estimatedGas = await web3InteractionManager.estimateGas(
-          value: "0x0",
-          rpcUrl:
-              currentNetwork.rpc ?? "https://opbnb-mainnet-rpc.bnbchain.org",
-          sender: data.from ?? "",
-          to: data.to ?? "",
-          data: data.data ?? "");
+      BigInt? estimatedGas = data.gasBigint;
 
       log("Estimated gas ${estimatedGas.toString()}");
 
-      BigInt valueInWei = data.value != null
-          ? BigInt.parse(data.value!.replaceFirst("0x", ""), radix: 16)
+      BigInt valueInWei = data.value.isNotEmpty
+          ? BigInt.parse(data.value.replaceFirst("0x", ""), radix: 16)
           : BigInt.zero;
 
       log("value wei $valueInWei");
       if (estimatedGas == null) {
         throw Exception("Failed to estimate gas");
       }
-      log("Data gas ${data.gas}");
+      BigInt? gasLimit = (estimatedGas * BigInt.from(130)) ~/ BigInt.from(100);
 
-      BigInt? gasLimit = data.gas != null
-          ? BigInt.parse(data.gas!.replaceFirst("0x", ""), radix: 16)
-          : (estimatedGas * BigInt.from(130)) ~/ BigInt.from(100);
-      log("Gas limit: ${gasLimit}");
+      log("Gas limit: $gasLimit");
+
       final gasPriceResult = await web3InteractionManager.getGasPrice(
-          currentNetwork.network?.rpc ??
-              "https://opbnb-mainnet-rpc.bnbchain.org");
+          network?.rpcUrls?.first ?? "https://opbnb-mainnet-rpc.bnbchain.org");
       BigInt gasPrice =
           gasPriceResult != BigInt.zero ? gasPriceResult : BigInt.from(100000);
-      if (!mounted) {
-        throw Exception("Internal error");
-      }
 
-      final cryptoPrice = await priceManager
-          .getPriceUsingBinanceApi(currentNetwork.network?.binanceSymbol ?? "");
-      if (!mounted) {
-        throw Exception("Internal error");
-      }
+      final cryptoPrice =
+          await priceManager.getTokenMarketData(network?.cgSymbol ?? "");
 
       final confirmedResponse = await askUserForConfirmation(
-        crypto: currentNetwork,
+        crypto: token,
         operationType: operationType,
-        cryptoPrice: cryptoPrice,
+        cryptoPrice: cryptoPrice?.currentPrice ?? 0,
         estimatedGas: estimatedGas,
         gasPrice: gasPrice,
         gasLimit: gasLimit,
@@ -242,7 +203,7 @@ class TokenManager {
         txData: data,
         context: context,
         colors: colors,
-        currentAccount: currentAccount,
+        currentAccount: account,
       );
 
       final confirmed = confirmedResponse.ok;
@@ -250,68 +211,44 @@ class TokenManager {
       if (!confirmed) {
         throw Exception("Transaction rejected by user");
       }
+      log("confirmed Response ${confirmedResponse.gasLimit.toInt()}");
+      log("EtherAmount Response ${EtherAmount.inWei(confirmedResponse.gasPrice)}");
 
-      if (data.from != null && data.to != null) {
-        log("confirmed Response ${confirmedResponse.gasLimit.toInt()}");
-        log("EtherAmount Response ${EtherAmount.inWei(confirmedResponse.gasPrice)}");
+      final Transaction transaction = Transaction.callContract(
+        contract: contract,
+        function: transferFunction,
+        parameters: [receiver, valueInWei],
+        from: sender,
+        maxGas: confirmedResponse.gasLimit.toInt() > 0
+            ? confirmedResponse.gasLimit.toInt() * 2
+            : null,
+        gasPrice: confirmedResponse.gasPrice > BigInt.zero
+            ? EtherAmount.inWei(confirmedResponse.gasPrice)
+            : null,
+      );
 
-        final Transaction transaction = Transaction.callContract(
-          contract: contract,
-          function: transferFunction,
-          parameters: [receiver, valueInWei],
-          from: sender,
-          maxGas: confirmedResponse.gasLimit.toInt() > 0
-              ? confirmedResponse.gasLimit.toInt() * 2
-              : null,
-          gasPrice: confirmedResponse.gasPrice > BigInt.zero
-              ? EtherAmount.inWei(confirmedResponse.gasPrice)
-              : null,
-        );
+      String userPassword = "";
+      userPassword = await askPassword(context: context, colors: colors);
 
-        String userPassword = "";
+      if (userPassword.isNotEmpty) {
+        final result = await web3InteractionManager
+            .sendTransaction(
+                colors: colors,
+                context: context,
+                transaction: transaction,
+                chainId: network?.chainId ?? 204,
+                rpcUrl: network?.rpcUrls?.firstOrNull ?? "",
+                password: userPassword,
+                address: from)
+            .withLoading(context, colors);
 
-        if (!mounted) {
-          throw Exception("Internal error");
-        }
-
-        userPassword = await askPassword(context: context, colors: colors);
-
-        if (userPassword.isNotEmpty) {
-          if (!mounted) {
-            throw Exception("Internal error");
-          }
-
-          final result = await web3InteractionManager
-              .sendTransaction(
-                  colors: colors,
-                  context: context,
-                  transaction: transaction,
-                  chainId: currentNetwork.network?.chainId ?? 204,
-                  rpcUrl: currentNetwork.network?.rpc ??
-                      "https://opbnb-mainnet-rpc.bnbchain.org",
-                  password: userPassword,
-                  address: data.from ?? "")
-              .withLoading(context, colors);
-
-          if (!mounted) {
-            throw Exception("Internal error");
-          }
-          Navigator.pop(context);
-          return result;
-        } else {
-          Navigator.pop(context);
-
-          throw Exception(
-              "An error occurred while trying to enter the password");
-        }
+        return result;
       } else {
-        Navigator.pop(context);
-
-        throw Exception("Invalid transaction data");
+        throw Exception("An error occurred while trying to get the password");
       }
     } catch (e) {
       logError(e.toString());
-      return null;
+      rethrow;
     }
   }
 }

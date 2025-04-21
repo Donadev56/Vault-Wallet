@@ -8,13 +8,11 @@ import 'package:device_info_plus/device_info_plus.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:loading_animation_widget/loading_animation_widget.dart';
 import 'package:moonwallet/custom/refresh/check_mark.dart';
-import 'package:moonwallet/notifiers/price_notifier.dart';
 import 'package:moonwallet/notifiers/providers.dart';
-import 'package:moonwallet/screens/dashboard/view/receive.dart';
-import 'package:moonwallet/screens/dashboard/view/send.dart';
-import 'package:moonwallet/screens/dashboard/view/wallet_overview.dart';
-import 'package:moonwallet/service/network.dart';
-import 'package:moonwallet/service/number_formatter.dart';
+import 'package:moonwallet/screens/dashboard/main/wallet_overview/receive.dart';
+import 'package:moonwallet/screens/dashboard/main/wallet_overview/send.dart';
+import 'package:moonwallet/screens/dashboard/main/wallet_overview.dart';
+import 'package:moonwallet/utils/number_formatter.dart';
 import 'package:moonwallet/utils/colors.dart';
 import 'package:moonwallet/widgets/appBar/show_custom_drawer.dart';
 import 'package:moonwallet/widgets/crypto_picture.dart';
@@ -32,7 +30,7 @@ import 'package:lucide_icons_flutter/lucide_icons.dart';
 import 'package:moonwallet/logger/logger.dart';
 import 'package:moonwallet/main.dart';
 import 'package:moonwallet/service/vibration.dart';
-import 'package:moonwallet/service/web3_interaction.dart';
+import 'package:moonwallet/service/web3_interactions/evm/eth_interaction_manager.dart';
 import 'package:moonwallet/types/types.dart';
 import 'package:moonwallet/utils/constant.dart';
 import 'package:moonwallet/utils/prefs.dart';
@@ -65,12 +63,10 @@ class _MainDashboardScreenState extends ConsumerState<MainDashboardScreen>
   String lastAccount = '';
 
   AppColors colors = AppColors.defaultTheme;
-  List<PublicData> filteredAccounts = [];
+  List<PublicData> accounts = [];
   final formatter = NumberFormat("0.########", "en_US");
 
-  final web3InteractManager = Web3InteractionManager();
   final publicDataManager = PublicDataManager();
-  final connectivityManager = ConnectivityManager();
   List<Crypto> reorganizedCrypto = [];
   List<Asset> assets = [];
 
@@ -299,16 +295,23 @@ class _MainDashboardScreenState extends ConsumerState<MainDashboardScreen>
   Widget build(BuildContext context) {
     final textTheme = Theme.of(context).textTheme;
     final accountsProvider = ref.watch(accountsNotifierProvider);
-    final accounts = accountsProvider.value;
+    final accountsNotifier = ref.watch(accountsNotifierProvider.notifier);
+
     final providerNotifier = ref.watch(accountsNotifierProvider.notifier);
     final currentAccount = ref.watch(currentAccountProvider).value;
     final assetsNotifier = ref.watch(assetsNotifierProvider);
     final savedAssetsProvider = ref.watch(getSavedAssetsProvider);
     final savedCryptoAsync = ref.watch(savedCryptosProviderNotifier);
-    
+    accountsProvider.whenData((data) {
+      setState(
+        () {
+          accounts = data;
+        },
+      );
+    });
 
-    savedAssetsProvider.whenData(
-      (data) {
+    savedAssetsProvider.when(
+      data: (data) {
         if (data != null) {
           setState(() {
             initialAssets = data;
@@ -326,11 +329,19 @@ class _MainDashboardScreenState extends ConsumerState<MainDashboardScreen>
           });
         }
       },
+      loading: () {
+        log("Saved Assets loading");
+      },
+      error: (error, stackTrace) {
+        notifyError(error.toString());
+      },
     );
+
     savedCryptoAsync.whenData((data) {
-      reorganizedCrypto = data;
+      reorganizedCrypto = data.where((e) => e.canDisplay).toList();
     });
-    assetsNotifier.whenData((data) {
+
+    assetsNotifier.when(data: (data) {
       if (data.isNotEmpty) {
         setState(() {
           initialAssets = data;
@@ -343,6 +354,10 @@ class _MainDashboardScreenState extends ConsumerState<MainDashboardScreen>
           totalBalance = balance;
         });
       }
+    }, loading: () {
+      log(" Assets loading");
+    }, error: (error, stackTrace) {
+      notifyError(error.toString());
     });
 
     double width = MediaQuery.of(context).size.width;
@@ -364,7 +379,7 @@ class _MainDashboardScreenState extends ConsumerState<MainDashboardScreen>
 
     Future<bool> deleteWallet(String walletId) async {
       try {
-        if (accounts == null) {
+        if (accounts.isEmpty) {
           logError("No account found ");
           return false;
         }
@@ -406,6 +421,10 @@ class _MainDashboardScreenState extends ConsumerState<MainDashboardScreen>
         IconData? icon,
         String? name}) async {
       try {
+        if (accounts.isEmpty) {
+          logError("No account found ");
+          return false;
+        }
         final result = await providerNotifier.editWallet(
           account: account,
           name: name,
@@ -413,6 +432,14 @@ class _MainDashboardScreenState extends ConsumerState<MainDashboardScreen>
           color: color,
         );
         if (result) {
+          /*
+         final index = accounts.indexWhere((acc)=> acc.keyId.trim().toLowerCase() == account.keyId.trim().toLowerCase() );
+
+          List<PublicData> newList = accounts;
+          newList[index] = PublicData(keyId: account.keyId, walletIcon: icon ?? account.walletIcon, walletColor: color ?? account.walletColor , creationDate: account.creationDate, walletName: name ?? account.walletName, address: account.address, isWatchOnly: account.isWatchOnly);
+          setState(() {
+            accounts = newList ;
+          });*/
           notifySuccess("Account updated successfully");
 
           return true;
@@ -468,7 +495,7 @@ class _MainDashboardScreenState extends ConsumerState<MainDashboardScreen>
 
     Future<void> showPrivateData(int index) async {
       try {
-        if (accounts == null || accounts.isEmpty) {
+        if (accounts.isEmpty) {
           throw ("No account found");
         }
         final wallet = accounts[index];
@@ -496,7 +523,7 @@ class _MainDashboardScreenState extends ConsumerState<MainDashboardScreen>
 
     Future<void> changeWallet(int index) async {
       try {
-        if (accounts == null || accounts.isEmpty) {
+        if (accounts.isEmpty) {
           throw ("No account found");
         }
         Navigator.pop(context);
@@ -527,7 +554,7 @@ class _MainDashboardScreenState extends ConsumerState<MainDashboardScreen>
             break;
           case 2:
             assets = initialAssets
-                .where((a) => a.crypto.type == CryptoType.network)
+                .where((a) => a.crypto.type == CryptoType.native)
                 .toList();
             break;
           case 3:
@@ -619,7 +646,7 @@ class _MainDashboardScreenState extends ConsumerState<MainDashboardScreen>
                     isWatchOnly: true),
             editWallet: editWallet,
             deleteWallet: deleteWallet,
-            accounts: accounts ?? [],
+            accounts: accounts,
             updateBioState: updateBioState,
             canUseBio: canUseBio,
             refreshProfile: refreshProfile,
@@ -675,378 +702,418 @@ class _MainDashboardScreenState extends ConsumerState<MainDashboardScreen>
                   swipeDetectionBehavior:
                       SwipeDetectionBehavior.continuousDistinct,
                 ),
-                child: CustomScrollView(
-                  physics: BouncingScrollPhysics(),
-                  slivers: <Widget>[
-                    SliverToBoxAdapter(
-                        key: ValueKey(colors.textColor.value),
-                        child: Column(
-                          mainAxisAlignment: MainAxisAlignment.center,
-                          children: [
-                            Container(
-                              margin: const EdgeInsets.all(17),
-                              child: Column(
-                                crossAxisAlignment: CrossAxisAlignment.center,
-                                mainAxisAlignment: MainAxisAlignment.center,
-                                children: [
-                                  Row(
+                child: GlowingOverscrollIndicator(
+                    axisDirection: AxisDirection.down,
+                    color: colors.themeColor,
+                    child: CustomScrollView(
+                      slivers: <Widget>[
+                        SliverToBoxAdapter(
+                            key: ValueKey(colors.textColor.value),
+                            child: Column(
+                              mainAxisAlignment: MainAxisAlignment.center,
+                              children: [
+                                Container(
+                                  margin: const EdgeInsets.all(17),
+                                  child: Column(
+                                    crossAxisAlignment:
+                                        CrossAxisAlignment.center,
                                     mainAxisAlignment: MainAxisAlignment.center,
                                     children: [
-                                      Text(
-                                        "Balance",
-                                        style: textTheme.bodyMedium
-                                            ?.copyWith(color: colors.textColor),
+                                      Row(
+                                        mainAxisAlignment:
+                                            MainAxisAlignment.center,
+                                        children: [
+                                          Text(
+                                            "Balance",
+                                            style: textTheme.bodySmall
+                                                ?.copyWith(
+                                                    color: colors.textColor),
+                                          ),
+                                          IconButton(
+                                              onPressed: toggleHidden,
+                                              icon: Icon(
+                                                isHidden
+                                                    ? LucideIcons.eyeClosed
+                                                    : Icons
+                                                        .remove_red_eye_outlined,
+                                                color: colors.textColor,
+                                                size: 20,
+                                              ))
+                                        ],
                                       ),
-                                      IconButton(
-                                          onPressed: toggleHidden,
-                                          icon: Icon(
-                                            isHidden
-                                                ? LucideIcons.eyeClosed
-                                                : Icons.remove_red_eye_outlined,
-                                            color: colors.textColor,
-                                            size: 22,
-                                          ))
-                                    ],
-                                  ),
-                                  SizedBox(
-                                    height: 10,
-                                  ),
-                                  Row(
-                                    mainAxisAlignment: MainAxisAlignment.center,
-                                    children: [
-                                      //   Icon(FeatherIcons.dollarSign, color: colors.textColor, size: textTheme.headlineLarge?.fontSize,),
-                                      Text(
-                                        !isHidden
-                                            ? "\$${formatUsd(totalBalance.toString())}"
-                                            : "***",
-                                        overflow: TextOverflow.clip,
-                                        maxLines: 1,
-                                        style: textTheme.headlineLarge
-                                            ?.copyWith(
-                                                fontSize: 36,
-                                                color: colors.textColor),
+                                      SizedBox(
+                                        height: 5,
                                       ),
+                                      Row(
+                                        mainAxisAlignment:
+                                            MainAxisAlignment.center,
+                                        children: [
+                                          //   Icon(FeatherIcons.dollarSign, color: colors.textColor, size: textTheme.headlineLarge?.fontSize,),
+                                          Text(
+                                            !isHidden
+                                                ? "\$${formatUsd(totalBalance.toString())}"
+                                                : "***",
+                                            overflow: TextOverflow.clip,
+                                            maxLines: 1,
+                                            style: textTheme.headlineLarge
+                                                ?.copyWith(
+                                                    fontSize: 36,
+                                                    color: colors.textColor),
+                                          ),
+                                        ],
+                                      )
                                     ],
-                                  )
-                                ],
-                              ),
-                            ),
-                            Container(
-                              alignment: Alignment.center,
-                              child: SingleChildScrollView(
-                                  physics: BouncingScrollPhysics(),
-                                  scrollDirection: Axis.horizontal,
-                                  child: Row(
-                                      crossAxisAlignment:
-                                          CrossAxisAlignment.center,
-                                      mainAxisAlignment:
-                                          MainAxisAlignment.center,
-                                      children: List.generate(
-                                          actionsData.length, (index) {
-                                        final action = actionsData[index];
-                                        return ActionsWidgets(
-                                            onTap: () {
-                                              if (index == 1) {
-                                                showReceiveModal();
-                                              } else if (index == 0) {
-                                                showSendModal();
-                                              } else if (index == 3) {
-                                                showOptionsModal();
-                                              } else if (index == 2) {
-                                                Navigator.pushNamed(
-                                                    context, Routes.addCrypto);
-                                              }
-                                            },
-                                            text: action["name"],
-                                            actIcon: action["icon"],
-                                            textColor: colors.textColor,
-                                            size: width <= 330 ? 40 : 50,
-                                            iconSize: 20,
-                                            color: colors.secondaryColor);
-                                      }))),
-                            ),
-                            SizedBox(
-                              height: 20,
-                            ),
-                          ],
-                        )),
-                    SliverAppBar(
-                      backgroundColor: colors.primaryColor,
-                      surfaceTintColor: colors.grayColor.withOpacity(0.1),
-                      pinned: true,
-                      automaticallyImplyLeading: false,
-                      title: Padding(
-                          padding: const EdgeInsets.only(left: 0),
-                          child: Row(
-                            mainAxisAlignment: MainAxisAlignment.start,
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              AnimatedContainer(
-                                duration: Duration(seconds: 1),
-                                width:
-                                    _cryptoSearchTextController.text.isNotEmpty
-                                        ? 200
-                                        : 125,
-                                child: SizedBox(
-                                  height: 30,
-                                  child: TextField(
-                                    onChanged: (v) {
-                                      setState(() {
-                                        searchCryptoQuery = v.toLowerCase();
-                                      });
-                                    },
-                                    controller: _cryptoSearchTextController,
-                                    style: textTheme.bodySmall?.copyWith(
-                                        fontSize: 13, color: colors.textColor),
-                                    decoration: InputDecoration(
-                                        prefixIcon: Icon(
-                                          Icons.search,
-                                          color:
-                                              colors.textColor.withOpacity(0.3),
-                                        ),
-                                        contentPadding:
-                                            const EdgeInsets.symmetric(
-                                                horizontal: 15, vertical: 0),
-                                        hintStyle: GoogleFonts.roboto(
-                                            color: colors.textColor
-                                                .withOpacity(0.4)),
-                                        hintText: "Search",
-                                        filled: true,
-                                        fillColor: colors.secondaryColor,
-                                        border: OutlineInputBorder(
-                                            borderRadius:
-                                                BorderRadius.circular(40),
-                                            borderSide: BorderSide(
-                                                width: 0,
-                                                color: Colors.transparent)),
-                                        enabledBorder: OutlineInputBorder(
-                                            borderRadius:
-                                                BorderRadius.circular(40),
-                                            borderSide: BorderSide(
-                                                width: 0,
-                                                color: Colors.transparent)),
-                                        focusedBorder: OutlineInputBorder(
-                                            borderRadius:
-                                                BorderRadius.circular(40),
-                                            borderSide: BorderSide(
-                                                width: 0,
-                                                color: Colors.transparent))),
                                   ),
                                 ),
-                              )
-                            ],
-                          )),
-                      actions: [
-                        PopupMenuButton(
-                            splashRadius: 10,
-                            borderRadius: BorderRadius.circular(20),
-                            requestFocus: true,
-                            menuPadding: const EdgeInsets.all(0),
-                            padding: const EdgeInsets.all(0),
-                            color: colors.secondaryColor,
-                            icon: Icon(
-                              Icons.more_vert,
-                              color: colors.textColor.withOpacity(0.4),
-                            ),
-                            itemBuilder: (ctx) => <PopupMenuEntry<dynamic>>[
-                                  PopupMenuItem(
-                                    onTap: () {
-                                      reorderCrypto(0);
-                                    },
-                                    child: Row(children: [
-                                      Icon(fixedAppBarOptions[0]["icon"],
-                                          size: 25,
-                                          color: colors.textColor
-                                              .withOpacity(0.4)),
-                                      SizedBox(width: 8),
-                                      Text(fixedAppBarOptions[0]["name"],
-                                          style: textTheme.bodyMedium),
-                                    ]),
-                                  ),
-                                  PopupMenuItem(
-                                    onTap: () {
-                                      reorderCrypto(1);
-                                    },
-                                    child: Row(children: [
-                                      Icon(fixedAppBarOptions[1]["icon"],
-                                          color: colors.textColor
-                                              .withOpacity(0.4)),
-                                      SizedBox(width: 8),
-                                      Text(fixedAppBarOptions[1]["name"],
-                                          style: textTheme.bodyMedium?.copyWith(
-                                              color: colors.textColor)),
-                                    ]),
-                                  ),
-                                  CustomPopMenuDivider(colors: colors),
-                                  PopupMenuItem(
-                                    onTap: () {
-                                      Navigator.pushNamed(
-                                          context, Routes.addCrypto);
-                                    },
-                                    child: Row(children: [
-                                      Icon(fixedAppBarOptions[4]["icon"],
-                                          color: colors.textColor
-                                              .withOpacity(0.4)),
-                                      SizedBox(width: 8),
-                                      Text(fixedAppBarOptions[4]["name"],
-                                          style: textTheme.bodyMedium?.copyWith(
-                                              color: colors.textColor)),
-                                    ]),
-                                  ),
-                                ])
-                      ],
-                    ),
-                    SliverList(
-                      delegate: SliverChildBuilderDelegate(
-                        (BuildContext context, int index) {
-                          final assetsFilteredList =
-                              getFilteredCryptos()[index];
-                          final crypto = assetsFilteredList.crypto;
-                          final trend = assetsFilteredList.cryptoTrendPercent;
-                          final tokenBalance = assetsFilteredList.balanceCrypto;
-                          final usdBalance = assetsFilteredList.balanceUsd;
-                          final cryptoPrice = assetsFilteredList.cryptoPrice;
-
-                          return Padding(
-                            padding: const EdgeInsets.symmetric(vertical: 5),
-                            child: Material(
-                                color: Colors.transparent,
-                                child: ListTile(
-                                  visualDensity: VisualDensity.compact,
-                                  splashColor:
-                                      colors.textColor.withOpacity(0.05),
-                                  onTap: () {
-                                    log("Crypto id ${crypto.cryptoId}");
-                                    Navigator.push(
-                                        context,
-                                        MaterialPageRoute(
-                                          builder: (context) => WalletViewScreen(
-                                              initData: WidgetInitialData(
-                                                  account: currentAccount!,
-                                                  crypto: crypto,
-                                                  colors: colors,
-                                                  initialBalanceUsd: assets
-                                                      .where((as) =>
-                                                          as.crypto.cryptoId ==
-                                                          crypto.cryptoId)
-                                                      .first
-                                                      .balanceUsd,
-                                                  initialBalanceCrypto: assets
-                                                      .where((as) =>
-                                                          as.crypto.cryptoId ==
-                                                          crypto.cryptoId)
-                                                      .first
-                                                      .balanceCrypto)),
-                                        ));
-                                  },
-                                  leading: CryptoPicture(
-                                      crypto: crypto, size: 38, colors: colors),
-                                  title: LayoutBuilder(builder: (ctx, c) {
-                                    return Row(
-                                      spacing: 10,
-                                      children: [
-                                        ConstrainedBox(
-                                          constraints: BoxConstraints(
-                                              maxWidth: c.maxWidth * 0.4),
-                                          child: Text(
-                                              crypto.symbol.toUpperCase(),
-                                              maxLines: 1,
-                                              overflow: TextOverflow.ellipsis,
+                                Container(
+                                  alignment: Alignment.center,
+                                  child: SingleChildScrollView(
+                                      physics: BouncingScrollPhysics(),
+                                      scrollDirection: Axis.horizontal,
+                                      child: Row(
+                                          crossAxisAlignment:
+                                              CrossAxisAlignment.center,
+                                          mainAxisAlignment:
+                                              MainAxisAlignment.center,
+                                          children: List.generate(
+                                              actionsData.length, (index) {
+                                            final action = actionsData[index];
+                                            return ActionsWidgets(
+                                                onTap: () {
+                                                  if (index == 1) {
+                                                    showReceiveModal();
+                                                  } else if (index == 0) {
+                                                    showSendModal();
+                                                  } else if (index == 3) {
+                                                    showOptionsModal();
+                                                  } else if (index == 2) {
+                                                    Navigator.pushNamed(context,
+                                                        Routes.addCrypto);
+                                                  }
+                                                },
+                                                text: action["name"],
+                                                actIcon: action["icon"],
+                                                textColor: colors.textColor,
+                                                size: width <= 330 ? 40 : 50,
+                                                iconSize: 20,
+                                                color: colors.secondaryColor);
+                                          }))),
+                                ),
+                                SizedBox(
+                                  height: 20,
+                                ),
+                              ],
+                            )),
+                        SliverAppBar(
+                          backgroundColor: colors.primaryColor,
+                          surfaceTintColor: colors.grayColor.withOpacity(0.1),
+                          pinned: true,
+                          automaticallyImplyLeading: false,
+                          title: Padding(
+                              padding: const EdgeInsets.only(left: 0),
+                              child: Row(
+                                mainAxisAlignment: MainAxisAlignment.start,
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  AnimatedContainer(
+                                    duration: Duration(seconds: 1),
+                                    width: _cryptoSearchTextController
+                                            .text.isNotEmpty
+                                        ? 200
+                                        : 125,
+                                    child: SizedBox(
+                                      height: 30,
+                                      child: TextField(
+                                        onChanged: (v) {
+                                          setState(() {
+                                            searchCryptoQuery = v.toLowerCase();
+                                          });
+                                        },
+                                        controller: _cryptoSearchTextController,
+                                        style: textTheme.bodySmall?.copyWith(
+                                            fontSize: 13,
+                                            color: colors.textColor),
+                                        decoration: InputDecoration(
+                                            prefixIcon: Icon(
+                                              Icons.search,
+                                              color: colors.textColor
+                                                  .withOpacity(0.3),
+                                            ),
+                                            contentPadding:
+                                                const EdgeInsets.symmetric(
+                                                    horizontal: 15,
+                                                    vertical: 0),
+                                            hintStyle: GoogleFonts.roboto(
+                                                color: colors.textColor
+                                                    .withOpacity(0.4)),
+                                            hintText: "Search",
+                                            filled: true,
+                                            fillColor: colors.secondaryColor,
+                                            border: OutlineInputBorder(
+                                                borderRadius:
+                                                    BorderRadius.circular(40),
+                                                borderSide: BorderSide(
+                                                    width: 0,
+                                                    color: Colors.transparent)),
+                                            enabledBorder: OutlineInputBorder(
+                                                borderRadius:
+                                                    BorderRadius.circular(40),
+                                                borderSide: BorderSide(
+                                                    width: 0,
+                                                    color: Colors.transparent)),
+                                            focusedBorder: OutlineInputBorder(
+                                                borderRadius:
+                                                    BorderRadius.circular(40),
+                                                borderSide: BorderSide(
+                                                    width: 0,
+                                                    color:
+                                                        Colors.transparent))),
+                                      ),
+                                    ),
+                                  )
+                                ],
+                              )),
+                          actions: [
+                            PopupMenuButton(
+                                splashRadius: 10,
+                                borderRadius: BorderRadius.circular(20),
+                                requestFocus: true,
+                                menuPadding: const EdgeInsets.all(0),
+                                padding: const EdgeInsets.all(0),
+                                color: colors.secondaryColor,
+                                icon: Icon(
+                                  Icons.more_vert,
+                                  color: colors.textColor.withOpacity(0.4),
+                                ),
+                                itemBuilder: (ctx) => <PopupMenuEntry<dynamic>>[
+                                      PopupMenuItem(
+                                        onTap: () {
+                                          reorderCrypto(0);
+                                        },
+                                        child: Row(children: [
+                                          Icon(fixedAppBarOptions[0]["icon"],
+                                              size: 25,
+                                              color: colors.textColor
+                                                  .withOpacity(0.4)),
+                                          SizedBox(width: 8),
+                                          Text(fixedAppBarOptions[0]["name"],
+                                              style: textTheme.bodyMedium),
+                                        ]),
+                                      ),
+                                      PopupMenuItem(
+                                        onTap: () {
+                                          reorderCrypto(1);
+                                        },
+                                        child: Row(children: [
+                                          Icon(fixedAppBarOptions[1]["icon"],
+                                              color: colors.textColor
+                                                  .withOpacity(0.4)),
+                                          SizedBox(width: 8),
+                                          Text(fixedAppBarOptions[1]["name"],
                                               style: textTheme.bodyMedium
                                                   ?.copyWith(
-                                                      fontWeight:
-                                                          FontWeight.w400,
                                                       color: colors.textColor)),
-                                        ),
-                                        Container(
-                                          padding: const EdgeInsets.symmetric(
-                                              horizontal: 10, vertical: 2),
-                                          decoration: BoxDecoration(
-                                              color: colors.grayColor
-                                                  .withOpacity(0.9)
-                                                  .withOpacity(0.2),
-                                              borderRadius:
-                                                  BorderRadius.circular(20)),
-                                          child: Text(
-                                              crypto.type == CryptoType.token
-                                                  ? "${crypto.network?.name}"
-                                                  : crypto.name,
-                                              style: textTheme.bodySmall
+                                        ]),
+                                      ),
+                                      CustomPopMenuDivider(colors: colors),
+                                      PopupMenuItem(
+                                        onTap: () {
+                                          Navigator.pushNamed(
+                                              context, Routes.addCrypto);
+                                        },
+                                        child: Row(children: [
+                                          Icon(fixedAppBarOptions[4]["icon"],
+                                              color: colors.textColor
+                                                  .withOpacity(0.4)),
+                                          SizedBox(width: 8),
+                                          Text(fixedAppBarOptions[4]["name"],
+                                              style: textTheme.bodyMedium
                                                   ?.copyWith(
-                                                      fontSize: 10,
                                                       color: colors.textColor)),
-                                        )
-                                      ],
-                                    );
-                                  }),
-                                  subtitle: Row(
-                                    spacing: 2,
-                                    children: [
-                                      Text(formatUsd(cryptoPrice.toString()),
-                                          style: textTheme.bodySmall?.copyWith(
-                                            color: colors.textColor
-                                                .withOpacity(0.6),
-                                            fontSize: 16,
-                                          )),
-                                      if (trend != 0)
-                                        Text(
-                                          " ${(trend).toStringAsFixed(2)}%",
-                                          style: textTheme.bodySmall?.copyWith(
-                                            color: trend > 0
-                                                ? colors.greenColor
-                                                : colors.redColor,
-                                            fontSize: 14,
-                                          ),
-                                        ),
-                                    ],
+                                        ]),
+                                      ),
+                                    ])
+                          ],
+                        ),
+                        SliverList(
+                          delegate: SliverChildBuilderDelegate(
+                            (BuildContext context, int index) {
+                              final assetsFilteredList =
+                                  getFilteredCryptos()[index];
+                              final crypto = assetsFilteredList.crypto;
+                              final trend =
+                                  assetsFilteredList.cryptoTrendPercent;
+                              final tokenBalance =
+                                  assetsFilteredList.balanceCrypto;
+                              final usdBalance = assetsFilteredList.balanceUsd;
+                              final cryptoPrice =
+                                  assetsFilteredList.cryptoPrice;
+                              if (assets.isEmpty) {
+                                return Center(
+                                  child: SizedBox(
+                                    height: 30,
+                                    width: 30,
+                                    child:
+                                        LoadingAnimationWidget.discreteCircle(
+                                            color: colors.themeColor, size: 40),
                                   ),
-                                  trailing: ConstrainedBox(
-                                    constraints:
-                                        BoxConstraints(maxWidth: width * 0.37),
-                                    child: Column(
-                                      mainAxisAlignment:
-                                          MainAxisAlignment.spaceAround,
-                                      crossAxisAlignment:
-                                          CrossAxisAlignment.end,
-                                      children: [
-                                        Text(
-                                            isHidden
-                                                ? "***"
-                                                : formatCryptoValue(
-                                                        tokenBalance.toString())
-                                                    .trim(),
-                                            overflow: TextOverflow.ellipsis,
-                                            maxLines: 1,
-                                            style: textTheme.bodyMedium
-                                                ?.copyWith(
-                                                    fontSize: 15,
-                                                    color: colors.textColor,
-                                                    fontWeight:
-                                                        FontWeight.w400)),
-                                        Text(
-                                            isHidden
-                                                ? "***"
-                                                : "\$${formatUsd(usdBalance.toString()).trim()}",
-                                            overflow: TextOverflow.ellipsis,
-                                            maxLines: 1,
-                                            style:
-                                                textTheme.bodySmall
+                                );
+                              }
+                              return Padding(
+                                padding:
+                                    const EdgeInsets.symmetric(vertical: 5),
+                                child: Material(
+                                    color: Colors.transparent,
+                                    child: ListTile(
+                                      visualDensity: VisualDensity.compact,
+                                      splashColor:
+                                          colors.textColor.withOpacity(0.05),
+                                      onTap: () {
+                                        log("Crypto id ${crypto.cryptoId}");
+                                        Navigator.push(
+                                            context,
+                                            MaterialPageRoute(
+                                              builder: (context) => WalletViewScreen(
+                                                  initData: WidgetInitialData(
+                                                      account: currentAccount!,
+                                                      crypto: crypto,
+                                                      colors: colors,
+                                                      initialBalanceUsd: assets
+                                                          .where((as) =>
+                                                              as.crypto
+                                                                  .cryptoId ==
+                                                              crypto.cryptoId)
+                                                          .first
+                                                          .balanceUsd,
+                                                      initialBalanceCrypto: assets
+                                                          .where((as) =>
+                                                              as.crypto
+                                                                  .cryptoId ==
+                                                              crypto.cryptoId)
+                                                          .first
+                                                          .balanceCrypto)),
+                                            ));
+                                      },
+                                      leading: CryptoPicture(
+                                          crypto: crypto,
+                                          size: 38,
+                                          colors: colors),
+                                      title: LayoutBuilder(builder: (ctx, c) {
+                                        return Row(
+                                          spacing: 10,
+                                          children: [
+                                            ConstrainedBox(
+                                              constraints: BoxConstraints(
+                                                  maxWidth: c.maxWidth * 0.4),
+                                              child: Text(
+                                                  crypto.symbol.toUpperCase(),
+                                                  maxLines: 1,
+                                                  overflow: TextOverflow
+                                                      .ellipsis,
+                                                  style: textTheme.bodyMedium
+                                                      ?.copyWith(
+                                                          fontWeight:
+                                                              FontWeight.w400,
+                                                          color: colors
+                                                              .textColor)),
+                                            ),
+                                            Container(
+                                              padding:
+                                                  const EdgeInsets.symmetric(
+                                                      horizontal: 10,
+                                                      vertical: 2),
+                                              decoration: BoxDecoration(
+                                                  color: colors.grayColor
+                                                      .withOpacity(0.9)
+                                                      .withOpacity(0.2),
+                                                  borderRadius:
+                                                      BorderRadius.circular(
+                                                          20)),
+                                              child: Text(
+                                                  crypto.type ==
+                                                          CryptoType.token
+                                                      ? "${crypto.network?.name}"
+                                                      : crypto.name,
+                                                  style: textTheme.bodySmall
+                                                      ?.copyWith(
+                                                          fontSize: 10,
+                                                          color: colors
+                                                              .textColor)),
+                                            )
+                                          ],
+                                        );
+                                      }),
+                                      subtitle: Row(
+                                        spacing: 2,
+                                        children: [
+                                          Text(
+                                              formatUsd(cryptoPrice.toString()),
+                                              style:
+                                                  textTheme.bodySmall?.copyWith(
+                                                color: colors.textColor
+                                                    .withOpacity(0.6),
+                                                fontSize: 16,
+                                              )),
+                                          if (trend != 0)
+                                            Text(
+                                              " ${(trend).toStringAsFixed(2)}%",
+                                              style:
+                                                  textTheme.bodySmall?.copyWith(
+                                                color: trend > 0
+                                                    ? colors.greenColor
+                                                    : colors.redColor,
+                                                fontSize: 14,
+                                              ),
+                                            ),
+                                        ],
+                                      ),
+                                      trailing: ConstrainedBox(
+                                        constraints: BoxConstraints(
+                                            maxWidth: width * 0.37),
+                                        child: Column(
+                                          mainAxisAlignment:
+                                              MainAxisAlignment.spaceAround,
+                                          crossAxisAlignment:
+                                              CrossAxisAlignment.end,
+                                          children: [
+                                            Text(
+                                                isHidden
+                                                    ? "***"
+                                                    : formatCryptoValue(
+                                                            tokenBalance
+                                                                .toString())
+                                                        .trim(),
+                                                overflow: TextOverflow.ellipsis,
+                                                maxLines: 1,
+                                                style: textTheme.bodyMedium
+                                                    ?.copyWith(
+                                                        fontSize: 15,
+                                                        color: colors.textColor,
+                                                        fontWeight:
+                                                            FontWeight.w400)),
+                                            Text(
+                                                isHidden
+                                                    ? "***"
+                                                    : "\$${formatUsd(usdBalance.toString()).trim()}",
+                                                overflow: TextOverflow.ellipsis,
+                                                maxLines: 1,
+                                                style: textTheme.bodySmall
                                                     ?.copyWith(
                                                         color: colors.textColor
                                                             .withOpacity(0.6),
                                                         fontSize: 15,
                                                         fontWeight:
                                                             FontWeight.w500))
-                                      ],
-                                    ),
-                                  ),
-                                )),
-                          );
-                        },
-                        childCount: getFilteredCryptos().length,
-                      ),
-                    ),
-                  ],
-                ))));
+                                          ],
+                                        ),
+                                      ),
+                                    )),
+                              );
+                            },
+                            childCount: getFilteredCryptos().length,
+                          ),
+                        ),
+                      ],
+                    )))));
   }
 }

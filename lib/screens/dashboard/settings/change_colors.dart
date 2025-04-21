@@ -7,6 +7,7 @@ import 'package:moonwallet/utils/colors.dart';
 import 'package:moonwallet/utils/themes.dart';
 import 'package:moonwallet/widgets/func/snackbar.dart';
 import 'package:photo_view/photo_view.dart';
+import 'package:moonwallet/widgets/app_bar_title.dart';
 
 class ChangeThemeView extends StatefulWidget {
   final AppColors? colors;
@@ -83,24 +84,23 @@ class _ChangeThemeViewState extends State<ChangeThemeView> {
     return Scaffold(
         backgroundColor: colors.primaryColor,
         appBar: AppBar(
-          surfaceTintColor: colors.grayColor,
-          backgroundColor: colors.primaryColor,
-          leading: IconButton(
-              onPressed: () {
-                saved
-                    ? Navigator.pushNamed(context, Routes.pageManager)
-                    : Navigator.pop(context);
-              },
-              icon: Icon(
-                Icons.arrow_back,
-                color: colors.textColor,
-              )),
-          title: Text(
-            "Change color",
-            style: textTheme.headlineMedium
-                ?.copyWith(color: colors.textColor, fontSize: 20),
-          ),
-        ),
+            surfaceTintColor: colors.grayColor,
+            backgroundColor: colors.primaryColor,
+            leading: IconButton(
+                onPressed: () {
+                  saved
+                      ? Navigator.pushNamed(context, Routes.pageManager)
+                      : Navigator.pop(context);
+                },
+                icon: Icon(
+                  Icons.arrow_back,
+                  color: colors.textColor,
+                )),
+            centerTitle: true,
+            title: AppBarTitle(
+              title: "Change Theme",
+              colors: colors,
+            )),
         body: GlowingOverscrollIndicator(
           axisDirection: AxisDirection.down,
           color: colors.themeColor,
@@ -139,108 +139,6 @@ class _ChangeThemeViewState extends State<ChangeThemeView> {
                                         mainAxisAlignment:
                                             MainAxisAlignment.center,
                                         children: [
-                                          ClipRRect(
-                                            borderRadius:
-                                                BorderRadius.circular(40),
-                                            child: TextButton.icon(
-                                              icon: Icon(Icons.remove_red_eye,
-                                                  color: colors.themeColor),
-                                              onPressed: () {
-                                                showCupertinoModalBottomSheet(
-                                                    backgroundColor:
-                                                        Colors.transparent,
-                                                    shape:
-                                                        RoundedRectangleBorder(
-                                                            borderRadius:
-                                                                BorderRadius
-                                                                    .circular(
-                                                                        40)),
-                                                    context: context,
-                                                    builder: (ctx) {
-                                                      return StatefulBuilder(
-                                                          builder: (ctx, st) {
-                                                        return ClipRRect(
-                                                            child: Dialog
-                                                                .fullscreen(
-                                                          child: Scaffold(
-                                                            backgroundColor:
-                                                                colors
-                                                                    .primaryColor,
-                                                            appBar: AppBar(
-                                                              backgroundColor:
-                                                                  colors
-                                                                      .primaryColor,
-                                                              title: Text(
-                                                                themeName,
-                                                                style: textTheme
-                                                                    .bodyMedium
-                                                                    ?.copyWith(
-                                                                        color: colors
-                                                                            .textColor),
-                                                              ),
-                                                              actions: [
-                                                                IconButton(
-                                                                  icon: Icon(
-                                                                      Icons
-                                                                          .check,
-                                                                      color: colors
-                                                                          .themeColor),
-                                                                  onPressed:
-                                                                      () {
-                                                                    setState(
-                                                                        () {
-                                                                      colors = themes
-                                                                          .allColors
-                                                                          .values
-                                                                          .toList()[index];
-                                                                      savedThemeName =
-                                                                          themeName;
-                                                                    });
-                                                                    saveTheme(
-                                                                        themeName:
-                                                                            themeName);
-                                                                    st(() {});
-                                                                  },
-                                                                ),
-                                                              ],
-                                                            ),
-                                                            body: Center(
-                                                                child:
-                                                                    PhotoView(
-                                                              minScale:
-                                                                  PhotoViewComputedScale
-                                                                      .covered,
-                                                              imageProvider:
-                                                                  AssetImage(
-                                                                "assets/screens/${index + 1}.png",
-                                                              ),
-                                                            )),
-                                                          ),
-                                                        ));
-                                                      });
-                                                    });
-                                              },
-                                              style: ElevatedButton.styleFrom(
-                                                  padding: const EdgeInsets
-                                                      .symmetric(
-                                                      vertical: 0,
-                                                      horizontal: 0),
-                                                  elevation: savedThemeName ==
-                                                          themeName
-                                                      ? 10
-                                                      : 0,
-                                                  backgroundColor:
-                                                      Colors.transparent),
-                                              label: Text(
-                                                "View",
-                                                style: textTheme.bodyMedium
-                                                    ?.copyWith(
-                                                        fontSize: 10,
-                                                        color:
-                                                            colors.themeColor),
-                                              ),
-                                            ),
-                                          ),
                                           TextButton(
                                             onPressed: () {
                                               setState(() {

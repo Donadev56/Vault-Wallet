@@ -7,9 +7,9 @@ import 'package:flutter/widgets.dart';
 import 'package:flutter_inappwebview/flutter_inappwebview.dart';
 import 'package:http/http.dart';
 import 'package:moonwallet/logger/logger.dart';
-import 'package:moonwallet/service/crypto_storage_manager.dart';
-import 'package:moonwallet/service/known_host_manager.dart';
-import 'package:moonwallet/service/web3_interaction.dart';
+import 'package:moonwallet/service/db/crypto_storage_manager.dart';
+import 'package:moonwallet/service/db/known_host_manager.dart';
+import 'package:moonwallet/service/web3_interactions/evm/eth_interaction_manager.dart';
 import 'package:moonwallet/types/types.dart';
 import 'package:moonwallet/utils/id_manager.dart';
 import 'package:moonwallet/custom/web3_webview/lib/utils/loading.dart';
@@ -533,7 +533,7 @@ class EthereumProvider {
             wallet: currentAccount ?? nullAccount);
         if (savedCrypto != null) {
           final networks =
-              savedCrypto.where((c) => c.type == CryptoType.network).toList();
+              savedCrypto.where((c) => c.type == CryptoType.native).toList();
           if (networks.isNotEmpty) {
             for (final net in networks) {
               if (int.parse(network.chainId) == net.chainId) {
@@ -543,20 +543,18 @@ class EthereumProvider {
             }
             final newId = IdManager().generateUUID();
             final Crypto newCrypto = Crypto(
+              decimals: 18,
               name: network.chainName,
               color: Colors.grey,
-              type: CryptoType.network,
+              type: CryptoType.native,
               valueUsd: 0,
               cryptoId: newId,
               canDisplay: true,
               symbol: network.chainName,
-              explorer: network.blockExplorerUrls != null
-                  ? network.blockExplorerUrls![0]
-                  : "",
-              rpc: network.rpcUrls[0],
+              explorers: network.blockExplorerUrls,
+              rpcUrls: network.rpcUrls,
               chainId: int.parse(network.chainId),
               icon: network.iconUrls?[0],
-              isNetworkIcon: true,
             );
             await manager.addCrypto(
                 crypto: newCrypto, wallet: currentAccount ?? nullAccount);
@@ -697,7 +695,7 @@ Future<Credentials?> getCredentials(
     required AppColors colors,
     WalletState? state}) async {
   try {
-    final credentials = await Web3InteractionManager()
+    final credentials = await EthInteractionManager()
         .getCredentialsUsingPassword(
             context: context, colors: colors, address: state?.address ?? "");
     return credentials;

@@ -1,0 +1,66 @@
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:moonwallet/logger/logger.dart';
+import 'package:moonwallet/notifiers/providers.dart';
+import 'package:moonwallet/service/db/wallet_saver.dart';
+
+class Web3Notifier {
+  final WalletSaver web3Manager = WalletSaver();
+
+  final Ref ref;
+  Web3Notifier(this.ref);
+
+  Future<bool> saveSeed(String seed, String userPassword) async {
+    try {
+      final secretData = await web3Manager.createPrivatekeyFromSeed(seed);
+
+      final key = secretData["key"];
+      if (userPassword.isEmpty) {
+        throw Exception("passwords must not be empty ");
+      }
+      final result = await web3Manager.savePrivatekeyInStorage(
+          key, userPassword, "New Wallet", seed);
+      ref.invalidate(accountsNotifierProvider);
+      if (result) {
+        return result;
+      } else {
+        throw Exception("Failed to save the key.");
+      }
+    } catch (e) {
+      logError(e.toString());
+      rethrow;
+    }
+  }
+
+  Future<bool> savePrivateKey(String privateKey, String userPassword) async {
+    try {
+      final response = await web3Manager.savePrivatekeyInStorage(
+          privateKey, userPassword, "MoonWallet-1", null);
+      if (response) {
+        ref.invalidate(accountsNotifierProvider);
+
+        return response;
+      }
+
+      return response;
+    } catch (e) {
+      logError(e.toString());
+      rethrow;
+    }
+  }
+
+  Future<bool> saveWO(String address) async {
+    try {
+      final result = await web3Manager.saveObservationWalletInStorage(
+          "New view Wallet", address);
+      if (result) {
+        ref.invalidate(accountsNotifierProvider);
+        return result;
+      }
+
+      return result;
+    } catch (e) {
+      logError(e.toString());
+      rethrow;
+    }
+  }
+}

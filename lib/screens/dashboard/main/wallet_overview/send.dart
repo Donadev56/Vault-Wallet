@@ -2,34 +2,34 @@
 
 import 'dart:convert';
 import 'dart:io';
-import 'package:awesome_snackbar_content/awesome_snackbar_content.dart';
 
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_feather_icons/flutter_feather_icons.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:flutter_web3_webview/flutter_web3_webview.dart';
 import 'package:intl/intl.dart';
 import 'package:lucide_icons_flutter/lucide_icons.dart';
 import 'package:mobile_scanner/mobile_scanner.dart';
 import 'package:moonwallet/logger/logger.dart';
 import 'package:moonwallet/notifiers/providers.dart';
 import 'package:moonwallet/screens/dashboard/page_manager.dart';
-import 'package:moonwallet/service/crypto_storage_manager.dart';
-import 'package:moonwallet/service/number_formatter.dart';
-import 'package:moonwallet/service/price_manager.dart';
-import 'package:moonwallet/service/token_manager.dart';
+import 'package:moonwallet/service/db/crypto_storage_manager.dart';
+import 'package:moonwallet/utils/number_formatter.dart';
+import 'package:moonwallet/service/external_data/price_manager.dart';
+import 'package:moonwallet/service/web3_interactions/evm/token_manager.dart';
 import 'package:moonwallet/service/vibration.dart';
-import 'package:moonwallet/service/wallet_saver.dart';
-import 'package:moonwallet/service/web3_interaction.dart';
+import 'package:moonwallet/service/db/wallet_saver.dart';
+import 'package:moonwallet/service/web3_interactions/evm/eth_interaction_manager.dart';
 import 'package:moonwallet/types/types.dart';
 import 'package:moonwallet/utils/colors.dart';
 import 'package:moonwallet/utils/crypto.dart';
 import 'package:moonwallet/utils/prefs.dart';
 import 'package:moonwallet/utils/themes.dart';
+import 'package:moonwallet/widgets/app_bar_title.dart';
 import 'package:moonwallet/widgets/crypto_picture.dart';
 import 'package:moonwallet/widgets/func/show_select_account.dart';
 import 'package:moonwallet/widgets/func/show_select_last_addr.dart';
+import 'package:moonwallet/widgets/func/snackbar.dart';
 import 'package:moonwallet/widgets/scanner/show_scanner.dart';
 import 'package:permission_handler/permission_handler.dart';
 import 'package:qr_code_scanner_plus/qr_code_scanner_plus.dart';
@@ -74,16 +74,9 @@ class _SendTransactionScreenState extends ConsumerState<SendTransactionScreen> {
   final priceManager = PriceManager();
   final publicDataManager = PublicDataManager();
 
-  Crypto crypto = Crypto(
-      name: "",
-      color: Colors.transparent,
-      type: CryptoType.network,
-      valueUsd: 0,
-      cryptoId: "",
-      canDisplay: false,
-      symbol: "");
+  Crypto? crypto;
 
-  final web3InteractManager = Web3InteractionManager();
+  final ethInteractionManager = EthInteractionManager();
   final TextEditingController _addressController = TextEditingController();
   final TextEditingController _amountController = TextEditingController();
   final TextEditingController _amountUsdController = TextEditingController();
@@ -115,7 +108,7 @@ class _SendTransactionScreenState extends ConsumerState<SendTransactionScreen> {
       crypto = widget.initData.crypto;
       colors = widget.initData.colors;
       if (widget.initData.initialBalanceCrypto != null) {
-        if (crypto.type == CryptoType.token) {
+        if (crypto!.type == CryptoType.token) {
           tokenBalance = widget.initData.initialBalanceCrypto ?? 0;
         } else {
           nativeBalance = widget.initData.initialBalanceCrypto ?? 0;
@@ -152,32 +145,6 @@ class _SendTransactionScreenState extends ConsumerState<SendTransactionScreen> {
     super.dispose();
   }
 
-  void showLoader() {
-    showDialog(
-        context: context,
-        builder: (BuildContext context) {
-          return Center(
-            child: Container(
-              padding: const EdgeInsets.all(30),
-              width: 80,
-              height: 80,
-              decoration: BoxDecoration(
-                borderRadius: BorderRadius.circular(10),
-                color: colors.primaryColor,
-              ),
-              child: SizedBox(
-                width: 65,
-                height: 65,
-                child: CircularProgressIndicator(
-                  strokeWidth: 2,
-                  color: colors.themeColor,
-                ),
-              ),
-            ),
-          );
-        });
-  }
-
   Future<void> askCamera() async {
     try {
       final status = await Permission.camera.status;
@@ -190,213 +157,108 @@ class _SendTransactionScreenState extends ConsumerState<SendTransactionScreen> {
     }
   }
 
+  notifySuccess(String message) => showCustomSnackBar(
+      context: context,
+      message: message,
+      colors: colors,
+      type: MessageType.success);
+  notifyError(String message) => showCustomSnackBar(
+      context: context,
+      message: message,
+      colors: colors,
+      type: MessageType.error);
+
   Future<void> sendTransaction() async {
     try {
-      if (nativeBalance <= double.parse(_amountController.text)) {
-        throw Exception("Insufficient balance");
+      if (crypto == null) {
+        throw "The current coin cannot be null";
       }
-      showLoader();
-
       final to = _addressController.text;
       final from = currentAccount.address;
+      final tx = await ethInteractionManager.buildAndSendNativeTransaction(
+          BasicTransactionData(
+              addressTo: to,
+              amount: double.parse(_amountController.text),
+              account: currentAccount,
+              crypto: crypto!),
+          colors,
+          context);
 
-      final valueWei =
-          (BigInt.from(double.parse(_amountController.text) * 1e8) *
-                  BigInt.from(10).pow(18)) ~/
-              BigInt.from(100000000);
-      final valueHex = valueWei.toRadixString(16);
-      log("Value : $valueHex and value wei $valueWei");
+      if (tx?.isNotEmpty == true) {
+        log("Transaction tx : $tx");
+        if (mounted) {
+          saveLastUsedAddresses(address: to);
 
-      final estimatedGas = await web3InteractManager.estimateGas(
-          rpcUrl: crypto.rpc ?? "https://opbnb-mainnet-rpc.bnbchain.org",
-          sender: currentAccount.address,
-          to: _addressController.text,
-          value: valueHex,
-          data: "");
-      log("Gas : ${estimatedGas.toString()}");
-      if (estimatedGas == null) {
-        throw Exception("Gas estimation error");
-      }
-
-      final transaction = JsTransactionObject(
-        gas: "0x${(estimatedGas).toRadixString(16)}",
-        value: valueHex,
-        from: from,
-        to: to,
-      );
-      if (mounted) {
-        Navigator.pop(context);
-        final tx = await web3InteractManager.sendEthTransaction(
-            crypto: crypto,
-            colors: colors,
-            data: transaction,
-            mounted: mounted,
-            context: context,
-            currentAccount: currentAccount,
-            currentNetwork: crypto,
-            primaryColor: colors.primaryColor,
-            textColor: colors.textColor,
-            secondaryColor: colors.themeColor,
-            actionsColor: colors.grayColor,
-            operationType: 1);
-
-        saveLastUsedAddresses(address: to);
-
-        if (tx.isNotEmpty) {
-          log("Transaction tx : $tx");
-          if (mounted) {
-            Navigator.push(
-                context,
-                MaterialPageRoute(
-                    builder: (context) => PagesManagerView(
-                          colors: colors,
-                          currentAccount: currentAccount,
-                          crypto: crypto,
-                          transaction: TransactionDetails(
-                              from: from,
-                              to: to,
-                              value: valueWei.toString(),
-                              timeStamp:
-                                  (DateTime.now().millisecondsSinceEpoch / 1000)
-                                      .toStringAsFixed(0),
-                              hash: tx,
-                              blockNumber: "..."),
-                        )));
-          }
-        } else {
-          log("Transaction failed");
-          final snackBar = SnackBar(
-            /// need to set following properties for best effect of awesome_snackbar_content
-            elevation: 0,
-            behavior: SnackBarBehavior.floating,
-            backgroundColor: Colors.transparent,
-            content: AwesomeSnackbarContent(
-              title: 'Ho Ho!',
-              message: 'Transaction failed!',
-
-              /// change contentType to ContentType.success, ContentType.warning or ContentType.help for variants
-              contentType: ContentType.failure,
-            ),
-          );
-
-          ScaffoldMessenger.of(context)
-            ..hideCurrentSnackBar()
-            ..showSnackBar(snackBar);
+          Navigator.push(
+              context,
+              MaterialPageRoute(
+                  builder: (context) => PagesManagerView(
+                        colors: colors,
+                        currentAccount: currentAccount,
+                        crypto: crypto,
+                        transaction: TransactionDetails(
+                            from: from,
+                            to: to,
+                            value: 0.toString(),
+                            timeStamp:
+                                (DateTime.now().millisecondsSinceEpoch / 1000)
+                                    .toStringAsFixed(0),
+                            hash: tx ?? "",
+                            blockNumber: "..."),
+                      )));
         }
+      } else {
+        log("Transaction failed");
       }
     } catch (e) {
       logError(e.toString());
+      notifyError(e.toString());
     }
   }
 
   Future<void> sendTokenTransaction() async {
     try {
       double amount = double.parse(_amountController.text);
-      double roundedAmount = double.parse(amount.toStringAsFixed(8));
-
-      if (roundedAmount > tokenBalance) {
-        throw Exception("Insufficient balance");
-      }
-      if (nativeBalance < transactionFee) {
-        throw Exception(
-            "Insufficient ${crypto.network?.symbol} balance , add ${(transactionFee - nativeBalance).toStringAsFixed(8)}");
-      }
-      showLoader();
-
       final to = _addressController.text;
-      final from = currentAccount.address;
 
-      final value = (BigInt.from((roundedAmount * 1e8).round()) *
-          BigInt.from(10).pow(18) ~/
-          BigInt.from(100000000));
-      log("Value before parsing $value");
-      final valueWei = value;
-      log("valueWei $valueWei");
+      final tx = await ethInteractionManager.buildAndSendStandardToken(
+          BasicTransactionData(
+              addressTo: to,
+              amount: amount,
+              account: currentAccount,
+              crypto: crypto!),
+          colors,
+          context);
 
-      final valueHex = (valueWei).toRadixString(16);
+      saveLastUsedAddresses(address: to);
 
-      final estimatedGas = await web3InteractManager.estimateGas(
-          rpcUrl:
-              crypto.network?.rpc ?? "https://opbnb-mainnet-rpc.bnbchain.org",
-          sender: currentAccount.address,
-          to: _addressController.text,
-          value: "0x0",
-          data: "");
-
-      log("Gas : ${estimatedGas.toString()}");
-
-      //  final gas = (estimatedGas * gasPrice * numerator) ~/ denominator;
-      if (estimatedGas == null) {
-        throw Exception("Gas estimation error");
-      }
-      final transaction = JsTransactionObject(
-        gas: "0x${((estimatedGas * BigInt.from(2))).toRadixString(16)}",
-        value: valueHex,
-        from: from,
-        to: to,
-      );
-      if (mounted) {
-        Navigator.pop(context);
-
-        final tx = await tokenManager.transferToken(
-            colors: colors,
-            data: transaction,
-            mounted: mounted,
-            context: context,
-            currentAccount: currentAccount,
-            currentNetwork: crypto,
-            primaryColor: colors.primaryColor,
-            textColor: colors.textColor,
-            secondaryColor: colors.themeColor,
-            actionsColor: colors.grayColor,
-            operationType: 1);
-
-        saveLastUsedAddresses(address: to);
-
-        if (tx != null && tx.isNotEmpty) {
-          log("Transaction tx : $tx");
-          if (mounted) {
-            Navigator.push(
-                context,
-                MaterialPageRoute(
-                    builder: (context) => PagesManagerView(
-                          colors: colors,
-                          currentAccount: currentAccount,
-                          crypto: crypto,
-                          transaction: TransactionDetails(
-                              from: from,
-                              to: to,
-                              value: value.toString(),
-                              timeStamp:
-                                  (DateTime.now().millisecondsSinceEpoch / 1000)
-                                      .toStringAsFixed(0),
-                              hash: tx,
-                              blockNumber: "..."),
-                        )));
-          }
+      if (tx != null && tx.isNotEmpty) {
+        log("Transaction tx : $tx");
+        if (mounted) {
+          Navigator.push(
+              context,
+              MaterialPageRoute(
+                  builder: (context) => PagesManagerView(
+                        colors: colors,
+                        currentAccount: currentAccount,
+                        crypto: crypto,
+                        transaction: TransactionDetails(
+                            from: currentAccount.address,
+                            to: to,
+                            value: 0.toString(),
+                            timeStamp:
+                                (DateTime.now().millisecondsSinceEpoch / 1000)
+                                    .toStringAsFixed(0),
+                            hash: tx,
+                            blockNumber: "..."),
+                      )));
         } else {
           log("Transaction failed");
         }
       }
     } catch (e) {
       logError(e.toString());
-      final snackBar = SnackBar(
-        /// need to set following properties for best effect of awesome_snackbar_content
-        elevation: 0,
-        behavior: SnackBarBehavior.floating,
-        backgroundColor: Colors.transparent,
-        content: AwesomeSnackbarContent(
-          title: 'Ho Ho!',
-          message: '${e.toString()}!',
-
-          /// change contentType to ContentType.success, ContentType.warning or ContentType.help for variants
-          contentType: ContentType.failure,
-        ),
-      );
-
-      ScaffoldMessenger.of(context)
-        ..hideCurrentSnackBar()
-        ..showSnackBar(snackBar);
+      notifyError(e.toString());
     }
   }
 
@@ -437,39 +299,37 @@ class _SendTransactionScreenState extends ConsumerState<SendTransactionScreen> {
 
   Future<void> getInitialData() async {
     try {
+      if (crypto == null) {
+        throw "No Coin founded";
+      }
       final results = await Future.wait([
         //1
-        web3InteractManager.estimateGas(
-            rpcUrl: crypto.type == CryptoType.token
-                ? crypto.network?.rpc ?? ""
-                : crypto.rpc ?? "",
-            sender: currentAccount.address,
-            to: currentAccount.address,
-            value: "0x0",
-            data: ""),
+        ethInteractionManager.simulateTransaction(crypto!, currentAccount),
         //2
-        priceManager.getPriceUsingBinanceApi(crypto.binanceSymbol ?? ""),
+        priceManager.getTokenMarketData(crypto!.cgSymbol ?? ""),
         // 3
-        web3InteractManager.getBalance(currentAccount, crypto),
+        ethInteractionManager.getBalance(currentAccount, crypto!),
         // 4
-        crypto.type == CryptoType.token
-            ? web3InteractManager.getGasPrice(
-                crypto.network?.rpc ?? "https://opbnb-mainnet-rpc.bnbchain.org")
-            : web3InteractManager.getGasPrice(
-                crypto.rpc ?? "https://opbnb-mainnet-rpc.bnbchain.org"),
+        crypto?.type == CryptoType.token
+            ? ethInteractionManager.getGasPrice(
+                crypto!.network?.rpcUrls?.first ??
+                    "https://opbnb-mainnet-rpc.bnbchain.org")
+            : ethInteractionManager.getGasPrice(crypto?.rpcUrls!.first ??
+                "https://opbnb-mainnet-rpc.bnbchain.org"),
         // 5
         publicDataManager.getDataFromPrefs(
             key: "${currentAccount.address}/lastUsedAddresses")
       ]);
 
       final estimatedGas = (results[0] as BigInt?);
+
       log("estimated gas $estimatedGas");
-      final price = results[1];
+      final price = (results[1] as CryptoMarketData).currentPrice;
       final targetTokenBalance = results[2];
       double nativeTargetTokenBalance = 0;
-      if (crypto.type == CryptoType.token) {
-        nativeTargetTokenBalance = await web3InteractManager.getBalance(
-            currentAccount, crypto.network!);
+      if (crypto?.type == CryptoType.token) {
+        nativeTargetTokenBalance = await ethInteractionManager.getBalance(
+            currentAccount, crypto!.network!);
       }
 
       BigInt gasPrice = (results[3] as BigInt?) ?? BigInt.from(1000000);
@@ -486,7 +346,7 @@ class _SendTransactionScreenState extends ConsumerState<SendTransactionScreen> {
 
       setState(() {
         cryptoPrice = (price as double);
-        if (crypto.type == CryptoType.token) {
+        if (crypto!.type == CryptoType.token) {
           setState(() {
             nativeBalance = nativeTargetTokenBalance;
             tokenBalance = targetTokenBalance as double;
@@ -498,10 +358,11 @@ class _SendTransactionScreenState extends ConsumerState<SendTransactionScreen> {
         final BigInt gas = estimatedGas != null
             ? (estimatedGas * BigInt.from(2))
             : BigInt.from(21000);
+
         final double gasPriceDouble = gasPrice.toDouble();
 
         transactionFee = ((gas * BigInt.from(gasPriceDouble.toInt())) /
-            BigInt.from(10).pow(18));
+            BigInt.from(10).pow(crypto!.decimals));
         log("Fees ${transactionFee.toStringAsFixed(8)}");
       });
 
@@ -524,6 +385,17 @@ class _SendTransactionScreenState extends ConsumerState<SendTransactionScreen> {
     final width = MediaQuery.of(context).size.width;
     final textTheme = Theme.of(context).textTheme;
     final asyncAccounts = ref.watch(accountsNotifierProvider);
+
+    if (crypto == null) {
+      return Material(
+        color: colors.primaryColor,
+        child: Center(
+          child: CircularProgressIndicator(
+            color: colors.themeColor,
+          ),
+        ),
+      );
+    }
     asyncAccounts.whenData((data) => setState(() {
           filteredAccounts = data;
           accounts = data;
@@ -532,22 +404,17 @@ class _SendTransactionScreenState extends ConsumerState<SendTransactionScreen> {
     return Scaffold(
       backgroundColor: colors.primaryColor,
       appBar: AppBar(
-        surfaceTintColor: colors.primaryColor,
-        backgroundColor: colors.primaryColor,
-        leading: IconButton(
-            onPressed: () {
-              Navigator.pop(context);
-            },
-            icon: Icon(
-              Icons.arrow_back,
-              color: colors.textColor,
-            )),
-        title: Text(
-          'Send',
-          style: textTheme.headlineMedium
-              ?.copyWith(color: colors.textColor, fontSize: 20),
-        ),
-      ),
+          surfaceTintColor: colors.primaryColor,
+          backgroundColor: colors.primaryColor,
+          leading: IconButton(
+              onPressed: () {
+                Navigator.pop(context);
+              },
+              icon: Icon(
+                Icons.arrow_back,
+                color: colors.textColor,
+              )),
+          title: AppBarTitle(title: "Send", colors: colors)),
       body: SingleChildScrollView(
         child: Padding(
           padding: const EdgeInsets.all(15),
@@ -576,7 +443,7 @@ class _SendTransactionScreenState extends ConsumerState<SendTransactionScreen> {
                         spacing: 10,
                         children: [
                           CryptoPicture(
-                            crypto: crypto,
+                            crypto: crypto!,
                             size: 20,
                             colors: colors,
                             primaryColor: colors.secondaryColor,
@@ -635,7 +502,7 @@ class _SendTransactionScreenState extends ConsumerState<SendTransactionScreen> {
                   spacing: 10,
                   children: [
                     CryptoPicture(
-                      crypto: crypto,
+                      crypto: crypto!,
                       size: 30,
                       colors: colors,
                       primaryColor: colors.secondaryColor,
@@ -644,7 +511,7 @@ class _SendTransactionScreenState extends ConsumerState<SendTransactionScreen> {
                       spacing: 10,
                       children: [
                         Text(
-                          crypto.symbol,
+                          crypto!.symbol,
                           style: textTheme.bodyMedium?.copyWith(
                               color: colors.textColor,
                               fontWeight: FontWeight.bold),
@@ -674,7 +541,7 @@ class _SendTransactionScreenState extends ConsumerState<SendTransactionScreen> {
                                 currentAccount: currentAccount,
                                 colors: colors,
                                 addressController: _addressController,
-                                currentNetwork: crypto);
+                                currentNetwork: crypto!);
                           },
                           icon: Icon(Icons.contact_page_outlined)),
                       IconButton(
@@ -697,8 +564,9 @@ class _SendTransactionScreenState extends ConsumerState<SendTransactionScreen> {
               Form(
                 key: _formKey,
                 child: TextFormField(
-                  style: textTheme.bodyMedium
-                      ?.copyWith(color: colors.textColor.withOpacity(0.8)),
+                  style: textTheme.bodyMedium?.copyWith(
+                      color: colors.textColor.withOpacity(0.8),
+                      fontWeight: FontWeight.w500),
                   validator: (value) {
                     if (value != null) {
                       if (value.length == 42 &&
@@ -763,8 +631,9 @@ class _SendTransactionScreenState extends ConsumerState<SendTransactionScreen> {
                 ),
               ),
               TextFormField(
-                style: textTheme.bodyMedium
-                    ?.copyWith(color: colors.textColor.withOpacity(0.8)),
+                style: textTheme.bodyMedium?.copyWith(
+                    color: colors.textColor.withOpacity(0.8),
+                    fontWeight: FontWeight.w500),
                 validator: (v) {
                   log("Value $v");
                   if (double.parse(v ?? "") >= nativeBalance) {
@@ -796,14 +665,14 @@ class _SendTransactionScreenState extends ConsumerState<SendTransactionScreen> {
                   ),
                   filled: true,
                   fillColor: colors.grayColor.withOpacity(0.4),
-                  labelText: "Amount ${crypto.symbol}",
+                  labelText: "Amount ${crypto!.symbol}",
                   suffixIcon: Container(
                     margin: const EdgeInsets.all(5),
                     child: InkWell(
                       borderRadius: BorderRadius.circular(10),
                       onTap: () {
                         setState(() {
-                          if (crypto.type == CryptoType.network) {
+                          if (crypto!.type == CryptoType.native) {
                             final value = nativeBalance - transactionFee;
                             log("value $value , balance $nativeBalance");
                             _amountController.text = formatter.format(value);
@@ -846,8 +715,9 @@ class _SendTransactionScreenState extends ConsumerState<SendTransactionScreen> {
                 ),
               ),
               TextField(
-                style: textTheme.bodyMedium
-                    ?.copyWith(color: colors.textColor.withOpacity(0.8)),
+                style: textTheme.bodyMedium?.copyWith(
+                    color: colors.textColor.withOpacity(0.8),
+                    fontWeight: FontWeight.w500),
                 keyboardType: TextInputType.number,
                 onChanged: (value) {
                   if (value.isEmpty) {
@@ -895,7 +765,7 @@ class _SendTransactionScreenState extends ConsumerState<SendTransactionScreen> {
               Align(
                 alignment: Alignment.topLeft,
                 child: Text(
-                  "Balance : ${formatCryptoValue(crypto.type == CryptoType.network ? nativeBalance.toString() : tokenBalance.toString())} ${crypto.symbol}",
+                  "Balance : ${formatCryptoValue(crypto!.type == CryptoType.native ? nativeBalance.toString() : tokenBalance.toString())} ${crypto!.symbol}",
                   style: textTheme.bodyMedium
                       ?.copyWith(color: colors.textColor.withOpacity(0.7)),
                 ),
@@ -913,7 +783,7 @@ class _SendTransactionScreenState extends ConsumerState<SendTransactionScreen> {
 
                       if (_formKey.currentState!.validate()) {
                         log("Validation success !");
-                        if (crypto.type == CryptoType.network) {
+                        if (crypto!.type == CryptoType.native) {
                           await sendTransaction();
                         } else {
                           await sendTokenTransaction();

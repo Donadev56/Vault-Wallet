@@ -5,9 +5,9 @@ import 'package:bip32/bip32.dart' as bip32;
 import 'package:moonwallet/logger/logger.dart';
 
 import 'package:hex/hex.dart';
+import 'package:moonwallet/service/db/secure_storage.dart';
 import 'dart:typed_data';
 
-import 'package:moonwallet/service/secure_storage.dart';
 import 'package:moonwallet/types/types.dart';
 import 'package:moonwallet/utils/crypto.dart';
 import 'package:moonwallet/utils/prefs.dart';

@@ -63,14 +63,7 @@ class _MobileChartState extends State<MobileChart> {
   double? longPressX;
   double? longPressY;
   double additionalVerticalPadding = 0;
-  AppColors colors = AppColors(
-      primaryColor: Color(0XFF0D0D0D),
-      themeColor: Colors.greenAccent,
-      greenColor: Colors.greenAccent,
-      secondaryColor: Color(0XFF121212),
-      grayColor: Color(0XFF353535),
-      textColor: Colors.white,
-      redColor: Colors.pinkAccent);
+  AppColors colors = AppColors.defaultTheme;
 
   Themes themes = Themes();
   String savedThemeName = "";

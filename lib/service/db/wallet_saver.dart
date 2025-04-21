@@ -9,7 +9,7 @@ import 'package:hex/hex.dart';
 import 'dart:typed_data';
 import 'package:hive_ce/hive.dart';
 
-import 'package:moonwallet/service/secure_storage.dart';
+import 'package:moonwallet/service/db/secure_storage.dart';
 import 'package:moonwallet/types/types.dart';
 import 'package:moonwallet/utils/crypto.dart';
 import 'package:web3dart/web3dart.dart';

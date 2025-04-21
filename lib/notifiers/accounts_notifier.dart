@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:moonwallet/logger/logger.dart';
 import 'package:moonwallet/notifiers/providers.dart';
 import 'package:moonwallet/types/types.dart';
-import 'package:riverpod/riverpod.dart';
 
 class AccountsNotifier extends AsyncNotifier<List<PublicData>> {
   late final walletSaver = ref.read(walletSaverProvider);

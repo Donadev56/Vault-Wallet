@@ -3,6 +3,7 @@
 import 'dart:io';
 import 'dart:ui';
 
+import 'package:animated_toggle_switch/animated_toggle_switch.dart';
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:image_picker/image_picker.dart';
@@ -10,10 +11,9 @@ import 'package:local_auth/local_auth.dart';
 import 'package:lucide_icons_flutter/lucide_icons.dart';
 import 'package:moonwallet/screens/dashboard/wallet_actions/private/private_key_screen.dart';
 import 'package:moonwallet/screens/dashboard/settings/change_colors.dart';
-import 'package:moonwallet/service/number_formatter.dart';
+import 'package:moonwallet/utils/number_formatter.dart';
 import 'package:moonwallet/service/profile_image_manager.dart';
-import 'package:moonwallet/service/wallet_saver.dart';
-import 'package:moonwallet/service/web3.dart';
+import 'package:moonwallet/service/db/wallet_saver.dart';
 import 'package:moonwallet/types/types.dart';
 import 'package:moonwallet/utils/prefs.dart';
 import 'package:moonwallet/widgets/avatar_modal.dart';
@@ -265,15 +265,20 @@ void showCustomDrawer(
                         Divider(
                           color: colors.textColor.withOpacity(0.05),
                         ),
-                        Align(
-                          alignment: Alignment.centerLeft,
-                          child: Text(
-                            "Settings",
-                            style: textTheme.bodySmall?.copyWith(
-                                color: colors.textColor.withOpacity(0.8),
-                                fontSize: 20,
-                                fontWeight: FontWeight.bold),
-                          ),
+                        Row(
+                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                          children: [
+                            Align(
+                              alignment: Alignment.centerLeft,
+                              child: Text(
+                                "Settings",
+                                style: textTheme.bodySmall?.copyWith(
+                                    color: colors.textColor.withOpacity(0.8),
+                                    fontSize: 20,
+                                    fontWeight: FontWeight.bold),
+                              ),
+                            ),
+                          ],
                         ),
                         SizedBox(
                           height: 10,
@@ -701,7 +706,7 @@ void showCustomDrawer(
 
                                           if (canAuthenticate) {
                                             try {
-                                              final web3manager = Web3Manager();
+                                              final web3manager = WalletSaver();
 
                                               String userPassword = "";
                                               int attempts = 0;

@@ -4,14 +4,15 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:lucide_icons_flutter/lucide_icons.dart';
 import 'package:moonwallet/logger/logger.dart';
-import 'package:moonwallet/service/crypto_storage_manager.dart';
-import 'package:moonwallet/service/price_manager.dart';
-import 'package:moonwallet/service/wallet_saver.dart';
+import 'package:moonwallet/service/db/crypto_storage_manager.dart';
+import 'package:moonwallet/service/external_data/price_manager.dart';
+import 'package:moonwallet/service/db/wallet_saver.dart';
 import 'package:moonwallet/types/types.dart';
 import 'package:moonwallet/utils/colors.dart';
 import 'package:moonwallet/utils/crypto.dart';
 import 'package:moonwallet/utils/prefs.dart';
 import 'package:moonwallet/utils/themes.dart';
+import 'package:moonwallet/widgets/app_bar_title.dart';
 import 'package:moonwallet/widgets/crypto_picture.dart';
 import 'package:qr_flutter/qr_flutter.dart';
 
@@ -40,15 +41,7 @@ class _ReceiveScreenState extends State<ReceiveScreen> {
   final encryptService = EncryptService();
   final priceManager = PriceManager();
   final publicDataManager = PublicDataManager();
-  Crypto crypto = Crypto(
-      name: "",
-      color: Colors.transparent,
-      type: CryptoType.network,
-      valueUsd: 0,
-      cryptoId: "",
-      canDisplay: false,
-      symbol: "");
-
+  Crypto? crypto;
   @override
   void initState() {
     super.initState();
@@ -91,9 +84,18 @@ class _ReceiveScreenState extends State<ReceiveScreen> {
     final textTheme = Theme.of(context).textTheme;
     //final height = MediaQuery.of(context).size.height;
 
+    if (crypto == null) {
+      return Center(
+        child: CircularProgressIndicator(
+          color: colors.themeColor,
+        ),
+      );
+    }
+
     return Scaffold(
       backgroundColor: colors.primaryColor,
       appBar: AppBar(
+        centerTitle: true,
         backgroundColor: colors.primaryColor,
         leading: IconButton(
           icon: Icon(
@@ -104,11 +106,7 @@ class _ReceiveScreenState extends State<ReceiveScreen> {
             Navigator.pop(context);
           },
         ),
-        title: Text(
-          "Receive",
-          style: textTheme.headlineMedium
-              ?.copyWith(color: colors.textColor, fontSize: 20),
-        ),
+        title: AppBarTitle(title: "Receive", colors: colors),
       ),
       body: Column(
         children: [
@@ -139,7 +137,7 @@ class _ReceiveScreenState extends State<ReceiveScreen> {
                           textTheme.bodyMedium?.copyWith(color: warningColor),
                       children: [
                         TextSpan(
-                          text: crypto.name,
+                          text: crypto!.name,
                           style: textTheme.bodyMedium?.copyWith(
                               color: warningColor, fontWeight: FontWeight.bold),
                         ),
@@ -165,12 +163,12 @@ class _ReceiveScreenState extends State<ReceiveScreen> {
                   mainAxisAlignment: MainAxisAlignment.center,
                   crossAxisAlignment: CrossAxisAlignment.center,
                   children: [
-                    CryptoPicture(crypto: crypto, size: 30, colors: colors),
+                    CryptoPicture(crypto: crypto!, size: 30, colors: colors),
                     SizedBox(
                       width: 10,
                     ),
                     Text(
-                      crypto.symbol,
+                      crypto!.symbol,
                       style: textTheme.bodyMedium?.copyWith(
                           color: colors.textColor,
                           fontSize: 20,
@@ -202,14 +200,14 @@ class _ReceiveScreenState extends State<ReceiveScreen> {
                             version: 3,
                             size: width * 0.8,
                             gapless: false,
-                            embeddedImage: crypto.icon != null &&
-                                    crypto.icon!
+                            embeddedImage: crypto!.icon != null &&
+                                    crypto!.icon!
                                         .toLowerCase()
                                         .startsWith("http")
                                 ? NetworkImage(
-                                    crypto.icon ?? "",
+                                    crypto!.icon ?? "",
                                   )
-                                : AssetImage(crypto.icon ?? ""),
+                                : AssetImage(crypto!.icon ?? ""),
                             embeddedImageStyle: QrEmbeddedImageStyle(
                               size: Size(40, 40),
                             ),

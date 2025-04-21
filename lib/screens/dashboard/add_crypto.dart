@@ -3,7 +3,7 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:moonwallet/main.dart';
 import 'package:moonwallet/notifiers/providers.dart';
-import 'package:moonwallet/service/wallet_saver.dart';
+import 'package:moonwallet/service/db/wallet_saver.dart';
 import 'package:moonwallet/utils/colors.dart';
 import 'package:moonwallet/utils/crypto.dart';
 import 'package:moonwallet/utils/themes.dart';
@@ -15,8 +15,8 @@ import 'package:ulid/ulid.dart';
 import 'package:flutter/material.dart';
 import 'package:lucide_icons_flutter/lucide_icons.dart';
 import 'package:moonwallet/logger/logger.dart';
-import 'package:moonwallet/service/crypto_storage_manager.dart';
-import 'package:moonwallet/service/token_manager.dart';
+import 'package:moonwallet/service/db/crypto_storage_manager.dart';
+import 'package:moonwallet/service/web3_interactions/evm/token_manager.dart';
 import 'package:moonwallet/types/types.dart';
 import 'package:moonwallet/utils/prefs.dart';
 
@@ -132,7 +132,6 @@ class _AddCryptoViewState extends ConsumerState<AddCryptoView> {
       try {
         {
           final newCrypto = Crypto(
-              isNetworkIcon: false,
               symbol: contractInfo?.symbol ?? "",
               name: contractInfo?.name ?? "Unknown ",
               color: network?.color ?? Colors.white,
@@ -141,8 +140,7 @@ class _AddCryptoViewState extends ConsumerState<AddCryptoView> {
               cryptoId: generateUUID(),
               canDisplay: true,
               network: network,
-              decimals: contractInfo?.decimals.toInt(),
-              binanceSymbol: "${contractInfo?.symbol}USDT",
+              decimals: contractInfo?.decimals.toInt() ?? 1,
               contractAddress: contractAddress);
 
           final saveResult = await savedCryptoProvider.addCrypto(newCrypto);

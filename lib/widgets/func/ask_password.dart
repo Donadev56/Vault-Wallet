@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:local_auth/local_auth.dart';
 import 'package:moonwallet/logger/logger.dart';
-import 'package:moonwallet/service/web3.dart';
+import 'package:moonwallet/service/db/wallet_saver.dart';
 import 'package:moonwallet/types/types.dart';
 import 'package:moonwallet/utils/prefs.dart';
 import 'package:moonwallet/widgets/bottom_pin_copy.dart';
@@ -15,7 +15,7 @@ Future<String> askPassword(
   int attempt = 0;
   final LocalAuthentication auth = LocalAuthentication();
   bool didAuthenticate = false;
-  final manager = Web3Manager();
+  final manager = WalletSaver();
 
   final biometryStatus =
       await PublicDataManager().getDataFromPrefs(key: "BioStatus");

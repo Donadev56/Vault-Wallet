@@ -8,12 +8,12 @@ class TransactionRequestManager {
   Future<List<EsTransaction>> getAllTransactions(
       {required Crypto crypto, required String address}) async {
     try {
-      final cryptoId = crypto.type == CryptoType.network
+      final cryptoId = crypto.type == CryptoType.native
           ? crypto.cryptoId
           : crypto.network?.cryptoId;
       final contractAddress = crypto.contractAddress;
       Map<String, dynamic> body = {};
-      if (crypto.type == CryptoType.network) {
+      if (crypto.type == CryptoType.native) {
         body = {
           "cryptoId": cryptoId,
           "address": address,

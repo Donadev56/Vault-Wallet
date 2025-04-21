@@ -3,12 +3,10 @@ import 'package:fl_chart/fl_chart.dart';
 import 'package:flutter/material.dart';
 
 import 'package:flutter_feather_icons/flutter_feather_icons.dart';
-import 'package:moonwallet/service/price_manager.dart';
+import 'package:moonwallet/service/external_data/price_manager.dart';
 import 'package:moonwallet/types/types.dart';
-import 'package:moonwallet/utils/app_utils.dart';
 import 'package:moonwallet/widgets/charts_/line_chart.dart';
 import 'package:moonwallet/widgets/flowting_modat.dart';
-import 'package:skeletonizer/skeletonizer.dart';
 
 import '../../logger/logger.dart';
 
@@ -53,10 +51,10 @@ void showCryptoCandleModal(
             try {
               log("Loading price");
               final data = await priceManager
-                  .checkCryptoTrend(currentCrypto.binanceSymbol ?? "");
+                  .getTokenMarketData(currentCrypto.cgSymbol ?? "");
 
-              final percent = data["percent"] ?? 0;
-              final cryptoPrice = data["price"] ?? 0;
+              final percent = data?.priceChangePercentage24h ?? 0;
+              final cryptoPrice = data?.currentPrice ?? 0;
 
               setModalState(() {
                 isPositive = percent > 0 ? true : false;
@@ -121,33 +119,31 @@ void showCryptoCandleModal(
                       mainAxisAlignment: MainAxisAlignment.spaceBetween,
                       crossAxisAlignment: CrossAxisAlignment.center,
                       children: [
-                        Skeletonizer(
-                          containersColor: colors.secondaryColor,
-                          enabled: isPriceLoading,
-                          child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              Text(
-                                "\$$price",
-                                style: textTheme.bodyMedium?.copyWith(
-                                  color: isPositive
-                                      ? colors.themeColor
-                                      : colors.redColor,
-                                  fontSize: 22,
-                                  fontWeight: FontWeight.bold,
-                                ),
+                        Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text(
+                              !isPriceLoading ? "\$$price" : "...",
+                              style: textTheme.bodyMedium?.copyWith(
+                                color: isPositive
+                                    ? colors.themeColor
+                                    : colors.redColor,
+                                fontSize: 22,
+                                fontWeight: FontWeight.bold,
                               ),
-                              Text(
-                                " ${(trend).toStringAsFixed(5)}%",
-                                style: textTheme.bodyMedium?.copyWith(
-                                  color: isPositive
-                                      ? colors.themeColor
-                                      : colors.redColor,
-                                  fontSize: 14,
-                                ),
+                            ),
+                            Text(
+                              !isPriceLoading
+                                  ? " ${(trend).toStringAsFixed(5)}%"
+                                  : "...",
+                              style: textTheme.bodyMedium?.copyWith(
+                                color: isPositive
+                                    ? colors.themeColor
+                                    : colors.redColor,
+                                fontSize: 14,
                               ),
-                            ],
-                          ),
+                            ),
+                          ],
                         ),
                         IconButton(
                           onPressed: () {
@@ -174,44 +170,50 @@ void showCryptoCandleModal(
                                     color: colors.themeColor,
                                   ),
                                 )
-                              : CustomLineChart(colors: colors, isPositive: isPositive , chartData: cryptoData, transformationController: transformationController, onTouchCallback:(FlTouchEvent event,
-                                          LineTouchResponse? response) {
-                                        if (event is FlTapUpEvent ||
-                                            event is FlPanUpdateEvent) {
-                                          if (response == null) {
-                                            trend = initialTrend;
-                                            log("Response is null");
-                                            return;
-                                          }
+                              : CustomLineChart(
+                                  colors: colors,
+                                  isPositive: isPositive,
+                                  chartData: cryptoData,
+                                  transformationController:
+                                      transformationController,
+                                  onTouchCallback: (FlTouchEvent event,
+                                      LineTouchResponse? response) {
+                                    if (event is FlTapUpEvent ||
+                                        event is FlPanUpdateEvent) {
+                                      if (response == null) {
+                                        trend = initialTrend;
+                                        log("Response is null");
+                                        return;
+                                      }
 
-                                          final touchedSpots =
-                                              response.lineBarSpots;
+                                      final touchedSpots =
+                                          response.lineBarSpots;
 
-                                          if (touchedSpots != null) {
-                                            final touchedSpots =
-                                                response.lineBarSpots!;
+                                      if (touchedSpots != null) {
+                                        final touchedSpots =
+                                            response.lineBarSpots!;
 
-                                            if (touchedSpots.isNotEmpty) {
-                                              final spot = touchedSpots.first;
-                                              final x = spot.x;
-                                              final y = spot.y;
-                                              final currentPrice = price;
-                                              final priceSince = double.parse(
-                                                  y.toStringAsFixed(2));
-                                              final newTrend =
-                                                  ((priceSince - currentPrice) /
-                                                          priceSince) *
-                                                      100;
-                                              setModalState(() {
-                                                trend = newTrend;
-                                                isPositive = newTrend > 0;
-                                              });
-                                              debugPrint(
-                                                  "User touched at: x=$x, y=$y");
-                                            }
-                                          }
+                                        if (touchedSpots.isNotEmpty) {
+                                          final spot = touchedSpots.first;
+                                          final x = spot.x;
+                                          final y = spot.y;
+                                          final currentPrice = price;
+                                          final priceSince = double.parse(
+                                              y.toStringAsFixed(2));
+                                          final newTrend =
+                                              ((priceSince - currentPrice) /
+                                                      priceSince) *
+                                                  100;
+                                          setModalState(() {
+                                            trend = newTrend;
+                                            isPositive = newTrend > 0;
+                                          });
+                                          debugPrint(
+                                              "User touched at: x=$x, y=$y");
                                         }
-                                          })),
+                                      }
+                                    }
+                                  })),
                     ),
                   ),
                   SizedBox(height: 15),

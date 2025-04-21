@@ -1,110 +1,47 @@
-import 'dart:convert';
-import 'dart:typed_data';
-import 'package:hex/hex.dart';
-
 import 'package:flutter/material.dart';
-import 'package:flutter_web3_webview/flutter_web3_webview.dart';
 import 'package:moonwallet/custom/web3_webview/lib/utils/loading.dart';
 import 'package:moonwallet/logger/logger.dart';
-import 'package:moonwallet/service/price_manager.dart';
-import 'package:moonwallet/service/token_manager.dart';
-import 'package:moonwallet/service/wallet_saver.dart';
+import 'package:moonwallet/service/external_data/price_manager.dart';
+import 'package:moonwallet/service/web3_interactions/evm/token_manager.dart';
+import 'package:moonwallet/service/db/wallet_saver.dart';
 import 'package:moonwallet/types/types.dart';
 import 'package:moonwallet/widgets/func/ask_user_for_conf.dart';
 import 'package:moonwallet/widgets/func/ask_password.dart';
+import 'package:moonwallet/widgets/func/show_loader.dart';
 import 'package:moonwallet/widgets/func/snackbar.dart';
 import 'package:web3dart/web3dart.dart';
 import 'package:http/http.dart';
 
-class Web3InteractionManager {
+import 'utils.dart';
+
+class EthInteractionManager {
   var httpClient = Client();
   final web3Manager = WalletSaver();
   final priceManager = PriceManager();
   final tokenManager = TokenManager();
 
-  Uint8List hexToUint8List(String hex) {
-    if (hex.startsWith("0x") || hex.startsWith("0X")) {
-      hex = hex.substring(2);
-    }
-    if (hex.length % 2 != 0) {
-      throw 'Odd number of hex digits';
-    }
-    var l = hex.length ~/ 2;
-    var result = Uint8List(l);
-    for (var i = 0; i < l; ++i) {
-      var x = int.parse(hex.substring(2 * i, 2 * (i + 1)), radix: 16);
-      if (x.isNaN) {
-        throw 'Expected hex string';
-      }
-      result[i] = x;
-    }
-    return result;
-  }
-
   Future<double> getBalance(PublicData account, Crypto crypto) async {
     try {
       final address = account.address;
-      final rpcUrl =
-          crypto.type == CryptoType.network ? crypto.rpc : crypto.network?.rpc;
+      final rpc = crypto.type == CryptoType.native
+          ? crypto.rpcUrls?.first
+          : crypto.network?.rpcUrls?.first;
+
       if (crypto.type == CryptoType.token) {
         return await tokenManager.getTokenBalance(crypto, address);
       }
 
-      if (address.isEmpty || rpcUrl == null || rpcUrl.isEmpty) {
+      if (address.isEmpty || rpc == null || rpc.isEmpty) {
         log("address or rpc is empty");
         return 0;
       }
-      var ethClient = Web3Client(rpcUrl, httpClient);
+      var ethClient = Web3Client(rpc, httpClient);
       final balance =
           await ethClient.getBalance(EthereumAddress.fromHex(address));
       return balance.getValueInUnit(EtherUnit.ether);
     } catch (e) {
       logError(e.toString());
       return 0;
-    }
-  }
-
-  Future<String?> personalSign(String data,
-      {required Crypto network,
-      required PublicData account,
-      required String password}) async {
-    try {
-      final credentials =
-          await getCredentials(password: password, address: account.address);
-      List<int> messageBytes = utf8.encode(data);
-      if (credentials != null) {
-        final signature = credentials
-            .signPersonalMessageToUint8List(Uint8List.fromList(messageBytes));
-        final signed = HEX.encode(signature);
-        log("the signed message $signed");
-        return signed;
-      } else {
-        return null;
-      }
-    } catch (e) {
-      logError(e.toString());
-      return null;
-    }
-  }
-
-  Future<String?> sign(String data,
-      {required Crypto network,
-      required PublicData account,
-      required String password}) async {
-    try {
-      final credentials =
-          await getCredentials(password: password, address: account.address);
-      List<int> messageBytes = utf8.encode(data);
-      if (credentials != null) {
-        final signature =
-            credentials.signToUint8List(Uint8List.fromList(messageBytes));
-        return HEX.encode(signature);
-      } else {
-        return null;
-      }
-    } catch (e) {
-      logError(e.toString());
-      return null;
     }
   }
 
@@ -344,74 +281,162 @@ class Web3InteractionManager {
     }
   }
 
-  BigInt parseHex(String hex) {
-    log("Parsing hex $hex");
-    if (hex.startsWith("0x")) {
-      hex = hex.substring(2);
-      log(hex);
-      final hexParsed = BigInt.parse(hex, radix: 16);
-      log("The hex parsed is $hexParsed");
-      return hexParsed;
+  Future<String?> buildAndSendNativeTransaction(
+      BasicTransactionData data, AppColors colors, BuildContext context) async {
+    try {
+      final nativeBalance = await getBalance(data.account, data.crypto)
+          .withLoading(context, colors);
+
+      if (nativeBalance <= data.amount) {
+        throw Exception("Insufficient balance");
+      }
+
+      final to = data.addressTo;
+      final from = data.account.address;
+      final amount = data.amount;
+
+      final valueWei = (BigInt.from(amount * 1e8) *
+              BigInt.from(10).pow(data.crypto.decimals)) ~/
+          BigInt.from(100000000);
+
+      final valueHex = valueWei.toRadixString(16);
+      log("Value : $valueHex and value wei $valueWei");
+
+      final estimatedGas = await estimateGas(
+          rpcUrl: data.crypto.rpcUrls?.firstOrNull ?? "",
+          sender: from,
+          to: to,
+          value: valueHex,
+          data: "");
+
+      log("Gas : ${estimatedGas.toString()}");
+      if (estimatedGas == null) {
+        throw Exception("Gas estimation error");
+      }
+      final transaction = TransactionToConfirm(
+          gasHex: "0x${(estimatedGas).toRadixString(16)}",
+          gasBigint: estimatedGas,
+          value: valueHex,
+          account: data.account,
+          addressTo: to,
+          crypto: data.crypto,
+          data: "");
+
+      //  Navigator.pop(context);
+      return await approveEthTransaction(
+          crypto: data.crypto,
+          colors: colors,
+          data: transaction,
+          context: context,
+          operationType: 1);
+    } catch (e) {
+      logError(e.toString());
+      rethrow;
     }
-    return BigInt.parse(hex, radix: 16);
   }
 
-  Future<String> sendEthTransaction(
-      {required Crypto crypto,
-      required JsTransactionObject data,
-      required AppColors colors,
-      required bool mounted,
-      required BuildContext context,
-      required PublicData currentAccount,
-      required Crypto currentNetwork,
-      required Color primaryColor,
-      required Color textColor,
-      required Color secondaryColor,
-      required Color actionsColor,
-      required int operationType}) async {
+  Future<BigInt?> simulateTransaction(Crypto crypto, PublicData account) async {
+    return estimateGas(
+        rpcUrl: crypto.type == CryptoType.token
+            ? crypto.network?.rpcUrls?.firstOrNull ?? ""
+            : crypto.rpcUrls?.firstOrNull ?? "",
+        sender: account.address,
+        to: account.address,
+        value: "0x0",
+        data: "");
+  }
+
+  Future<String?> buildAndSendStandardToken(
+      BasicTransactionData data, AppColors colors, BuildContext context) async {
     try {
-      if (currentAccount.isWatchOnly) {
-        showDialog(
-            context: context,
-            builder: (BuildContext wOCtx) {
-              return AlertDialog(
-                title: Text("Warning"),
-                content: Text(
-                  "This a watch-only account, you won't be able to send the transaction on the blockchain.",
-                ),
-                actions: [
-                  ElevatedButton(
-                    child: Text("Ok"),
-                    onPressed: () {
-                      Navigator.pop(wOCtx);
-                    },
-                  ),
-                ],
-              );
-            });
-        throw Exception(
-            "This account is a watch-only account, you can't send transactions.");
+      final amount = data.amount;
+      final to = data.addressTo;
+      final network = data.crypto.network;
+      final token = data.crypto;
+
+      if (network == null) {
+        throw "Network Cannot be null";
       }
 
-      if (data.from != null &&
-          data.from?.trim().toLowerCase() !=
-              currentAccount.address.trim().toLowerCase()) {
-        throw Exception(
-            "Different address detected : \n  it seems like ${data.from} is different from the connected address  ${currentAccount.address} , please check again your transaction data .");
+      final requests = await Future.wait([
+        getBalance(data.account, data.crypto),
+        getBalance(data.account, network),
+        simulateTransaction(data.crypto, data.account),
+        getGasPrice(token.network?.rpcUrls?.first ?? ""),
+      ]).withLoading(context, colors);
+
+      final tokenBalance = requests[0] as double;
+      final nativeTokenBalance = requests[1] as double;
+      final estimatedGas = requests[2] as BigInt?;
+      final gasPrice = requests[3] as BigInt;
+
+      final BigInt gas = estimatedGas != null
+          ? (estimatedGas * BigInt.from(2))
+          : BigInt.from(21000);
+
+      final double gasPriceDouble = gasPrice.toDouble();
+      final transactionFee = ((gas * BigInt.from(gasPriceDouble.toInt())) /
+          BigInt.from(10).pow(data.crypto.decimals));
+      log("Fees ${transactionFee.toStringAsFixed(8)}");
+
+      double roundedAmount = double.parse(amount.toStringAsFixed(8));
+
+      if (roundedAmount > tokenBalance) {
+        throw Exception("Insufficient balance");
       }
-      log("Data value ${data.value}");
-      BigInt? estimatedGas = await estimateGas(
-          value: data.value ?? "0x0",
-          rpcUrl:
-              currentNetwork.rpc ?? "https://opbnb-mainnet-rpc.bnbchain.org",
-          sender: data.from ?? "",
-          to: data.to ?? "",
-          data: data.data ?? "");
+      if (nativeTokenBalance < transactionFee) {
+        throw Exception(
+            "Insufficient ${network.symbol} balance , add ${(transactionFee - nativeTokenBalance).toStringAsFixed(8)}");
+      }
+
+      final value = (BigInt.from((roundedAmount * 1e8).round()) *
+          BigInt.from(10).pow(18) ~/
+          BigInt.from(100000000));
+      log("Value before parsing $value");
+      final valueWei = value;
+      log("valueWei $valueWei");
+
+      final valueHex = (valueWei).toRadixString(16);
+      if (estimatedGas == null) {
+        throw Exception("Gas estimation error");
+      }
+      final transaction = TransactionToConfirm(
+          gasHex: "0x${((estimatedGas * BigInt.from(2))).toRadixString(16)}",
+          value: valueHex,
+          account: data.account,
+          addressTo: to,
+          gasBigint: estimatedGas,
+          crypto: data.crypto);
+
+      return await tokenManager.approveTokenTransfer(
+          colors: colors,
+          data: transaction,
+          context: context,
+          operationType: 1);
+    } catch (e) {
+      logError(e.toString());
+      rethrow;
+    }
+  }
+
+  Future<String> approveEthTransaction(
+      {required Crypto crypto,
+      required TransactionToConfirm data,
+      required AppColors colors,
+      required BuildContext context,
+      required int operationType}) async {
+    try {
+      final from = data.account.address;
+      final to = data.addressTo;
+      final value = data.value;
+      final rpcUrls = data.crypto.rpcUrls;
+      final estimatedGas = data.gasBigint;
+      log("Data value ${value}");
 
       log("Estimated gas ${estimatedGas.toString()}");
 
-      BigInt valueInWei = data.value != null
-          ? BigInt.parse(data.value!.replaceFirst("0x", ""), radix: 16)
+      BigInt valueInWei = data.value.isNotEmpty
+          ? BigInt.parse(data.value.replaceFirst("0x", ""), radix: 16)
           : BigInt.zero;
 
       log("value wei $valueInWei");
@@ -420,26 +445,19 @@ class Web3InteractionManager {
         throw Exception("An error occurred when trying to estimate the gas.");
       }
 
-      BigInt? gasLimit = data.gas != null
-          ? BigInt.parse(data.gas!.replaceFirst("0x", ""), radix: 16)
-          : (estimatedGas * BigInt.from(30)) ~/ BigInt.from(100);
-      final gasPriceResult = await getGasPrice(
-          currentNetwork.rpc ?? "https://opbnb-mainnet-rpc.bnbchain.org");
+      BigInt? gasLimit = (estimatedGas * BigInt.from(30)) ~/ BigInt.from(100);
+
+      final gasPriceResult = await getGasPrice(rpcUrls?.firstOrNull ?? "");
       BigInt gasPrice =
           gasPriceResult != BigInt.zero ? gasPriceResult : BigInt.from(100000);
-      if (!mounted) {
-        throw Exception("Internal error");
-      }
 
-      final cryptoPrice = await priceManager
-          .getPriceUsingBinanceApi(currentNetwork.binanceSymbol ?? "");
-      if (!mounted) {
-        throw Exception("Internal error");
-      }
+      final cryptoPrice =
+          await priceManager.getTokenMarketData(crypto.cgSymbol ?? "");
+
       final confirmedResponse = await askUserForConfirmation(
         crypto: crypto,
         operationType: operationType,
-        cryptoPrice: cryptoPrice,
+        cryptoPrice: cryptoPrice?.currentPrice ?? 0,
         estimatedGas: estimatedGas,
         gasPrice: gasPrice,
         gasLimit: gasLimit,
@@ -447,7 +465,7 @@ class Web3InteractionManager {
         txData: data,
         colors: colors,
         context: context,
-        currentAccount: currentAccount,
+        currentAccount: data.account,
       );
 
       final confirmed = confirmedResponse.ok;
@@ -456,55 +474,32 @@ class Web3InteractionManager {
         throw Exception("Transaction rejected by user");
       }
 
-      if (data.from != null && data.to != null) {
-        final transData = data.data ?? "";
-        final transaction = Transaction(
-          from: EthereumAddress.fromHex(data.from ?? ""),
-          to: EthereumAddress.fromHex(data.to ?? ""),
-          value: EtherAmount.inWei(valueInWei),
-          maxGas: confirmedResponse.gasLimit.toInt(),
-          gasPrice: EtherAmount.inWei(confirmedResponse.gasPrice),
-          data: transData.isEmpty ? null : hexToUint8List(transData),
-        );
+      final transData = data.data ?? "";
+      final transaction = Transaction(
+        from: EthereumAddress.fromHex(from),
+        to: EthereumAddress.fromHex(to),
+        value: EtherAmount.inWei(valueInWei),
+        maxGas: confirmedResponse.gasLimit.toInt(),
+        gasPrice: EtherAmount.inWei(confirmedResponse.gasPrice),
+        data: transData.isEmpty ? null : hexToUint8List(transData),
+      );
 
-        if (!mounted) {
-          throw Exception("Internal error");
-        }
+      String userPassword = await askPassword(context: context, colors: colors);
 
-        String userPassword =
-            await askPassword(context: context, colors: colors);
+      if (userPassword.isNotEmpty) {
+        final result = await sendTransaction(
+                colors: colors,
+                context: context,
+                transaction: transaction,
+                chainId: crypto.chainId ?? 1,
+                rpcUrl: crypto.rpcUrls?.firstOrNull ?? "",
+                password: userPassword,
+                address: from)
+            .withLoading(context, colors);
 
-        if (userPassword.isNotEmpty) {
-          if (!mounted) {
-            throw Exception("No password provided");
-          }
-
-          final result = await sendTransaction(
-                  colors: colors,
-                  context: context,
-                  transaction: transaction,
-                  chainId: currentNetwork.chainId ?? 204,
-                  rpcUrl: currentNetwork.rpc ??
-                      "https://opbnb-mainnet-rpc.bnbchain.org",
-                  password: userPassword,
-                  address: data.from ?? "")
-              .withLoading(context, colors);
-
-          if (!mounted) {
-            throw Exception("Internal error");
-          }
-          Navigator.pop(context);
-          return result;
-        } else {
-          Navigator.pop(context);
-
-          throw Exception(
-              "An error occurred while trying to enter the password");
-        }
+        return result;
       } else {
-        Navigator.pop(context);
-
-        throw Exception("Invalid transaction data");
+        throw Exception("An error occurred while trying to enter the password");
       }
     } catch (e) {
       logError('Error sending Ethereum transaction: $e');

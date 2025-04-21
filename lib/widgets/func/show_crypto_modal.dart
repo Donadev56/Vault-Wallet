@@ -41,7 +41,8 @@ void showCryptoModal(
                           vertical: 6, horizontal: 6),
                       label: Text(
                         "Search crypto",
-                        style: textTheme.bodyMedium?.copyWith(color: colors.textColor),
+                        style: textTheme.bodyMedium
+                            ?.copyWith(color: colors.textColor),
                       ),
                       labelStyle: textTheme.bodyMedium
                           ?.copyWith(color: textColor.withOpacity(0.7)),
