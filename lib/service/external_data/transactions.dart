@@ -43,10 +43,12 @@ class TransactionStorage {
 
   Future<List<EsTransaction>> getTransactions() async {
     try {
-      final List<dynamic> transactions =
+      final transactions =
           await getDynamicData(name: "transaction/of/$accountKey/$cryptoId");
-      log("Transactions ${transactions}");
-      return transactions.map((t) => EsTransaction.fromJson(t)).toList();
+          if (transactions == null) {
+            throw ("Saved Transaction is null");
+          }
+      return( transactions as List<dynamic>).map((t) => EsTransaction.fromJson(t)).toList();
     } catch (e) {
       logError('Error getting transactions: $e');
       return [];
@@ -63,13 +65,11 @@ class TransactionStorage {
             .compareTo(int.tryParse(a.timeStamp) ?? 0));
 
       transactionsToSave = [...transactions];
-      log('Transaction to save ${transactionsToSave.isNotEmpty ? transactionsToSave.first.toJson() : transactionsToSave}');
 
       if (savedTransactions.isNotEmpty) {
         final lastUpdateDate =
             int.tryParse(filteredTransaction.first.timeStamp) ?? 0;
         for (final trx in transactions) {
-          log("New transaction found ${trx.toJson()}");
           if ((int.tryParse(trx.timeStamp) ?? 0) > lastUpdateDate) {
             transactionsToSave.add(trx);
           }

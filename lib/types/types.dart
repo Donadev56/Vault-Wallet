@@ -658,7 +658,7 @@ class AppColors {
       redColor: Color.fromARGB(255, 248, 107, 64),
       type: ColorType.light);
 
-  Map<String, dynamic> toJson() {
+  Map<dynamic, dynamic> toJson() {
     return {
       'primaryColor': primaryColor.value,
       'themeColor': themeColor.value,
@@ -667,13 +667,15 @@ class AppColors {
       'grayColor': grayColor.value,
       'textColor': textColor.value,
       'redColor': redColor.value,
-      "type": type.index
+      'type': type.index,
     };
   }
 
-  factory AppColors.fromJson(Map<String, dynamic> json) {
+  factory AppColors.fromJson(Map<dynamic, dynamic> json) {
     return AppColors(
-      type: ColorType.values[int.tryParse(json["type"]) ?? 0],
+      type: ColorType.values[(json['type'] is int)
+          ? json['type']
+          : int.tryParse(json['type'].toString()) ?? 0],
       primaryColor: Color(json['primaryColor'] ?? Colors.black.value),
       themeColor: Color(json['themeColor'] ?? Colors.black.value),
       greenColor: Color(json['greenColor'] ?? Colors.black.value),
@@ -682,11 +684,6 @@ class AppColors {
       textColor: Color(json['textColor'] ?? Colors.black.value),
       redColor: Color(json['redColor'] ?? Colors.black.value),
     );
-  }
-
-  @override
-  String toString() {
-    return 'AppColors(primaryColor: $primaryColor, themeColor: $themeColor, greenColor: $greenColor, secondaryColor: $secondaryColor, grayColor: $grayColor, textColor: $textColor, redColor: $redColor)';
   }
 }
 
@@ -1091,4 +1088,157 @@ class TransactionToConfirm {
       this.gasBigint,
       this.gasHex,
       this.data});
+}
+
+class AppUIConfig {
+  final bool isCryptoHidden;
+  final AppColors colors;
+  final AppStyle styles;
+
+
+  const AppUIConfig({
+    required this.colors,
+    required this.isCryptoHidden,
+    required this.styles,
+  });
+
+  AppUIConfig copyWith({
+    AppColors? colors,
+    AppStyle? styles,
+    bool? isCryptoHidden,
+    bool? canUseBio,
+  }) {
+    return AppUIConfig(
+      colors: colors ?? this.colors,
+      styles: styles ?? this.styles,
+      isCryptoHidden: isCryptoHidden ?? this.isCryptoHidden,
+    );
+  }
+
+  static const defaultConfig = AppUIConfig(
+      colors: AppColors.defaultTheme,
+      isCryptoHidden: false,
+      styles: AppStyle());
+
+  Map<dynamic, dynamic> toJson() => {
+        'isCryptoHidden': isCryptoHidden,
+        'colors': colors.toJson(),
+        'styles': styles.toJson(),
+      };
+
+  factory AppUIConfig.fromJson(Map<dynamic, dynamic> json) {
+    return AppUIConfig(
+      isCryptoHidden: json['isCryptoHidden'] ?? false,
+      colors: AppColors.fromJson(json['colors'] ?? {}),
+      styles: AppStyle.fromJson(json['styles'] ?? {}),
+    );
+  }
+}
+
+class AppStyle {
+  final double radiusScaleFactor;
+  final double fontSizeScaleFactor;
+  final double borderOpacity;
+  final double iconSizeScaleFactor;
+  final double imageSizeScaleFactor;
+  final double listTitleVisualDensityVerticalFactor;
+  final double listTitleVisualDensityHorizontalFactor;
+
+  const AppStyle({
+    this.radiusScaleFactor = 1,
+    this.borderOpacity = 0,
+    this.fontSizeScaleFactor = 1,
+    this.iconSizeScaleFactor = 1,
+    this.imageSizeScaleFactor = 1,
+    this.listTitleVisualDensityVerticalFactor = 1,
+    this.listTitleVisualDensityHorizontalFactor = 1,
+  });
+
+  static const defaultStyle = AppStyle();
+
+  static const small2x = AppStyle(
+    iconSizeScaleFactor: 0.5,
+    imageSizeScaleFactor: 0.5,
+    fontSizeScaleFactor: 0.5,
+  );
+
+  static const large2x = AppStyle(
+    iconSizeScaleFactor: 2,
+    imageSizeScaleFactor: 2,
+    fontSizeScaleFactor: 2,
+  );
+
+  static const noRadius = AppStyle(radiusScaleFactor: 0);
+  static const withBorder = AppStyle(borderOpacity: 1);
+
+  double getFontSize(double base) => base * fontSizeScaleFactor;
+  double getIconSize(double base) => base * iconSizeScaleFactor;
+  double getImageSize(double base) => base * imageSizeScaleFactor;
+  AppStyle getDefault() => defaultStyle;
+
+  Map<dynamic, dynamic> toJson() => {
+        'radius': radiusScaleFactor,
+        'borderOpacity': borderOpacity,
+        'fontSizeScaleFactor': fontSizeScaleFactor,
+        'iconSizeScaleFactor': iconSizeScaleFactor,
+        'imageSizeScaleFactor': imageSizeScaleFactor,
+        'listTitleVisualDensityVerticalFactor': listTitleVisualDensityVerticalFactor,
+        'listTitleVisualDensityHorizontalFactor': listTitleVisualDensityHorizontalFactor,
+      };
+
+  factory AppStyle.fromJson(Map<dynamic, dynamic> json) => AppStyle(
+        radiusScaleFactor: (json['radius'] ?? 20).toDouble(),
+        borderOpacity: (json['borderOpacity'] ?? 0).toDouble(),
+        fontSizeScaleFactor: (json['fontSizeScaleFactor'] ?? 1).toDouble(),
+        iconSizeScaleFactor: (json['iconSizeScaleFactor'] ?? 1).toDouble(),
+        imageSizeScaleFactor: (json['imageSizeScaleFactor'] ?? 1).toDouble(),
+        listTitleVisualDensityVerticalFactor:
+            (json['listTitleVisualDensityVerticalFactor'] ?? 1).toDouble(),
+        listTitleVisualDensityHorizontalFactor:
+            (json['listTitleVisualDensityHorizontalFactor'] ?? 1).toDouble(),
+      );
+  AppStyle copyWith({
+    double? radiusScaleFactor,
+    double? borderOpacity,
+    double? fontSizeScaleFactor,
+    double? iconSizeScaleFactor,
+    double? imageSizeScaleFactor,
+    double? listTitleVisualDensityVerticalFactor,
+    double? listTitleVisualDensityHorizontalFactor,
+  }) {
+    return AppStyle(
+      radiusScaleFactor: radiusScaleFactor ?? this.radiusScaleFactor,
+      borderOpacity: borderOpacity ?? this.borderOpacity,
+      fontSizeScaleFactor: fontSizeScaleFactor ?? this.fontSizeScaleFactor,
+      iconSizeScaleFactor: iconSizeScaleFactor ?? this.iconSizeScaleFactor,
+      imageSizeScaleFactor: imageSizeScaleFactor ?? this.imageSizeScaleFactor,
+      listTitleVisualDensityVerticalFactor:
+          listTitleVisualDensityVerticalFactor ?? this.listTitleVisualDensityVerticalFactor,
+      listTitleVisualDensityHorizontalFactor:
+          listTitleVisualDensityHorizontalFactor ?? this.listTitleVisualDensityHorizontalFactor,
+    );
+  }
+}
+
+class AppSecureConfig {
+  final bool useBioMetric ;
+  AppSecureConfig({
+    this.useBioMetric = false 
+  });
+ 
+ factory AppSecureConfig.fromJson(Map<dynamic, dynamic> json)  {
+  return AppSecureConfig(
+    useBioMetric: json["useBioMetric"] ?? false 
+    );
+ }  
+  AppSecureConfig copyWith({bool?  useBioMetric}) {
+   return AppSecureConfig(
+    useBioMetric: useBioMetric ?? this.useBioMetric
+   );
+ }
+  Map<dynamic, dynamic> toJson () {
+    return {
+      "useBioMetric" : useBioMetric 
+    };
+  }
 }

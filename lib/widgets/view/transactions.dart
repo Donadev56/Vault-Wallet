@@ -6,6 +6,7 @@ import 'package:flutter_feather_icons/flutter_feather_icons.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:moonwallet/types/types.dart';
 import 'package:moonwallet/utils/constant.dart';
+import 'package:moonwallet/utils/number_formatter.dart';
 import 'package:moonwallet/widgets/view/show_transaction_details.dart';
 import 'package:timer_builder/timer_builder.dart';
 
@@ -19,7 +20,7 @@ class TransactionsListElement extends StatelessWidget {
   final Color secondaryColor;
   final Color primaryColor;
   final Color darkColor;
-  final Crypto currentNetwork;
+  final Crypto currentCrypto;
   const TransactionsListElement({
     super.key,
     required this.surfaceTintColor,
@@ -29,12 +30,13 @@ class TransactionsListElement extends StatelessWidget {
     required this.secondaryColor,
     required this.primaryColor,
     required this.darkColor,
-    required this.currentNetwork,
+    required this.currentCrypto,
     required this.colors,
   });
 
   @override
   Widget build(BuildContext context) {
+    final formattedAmount = NumberFormatter().formatCrypto(value:(BigInt.parse(tr.value) / BigInt.from(10).pow(currentCrypto.decimals)).toString());
     return Material(
         color: Colors.transparent,
         child: Padding(
@@ -50,11 +52,11 @@ class TransactionsListElement extends StatelessWidget {
                   tr: TransactionDetails(
                       from: tr.from,
                       to: tr.to,
-                      value: tr.value,
+                      value: formattedAmount,
                       timeStamp: tr.timeStamp,
                       hash: tr.hash,
                       blockNumber: tr.blockNumber),
-                  currentNetwork: currentNetwork);
+                  currentNetwork: currentCrypto);
             },
             leading: Container(
               height: 35,
@@ -90,8 +92,8 @@ class TransactionsListElement extends StatelessWidget {
               children: [
                 Text(
                   isFrom
-                      ? "- ${BigInt.parse(tr.value).toDouble() / 1e18}"
-                      : "+ ${BigInt.parse(tr.value).toDouble() / 1e18}",
+                      ? "- $formattedAmount"
+                      : "+ $formattedAmount",
                   style: GoogleFonts.roboto(
                       color: textColor, fontWeight: FontWeight.bold),
                 ),

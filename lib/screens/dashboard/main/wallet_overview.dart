@@ -7,7 +7,6 @@ import 'package:flutter/services.dart';
 
 import 'package:flutter/material.dart';
 import 'package:internet_connection_checker_plus/internet_connection_checker_plus.dart';
-import 'package:intl/intl.dart';
 import 'package:loading_animation_widget/loading_animation_widget.dart';
 import 'package:moonwallet/custom/candlesticks/lib/candlesticks.dart';
 import 'package:moonwallet/custom/refresh/check_mark.dart';
@@ -66,8 +65,6 @@ class _WalletViewScreenState extends State<WalletViewScreen>
   final priceManager = PriceManager();
   final web3InteractManager = EthInteractionManager();
   final publicDataManager = PublicDataManager();
-  final formatter = NumberFormat("0.##############", "en_US");
-  bool isDarkMode = false;
   final cryptoStorageManager = CryptoStorageManager();
   final ScrollController _scrollController = ScrollController();
 
@@ -622,7 +619,7 @@ class _WalletViewScreenState extends State<WalletViewScreen>
                               secondaryColor: colors.themeColor,
                               darkColor: colors.primaryColor,
                               primaryColor: colors.primaryColor,
-                              currentNetwork: currentCrypto!,
+                              currentCrypto: currentCrypto!,
                             );
                           }));
             }),

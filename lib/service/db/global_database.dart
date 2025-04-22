@@ -6,20 +6,11 @@ import 'package:moonwallet/types/types.dart';
 
 class GlobalDatabase {
   final boxName = "globalDatabase";
-  Box? _cachedBox;
 
   Future<Box?> getBox() async {
     try {
-      if (_cachedBox?.isOpen == true) return _cachedBox;
-
-      final boxExist = await Hive.boxExists(boxName);
-      if (!boxExist) {
-        _cachedBox = await Hive.openBox(boxName);
-        return _cachedBox;
-      }
-      _cachedBox = Hive.box(boxName);
-
-      return _cachedBox;
+      await Hive.openBox(boxName);
+      return Hive.box(boxName);
     } catch (e) {
       logError(e.toString());
       return null;
@@ -31,7 +22,7 @@ class GlobalDatabase {
     try {
       final box = await getBox();
       if (box != null) {
-        box.put(key, data);
+        await box.put(key, data);
         return true;
       }
       return false;
@@ -45,10 +36,8 @@ class GlobalDatabase {
     try {
       final box = await getBox();
       if (box != null) {
-        final savedWallets = box.get(key);
-        if (savedWallets != null) {
-          return savedWallets;
-        }
+        final savedData = box.get(key);
+        return savedData;
       }
 
       return null;

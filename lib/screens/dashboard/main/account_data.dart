@@ -476,7 +476,7 @@ class _AccountDataViewState extends ConsumerState<AccountDataView>
                                         secondaryColor: colors.themeColor,
                                         darkColor: colors.primaryColor,
                                         primaryColor: colors.primaryColor,
-                                        currentNetwork: crypto,
+                                        currentCrypto: crypto,
                                       );
                                     }),
                               )

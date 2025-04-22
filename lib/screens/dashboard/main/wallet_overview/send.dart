@@ -345,7 +345,7 @@ class _SendTransactionScreenState extends ConsumerState<SendTransactionScreen> {
       }
 
       setState(() {
-        cryptoPrice = (price as double);
+        cryptoPrice = price;
         if (crypto!.type == CryptoType.token) {
           setState(() {
             nativeBalance = nativeTargetTokenBalance;

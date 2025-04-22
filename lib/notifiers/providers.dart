@@ -4,8 +4,9 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:internet_connection_checker_plus/internet_connection_checker_plus.dart';
 import 'package:moonwallet/logger/logger.dart';
 import 'package:moonwallet/notifiers/accounts_notifier.dart';
+import 'package:moonwallet/notifiers/app_secure_config_notifier.dart';
+import 'package:moonwallet/notifiers/app_ui_config_notifier.dart';
 import 'package:moonwallet/notifiers/assets_notifier.dart';
-import 'package:moonwallet/notifiers/bio_status_notifier.dart';
 import 'package:moonwallet/notifiers/last_account_notifier.dart';
 import 'package:moonwallet/notifiers/profile_image_notifier.dart';
 import 'package:moonwallet/notifiers/saved_crypto.dart';
@@ -48,9 +49,6 @@ final cryptoStorageProvider = Provider((ref) => (CryptoStorageManager()));
 final savedCryptosProviderNotifier =
     AsyncNotifierProvider<SavedCryptoProvider, List<types.Crypto>>(
         SavedCryptoProvider.new);
-
-final bioStatusNotifierProvider =
-    AsyncNotifierProvider<BioStatusNotifier, bool>(BioStatusNotifier.new);
 
 final getSavedAssetsProvider = FutureProvider<List<types.Asset>?>((ref) async {
   final cryptoStorage = ref.watch(cryptoStorageProvider);
@@ -96,3 +94,14 @@ final lastConnectedKeyIdNotifierProvider =
 final web3ProviderNotifier = Provider<Web3Notifier>((ref) {
   return Web3Notifier(ref);
 });
+
+final appUIConfigProvider =
+    AsyncNotifierProvider<AppUIConfigNotifier, types.AppUIConfig>(() {
+  return AppUIConfigNotifier();
+});
+
+
+final appSecureConfigProvider =
+    AsyncNotifierProvider<AppSecureConfigNotifier, types.AppSecureConfig>(
+  AppSecureConfigNotifier.new,
+);

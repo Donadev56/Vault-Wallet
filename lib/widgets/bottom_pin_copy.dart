@@ -14,13 +14,16 @@ Future<bool> showPinModalBottomSheet(
     required AppColors colors,
     required String title,
     bool canApplyBlur = false}) async {
+
   final result = await showModalBottomSheet<bool>(
       context: context,
       backgroundColor: Colors.transparent,
       builder: (BuildContext context) {
+
         final width = MediaQuery.of(context).size.width;
         final height = MediaQuery.of(context).size.height;
         final textTheme = Theme.of(context).textTheme;
+        
         String error = "";
         String newTitle = "";
         int numberOfNumbers = 0;

@@ -8,16 +8,14 @@ import 'package:moonwallet/custom/refresh/check_mark.dart';
 import 'package:moonwallet/notifiers/providers.dart';
 import 'package:moonwallet/screens/dashboard/main/wallet_overview/receive.dart';
 import 'package:moonwallet/screens/dashboard/main/wallet_overview/send.dart';
-import 'package:moonwallet/screens/dashboard/main/wallet_overview.dart';
 import 'package:moonwallet/utils/number_formatter.dart';
 import 'package:moonwallet/utils/colors.dart';
 import 'package:moonwallet/widgets/appBar/show_custom_drawer.dart';
-import 'package:moonwallet/widgets/crypto_picture.dart';
+import 'package:moonwallet/widgets/coin_custom_listTitle.dart';
 import 'package:moonwallet/widgets/pop_menu_divider.dart';
 import 'package:moonwallet/widgets/func/ask_password.dart';
 import 'package:moonwallet/widgets/func/show_crypto_modal.dart';
 import 'package:moonwallet/widgets/func/show_home_options_dialog.dart';
-// ignore: depend_on_referenced_packages
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 
 import 'package:flutter/material.dart';
@@ -57,7 +55,6 @@ class _MainDashboardScreenState extends ConsumerState<MainDashboardScreen>
   int currentOrder = 0;
   String searchCryptoQuery = "";
 
-  bool isHidden = false;
   final _cryptoSearchTextController = TextEditingController();
   late dynamic connectionSubscription;
 
@@ -70,7 +67,6 @@ class _MainDashboardScreenState extends ConsumerState<MainDashboardScreen>
         colors = widget.colors!;
       });
     }
-    getIsHidden();
     getSavedTheme();
     super.initState();
   }
@@ -83,44 +79,12 @@ class _MainDashboardScreenState extends ConsumerState<MainDashboardScreen>
     });
   }
 
-  Future<void> getIsHidden() async {
-    try {
-      final savedData =
-          await publicDataManager.getDataFromPrefs(key: "isHidden");
-      if (savedData != null) {
-        if (savedData == "true") {
-          setState(() {
-            isHidden = true;
-          });
-        } else {
-          setState(() {
-            isHidden = false;
-          });
-        }
-      }
-    } catch (e) {
-      log("Error getting isHidden: $e");
-    }
-  }
-
-  Future<void> toggleHidden() async {
-    setState(() {
-      isHidden = !isHidden;
-    });
-    await publicDataManager.saveDataInPrefs(data: "$isHidden", key: "isHidden");
-  }
-
   String formatUsd(String value) {
     return NumberFormatter().formatUsd(value: value);
   }
 
   String formatCryptoValue(String value) {
     return NumberFormatter().formatCrypto(value: value);
-  }
-
-  void showOptionsModal() async {
-    showHomeOptionsDialog(
-        context: context, toggleHidden: toggleHidden, colors: colors);
   }
 
   notifySuccess(String message) => showCustomSnackBar(
@@ -143,22 +107,40 @@ class _MainDashboardScreenState extends ConsumerState<MainDashboardScreen>
     final assetsNotifier = ref.watch(assetsNotifierProvider);
     final savedAssetsProvider = ref.watch(getSavedAssetsProvider);
     final savedCryptoAsync = ref.watch(savedCryptosProviderNotifier);
-    final bioStatusAsync = ref.watch(bioStatusNotifierProvider);
-    final bioStatusProvider = ref.watch(bioStatusNotifierProvider.notifier);
+    final profileImageAsync = ref.watch(profileImageProviderNotifier);
+    final appUIConfigAsync = ref.watch(appUIConfigProvider);
+    final appUIConfigNotifierProvider = ref.watch(appUIConfigProvider.notifier);
+    final secureConfigAsync = ref.watch(appSecureConfigProvider);
+    final secureConfigNotifier = ref.watch(appSecureConfigProvider.notifier);
+
     final assets = useState<List<Asset>>([]);
     final initialAssets = useState<List<Asset>>([]);
     final accounts = useState<List<PublicData>>([]);
     final totalBalance = useState<double>(0);
     final profileImage = useState<File?>(null);
-    final profileImageAsync = ref.watch(profileImageProviderNotifier);
+    final uiConfig = useState<AppUIConfig>(AppUIConfig.defaultConfig);
+    final secureConfig = useState<AppSecureConfig>(AppSecureConfig());
+    
+
     final profileImageProvider =
         ref.watch(profileImageProviderNotifier.notifier);
-    final canUseBio = useState(false);
-
     useEffect(() {
-      bioStatusAsync.whenData((status) => canUseBio.value = status);
+
+      secureConfigAsync.whenData((config)  {
+        secureConfig.value = config ;
+        } );
       return null;
-    }, [bioStatusAsync]);
+  
+
+    }, [secureConfigAsync]);
+    
+    useEffect(() {
+      appUIConfigAsync.whenData((data) {
+        uiConfig.value = data;
+      });
+      return null;
+    }, [appUIConfigAsync]);
+
     useEffect(() {
       profileImageAsync.whenData((data) {
         profileImage.value = data;
@@ -185,7 +167,6 @@ class _MainDashboardScreenState extends ConsumerState<MainDashboardScreen>
           }
         },
         loading: () {
-          log("Saved Assets loading");
         },
         error: (error, stackTrace) {
           notifyError(error.toString());
@@ -197,7 +178,6 @@ class _MainDashboardScreenState extends ConsumerState<MainDashboardScreen>
     useEffect(() {
       assetsNotifier.when(
         data: (data) {
-          log("Received data");
           initialAssets.value = [...data];
           assets.value = [...data];
           isLoading = false;
@@ -208,7 +188,6 @@ class _MainDashboardScreenState extends ConsumerState<MainDashboardScreen>
           totalBalance.value = balance;
         },
         loading: () {
-          log("Saved Assets loading");
         },
         error: (error, stackTrace) {
           notifyError(error.toString());
@@ -222,7 +201,7 @@ class _MainDashboardScreenState extends ConsumerState<MainDashboardScreen>
         accounts.value = data;
       });
       return null;
-    }, []);
+    }, [accountsProvider]);
 
     savedCryptoAsync.whenData((data) {
       reorganizedCrypto = data.where((e) => e.canDisplay).toList();
@@ -230,11 +209,26 @@ class _MainDashboardScreenState extends ConsumerState<MainDashboardScreen>
 
     Future<bool> toggleCanUseBio(bool state, String password) async {
       try {
-        return bioStatusProvider.toggleCanUseBio(state, password);
+        return await secureConfigNotifier.toggleCanUseBio(
+            state, password);
       } catch (e) {
         logError(e.toString());
         return false;
       }
+    }
+
+    Future<bool> toggleHidden() async {
+      try {
+        return await appUIConfigNotifierProvider.updateAppUIConfig(isCryptoHidden: !uiConfig.value.isCryptoHidden);
+      } catch (e) {
+        logError(e.toString());
+        return false;
+      }
+    }
+
+    void showOptionsModal() async {
+      showHomeOptionsDialog(
+          context: context, toggleHidden: toggleHidden, colors: colors);
     }
 
     double width = MediaQuery.of(context).size.width;
@@ -256,8 +250,7 @@ class _MainDashboardScreenState extends ConsumerState<MainDashboardScreen>
     Future<bool> deleteWallet(String walletId) async {
       try {
         if (accounts.value.isEmpty) {
-          logError("No account found ");
-          return false;
+          throw("No account found ");
         }
         if (accounts.value.isEmpty) {
           throw ("No account found");
@@ -282,7 +275,8 @@ class _MainDashboardScreenState extends ConsumerState<MainDashboardScreen>
             throw ("Failed to delete account");
           }
         } else {
-          throw ("Password is required");
+          logError ("Password is required");
+          return false ;
         }
       } catch (e) {
         logError(e.toString());
@@ -298,8 +292,7 @@ class _MainDashboardScreenState extends ConsumerState<MainDashboardScreen>
         String? name}) async {
       try {
         if (accounts.value.isEmpty) {
-          logError("No account found ");
-          return false;
+          throw("No account found ");
         }
         final result = await providerNotifier.editWallet(
           account: account,
@@ -342,9 +335,9 @@ class _MainDashboardScreenState extends ConsumerState<MainDashboardScreen>
               editWallet: editWallet,
               deleteWallet: (w) => deleteWallet(w.keyId),
               account: currentAccount,
-              isHidden: isHidden,
+              isHidden: uiConfig.value.isCryptoHidden,
               toggleCanUseBio: toggleCanUseBio,
-              canUseBio: canUseBio.value,
+              canUseBio: secureConfig.value.useBioMetric,
               totalBalanceUsd: totalBalance.value,
               context: context,
               profileImage: profileImage.value,
@@ -526,11 +519,11 @@ class _MainDashboardScreenState extends ConsumerState<MainDashboardScreen>
             deleteWallet: deleteWallet,
             accounts: accounts.value,
             toggleCanUseBio: toggleCanUseBio,
-            canUseBio: canUseBio.value,
+            canUseBio: secureConfig.value.useBioMetric,
             totalBalanceUsd: totalBalance.value,
             availableCryptos: reorganizedCrypto,
             colors: colors,
-            isHidden: isHidden,
+            isHidden: uiConfig.value.isCryptoHidden,
             balanceOfAllAccounts: 0,
             profileImage: profileImage.value,
             scaffoldKey: _scaffoldKey,
@@ -607,7 +600,7 @@ class _MainDashboardScreenState extends ConsumerState<MainDashboardScreen>
                                           IconButton(
                                               onPressed: toggleHidden,
                                               icon: Icon(
-                                                isHidden
+                                                uiConfig.value.isCryptoHidden
                                                     ? LucideIcons.eyeClosed
                                                     : Icons
                                                         .remove_red_eye_outlined,
@@ -625,7 +618,7 @@ class _MainDashboardScreenState extends ConsumerState<MainDashboardScreen>
                                         children: [
                                           //   Icon(FeatherIcons.dollarSign, color: colors.textColor, size: textTheme.headlineLarge?.fontSize,),
                                           Text(
-                                            !isHidden
+                                            !uiConfig.value.isCryptoHidden
                                                 ? "\$${formatUsd(totalBalance.value.toString())}"
                                                 : "***",
                                             overflow: TextOverflow.clip,
@@ -821,6 +814,7 @@ class _MainDashboardScreenState extends ConsumerState<MainDashboardScreen>
                               final tokenBalance =
                                   assetsFilteredList.balanceCrypto;
                               final usdBalance = assetsFilteredList.balanceUsd;
+
                               final cryptoPrice =
                                   assetsFilteredList.cryptoPrice;
                               if (assets.value.isEmpty) {
@@ -834,160 +828,15 @@ class _MainDashboardScreenState extends ConsumerState<MainDashboardScreen>
                                   ),
                                 );
                               }
-                              return Padding(
-                                padding:
-                                    const EdgeInsets.symmetric(vertical: 5),
-                                child: Material(
-                                    color: Colors.transparent,
-                                    child: ListTile(
-                                      visualDensity: VisualDensity.compact,
-                                      splashColor:
-                                          colors.textColor.withOpacity(0.05),
-                                      onTap: () {
-                                        log("Crypto id ${crypto.cryptoId}");
-                                        Navigator.push(
-                                            context,
-                                            MaterialPageRoute(
-                                              builder: (context) => WalletViewScreen(
-                                                  initData: WidgetInitialData(
-                                                      account: currentAccount!,
-                                                      crypto: crypto,
-                                                      colors: colors,
-                                                      initialBalanceUsd: assets
-                                                          .value
-                                                          .where((as) =>
-                                                              as.crypto
-                                                                  .cryptoId ==
-                                                              crypto.cryptoId)
-                                                          .first
-                                                          .balanceUsd,
-                                                      initialBalanceCrypto: assets
-                                                          .value
-                                                          .where((as) =>
-                                                              as.crypto
-                                                                  .cryptoId ==
-                                                              crypto.cryptoId)
-                                                          .first
-                                                          .balanceCrypto)),
-                                            ));
-                                      },
-                                      leading: CryptoPicture(
-                                          crypto: crypto,
-                                          size: 38,
-                                          colors: colors),
-                                      title: LayoutBuilder(builder: (ctx, c) {
-                                        return Row(
-                                          spacing: 10,
-                                          children: [
-                                            ConstrainedBox(
-                                              constraints: BoxConstraints(
-                                                  maxWidth: c.maxWidth * 0.4),
-                                              child: Text(
-                                                  crypto.symbol.toUpperCase(),
-                                                  maxLines: 1,
-                                                  overflow: TextOverflow
-                                                      .ellipsis,
-                                                  style: textTheme.bodyMedium
-                                                      ?.copyWith(
-                                                          fontWeight:
-                                                              FontWeight.w500,
-                                                          color: colors
-                                                              .textColor)),
-                                            ),
-                                            Container(
-                                              padding:
-                                                  const EdgeInsets.symmetric(
-                                                      horizontal: 10,
-                                                      vertical: 2),
-                                              decoration: BoxDecoration(
-                                                  color: colors.grayColor
-                                                      .withOpacity(0.9)
-                                                      .withOpacity(0.2),
-                                                  borderRadius:
-                                                      BorderRadius.circular(
-                                                          20)),
-                                              child: Text(
-                                                  crypto.type ==
-                                                          CryptoType.token
-                                                      ? "${crypto.network?.name}"
-                                                      : crypto.name,
-                                                  style: textTheme.bodySmall
-                                                      ?.copyWith(
-                                                          fontSize: 10,
-                                                          color:
-                                                              colors.textColor,
-                                                          fontWeight:
-                                                              FontWeight.w500)),
-                                            )
-                                          ],
-                                        );
-                                      }),
-                                      subtitle: Row(
-                                        spacing: 2,
-                                        children: [
-                                          Text(
-                                              formatUsd(cryptoPrice.toString()),
-                                              style:
-                                                  textTheme.bodySmall?.copyWith(
-                                                color: colors.textColor
-                                                    .withOpacity(0.6),
-                                                fontSize: 16,
-                                              )),
-                                          if (trend != 0)
-                                            Text(
-                                              " ${(trend).toStringAsFixed(2)}%",
-                                              style:
-                                                  textTheme.bodySmall?.copyWith(
-                                                color: trend > 0
-                                                    ? colors.greenColor
-                                                    : colors.redColor,
-                                                fontSize: 14,
-                                              ),
-                                            ),
-                                        ],
-                                      ),
-                                      trailing: ConstrainedBox(
-                                        constraints: BoxConstraints(
-                                            maxWidth: width * 0.37),
-                                        child: Column(
-                                          mainAxisAlignment:
-                                              MainAxisAlignment.spaceAround,
-                                          crossAxisAlignment:
-                                              CrossAxisAlignment.end,
-                                          children: [
-                                            Text(
-                                                isHidden
-                                                    ? "***"
-                                                    : formatCryptoValue(
-                                                            tokenBalance
-                                                                .toString())
-                                                        .trim(),
-                                                overflow: TextOverflow.ellipsis,
-                                                maxLines: 1,
-                                                style: textTheme.bodyMedium
-                                                    ?.copyWith(
-                                                        fontSize: 15,
-                                                        color: colors.textColor,
-                                                        fontWeight:
-                                                            FontWeight.w600)),
-                                            Text(
-                                                isHidden
-                                                    ? "***"
-                                                    : "\$${formatUsd(usdBalance.toString()).trim()}",
-                                                overflow: TextOverflow.ellipsis,
-                                                maxLines: 1,
-                                                style: textTheme.bodySmall
-                                                    ?.copyWith(
-                                                        color: colors.textColor
-                                                            .withOpacity(0.6),
-                                                        fontSize: 15,
-                                                        fontWeight:
-                                                            FontWeight.w500))
-                                          ],
-                                        ),
-                                      ),
-                                    )),
-                              );
+                              return CoinCustomListTitle(
+                                 trend: trend,
+                                 cryptoPrice: cryptoPrice,
+                                 colors: colors,
+                                 crypto: crypto, 
+                                 currentAccount: currentAccount!,
+                                 isCryptoHidden: uiConfig.value.isCryptoHidden,
+                                 tokenBalance: tokenBalance,
+                                 usdBalance: usdBalance);
                             },
                             childCount: getFilteredCryptos().length,
                           ),

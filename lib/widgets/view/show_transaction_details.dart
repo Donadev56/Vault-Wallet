@@ -22,6 +22,7 @@ void showTransactionDetails(
       backgroundColor: colors.primaryColor,
       context: context,
       builder: (BuildContext ctx) {
+        final amount = tr.value;
         return SafeArea(
             child: Scaffold(
           backgroundColor: colors.primaryColor,
@@ -69,8 +70,8 @@ void showTransactionDetails(
                         ),
                         title: Text(
                           isFrom
-                              ? "- ${BigInt.parse(tr.value).toDouble() / 1e18}"
-                              : "+ ${BigInt.parse(tr.value).toDouble() / 1e18}",
+                              ? "- $amount"
+                              : "+ $amount",
                           style: textTheme.bodyMedium?.copyWith(
                               color: colors.textColor,
                               fontWeight: FontWeight.bold,

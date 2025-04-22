@@ -43,6 +43,7 @@ void showCustomDrawer({
   TextEditingController textController = TextEditingController();
   String walletName = account.walletName;
   File? currentImage = profileImage;
+  bool useBio = canUseBio;
 
   String formatUsd(String value) {
     return NumberFormatter().formatUsd(value: value);
@@ -413,6 +414,8 @@ void showCustomDrawer({
                                 GoogleFonts.roboto(color: colors.textColor),
                             options: [
                               Option(
+                                  splashColor:
+                                      colors.themeColor.withOpacity(0.1),
                                   title: "Enable biometric",
                                   icon: Icon(
                                     LucideIcons.fingerprint,
@@ -420,10 +423,13 @@ void showCustomDrawer({
                                     size: 20,
                                   ),
                                   trailing: Switch(
-                                      value: canUseBio,
+                                      value: useBio,
                                       onChanged: (v) async {
                                         final password = await askPassword(
-                                            context: context, colors: colors);
+                                            useBio: false,
+                                            context: context,
+                                            colors: colors);
+
                                         if (password.isEmpty) {
                                           notifyError("Invalid password");
                                           return;
@@ -433,6 +439,9 @@ void showCustomDrawer({
                                         if (result) {
                                           notifySuccess(
                                               v ? "Enabled" : "Disabled");
+                                          st(() {
+                                            useBio = v;
+                                          });
                                           return;
                                         }
 

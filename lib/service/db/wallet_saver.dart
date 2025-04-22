@@ -451,10 +451,10 @@ class WalletSaver {
   }
 
   Future<bool> saveDynamicData(
-      {required dynamic data, required String boxName}) async {
+      {required String data, required String boxName}) async {
     try {
       final box = await getBox();
-      box.put(boxName, data);
+      await box.put(boxName, data);
       return true;
     } catch (e) {
       logError(e.toString());

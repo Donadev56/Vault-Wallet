@@ -1,9 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:local_auth/local_auth.dart';
 import 'package:moonwallet/logger/logger.dart';
+import 'package:moonwallet/notifiers/app_secure_config_notifier.dart';
 import 'package:moonwallet/service/db/wallet_saver.dart';
 import 'package:moonwallet/types/types.dart';
-import 'package:moonwallet/utils/prefs.dart';
 import 'package:moonwallet/widgets/bottom_pin_copy.dart';
 import 'package:moonwallet/widgets/func/snackbar.dart';
 
@@ -12,17 +12,18 @@ Future<String> askPassword(
     required AppColors colors,
     bool useBio = true,
     String title = "Enter Password"}) async {
+
   String userPassword = "";
   int attempt = 0;
   final LocalAuthentication auth = LocalAuthentication();
   bool didAuthenticate = false;
   final manager = WalletSaver();
+  final secureConfig = AppSecureConfigNotifier();
+  final bioOn = (await ( secureConfig.getSecureConfig())).useBioMetric;
 
   if (useBio) {
-    final biometryStatus =
-        await PublicDataManager().getDataFromPrefs(key: "BioStatus");
 
-    if (biometryStatus == "on") {
+    if (bioOn) {
       try {
         didAuthenticate = await auth.authenticate(
             localizedReason: 'Please authenticate to continue');
