@@ -17,65 +17,58 @@ class AppSecureConfigNotifier extends AsyncNotifier<AppSecureConfig> {
 
   final dataKey = "userSecureConfig";
 
-
-
   @override
-  Future<AppSecureConfig> build()  =>  getSecureConfig();
+  Future<AppSecureConfig> build() => getSecureConfig();
 
-  Future<bool> saveConfig (AppSecureConfig secureConfig, String password) async {
+  Future<bool> saveConfig(AppSecureConfig secureConfig, String password) async {
     try {
-      final encryptedSecureConfig =await _encryptService.encryptJson(jsonEncode(secureConfig.toJson()), password);
-      final result = await _db.saveDynamicData(data: encryptedSecureConfig, key: dataKey );
-       if (result) {
+      final encryptedSecureConfig = await _encryptService.encryptJson(
+          jsonEncode(secureConfig.toJson()), password);
+      final result =
+          await _db.saveDynamicData(data: encryptedSecureConfig, key: dataKey);
+      if (result) {
         state = AsyncData(secureConfig);
-       }
+      }
 
-       return result;
+      return result;
     } catch (e) {
       logError(e.toString());
-      return false ;
-      
+      return false;
     }
-
   }
 
-  Future<AppSecureConfig> getSecureConfig () async {
+  Future<AppSecureConfig> getSecureConfig() async {
     try {
-
       final savedConfig = await _db.getDynamicData(key: dataKey);
       if (savedConfig == null) {
         return AppSecureConfig();
       }
-      final decryptedConfig = await _encryptService.decryptJson(savedConfig, (await _walletStorage.getSavedPassword()) ?? "");
+      final decryptedConfig = await _encryptService.decryptJson(
+          savedConfig, (await _walletStorage.getSavedPassword()) ?? "");
       if (decryptedConfig != null) {
-        return AppSecureConfig.fromJson(
-          jsonDecode(decryptedConfig)
-        );
+        return AppSecureConfig.fromJson(jsonDecode(decryptedConfig));
       }
 
       return AppSecureConfig();
-
     } catch (e) {
       logError(e.toString());
-      return AppSecureConfig() ;
-      
+      return AppSecureConfig();
     }
   }
 
-    Future<bool> updateConfig ({bool ? useBio,required String password})  async{
-      try {
-        final lastSecureConfig = state.value ;
-        final newConfig =( lastSecureConfig ?? AppSecureConfig()).copyWith(
-          useBioMetric:  useBio 
-        );
-        return await saveConfig(newConfig, password);
-      } catch (e) {
-        logError(e.toString());
-        return false ;
-        
-      }
+  Future<bool> updateConfig({bool? useBio, required String password}) async {
+    try {
+      final lastSecureConfig = state.value;
+      final newConfig = (lastSecureConfig ?? AppSecureConfig())
+          .copyWith(useBioMetric: useBio);
+      return await saveConfig(newConfig, password);
+    } catch (e) {
+      logError(e.toString());
+      return false;
     }
-    Future<bool> toggleCanUseBio(bool v, String password) async {
+  }
+
+  Future<bool> toggleCanUseBio(bool v, String password) async {
     try {
       if (!(await WalletSaver().isPasswordValid(password))) {
         throw Exception("Wrong password");
@@ -90,7 +83,7 @@ class AppSecureConfigNotifier extends AsyncNotifier<AppSecureConfig> {
       if (canAuthenticate) {
         if (await _auth.authenticate(
             localizedReason: "Enabled to use biometric authentication")) {
-          return await updateConfig(useBio: v, password: password );
+          return await updateConfig(useBio: v, password: password);
         }
       }
 
@@ -100,5 +93,4 @@ class AppSecureConfigNotifier extends AsyncNotifier<AppSecureConfig> {
       return false;
     }
   }
-
 }

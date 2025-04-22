@@ -120,20 +120,16 @@ class _MainDashboardScreenState extends ConsumerState<MainDashboardScreen>
     final profileImage = useState<File?>(null);
     final uiConfig = useState<AppUIConfig>(AppUIConfig.defaultConfig);
     final secureConfig = useState<AppSecureConfig>(AppSecureConfig());
-    
 
     final profileImageProvider =
         ref.watch(profileImageProviderNotifier.notifier);
     useEffect(() {
-
-      secureConfigAsync.whenData((config)  {
-        secureConfig.value = config ;
-        } );
+      secureConfigAsync.whenData((config) {
+        secureConfig.value = config;
+      });
       return null;
-  
-
     }, [secureConfigAsync]);
-    
+
     useEffect(() {
       appUIConfigAsync.whenData((data) {
         uiConfig.value = data;
@@ -166,8 +162,7 @@ class _MainDashboardScreenState extends ConsumerState<MainDashboardScreen>
             });
           }
         },
-        loading: () {
-        },
+        loading: () {},
         error: (error, stackTrace) {
           notifyError(error.toString());
         },
@@ -187,8 +182,7 @@ class _MainDashboardScreenState extends ConsumerState<MainDashboardScreen>
           }
           totalBalance.value = balance;
         },
-        loading: () {
-        },
+        loading: () {},
         error: (error, stackTrace) {
           notifyError(error.toString());
         },
@@ -209,8 +203,7 @@ class _MainDashboardScreenState extends ConsumerState<MainDashboardScreen>
 
     Future<bool> toggleCanUseBio(bool state, String password) async {
       try {
-        return await secureConfigNotifier.toggleCanUseBio(
-            state, password);
+        return await secureConfigNotifier.toggleCanUseBio(state, password);
       } catch (e) {
         logError(e.toString());
         return false;
@@ -219,7 +212,8 @@ class _MainDashboardScreenState extends ConsumerState<MainDashboardScreen>
 
     Future<bool> toggleHidden() async {
       try {
-        return await appUIConfigNotifierProvider.updateAppUIConfig(isCryptoHidden: !uiConfig.value.isCryptoHidden);
+        return await appUIConfigNotifierProvider.updateAppUIConfig(
+            isCryptoHidden: !uiConfig.value.isCryptoHidden);
       } catch (e) {
         logError(e.toString());
         return false;
@@ -250,7 +244,7 @@ class _MainDashboardScreenState extends ConsumerState<MainDashboardScreen>
     Future<bool> deleteWallet(String walletId) async {
       try {
         if (accounts.value.isEmpty) {
-          throw("No account found ");
+          throw ("No account found ");
         }
         if (accounts.value.isEmpty) {
           throw ("No account found");
@@ -275,8 +269,8 @@ class _MainDashboardScreenState extends ConsumerState<MainDashboardScreen>
             throw ("Failed to delete account");
           }
         } else {
-          logError ("Password is required");
-          return false ;
+          logError("Password is required");
+          return false;
         }
       } catch (e) {
         logError(e.toString());
@@ -292,7 +286,7 @@ class _MainDashboardScreenState extends ConsumerState<MainDashboardScreen>
         String? name}) async {
       try {
         if (accounts.value.isEmpty) {
-          throw("No account found ");
+          throw ("No account found ");
         }
         final result = await providerNotifier.editWallet(
           account: account,
@@ -829,14 +823,14 @@ class _MainDashboardScreenState extends ConsumerState<MainDashboardScreen>
                                 );
                               }
                               return CoinCustomListTitle(
-                                 trend: trend,
-                                 cryptoPrice: cryptoPrice,
-                                 colors: colors,
-                                 crypto: crypto, 
-                                 currentAccount: currentAccount!,
-                                 isCryptoHidden: uiConfig.value.isCryptoHidden,
-                                 tokenBalance: tokenBalance,
-                                 usdBalance: usdBalance);
+                                  trend: trend,
+                                  cryptoPrice: cryptoPrice,
+                                  colors: colors,
+                                  crypto: crypto,
+                                  currentAccount: currentAccount!,
+                                  isCryptoHidden: uiConfig.value.isCryptoHidden,
+                                  tokenBalance: tokenBalance,
+                                  usdBalance: usdBalance);
                             },
                             childCount: getFilteredCryptos().length,
                           ),

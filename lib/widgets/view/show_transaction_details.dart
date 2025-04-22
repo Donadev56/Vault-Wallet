@@ -69,9 +69,7 @@ void showTransactionDetails(
                               crypto: currentNetwork, size: 50, colors: colors),
                         ),
                         title: Text(
-                          isFrom
-                              ? "- $amount"
-                              : "+ $amount",
+                          isFrom ? "- $amount" : "+ $amount",
                           style: textTheme.bodyMedium?.copyWith(
                               color: colors.textColor,
                               fontWeight: FontWeight.bold,

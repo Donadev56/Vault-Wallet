@@ -144,7 +144,8 @@ class _EditWalletsViewState extends ConsumerState<EditWalletsView> {
         if (accounts.isEmpty) {
           throw ("No account found");
         }
-        final password = await askPassword(context: context, colors: colors, useBio: false);
+        final password =
+            await askPassword(context: context, colors: colors, useBio: false);
         final accountToRemove =
             accounts.where((acc) => acc.keyId == walletId).first;
         if (password.isNotEmpty) {
@@ -164,7 +165,7 @@ class _EditWalletsViewState extends ConsumerState<EditWalletsView> {
             throw ("Failed to delete account");
           }
         } else {
-          logError ("Password is required");
+          logError("Password is required");
           return false;
         }
       } catch (e) {

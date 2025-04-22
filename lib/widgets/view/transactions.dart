@@ -36,7 +36,10 @@ class TransactionsListElement extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final formattedAmount = NumberFormatter().formatCrypto(value:(BigInt.parse(tr.value) / BigInt.from(10).pow(currentCrypto.decimals)).toString());
+    final formattedAmount = NumberFormatter().formatCrypto(
+        value: (BigInt.parse(tr.value) /
+                BigInt.from(10).pow(currentCrypto.decimals))
+            .toString());
     return Material(
         color: Colors.transparent,
         child: Padding(
@@ -91,9 +94,7 @@ class TransactionsListElement extends StatelessWidget {
               crossAxisAlignment: CrossAxisAlignment.end,
               children: [
                 Text(
-                  isFrom
-                      ? "- $formattedAmount"
-                      : "+ $formattedAmount",
+                  isFrom ? "- $formattedAmount" : "+ $formattedAmount",
                   style: GoogleFonts.roboto(
                       color: textColor, fontWeight: FontWeight.bold),
                 ),

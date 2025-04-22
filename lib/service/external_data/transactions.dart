@@ -45,10 +45,12 @@ class TransactionStorage {
     try {
       final transactions =
           await getDynamicData(name: "transaction/of/$accountKey/$cryptoId");
-          if (transactions == null) {
-            throw ("Saved Transaction is null");
-          }
-      return( transactions as List<dynamic>).map((t) => EsTransaction.fromJson(t)).toList();
+      if (transactions == null) {
+        throw ("Saved Transaction is null");
+      }
+      return (transactions as List<dynamic>)
+          .map((t) => EsTransaction.fromJson(t))
+          .toList();
     } catch (e) {
       logError('Error getting transactions: $e');
       return [];

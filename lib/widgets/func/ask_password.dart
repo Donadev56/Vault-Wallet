@@ -12,17 +12,15 @@ Future<String> askPassword(
     required AppColors colors,
     bool useBio = true,
     String title = "Enter Password"}) async {
-
   String userPassword = "";
   int attempt = 0;
   final LocalAuthentication auth = LocalAuthentication();
   bool didAuthenticate = false;
   final manager = WalletSaver();
   final secureConfig = AppSecureConfigNotifier();
-  final bioOn = (await ( secureConfig.getSecureConfig())).useBioMetric;
+  final bioOn = (await (secureConfig.getSecureConfig())).useBioMetric;
 
   if (useBio) {
-
     if (bioOn) {
       try {
         didAuthenticate = await auth.authenticate(

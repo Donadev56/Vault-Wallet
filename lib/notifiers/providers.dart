@@ -100,7 +100,6 @@ final appUIConfigProvider =
   return AppUIConfigNotifier();
 });
 
-
 final appSecureConfigProvider =
     AsyncNotifierProvider<AppSecureConfigNotifier, types.AppSecureConfig>(
   AppSecureConfigNotifier.new,

@@ -1,4 +1,3 @@
-
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:moonwallet/logger/logger.dart';
 import 'package:moonwallet/service/db/global_database.dart';
@@ -7,7 +6,7 @@ import 'package:moonwallet/types/types.dart';
 class AppUIConfigNotifier extends AsyncNotifier<AppUIConfig> {
   final dataKey = "userUiConfig";
   final db = GlobalDatabase();
-  
+
   final defaultSetting = AppUIConfig(
       colors: AppColors.defaultTheme,
       isCryptoHidden: false,
@@ -63,6 +62,4 @@ class AppUIConfigNotifier extends AsyncNotifier<AppUIConfig> {
       return false;
     }
   }
-
-
 }

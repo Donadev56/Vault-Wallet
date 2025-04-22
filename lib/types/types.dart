@@ -1095,7 +1095,6 @@ class AppUIConfig {
   final AppColors colors;
   final AppStyle styles;
 
-
   const AppUIConfig({
     required this.colors,
     required this.isCryptoHidden,
@@ -1182,8 +1181,10 @@ class AppStyle {
         'fontSizeScaleFactor': fontSizeScaleFactor,
         'iconSizeScaleFactor': iconSizeScaleFactor,
         'imageSizeScaleFactor': imageSizeScaleFactor,
-        'listTitleVisualDensityVerticalFactor': listTitleVisualDensityVerticalFactor,
-        'listTitleVisualDensityHorizontalFactor': listTitleVisualDensityHorizontalFactor,
+        'listTitleVisualDensityVerticalFactor':
+            listTitleVisualDensityVerticalFactor,
+        'listTitleVisualDensityHorizontalFactor':
+            listTitleVisualDensityHorizontalFactor,
       };
 
   factory AppStyle.fromJson(Map<dynamic, dynamic> json) => AppStyle(
@@ -1213,32 +1214,27 @@ class AppStyle {
       iconSizeScaleFactor: iconSizeScaleFactor ?? this.iconSizeScaleFactor,
       imageSizeScaleFactor: imageSizeScaleFactor ?? this.imageSizeScaleFactor,
       listTitleVisualDensityVerticalFactor:
-          listTitleVisualDensityVerticalFactor ?? this.listTitleVisualDensityVerticalFactor,
+          listTitleVisualDensityVerticalFactor ??
+              this.listTitleVisualDensityVerticalFactor,
       listTitleVisualDensityHorizontalFactor:
-          listTitleVisualDensityHorizontalFactor ?? this.listTitleVisualDensityHorizontalFactor,
+          listTitleVisualDensityHorizontalFactor ??
+              this.listTitleVisualDensityHorizontalFactor,
     );
   }
 }
 
 class AppSecureConfig {
-  final bool useBioMetric ;
-  AppSecureConfig({
-    this.useBioMetric = false 
-  });
- 
- factory AppSecureConfig.fromJson(Map<dynamic, dynamic> json)  {
-  return AppSecureConfig(
-    useBioMetric: json["useBioMetric"] ?? false 
-    );
- }  
-  AppSecureConfig copyWith({bool?  useBioMetric}) {
-   return AppSecureConfig(
-    useBioMetric: useBioMetric ?? this.useBioMetric
-   );
- }
-  Map<dynamic, dynamic> toJson () {
-    return {
-      "useBioMetric" : useBioMetric 
-    };
+  final bool useBioMetric;
+  AppSecureConfig({this.useBioMetric = false});
+
+  factory AppSecureConfig.fromJson(Map<dynamic, dynamic> json) {
+    return AppSecureConfig(useBioMetric: json["useBioMetric"] ?? false);
+  }
+  AppSecureConfig copyWith({bool? useBioMetric}) {
+    return AppSecureConfig(useBioMetric: useBioMetric ?? this.useBioMetric);
+  }
+
+  Map<dynamic, dynamic> toJson() {
+    return {"useBioMetric": useBioMetric};
   }
 }
