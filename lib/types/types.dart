@@ -476,13 +476,13 @@ class History {
 
 class UserRequestResponse {
   final bool ok;
-  final BigInt gasPrice;
-  final BigInt gasLimit;
+  final BigInt? gasPrice;
+  final BigInt? gasLimit;
 
   UserRequestResponse({
     required this.ok,
-    required this.gasPrice,
-    required this.gasLimit,
+    this.gasPrice,
+    this.gasLimit,
   });
 
   // Convert a JSON Map to a HistoryItem instance
@@ -780,15 +780,16 @@ class TransactionDetails {
   final String timeStamp;
   final String hash;
   final String blockNumber;
+  final String status;
 
-  TransactionDetails({
-    required this.from,
-    required this.to,
-    required this.value,
-    required this.timeStamp,
-    required this.hash,
-    required this.blockNumber,
-  });
+  TransactionDetails(
+      {required this.from,
+      required this.to,
+      required this.value,
+      required this.timeStamp,
+      required this.hash,
+      required this.blockNumber,
+      required this.status});
   Map<String, dynamic> toJson() {
     return {
       'from': from,
@@ -797,18 +798,19 @@ class TransactionDetails {
       'timeStamp': timeStamp,
       'hash': hash,
       'blockNumber': blockNumber,
+      "status": status
     };
   }
 
   factory TransactionDetails.fromJson(Map<String, dynamic> json) {
     return TransactionDetails(
-      from: json['from'],
-      to: json['to'],
-      value: json['value'],
-      timeStamp: json['timeStamp'],
-      hash: json['hash'],
-      blockNumber: json['blockNumber'],
-    );
+        from: json['from'],
+        to: json['to'],
+        value: json['value'],
+        timeStamp: json['timeStamp'],
+        hash: json['hash'],
+        blockNumber: json['blockNumber'],
+        status: json["status"] ?? "");
   }
 }
 
@@ -1109,18 +1111,26 @@ class BasicTransactionData {
 
 class TransactionToConfirm {
   final String addressTo;
-  final String value;
+  final String valueHex;
+  final BigInt valueBigInt;
   final Crypto crypto;
   final PublicData account;
   final String? gasHex;
   final BigInt? gasBigint;
   final String? data;
+  final double valueEth;
+  final double cryptoPrice;
+  final BigInt gasPrice;
 
   TransactionToConfirm(
       {required this.addressTo,
-      required this.value,
+      required this.valueHex,
       required this.account,
       required this.crypto,
+      required this.valueEth,
+      required this.cryptoPrice,
+      required this.valueBigInt,
+      required this.gasPrice,
       this.gasBigint,
       this.gasHex,
       this.data});
@@ -1301,4 +1311,19 @@ class FiatCurrency {
       'lastUpdate': lastUpdate,
     };
   }
+}
+
+class TransferData {
+  final double amountInEth;
+  final PublicData account;
+  final Crypto crypto;
+  final BigInt gas;
+  final String to;
+
+  TransferData(
+      {required this.amountInEth,
+      required this.account,
+      required this.crypto,
+      required this.to,
+      required this.gas});
 }

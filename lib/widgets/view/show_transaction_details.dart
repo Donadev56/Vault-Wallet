@@ -6,6 +6,7 @@ import 'package:moonwallet/logger/logger.dart';
 import 'package:moonwallet/types/types.dart';
 import 'package:moonwallet/utils/constant.dart';
 import 'package:moonwallet/widgets/crypto_picture.dart';
+import 'package:moonwallet/widgets/view/details_container.dart';
 import 'package:timer_builder/timer_builder.dart';
 import 'package:url_launcher/url_launcher.dart';
 
@@ -57,10 +58,8 @@ void showTransactionDetails(
                 ),
                 child: ListView(
                   children: [
-                    Container(
-                      decoration: BoxDecoration(
-                          borderRadius: BorderRadius.circular(20),
-                          color: colors.grayColor.withOpacity(0.2)),
+                    DetailsContainer(
+                      colors: colors,
                       child: ListTile(
                         shape: RoundedRectangleBorder(
                             borderRadius: BorderRadius.circular(20)),
@@ -84,12 +83,8 @@ void showTransactionDetails(
                         ),
                       ),
                     ),
-                    Container(
-                      margin: const EdgeInsets.only(top: 10),
-                      padding: const EdgeInsets.only(left: 20, right: 20),
-                      decoration: BoxDecoration(
-                          borderRadius: BorderRadius.circular(20),
-                          color: colors.grayColor.withOpacity(0.2)),
+                    DetailsContainer(
+                      colors: colors,
                       child: Column(
                         children: [
                           Row(
@@ -209,12 +204,8 @@ void showTransactionDetails(
                         ],
                       ),
                     ),
-                    Container(
-                      margin: const EdgeInsets.only(top: 10),
-                      padding: const EdgeInsets.only(left: 20, right: 20),
-                      decoration: BoxDecoration(
-                          borderRadius: BorderRadius.circular(20),
-                          color: colors.grayColor.withOpacity(0.2)),
+                    DetailsContainer(
+                      colors: colors,
                       child: Column(
                         children: [
                           Row(
@@ -284,7 +275,41 @@ void showTransactionDetails(
                                     padding: const EdgeInsets.all(0),
                                   )
                                 ],
-                              )
+                              ),
+                            ],
+                          ),
+                          Row(
+                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                            children: [
+                              Text(
+                                "Status",
+                                style: textTheme.bodyMedium?.copyWith(
+                                    color: colors.textColor, fontSize: 14),
+                              ),
+                              Row(
+                                children: [
+                                  Text(
+                                    tr.status,
+                                    style: textTheme.bodyMedium?.copyWith(
+                                        color: colors.textColor, fontSize: 14),
+                                  ),
+                                  SizedBox(
+                                    width: 10,
+                                  ),
+                                  IconButton(
+                                    onPressed: () {
+                                      Clipboard.setData(
+                                          ClipboardData(text: tr.status));
+                                    },
+                                    icon: Icon(
+                                      LucideIcons.copy,
+                                      color: colors.textColor,
+                                      size: 20,
+                                    ),
+                                    padding: const EdgeInsets.all(0),
+                                  )
+                                ],
+                              ),
                             ],
                           )
                         ],

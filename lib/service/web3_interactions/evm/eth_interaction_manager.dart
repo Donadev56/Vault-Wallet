@@ -270,8 +270,8 @@ class EthInteractionManager {
       final BigInt estimatedGas = await client.estimateGas(
         sender: EthereumAddress.fromHex(sender),
         to: EthereumAddress.fromHex(to),
-        value: EtherAmount.inWei(parseHex(value)),
-        data: hexToUint8List(data),
+        value: EtherAmount.inWei(EthUtils().parseHex(value)),
+        data: EthUtils().hexToUint8List(data),
       );
 
       return estimatedGas;
@@ -292,31 +292,37 @@ class EthInteractionManager {
       }
 
       final to = data.addressTo;
-      final from = data.account.address;
       final amount = data.amount;
+      log("Amount $amount");
 
-      final valueWei = (BigInt.from(amount * 1e8) *
-              BigInt.from(10).pow(data.crypto.decimals)) ~/
-          BigInt.from(100000000);
+      final valueWei = EthUtils().ethToBigInt(amount, data.crypto.decimals);
+      final valueHex = EthUtils().bigIntToHex(valueWei);
+      final cryptoPrice =
+          (await priceManager.getTokenMarketData(data.crypto.cgSymbol ?? ""))
+              ?.currentPrice;
 
-      final valueHex = valueWei.toRadixString(16);
-      log("Value : $valueHex and value wei $valueWei");
+      final estimatedGas = ((await estimateGas(
+                  rpcUrl: data.crypto.rpcUrls?.firstOrNull ?? "",
+                  sender: data.account.address,
+                  to: to,
+                  value: valueHex,
+                  data: "") ??
+              BigInt.from(21000)) +
+          BigInt.from(10000));
 
-      final estimatedGas = await estimateGas(
-          rpcUrl: data.crypto.rpcUrls?.firstOrNull ?? "",
-          sender: from,
-          to: to,
-          value: valueHex,
-          data: "");
+      final gasPrice =
+          await getGasPrice(data.crypto.rpcUrls?.firstOrNull ?? "");
 
       log("Gas : ${estimatedGas.toString()}");
-      if (estimatedGas == null) {
-        throw Exception("Gas estimation error");
-      }
+
       final transaction = TransactionToConfirm(
-          gasHex: "0x${(estimatedGas).toRadixString(16)}",
+          gasPrice: gasPrice,
+          valueBigInt: valueWei,
+          cryptoPrice: cryptoPrice ?? 0,
+          gasHex: EthUtils().bigIntToHex(estimatedGas),
           gasBigint: estimatedGas,
-          value: valueHex,
+          valueHex: valueHex,
+          valueEth: amount,
           account: data.account,
           addressTo: to,
           crypto: data.crypto,
@@ -360,52 +366,38 @@ class EthInteractionManager {
 
       final requests = await Future.wait([
         getBalance(data.account, data.crypto),
-        getBalance(data.account, network),
-        simulateTransaction(data.crypto, data.account),
         getGasPrice(token.network?.rpcUrls?.first ?? ""),
       ]).withLoading(context, colors);
 
       final tokenBalance = requests[0] as double;
-      final nativeTokenBalance = requests[1] as double;
-      final estimatedGas = requests[2] as BigInt?;
-      final gasPrice = requests[3] as BigInt;
-
-      final BigInt gas = estimatedGas != null
-          ? (estimatedGas * BigInt.from(2))
-          : BigInt.from(21000);
-
-      final double gasPriceDouble = gasPrice.toDouble();
-      final transactionFee = ((gas * BigInt.from(gasPriceDouble.toInt())) /
-          BigInt.from(10).pow(data.crypto.decimals));
-      log("Fees ${transactionFee.toStringAsFixed(8)}");
-
+      final gasPrice = requests[1] as BigInt;
       double roundedAmount = double.parse(amount.toStringAsFixed(8));
 
       if (roundedAmount > tokenBalance) {
         throw Exception("Insufficient balance");
       }
-      if (nativeTokenBalance < transactionFee) {
-        throw Exception(
-            "Insufficient ${network.symbol} balance , add ${(transactionFee - nativeTokenBalance).toStringAsFixed(8)}");
-      }
 
-      final value = (BigInt.from((roundedAmount * 1e8).round()) *
-          BigInt.from(10).pow(18) ~/
-          BigInt.from(100000000));
-      log("Value before parsing $value");
-      final valueWei = value;
+      final cryptoPrice = (await priceManager
+              .getTokenMarketData(data.crypto.network?.cgSymbol ?? ""))
+          ?.currentPrice;
+
+      final valueWei =
+          EthUtils().ethToBigInt(roundedAmount, data.crypto.decimals);
+
       log("valueWei $valueWei");
 
-      final valueHex = (valueWei).toRadixString(16);
-      if (estimatedGas == null) {
-        throw Exception("Gas estimation error");
-      }
+      final valueHex = EthUtils().bigIntToHex(valueWei);
+
       final transaction = TransactionToConfirm(
-          gasHex: "0x${((estimatedGas * BigInt.from(2))).toRadixString(16)}",
-          value: valueHex,
+          gasPrice: gasPrice,
+          cryptoPrice: cryptoPrice ?? 0,
+          gasHex: EthUtils().bigIntToHex(BigInt.from(0)),
+          valueHex: valueHex,
+          valueEth: roundedAmount,
+          valueBigInt: valueWei,
           account: data.account,
           addressTo: to,
-          gasBigint: estimatedGas,
+          gasBigint: BigInt.from(0),
           crypto: data.crypto);
 
       return await tokenManager.approveTokenTransfer(
@@ -426,46 +418,15 @@ class EthInteractionManager {
       required BuildContext context,
       required int operationType}) async {
     try {
-      final from = data.account.address;
-      final to = data.addressTo;
-      final value = data.value;
-      final rpcUrls = data.crypto.rpcUrls;
-      final estimatedGas = data.gasBigint;
-      log("Data value ${value}");
-
-      log("Estimated gas ${estimatedGas.toString()}");
-
-      BigInt valueInWei = data.value.isNotEmpty
-          ? BigInt.parse(data.value.replaceFirst("0x", ""), radix: 16)
-          : BigInt.zero;
-
-      log("value wei $valueInWei");
-
-      if (estimatedGas == null) {
-        throw Exception("An error occurred when trying to estimate the gas.");
+      if (!context.mounted) {
+        throw "No Context";
       }
-
-      BigInt? gasLimit = (estimatedGas * BigInt.from(30)) ~/ BigInt.from(100);
-
-      final gasPriceResult = await getGasPrice(rpcUrls?.firstOrNull ?? "");
-      BigInt gasPrice =
-          gasPriceResult != BigInt.zero ? gasPriceResult : BigInt.from(100000);
-
-      final cryptoPrice =
-          await priceManager.getTokenMarketData(crypto.cgSymbol ?? "");
 
       final confirmedResponse = await askUserForConfirmation(
         crypto: crypto,
-        operationType: operationType,
-        cryptoPrice: cryptoPrice?.currentPrice ?? 0,
-        estimatedGas: estimatedGas,
-        gasPrice: gasPrice,
-        gasLimit: gasLimit,
-        valueInWei: valueInWei,
         txData: data,
         colors: colors,
         context: context,
-        currentAccount: data.account,
       );
 
       final confirmed = confirmedResponse.ok;
@@ -474,14 +435,13 @@ class EthInteractionManager {
         throw Exception("Transaction rejected by user");
       }
 
-      final transData = data.data ?? "";
       final transaction = Transaction(
-        from: EthereumAddress.fromHex(from),
-        to: EthereumAddress.fromHex(to),
-        value: EtherAmount.inWei(valueInWei),
-        maxGas: confirmedResponse.gasLimit.toInt(),
-        gasPrice: EtherAmount.inWei(confirmedResponse.gasPrice),
-        data: transData.isEmpty ? null : hexToUint8List(transData),
+        from: EthereumAddress.fromHex(data.account.address),
+        to: EthereumAddress.fromHex(data.addressTo),
+        value: EtherAmount.inWei(data.valueBigInt),
+        maxGas: confirmedResponse.gasLimit?.toInt() ?? data.gasBigint?.toInt(),
+        gasPrice:
+            EtherAmount.inWei(confirmedResponse.gasPrice ?? data.gasPrice),
       );
 
       String userPassword =
@@ -495,7 +455,7 @@ class EthInteractionManager {
                 chainId: crypto.chainId ?? 1,
                 rpcUrl: crypto.rpcUrls?.firstOrNull ?? "",
                 password: userPassword,
-                address: from)
+                address: data.account.address)
             .withLoading(context, colors);
 
         return result;

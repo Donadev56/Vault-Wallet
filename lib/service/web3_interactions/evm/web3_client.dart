@@ -18,4 +18,14 @@ class DynamicWeb3Client {
       return null;
     }
   }
+
+  Future<TransactionReceipt?> getReceipt(String tx) async {
+    try {
+      final result = await client.getTransactionReceipt(tx);
+      return result;
+    } catch (e) {
+      logError(e.toString());
+      return null;
+    }
+  }
 }

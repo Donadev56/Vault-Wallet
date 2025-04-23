@@ -53,6 +53,7 @@ class TransactionsListElement extends StatelessWidget {
                   colors: colors,
                   address: tr.from,
                   tr: TransactionDetails(
+                      status: tr.txreceiptStatus ?? "",
                       from: tr.from,
                       to: tr.to,
                       value: formattedAmount,

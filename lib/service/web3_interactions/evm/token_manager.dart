@@ -177,7 +177,7 @@ class TokenManager {
         info = SearchingContractInfo(
             name: name ?? "Unknown",
             symbol: symbol ?? "Unknown",
-            decimals: BigInt.from(18));
+            decimals: decimals ?? BigInt.from(18));
       }
       return info;
     } catch (e) {
@@ -199,6 +199,9 @@ class TokenManager {
       final account = data.account;
 
       final network = token.network;
+      if (network == null) {
+        throw "Network not found";
+      }
 
       final EthereumAddress sender = EthereumAddress.fromHex(from);
       final EthereumAddress receiver = EthereumAddress.fromHex(to);
@@ -217,46 +220,42 @@ class TokenManager {
             "This account is a watch-only account, you can't send transactions.");
       }
 
-      if (network?.rpcUrls == null) {
+      if (network.rpcUrls == null) {
         throw Exception('RPC URL is not provided');
       }
 
-      BigInt? estimatedGas = data.gasBigint;
+      final estimatedGas = await Web3Client(
+                  data.crypto.network?.rpcUrls?.firstOrNull ?? "", httpClient)
+              .estimateGas(
+            sender: sender,
+            to: tokenContract,
+            data: transferFunction.encodeCall([receiver, data.valueBigInt]),
+          ) +
+          BigInt.from(10000);
+
+      final nativeTokenBalance =
+          await EthInteractionManager().getBalance(data.account, network);
+
+      final transactionFee =
+          (estimatedGas * data.gasPrice) / BigInt.from(10).pow(18);
+
+      log("Fees ${transactionFee.toStringAsFixed(8)}");
+      if (nativeTokenBalance < transactionFee) {
+        throw Exception(
+            "Insufficient ${network.symbol} balance , add ${(transactionFee - nativeTokenBalance).toStringAsFixed(8)}");
+      }
 
       log("Estimated gas ${estimatedGas.toString()}");
 
-      BigInt valueInWei = data.value.isNotEmpty
-          ? BigInt.parse(data.value.replaceFirst("0x", ""), radix: 16)
-          : BigInt.zero;
+      BigInt valueInWei = data.valueBigInt;
 
       log("value wei $valueInWei");
-      if (estimatedGas == null) {
-        throw Exception("Failed to estimate gas");
-      }
-      BigInt? gasLimit = (estimatedGas * BigInt.from(130)) ~/ BigInt.from(100);
-
-      log("Gas limit: $gasLimit");
-
-      final gasPriceResult = await web3InteractionManager.getGasPrice(
-          network?.rpcUrls?.first ?? "https://opbnb-mainnet-rpc.bnbchain.org");
-      BigInt gasPrice =
-          gasPriceResult != BigInt.zero ? gasPriceResult : BigInt.from(100000);
-
-      final cryptoPrice =
-          await priceManager.getTokenMarketData(network?.cgSymbol ?? "");
 
       final confirmedResponse = await askUserForConfirmation(
         crypto: token,
-        operationType: operationType,
-        cryptoPrice: cryptoPrice?.currentPrice ?? 0,
-        estimatedGas: estimatedGas,
-        gasPrice: gasPrice,
-        gasLimit: gasLimit,
-        valueInWei: valueInWei,
         txData: data,
         context: context,
         colors: colors,
-        currentAccount: account,
       );
 
       final confirmed = confirmedResponse.ok;
@@ -264,20 +263,15 @@ class TokenManager {
       if (!confirmed) {
         throw Exception("Transaction rejected by user");
       }
-      log("confirmed Response ${confirmedResponse.gasLimit.toInt()}");
-      log("EtherAmount Response ${EtherAmount.inWei(confirmedResponse.gasPrice)}");
 
       final Transaction transaction = Transaction.callContract(
         contract: contract,
         function: transferFunction,
         parameters: [receiver, valueInWei],
         from: sender,
-        maxGas: confirmedResponse.gasLimit.toInt() > 0
-            ? confirmedResponse.gasLimit.toInt() * 2
-            : null,
-        gasPrice: confirmedResponse.gasPrice > BigInt.zero
-            ? EtherAmount.inWei(confirmedResponse.gasPrice)
-            : null,
+        maxGas: confirmedResponse.gasLimit?.toInt() ?? estimatedGas.toInt(),
+        gasPrice:
+            EtherAmount.inWei(confirmedResponse.gasPrice ?? data.gasPrice),
       );
 
       String userPassword = "";
@@ -290,8 +284,8 @@ class TokenManager {
                 colors: colors,
                 context: context,
                 transaction: transaction,
-                chainId: network?.chainId ?? 204,
-                rpcUrl: network?.rpcUrls?.firstOrNull ?? "",
+                chainId: network.chainId ?? 1,
+                rpcUrl: network.rpcUrls?.firstOrNull ?? "",
                 password: userPassword,
                 address: from)
             .withLoading(context, colors);

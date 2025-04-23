@@ -409,6 +409,7 @@ class EthereumProvider {
             colors: colors,
             web3client: _web3client,
             network: network);
+
         log("TransactionHandler ${txHandler.toString()}");
         if (txHandler != null) {
           return await txHandler

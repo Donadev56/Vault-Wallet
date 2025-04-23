@@ -14,6 +14,7 @@ import 'package:moonwallet/logger/logger.dart';
 import 'package:moonwallet/notifiers/providers.dart';
 import 'package:moonwallet/screens/dashboard/page_manager.dart';
 import 'package:moonwallet/service/db/crypto_storage_manager.dart';
+import 'package:moonwallet/service/web3_interactions/evm/web3_client.dart';
 import 'package:moonwallet/utils/number_formatter.dart';
 import 'package:moonwallet/service/external_data/price_manager.dart';
 import 'package:moonwallet/service/web3_interactions/evm/token_manager.dart';
@@ -33,6 +34,7 @@ import 'package:moonwallet/widgets/func/snackbar.dart';
 import 'package:moonwallet/widgets/scanner/show_scanner.dart';
 import 'package:permission_handler/permission_handler.dart';
 import 'package:qr_code_scanner_plus/qr_code_scanner_plus.dart';
+import 'package:web3dart/web3dart.dart';
 
 class SendTransactionScreen extends ConsumerStatefulWidget {
   final WidgetInitialData initData;
@@ -168,6 +170,21 @@ class _SendTransactionScreenState extends ConsumerState<SendTransactionScreen> {
       colors: colors,
       type: MessageType.error);
 
+  Future<TransactionReceipt?> getReceipt(String? tx) async {
+    try {
+      final web3Client = DynamicWeb3Client(
+          rpcUrl: (crypto?.type == CryptoType.token
+                  ? crypto?.network?.rpcUrls?.firstOrNull
+                  : crypto?.rpcUrls?.firstOrNull) ??
+              "");
+      final receipt = await web3Client.getReceipt(tx ?? "");
+      return receipt;
+    } catch (e) {
+      logError(e.toString());
+      return null;
+    }
+  }
+
   Future<void> sendTransaction() async {
     try {
       if (crypto == null) {
@@ -175,10 +192,11 @@ class _SendTransactionScreenState extends ConsumerState<SendTransactionScreen> {
       }
       final to = _addressController.text;
       final from = currentAccount.address;
+      final amount = double.parse(_amountController.text);
       final tx = await ethInteractionManager.buildAndSendNativeTransaction(
           BasicTransactionData(
               addressTo: to,
-              amount: double.parse(_amountController.text),
+              amount: amount,
               account: currentAccount,
               crypto: crypto!),
           colors,
@@ -188,6 +206,7 @@ class _SendTransactionScreenState extends ConsumerState<SendTransactionScreen> {
         log("Transaction tx : $tx");
         if (mounted) {
           saveLastUsedAddresses(address: to);
+          final receipt = await getReceipt(tx);
 
           Navigator.push(
               context,
@@ -197,14 +216,20 @@ class _SendTransactionScreenState extends ConsumerState<SendTransactionScreen> {
                         currentAccount: currentAccount,
                         crypto: crypto,
                         transaction: TransactionDetails(
+                            status: receipt?.status == null
+                                ? "Pending"
+                                : receipt?.status == true
+                                    ? "Success"
+                                    : "Failed",
                             from: from,
                             to: to,
-                            value: 0.toString(),
+                            value: amount.toString(),
                             timeStamp:
                                 (DateTime.now().millisecondsSinceEpoch / 1000)
                                     .toStringAsFixed(0),
                             hash: tx ?? "",
-                            blockNumber: "..."),
+                            blockNumber:
+                                receipt?.blockNumber.toString() ?? "..."),
                       )));
         }
       } else {
@@ -234,6 +259,8 @@ class _SendTransactionScreenState extends ConsumerState<SendTransactionScreen> {
 
       if (tx != null && tx.isNotEmpty) {
         log("Transaction tx : $tx");
+        final receipt = await getReceipt(tx);
+
         if (mounted) {
           Navigator.push(
               context,
@@ -243,14 +270,20 @@ class _SendTransactionScreenState extends ConsumerState<SendTransactionScreen> {
                         currentAccount: currentAccount,
                         crypto: crypto,
                         transaction: TransactionDetails(
+                            status: receipt?.status == null
+                                ? "Pending"
+                                : receipt?.status == true
+                                    ? "Success"
+                                    : "Failed",
                             from: currentAccount.address,
                             to: to,
-                            value: 0.toString(),
+                            value: amount.toString(),
                             timeStamp:
                                 (DateTime.now().millisecondsSinceEpoch / 1000)
                                     .toStringAsFixed(0),
                             hash: tx,
-                            blockNumber: "..."),
+                            blockNumber:
+                                receipt?.blockNumber.toString() ?? "..."),
                       )));
         } else {
           log("Transaction failed");
