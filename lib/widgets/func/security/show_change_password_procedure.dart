@@ -3,7 +3,7 @@ import 'package:flutter/widgets.dart';
 import 'package:moonwallet/service/db/wallet_saver.dart';
 import 'package:moonwallet/types/types.dart';
 import 'package:moonwallet/widgets/bottom_pin_copy.dart';
-import 'package:moonwallet/widgets/func/ask_password.dart';
+import 'package:moonwallet/widgets/func/security/ask_password.dart';
 import 'package:moonwallet/widgets/func/snackbar.dart';
 
 void showChangePasswordProcedure(

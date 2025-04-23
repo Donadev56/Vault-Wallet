@@ -1,12 +1,10 @@
 import 'package:flutter/material.dart';
-import 'package:modal_bottom_sheet/modal_bottom_sheet.dart';
 import 'package:moonwallet/logger/logger.dart';
 import 'package:moonwallet/main.dart';
 import 'package:moonwallet/types/types.dart';
 import 'package:moonwallet/utils/colors.dart';
 import 'package:moonwallet/utils/themes.dart';
 import 'package:moonwallet/widgets/func/snackbar.dart';
-import 'package:photo_view/photo_view.dart';
 import 'package:moonwallet/widgets/app_bar_title.dart';
 
 class ChangeThemeView extends StatefulWidget {

@@ -1,12 +1,12 @@
 import 'package:flutter/material.dart';
 
-class AddWalletButton extends StatelessWidget {
+class CustomListTitleButton extends StatelessWidget {
   final Color textColor;
   final String text;
   final IconData icon;
   final VoidCallback onTap;
 
-  const AddWalletButton(
+  const CustomListTitleButton(
       {super.key,
       required this.textColor,
       required this.text,

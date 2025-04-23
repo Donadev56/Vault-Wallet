@@ -426,18 +426,16 @@ class _WalletViewScreenState extends State<WalletViewScreen>
                             Skeletonizer(
                                 enabled: isBalanceLoading,
                                 child: SizedBox(
-                                    width: width * 0.5,
                                     child: Center(
                                         child: Text(
-                                      (formatCryptoValue(
-                                          tokenBalance.toString())),
-                                      overflow: TextOverflow.clip,
-                                      maxLines: 1,
-                                      style: textTheme.bodyMedium?.copyWith(
-                                          color: colors.textColor,
-                                          fontWeight: FontWeight.bold,
-                                          fontSize: 24),
-                                    )))),
+                                  (formatCryptoValue(tokenBalance.toString())),
+                                  overflow: TextOverflow.clip,
+                                  maxLines: 1,
+                                  style: textTheme.bodyMedium?.copyWith(
+                                      color: colors.textColor,
+                                      fontWeight: FontWeight.bold,
+                                      fontSize: 24),
+                                )))),
                             SizedBox(
                               height: 5,
                             ),

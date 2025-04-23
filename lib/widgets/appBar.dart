@@ -9,6 +9,7 @@ import 'package:moonwallet/service/vibration.dart';
 import 'package:moonwallet/types/types.dart';
 import 'package:moonwallet/widgets/appBar/show_custom_drawer.dart';
 import 'package:moonwallet/widgets/appBar/show_wallet_actions.dart';
+import 'package:moonwallet/widgets/appBar/wallet_actions.dart';
 import 'package:page_transition/page_transition.dart';
 
 typedef EditWalletNameType = void Function(String newName, int index);
@@ -160,7 +161,10 @@ class CustomAppBar extends ConsumerWidget implements PreferredSizeWidget {
       actions: <Widget>[
         IconButton(
             onPressed: () {
-              showAppBarWalletActions(context: context, colors: colors);
+              showAppBarWalletActions(
+                  child: WalletActions(colors: colors),
+                  context: context,
+                  colors: colors);
             },
             icon: Icon(
               Icons.add,

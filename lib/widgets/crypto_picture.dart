@@ -72,18 +72,27 @@ class CryptoPicture extends StatelessWidget {
                   ),
                   child: ClipRRect(
                     borderRadius: BorderRadius.circular(50),
-                    child: Image.asset(
-                      errorBuilder: (ctx, object, err) {
-                        return Image.network(
-                          crypto.network?.icon ?? "",
-                          width: size / 2.75,
-                          height: size / 2.75,
-                        );
-                      },
-                      crypto.network?.icon ?? "",
-                      width: size / 2.75,
-                      height: size / 2.75,
-                    ),
+                    child: crypto.network?.icon == null
+                        ? Container(
+                            width: size / 2.75,
+                            height: size / 2.75,
+                            decoration: BoxDecoration(
+                                color: crypto.network?.color ??
+                                    colors.textColor.withValues(alpha: 0.3),
+                                borderRadius: BorderRadius.circular(50)),
+                          )
+                        : Image.asset(
+                            errorBuilder: (ctx, object, err) {
+                              return Image.network(
+                                crypto.network?.icon ?? "",
+                                width: size / 2.75,
+                                height: size / 2.75,
+                              );
+                            },
+                            crypto.network?.icon ?? "",
+                            width: size / 2.75,
+                            height: size / 2.75,
+                          ),
                   )))
       ],
     );

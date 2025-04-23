@@ -1,12 +1,11 @@
 import 'package:flutter/material.dart';
-import 'package:lucide_icons_flutter/lucide_icons.dart';
 import 'package:modal_bottom_sheet/modal_bottom_sheet.dart';
-import 'package:moonwallet/main.dart';
 import 'package:moonwallet/types/types.dart';
-import 'package:moonwallet/widgets/appBar/button.dart';
 
 void showAppBarWalletActions(
-    {required BuildContext context, required AppColors colors}) {
+    {required BuildContext context,
+    required Widget child,
+    required AppColors colors}) {
   showBarModalBottomSheet(
       backgroundColor: Colors.transparent,
       shape: RoundedRectangleBorder(
@@ -15,7 +14,6 @@ void showAppBarWalletActions(
       context: context,
       builder: (BuildContext btnCtx) {
         final width = MediaQuery.of(context).size.width;
-        final double height = 8;
         return Container(
           width: width,
           decoration: BoxDecoration(
@@ -27,50 +25,7 @@ void showAppBarWalletActions(
             children: [
               Container(
                 margin: const EdgeInsets.all(20),
-                child: Column(
-                  children: [
-                    AddWalletButton(
-                        textColor: colors.textColor,
-                        text: "Create a new wallet",
-                        icon: Icons.add,
-                        onTap: () {
-                          Navigator.pushNamed(
-                              context, Routes.createPrivateKeyMain);
-                        }),
-                    SizedBox(
-                      height: height,
-                    ),
-                    AddWalletButton(
-                        textColor: colors.textColor,
-                        text: "Import Mnemonic phrases",
-                        icon: LucideIcons.fileText,
-                        onTap: () {
-                          Navigator.pushNamed(
-                              context, Routes.createAccountFromSed);
-                        }),
-                    SizedBox(
-                      height: height,
-                    ),
-                    AddWalletButton(
-                        textColor: colors.textColor,
-                        text: "Import private key",
-                        icon: LucideIcons.key,
-                        onTap: () {
-                          Navigator.pushNamed(context, Routes.importWalletMain);
-                        }),
-                    SizedBox(
-                      height: height,
-                    ),
-                    AddWalletButton(
-                        textColor: colors.textColor,
-                        text: "Observation wallet",
-                        icon: LucideIcons.eye,
-                        onTap: () {
-                          Navigator.pushNamed(
-                              context, Routes.addObservationWallet);
-                        })
-                  ],
-                ),
+                child: child,
               )
             ],
           ),

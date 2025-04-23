@@ -7,7 +7,7 @@ import 'package:moonwallet/types/types.dart';
 import 'package:moonwallet/utils/prefs.dart';
 import 'package:moonwallet/widgets/crypto_picture.dart';
 
-import '../../logger/logger.dart';
+import '../../../logger/logger.dart';
 
 void showSelectLastAddr(
     {required BuildContext context,

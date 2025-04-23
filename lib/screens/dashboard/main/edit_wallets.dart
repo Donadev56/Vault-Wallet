@@ -8,7 +8,8 @@ import 'package:moonwallet/types/types.dart';
 import 'package:moonwallet/widgets/account_list_view_widget.dart';
 import 'package:moonwallet/widgets/appBar/show_account_options.dart';
 import 'package:moonwallet/widgets/appBar/show_wallet_actions.dart';
-import 'package:moonwallet/widgets/func/ask_password.dart';
+import 'package:moonwallet/widgets/appBar/wallet_actions.dart';
+import 'package:moonwallet/widgets/func/security/ask_password.dart';
 import 'package:moonwallet/widgets/func/snackbar.dart';
 
 class EditWalletsView extends ConsumerStatefulWidget {
@@ -395,7 +396,9 @@ class _EditWalletsViewState extends ConsumerState<EditWalletsView> {
                         vibrate();
 
                         showAppBarWalletActions(
-                            context: context, colors: colors);
+                            child: WalletActions(colors: colors),
+                            context: context,
+                            colors: colors);
                       },
                       icon: Icon(Icons.add, color: colors.primaryColor),
                       label: Text(

@@ -1,15 +1,21 @@
 // ignore_for_file: deprecated_member_use, use_build_context_synchronously
 
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:moonwallet/custom/web3_webview/lib/utils/loading.dart';
 import 'package:moonwallet/main.dart';
 import 'package:moonwallet/notifiers/providers.dart';
 import 'package:moonwallet/service/db/wallet_saver.dart';
 import 'package:moonwallet/utils/colors.dart';
 import 'package:moonwallet/utils/crypto.dart';
 import 'package:moonwallet/utils/themes.dart';
+import 'package:moonwallet/widgets/appBar/button.dart';
+import 'package:moonwallet/widgets/appBar/show_wallet_actions.dart';
 import 'package:moonwallet/widgets/crypto_picture.dart';
-import 'package:moonwallet/widgets/func/show_add_token.dart';
+import 'package:moonwallet/widgets/func/tokens_config/show_add_network.dart';
+import 'package:moonwallet/widgets/func/tokens_config/show_add_token.dart';
 import 'package:moonwallet/widgets/func/snackbar.dart';
+import 'package:moonwallet/widgets/func/tokens_config/show_edit_network_modal.dart';
+import 'package:moonwallet/widgets/func/tokens_config/show_selecte_network_modal.dart';
 import 'package:ulid/ulid.dart';
 
 import 'package:flutter/material.dart';
@@ -160,6 +166,56 @@ class _AddCryptoViewState extends ConsumerState<AddCryptoView> {
       }
     }
 
+    Future<void> addNetwork(Crypto newCrypto) async {
+      try {
+        {
+          final saveResult = await savedCryptoProvider.addCrypto(newCrypto);
+          if (saveResult) {
+            hasSaved = true;
+            notifySuccess('Network added successfully.');
+
+            Navigator.pop(context);
+          } else {
+            notifyError('Error adding token.');
+            Navigator.pop(context);
+          }
+        }
+      } catch (e) {
+        logError(e.toString());
+        notifyError(e.toString());
+      }
+    }
+
+    Future<bool> editNetwork(
+        {required int chainId,
+        String? name,
+        String? symbol,
+        List<String>? explorers,
+        List<String>? rpcUrls}) async {
+      try {
+        if (currentAccount == null) {
+          throw "No account found";
+        }
+
+        final result = await savedCryptoProvider.editNetwork(
+            chainId: chainId,
+            symbol: symbol,
+            name: name,
+            rpcUrls: rpcUrls,
+            explorers: explorers,
+            currentAccount: currentAccount!);
+        if (result) {
+          notifySuccess("Network Edited");
+        }
+
+        return result;
+      } catch (e) {
+        logError(e.toString());
+        notifyError(e.toString());
+        return false;
+      }
+    }
+
     return Scaffold(
       backgroundColor: colors.primaryColor,
       appBar: AppBar(
@@ -175,15 +231,65 @@ class _AddCryptoViewState extends ConsumerState<AddCryptoView> {
                 borderRadius: BorderRadius.circular(5)),
             child: IconButton(
               onPressed: () {
-                showAddToken(
-                    reorganizedCrypto: reorganizedCrypto,
-                    notifyError: notifyError,
-                    notifySuccess: notifySuccess,
-                    addCrypto: addCrypto,
-                    context: context,
-                    colors: colors,
-                    width: width,
-                    hasSaved: hasSaved);
+                showAppBarWalletActions(
+                  context: context,
+                  colors: colors,
+                  child: Column(
+                    spacing: 10,
+                    children: [
+                      CustomListTitleButton(
+                          textColor: colors.textColor,
+                          text: "Add custom token",
+                          icon: Icons.add,
+                          onTap: () {
+                            showAddToken(
+                                reorganizedCrypto: reorganizedCrypto,
+                                notifyError: notifyError,
+                                notifySuccess: notifySuccess,
+                                addCrypto: addCrypto,
+                                context: context,
+                                colors: colors,
+                                width: width,
+                                hasSaved: hasSaved);
+                          }),
+                      CustomListTitleButton(
+                          textColor: colors.textColor,
+                          text: "Add custom network",
+                          icon: Icons.construction,
+                          onTap: () async {
+                            final newNetwork = await showAddNetwork(
+                                context: context, colors: colors);
+                            if (newNetwork != null) {
+                              if (reorganizedCrypto.any(
+                                  (c) => c.chainId == newNetwork.chainId)) {
+                                notifyError("Network already exist");
+                                return;
+                              }
+                              addNetwork(newNetwork)
+                                  .withLoading(context, colors);
+                            }
+                          }),
+                      CustomListTitleButton(
+                          textColor: colors.textColor,
+                          text: "Edit network",
+                          icon: Icons.border_color,
+                          onTap: () async {
+                            final selectedNetwork =
+                                await showSelectNetworkModal(
+                                    context: context,
+                                    colors: colors,
+                                    networks: reorganizedCrypto);
+                            if (selectedNetwork != null) {
+                              showEditNetwork(
+                                  context: context,
+                                  network: selectedNetwork,
+                                  onSubmitted: editNetwork,
+                                  colors: colors);
+                            }
+                          })
+                    ],
+                  ),
+                );
               },
               icon: Icon(
                 LucideIcons.plus,

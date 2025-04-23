@@ -5,8 +5,8 @@ import 'package:moonwallet/service/external_data/price_manager.dart';
 import 'package:moonwallet/service/web3_interactions/evm/token_manager.dart';
 import 'package:moonwallet/service/db/wallet_saver.dart';
 import 'package:moonwallet/types/types.dart';
-import 'package:moonwallet/widgets/func/ask_user_for_conf.dart';
-import 'package:moonwallet/widgets/func/ask_password.dart';
+import 'package:moonwallet/widgets/func/transactions/ask_user_for_conf.dart';
+import 'package:moonwallet/widgets/func/security/ask_password.dart';
 import 'package:moonwallet/widgets/func/snackbar.dart';
 import 'package:web3dart/web3dart.dart';
 import 'package:http/http.dart';
@@ -23,8 +23,8 @@ class EthInteractionManager {
     try {
       final address = account.address;
       final rpc = crypto.type == CryptoType.native
-          ? crypto.rpcUrls?.first
-          : crypto.network?.rpcUrls?.first;
+          ? crypto.rpcUrls?.firstOrNull
+          : crypto.network?.rpcUrls?.firstOrNull;
 
       if (crypto.type == CryptoType.token) {
         return await tokenManager.getTokenBalance(crypto, address);

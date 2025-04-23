@@ -72,35 +72,63 @@ class SavedCryptoProvider extends AsyncNotifier<List<Crypto>> {
 
   Future<bool> addCrypto(Crypto newCrypto) async {
     try {
-      {
-        final currentAccount = ref.watch(currentAccountProvider).value;
+      final currentAccount = ref.watch(currentAccountProvider).value;
 
-        final List<Crypto>? cryptos = state.value;
-        if (currentAccount == null) {
-          throw "No account found";
-        }
+      final List<Crypto>? cryptos = state.value;
+      if (currentAccount == null) {
+        throw "No account found";
+      }
 
-        if (cryptos != null) {
-          for (final crypto in cryptos) {
-            if (crypto.contractAddress != null &&
-                crypto.contractAddress?.trim().toLowerCase() ==
-                    newCrypto.contractAddress?.trim().toLowerCase()) {
-              throw ('Token already added.');
-            }
+      if (cryptos != null) {
+        for (final crypto in cryptos) {
+          if (crypto.contractAddress != null &&
+              crypto.contractAddress?.trim().toLowerCase() ==
+                  newCrypto.contractAddress?.trim().toLowerCase()) {
+            throw ('Token already added.');
           }
         }
-        final saveResult = await cryptoStorage.addCrypto(
-            wallet: currentAccount, crypto: newCrypto);
-
-        if (saveResult) {
-          state = AsyncLoading();
-          state = AsyncData(await getSavedCrypto());
-          ref.invalidate(assetsNotifierProvider);
-
-          return true;
-        }
-        return false;
       }
+      final saveResult = await cryptoStorage.addCrypto(
+          wallet: currentAccount, crypto: newCrypto);
+
+      if (saveResult) {
+        state = AsyncLoading();
+        state = AsyncData(await getSavedCrypto());
+        ref.invalidate(assetsNotifierProvider);
+
+        return true;
+      }
+      return false;
+    } catch (e) {
+      logError(e.toString());
+      rethrow;
+    }
+  }
+
+  Future<bool> editNetwork(
+      {required int chainId,
+      String? name,
+      String? symbol,
+      List<String>? rpcUrls,
+      List<String>? explorers,
+      required PublicData currentAccount}) async {
+    try {
+      final result = await cryptoStorage.editNetwork(
+          chainId: chainId,
+          name: name,
+          symbol: symbol,
+          rpcUrls: rpcUrls,
+          explorers: explorers,
+          wallet: currentAccount);
+
+      if (result) {
+        state = AsyncLoading();
+        state = AsyncData(await getSavedCrypto());
+        ref.invalidate(assetsNotifierProvider);
+
+        return true;
+      }
+      return false;
     } catch (e) {
       logError(e.toString());
       rethrow;

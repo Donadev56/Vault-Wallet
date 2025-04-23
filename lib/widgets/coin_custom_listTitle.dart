@@ -36,7 +36,7 @@ class CoinCustomListTitle extends StatelessWidget {
     }
 
     String formatCrypto(String value) {
-      return NumberFormatter().formatUsd(value: value);
+      return NumberFormatter().formatCrypto(value: value);
     }
 
     final width = MediaQuery.of(context).size.width;

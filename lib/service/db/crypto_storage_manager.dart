@@ -152,26 +152,50 @@ class CryptoStorageManager {
       }
       final index =
           savedCryptos.indexWhere((c) => c.cryptoId == cryptoToEdit.cryptoId);
-      final newCrypto = Crypto(
-          symbol: cryptoToEdit.symbol,
-          name: cryptoToEdit.name,
-          color: cryptoToEdit.color,
-          type: cryptoToEdit.type,
-          valueUsd: cryptoToEdit.valueUsd,
-          cryptoId: cryptoToEdit.cryptoId,
-          canDisplay: value,
-          network: cryptoToEdit.network,
-          icon: cryptoToEdit.icon,
-          chainId: cryptoToEdit.chainId,
-          contractAddress: cryptoToEdit.contractAddress,
-          explorers: cryptoToEdit.explorers,
-          rpcUrls: cryptoToEdit.rpcUrls,
-          cgSymbol: cryptoToEdit.cgSymbol,
-          decimals: cryptoToEdit.decimals);
+      final newCrypto = cryptoToEdit.copyWith(canDisplay: value);
+
       savedCryptos[index] = newCrypto;
       return await saveListCrypto(cryptos: savedCryptos, wallet: wallet);
     } catch (e) {
       logError("Error : $e");
+      return false;
+    }
+  }
+
+  Future<bool> editNetwork(
+      {required int chainId,
+      String? name,
+      String? symbol,
+      required PublicData wallet,
+      List<String>? rpcUrls,
+      List<String>? explorers}) async {
+    try {
+      final List<Crypto>? savedCryptos = await getSavedCryptos(wallet: wallet);
+      if (savedCryptos == null) {
+        throw 'Saved data is null';
+      }
+      final index = savedCryptos.indexWhere((c) => c.chainId == chainId);
+      final cryptoToEdit = savedCryptos[index];
+      final newCrypto = cryptoToEdit.copyWith(
+        explorers: explorers,
+        rpcUrls: rpcUrls,
+        name: name,
+        symbol: symbol,
+      );
+      savedCryptos[index] = newCrypto;
+      final cryptosOfThisNetwork =
+          savedCryptos.where((c) => c.network?.chainId == chainId).toList();
+      for (final crypto in cryptosOfThisNetwork) {
+        final index = savedCryptos.indexWhere((c) =>
+            c.cryptoId.trim().toLowerCase() ==
+            crypto.cryptoId.trim().toLowerCase());
+        if (index < 0) {
+          continue;
+        }
+        savedCryptos[index] = crypto.copyWith(network: newCrypto);
+      }
+      return await saveListCrypto(cryptos: savedCryptos, wallet: wallet);
+    } catch (e) {
       return false;
     }
   }

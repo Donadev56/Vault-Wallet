@@ -3,8 +3,8 @@ import 'package:flutter/services.dart';
 import 'package:moonwallet/service/vibration.dart';
 import 'package:moonwallet/types/types.dart';
 import 'package:moonwallet/widgets/flowting_modat.dart';
-import 'package:moonwallet/widgets/func/show_change_text_dialog.dart';
-import 'package:moonwallet/widgets/func/show_color.dart';
+import 'package:moonwallet/widgets/func/appearance/show_change_text_dialog.dart';
+import 'package:moonwallet/widgets/func/appearance/show_color.dart';
 import 'package:moonwallet/utils/constant.dart';
 import '../../logger/logger.dart';
 

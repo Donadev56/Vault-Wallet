@@ -1,5 +1,4 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:moonwallet/notifiers/providers.dart';
 import 'package:moonwallet/utils/crypto.dart';
 
 import '../logger/logger.dart';

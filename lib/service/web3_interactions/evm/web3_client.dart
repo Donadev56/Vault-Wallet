@@ -1,0 +1,21 @@
+import 'package:http/http.dart';
+import 'package:moonwallet/logger/logger.dart';
+import 'package:web3dart/web3dart.dart';
+
+class DynamicWeb3Client {
+  var httpClient = Client();
+  final String rpcUrl;
+
+  DynamicWeb3Client({required this.rpcUrl});
+
+  Web3Client get client => Web3Client(rpcUrl, httpClient);
+
+  Future<int?> getChainId() async {
+    try {
+      return (await client.getChainId()).toInt();
+    } catch (e) {
+      logError(e.toString());
+      return null;
+    }
+  }
+}

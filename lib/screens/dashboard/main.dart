@@ -2,7 +2,6 @@
 
 import 'dart:async';
 import 'dart:io';
-import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:loading_animation_widget/loading_animation_widget.dart';
 import 'package:moonwallet/custom/refresh/check_mark.dart';
 import 'package:moonwallet/notifiers/providers.dart';
@@ -13,7 +12,7 @@ import 'package:moonwallet/utils/colors.dart';
 import 'package:moonwallet/widgets/appBar/show_custom_drawer.dart';
 import 'package:moonwallet/widgets/coin_custom_listTitle.dart';
 import 'package:moonwallet/widgets/pop_menu_divider.dart';
-import 'package:moonwallet/widgets/func/ask_password.dart';
+import 'package:moonwallet/widgets/func/security/ask_password.dart';
 import 'package:moonwallet/widgets/func/show_crypto_modal.dart';
 import 'package:moonwallet/widgets/func/show_home_options_dialog.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
@@ -112,6 +111,8 @@ class _MainDashboardScreenState extends ConsumerState<MainDashboardScreen>
     final appUIConfigNotifierProvider = ref.watch(appUIConfigProvider.notifier);
     final secureConfigAsync = ref.watch(appSecureConfigProvider);
     final secureConfigNotifier = ref.watch(appSecureConfigProvider.notifier);
+    final profileImageProvider =
+        ref.watch(profileImageProviderNotifier.notifier);
 
     final assets = useState<List<Asset>>([]);
     final initialAssets = useState<List<Asset>>([]);
@@ -121,8 +122,6 @@ class _MainDashboardScreenState extends ConsumerState<MainDashboardScreen>
     final uiConfig = useState<AppUIConfig>(AppUIConfig.defaultConfig);
     final secureConfig = useState<AppSecureConfig>(AppSecureConfig());
 
-    final profileImageProvider =
-        ref.watch(profileImageProviderNotifier.notifier);
     useEffect(() {
       secureConfigAsync.whenData((config) {
         secureConfig.value = config;

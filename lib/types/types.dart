@@ -370,6 +370,42 @@ class Crypto {
       "cgSymbol": cgSymbol,
     };
   }
+
+  Crypto copyWith({
+    String? name,
+    String? icon,
+    int? chainId,
+    Crypto? network,
+    Color? color,
+    List<String>? rpcUrls,
+    List<String>? explorers,
+    CryptoType? type,
+    String? contractAddress,
+    int? decimals,
+    double? valueUsd,
+    String? cryptoId,
+    bool? canDisplay,
+    String? symbol,
+    String? cgSymbol,
+  }) {
+    return Crypto(
+      name: name ?? this.name,
+      icon: icon ?? this.icon,
+      chainId: chainId ?? this.chainId,
+      network: network ?? this.network,
+      color: color ?? this.color,
+      rpcUrls: rpcUrls ?? this.rpcUrls,
+      explorers: explorers ?? this.explorers,
+      type: type ?? this.type,
+      contractAddress: contractAddress ?? this.contractAddress,
+      decimals: decimals ?? this.decimals,
+      valueUsd: valueUsd ?? this.valueUsd,
+      cryptoId: cryptoId ?? this.cryptoId,
+      canDisplay: canDisplay ?? this.canDisplay,
+      symbol: symbol ?? this.symbol,
+      cgSymbol: cgSymbol ?? this.cgSymbol,
+    );
+  }
 }
 
 class Cryptos {
@@ -1236,5 +1272,33 @@ class AppSecureConfig {
 
   Map<dynamic, dynamic> toJson() {
     return {"useBioMetric": useBioMetric};
+  }
+}
+
+class FiatCurrency {
+  final String code;
+  final double valueInUsd;
+  final int lastUpdate;
+
+  FiatCurrency({
+    required this.code,
+    required this.lastUpdate,
+    required this.valueInUsd,
+  });
+
+  factory FiatCurrency.fromJson(Map<dynamic, dynamic> json) {
+    return FiatCurrency(
+      code: json['code'],
+      valueInUsd: (json['valueInUsd'] as num).toDouble(),
+      lastUpdate: json['lastUpdate'],
+    );
+  }
+
+  Map<dynamic, dynamic> toJson() {
+    return {
+      'code': code,
+      'valueInUsd': valueInUsd,
+      'lastUpdate': lastUpdate,
+    };
   }
 }
