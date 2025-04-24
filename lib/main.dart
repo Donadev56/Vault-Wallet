@@ -330,7 +330,7 @@ class _MyAppState extends State<MyApp> {
                         side: BorderSide(color: colors.themeColor)),
                   ),
                 ),
-                initialRoute: snapshot.data! ? Routes.pageManager : Routes.home,
+                initialRoute: snapshot.data! ? Routes.settings : Routes.home,
                 routes: {
                   Routes.main: (context) => MainDashboardScreen(
                         colors: colors,
@@ -351,7 +351,7 @@ class _MyAppState extends State<MyApp> {
                   Routes.privateDataScreen: (context) => PrivateKeyScreen(
                         colors: colors,
                       ),
-                  Routes.settings: (context) => SettingsPage(),
+                  Routes.settings: (context) => SettingsPage(colors: colors,),
                   Routes.addCrypto: (context) => AddCryptoView(
                         colors: colors,
                       ),

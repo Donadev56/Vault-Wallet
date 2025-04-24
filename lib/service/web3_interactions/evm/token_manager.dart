@@ -21,6 +21,7 @@ class TokenManager {
   }) async {
     try {
       final contractAddress = token.contractAddress;
+
       if (contractAddress == null || contractAddress.isEmpty) {
         logError("Missing contract address for token: ${token.name}");
         return null;
@@ -186,6 +187,35 @@ class TokenManager {
     }
   }
 
+  _validateAccount(PublicData account, BuildContext context, AppColors colors) {
+    if (account.isWatchOnly) {
+      showWatchOnlyWaring(colors: colors, context: context);
+      throw Exception(
+          "This account is a watch-only account, you can't send transactions.");
+    }
+  }
+
+  _validRpcUrl(Crypto network) {
+    if (network.rpcUrls == null) {
+      throw Exception('RPC URL is not provided');
+    }
+  }
+
+  _validateNativeBalance(BigInt estimatedGas, TransactionToConfirm data) async {
+    final nativeTokenBalance = await EthInteractionManager()
+        .getBalance(data.account, data.crypto.network!);
+
+    final transactionFee =
+        (estimatedGas * data.gasPrice) / BigInt.from(10).pow(18);
+
+    log("Fees ${transactionFee.toStringAsFixed(8)}");
+
+    if (nativeTokenBalance < transactionFee) {
+      throw Exception(
+          "Insufficient ${data.crypto.network?.symbol} balance , add ${(transactionFee - nativeTokenBalance).toStringAsFixed(8)}");
+    }
+  }
+
   Future<String?> approveTokenTransfer(
       {required TransactionToConfirm data,
       required BuildContext context,
@@ -214,15 +244,8 @@ class TokenManager {
       );
       final transferFunction = contract.function("transfer");
 
-      if (account.isWatchOnly) {
-        showWatchOnlyWaring(colors: colors, context: context);
-        throw Exception(
-            "This account is a watch-only account, you can't send transactions.");
-      }
-
-      if (network.rpcUrls == null) {
-        throw Exception('RPC URL is not provided');
-      }
+      _validateAccount(account, context, colors);
+      _validRpcUrl(network);
 
       final estimatedGas = await Web3Client(
                   data.crypto.network?.rpcUrls?.firstOrNull ?? "", httpClient)
@@ -233,17 +256,7 @@ class TokenManager {
           ) +
           BigInt.from(10000);
 
-      final nativeTokenBalance =
-          await EthInteractionManager().getBalance(data.account, network);
-
-      final transactionFee =
-          (estimatedGas * data.gasPrice) / BigInt.from(10).pow(18);
-
-      log("Fees ${transactionFee.toStringAsFixed(8)}");
-      if (nativeTokenBalance < transactionFee) {
-        throw Exception(
-            "Insufficient ${network.symbol} balance , add ${(transactionFee - nativeTokenBalance).toStringAsFixed(8)}");
-      }
+      _validateNativeBalance(estimatedGas, data);
 
       log("Estimated gas ${estimatedGas.toString()}");
 

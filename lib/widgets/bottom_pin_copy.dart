@@ -2,6 +2,7 @@ import 'dart:ui';
 
 import 'package:flutter/material.dart';
 import 'package:flutter_feather_icons/flutter_feather_icons.dart';
+import 'package:modal_bottom_sheet/modal_bottom_sheet.dart';
 import 'package:moonwallet/logger/logger.dart';
 import 'package:moonwallet/service/vibration.dart';
 import 'package:moonwallet/types/types.dart';
@@ -14,7 +15,9 @@ Future<bool> showPinModalBottomSheet(
     required AppColors colors,
     required String title,
     bool canApplyBlur = false}) async {
-  final result = await showModalBottomSheet<bool>(
+  final result = await showCupertinoModalBottomSheet<bool>(
+    topRadius: Radius.circular(0),
+   
       context: context,
       backgroundColor: Colors.transparent,
       builder: (BuildContext context) {
@@ -111,7 +114,7 @@ Future<bool> showPinModalBottomSheet(
               sigmaY: canApplyBlur ? 8 : 0,
             ),
             child: ConstrainedBox(
-              constraints: BoxConstraints(maxWidth: 700),
+              constraints: BoxConstraints(maxWidth: 400),
               child: Container(
                 decoration: BoxDecoration(
                   color: colors.primaryColor,
@@ -154,7 +157,7 @@ Future<bool> showPinModalBottomSheet(
                                     borderRadius: BorderRadius.circular(5)),
                                 alignment: Alignment.center,
                                 width: width * 0.1,
-                                height: height * 0.05,
+                                height: 36,
                                 padding: const EdgeInsets.all(5),
                                 margin: const EdgeInsets.all(5),
                                 child: isFull
@@ -215,7 +218,7 @@ Future<bool> showPinModalBottomSheet(
                               constraints: BoxConstraints(maxWidth: 200),
                               child: Container(
                                 width: width * 0.26,
-                                height: height * 0.055,
+                                height: 39,
                                 decoration: BoxDecoration(
                                   border: Border.all(
                                       width: 0.1,

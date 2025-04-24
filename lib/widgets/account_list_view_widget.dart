@@ -86,7 +86,7 @@ class AccountListViewWidget extends StatelessWidget {
             children: [
               if (isCurrent)
                 Icon(
-                  Icons.check_circle,
+                  Icons.check,
                   color: colors.greenColor,
                 ),
               if (showMore)

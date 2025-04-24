@@ -296,14 +296,19 @@ class _EditWalletsViewState extends ConsumerState<EditWalletsView> {
                         child: GlowingOverscrollIndicator(
                             color: colors.themeColor,
                             axisDirection: AxisDirection.down,
-                            child: ReorderableListView.builder(
+                            child:  ReorderableListView.builder(
                                 proxyDecorator: (child, index, animation) {
-                                  return Material(
+                                  return AnimatedContainer(duration: Duration(seconds: 1), 
+                                  
+                                  child:   Transform.scale(
+                                    scale: 1.1,
+                                    
+                                    child:Material(
                                     shadowColor: Colors.transparent,
                                     elevation: 0,
                                     color: colors.secondaryColor,
                                     child: child,
-                                  );
+                                  ) ,) ,);
                                 },
                                 shrinkWrap: true,
                                 physics: ClampingScrollPhysics(),

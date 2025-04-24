@@ -264,6 +264,7 @@ void showCustomDrawer({
                           height: 10,
                         ),
                         CustomOptionWidget(
+                          colors : colors ,
                             splashColor: colors.themeColor.withOpacity(0.1),
                             containerRadius: BorderRadius.circular(10),
                             spaceName: "Appearance",
@@ -331,6 +332,8 @@ void showCustomDrawer({
                           height: 10,
                         ),
                         CustomOptionWidget(
+                                                    colors : colors ,
+
                             splashColor: colors.themeColor.withOpacity(0.1),
                             containerRadius: BorderRadius.circular(10),
                             spaceName: "Security",
@@ -401,6 +404,8 @@ void showCustomDrawer({
                               }
                             }),
                         CustomOptionWidget(
+                                                    colors : colors ,
+
                             splashColor: colors.redColor.withOpacity(0.1),
                             containerRadius: BorderRadius.circular(10),
                             spaceName: "Others",

@@ -81,7 +81,7 @@ void showSelectLastAddr(
                       ),
                       backgroundColor: colors.primaryColor,
                       bottom: PreferredSize(
-                          preferredSize: Size.fromHeight(40),
+                          preferredSize: Size.fromHeight(25),
                           child: ClipRRect(
                             borderRadius: BorderRadius.circular(10),
                             child: Container(
@@ -152,15 +152,7 @@ void showSelectLastAddr(
                                                     color: colors.textColor
                                                         .withOpacity(0.7)),
                                           ),
-                                          trailing: IconButton(
-                                              onPressed: () {
-                                                Clipboard.setData(
-                                                    ClipboardData(text: addr));
-                                              },
-                                              icon: Icon(
-                                                Icons.copy_all,
-                                                color: colors.textColor,
-                                              )),
+                                       
                                         ),
                                       );
                                     }),

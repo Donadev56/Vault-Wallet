@@ -108,10 +108,11 @@ class _ReceiveScreenState extends State<ReceiveScreen> {
         ),
         title: AppBarTitle(title: "Receive", colors: colors),
       ),
-      body: Column(
+      body: Padding(padding: const EdgeInsets.all(15),
+      child: SingleChildScrollView(
+        child:  Column(
         children: [
           Container(
-            width: width * 0.9,
             height: 60,
             padding: const EdgeInsets.all(10),
             decoration: BoxDecoration(
@@ -184,15 +185,19 @@ class _ReceiveScreenState extends State<ReceiveScreen> {
                       maxWidth: 300,
                     ),
                     child: Container(
-                        width: width * 0.85,
                         padding: const EdgeInsets.all(10),
                         margin: const EdgeInsets.all(10),
                         decoration: BoxDecoration(
                           borderRadius: BorderRadius.circular(10),
                           color: Colors.white,
                         ),
-                        child: Center(
-                            child: ConstrainedBox(
+                        child: LayoutBuilder(builder: (ctx, c) {
+                          return Center(
+                            child: Stack(
+                              alignment: Alignment.center,
+                              children: [
+
+                                ConstrainedBox(
                           constraints:
                               BoxConstraints(maxWidth: 300, maxHeight: 270),
                           child: QrImageView(
@@ -200,19 +205,45 @@ class _ReceiveScreenState extends State<ReceiveScreen> {
                             version: 3,
                             size: width * 0.8,
                             gapless: false,
-                            embeddedImage: crypto!.icon != null &&
+                            
+                          ),
+                        )
+
+                        ,
+                        Positioned(
+                      
+                         
+                          child: Container(
+                            padding: const EdgeInsets.all(2),
+                            decoration: BoxDecoration(
+                              color: Colors.white,
+                              borderRadius: BorderRadius.circular(50)
+                            ),
+                            child:  crypto!.icon != null &&
                                     crypto!.icon!
                                         .toLowerCase()
                                         .startsWith("http")
-                                ? NetworkImage(
+                                ? ClipRRect(
+                                  borderRadius: BorderRadius.circular(50),
+                                  child: Image.network(
                                     crypto!.icon ?? "",
-                                  )
-                                : AssetImage(crypto!.icon ?? ""),
-                            embeddedImageStyle: QrEmbeddedImageStyle(
-                              size: Size(40, 40),
-                            ),
-                          ),
-                        ))))
+                                    width: 40,
+                                    height: 40,
+                                    
+                                  ) ,
+                                ) 
+                                : ClipRRect(
+                        borderRadius: BorderRadius.circular(50),
+
+                                  child: Image.asset(crypto!.icon ?? "",
+                                 width: 40,
+                                    height: 40,),
+                                ) ,
+                            ))
+
+                              ],
+                            ) );
+                        }) ))
               ],
             ),
           ),
@@ -225,7 +256,6 @@ class _ReceiveScreenState extends State<ReceiveScreen> {
                   maxWidth: 300,
                 ),
                 child: Container(
-                    width: width * 0.85,
                     padding: const EdgeInsets.all(10),
                     decoration: BoxDecoration(
                         borderRadius: BorderRadius.circular(30),
@@ -238,14 +268,12 @@ class _ReceiveScreenState extends State<ReceiveScreen> {
                       ),
                     ))),
           ),
-          SizedBox(
-            height: 10,
-          ),
-          ConstrainedBox(
+          SizedBox(height:10 ,),
+                  ConstrainedBox(
               constraints: BoxConstraints(
                 maxWidth: 300,
               ),
-              child: Container(
+              child: SizedBox(
                 width: width * 0.85,
                 child: ElevatedButton.icon(
                   style: ElevatedButton.styleFrom(
@@ -266,7 +294,7 @@ class _ReceiveScreenState extends State<ReceiveScreen> {
                 ),
               ))
         ],
-      ),
+      ) ),) ,
     );
   }
 }

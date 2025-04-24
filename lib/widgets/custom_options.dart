@@ -6,8 +6,11 @@ typedef OnTapWithIndex = void Function(int index);
 
 class CustomOptionWidget extends StatelessWidget {
   final String spaceName;
+  final AppColors colors ;
   final TextStyle spaceNameStyle;
-  final Color backgroundColor;
+  final Color ? backgroundColor;
+  final String? description;
+  final TextStyle? descriptionStyle ;
   final BoxBorder? containerBorder;
   final BorderRadiusGeometry? containerRadius;
   final ShapeBorder? shapeBorder;
@@ -24,6 +27,7 @@ class CustomOptionWidget extends StatelessWidget {
 
   const CustomOptionWidget(
       {super.key,
+      required this.colors ,
       required this.spaceName,
       required this.spaceNameStyle,
       required this.options,
@@ -31,7 +35,7 @@ class CustomOptionWidget extends StatelessWidget {
       this.textAlignment = Alignment.topLeft,
       required this.onTap,
       this.splashColor,
-      this.backgroundColor = const Color(0XFF121212),
+      this.backgroundColor,
       this.containerBorder,
       this.containerRadius,
       this.shapeBorder,
@@ -39,11 +43,14 @@ class CustomOptionWidget extends StatelessWidget {
       this.internalElementSpacing = 0.0,
       this.mainAxisAlignment = MainAxisAlignment.start,
       this.crossAxisAlignment = CrossAxisAlignment.center,
+      this.description,
+      this.descriptionStyle,
       this.listTitlePadding =
           const EdgeInsets.symmetric(vertical: 0, horizontal: 10)});
 
   @override
   Widget build(BuildContext context) {
+    final textTheme = TextTheme.of(context);
     return Align(
         alignment: alignment,
         child: SizedBox(
@@ -59,10 +66,19 @@ class CustomOptionWidget extends StatelessWidget {
                   overflow: TextOverflow.ellipsis,
                 ),
               ),
+              if (description != null)
+              Align(
+              alignment: textAlignment,
+              child: Text(description!, 
+              style: descriptionStyle ?? textTheme.bodySmall?.copyWith(
+                color: colors.textColor.withValues(alpha: 0.4),
+                fontSize : 14,
+              ) ,) ,
+              ),
               Container(
                 padding: const EdgeInsets.all(5),
                 decoration: BoxDecoration(
-                    color: backgroundColor,
+                    color: backgroundColor ?? colors.secondaryColor,
                     borderRadius: containerRadius,
                     border: containerBorder),
                 child: Column(
