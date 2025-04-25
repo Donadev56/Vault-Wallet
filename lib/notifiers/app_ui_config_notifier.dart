@@ -34,14 +34,24 @@ class AppUIConfigNotifier extends AsyncNotifier<AppUIConfig> {
     bool? isCryptoHidden,
   }) async {
     try {
-      final lastStyles = state.value;
+      final lastConfig = state.value;
+      final lastStyles =  lastConfig?.styles;
+      final lastColors = lastConfig?.colors;
 
-      final newStyles = (lastStyles ?? defaultSetting).copyWith(
-        colors: colors,
-        styles: styles,
+      final newConfig = (lastConfig ?? defaultSetting).copyWith(
+        colors:  colors,
+        styles: lastStyles?.copyWith(
+          radiusScaleFactor: styles?.radiusScaleFactor,
+          borderOpacity: styles?.borderOpacity,
+          iconSizeScaleFactor: styles?.iconSizeScaleFactor,
+          fontSizeScaleFactor: styles?.fontSizeScaleFactor,
+          imageSizeScaleFactor: styles?.imageSizeScaleFactor,
+          listTitleVisualDensityHorizontalFactor: styles?.listTitleVisualDensityHorizontalFactor,
+          listTitleVisualDensityVerticalFactor: styles?.listTitleVisualDensityVerticalFactor
+        ),
         isCryptoHidden: isCryptoHidden,
       );
-      return await saveUiConfig(newStyles);
+      return await saveUiConfig(newConfig);
     } catch (e) {
       logError(e.toString());
       return false;

@@ -2,6 +2,7 @@
 
 import 'package:flutter/material.dart';
 import 'package:lucide_icons_flutter/lucide_icons.dart';
+import 'package:moonwallet/types/types.dart';
 
 class BottomNav extends StatelessWidget {
   final int currentIndex;
@@ -9,6 +10,9 @@ class BottomNav extends StatelessWidget {
   final Color primaryColor;
   final Color textColor;
   final Color secondaryColor;
+  final DoubleFactor roundedOf;
+  final DoubleFactor fontSizeOf;
+  final DoubleFactor iconSizeOf;
 
   const BottomNav({
     super.key,
@@ -17,6 +21,9 @@ class BottomNav extends StatelessWidget {
     required this.primaryColor,
     required this.textColor,
     required this.secondaryColor,
+    required this.fontSizeOf,
+    required this.iconSizeOf,
+    required this.roundedOf
   });
 
   @override
@@ -59,9 +66,9 @@ class BottomNav extends StatelessWidget {
           type: BottomNavigationBarType.fixed,
           selectedItemColor: secondaryColor,
           unselectedItemColor: textColor,
-          selectedLabelStyle: textTheme.bodySmall?.copyWith(fontSize: 10),
+          selectedLabelStyle: textTheme.bodySmall?.copyWith(fontSize: fontSizeOf (10)),
           unselectedLabelStyle: textTheme.bodySmall?.copyWith(
-            fontSize: 10,
+            fontSize: fontSizeOf(10),
             color: textColor.withOpacity(0.5),
           ),
           items: List.generate(navItems.length, (index) {
@@ -72,7 +79,7 @@ class BottomNav extends StatelessWidget {
               backgroundColor: primaryColor,
               activeIcon: Icon(
                 item['filled'] as IconData,
-                size: 25,
+                size: iconSizeOf(25),
               ),
               icon: AnimatedContainer(
                 duration: const Duration(milliseconds: 300),
@@ -83,7 +90,7 @@ class BottomNav extends StatelessWidget {
                   curve: Curves.easeInOut,
                   child: Icon(
                     item['icon'] as IconData,
-                    size: 25,
+                    size: iconSizeOf(25),
                   ),
                 ),
               ),

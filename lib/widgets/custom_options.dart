@@ -6,18 +6,18 @@ typedef OnTapWithIndex = void Function(int index);
 
 class CustomOptionWidget extends StatelessWidget {
   final String spaceName;
-  final AppColors colors ;
+  final AppColors colors;
   final TextStyle spaceNameStyle;
-  final Color ? backgroundColor;
+  final Color? backgroundColor;
   final String? description;
-  final TextStyle? descriptionStyle ;
+  final TextStyle? descriptionStyle;
   final BoxBorder? containerBorder;
   final BorderRadiusGeometry? containerRadius;
   final ShapeBorder? shapeBorder;
   final List<Option> options;
   final Alignment alignment;
   final Alignment textAlignment;
-  final OnTapWithIndex onTap;
+  final OnTapWithIndex? onTap;
   final Color? splashColor;
   final Color tileColor;
   final double internalElementSpacing;
@@ -27,13 +27,13 @@ class CustomOptionWidget extends StatelessWidget {
 
   const CustomOptionWidget(
       {super.key,
-      required this.colors ,
+      required this.colors,
       required this.spaceName,
       required this.spaceNameStyle,
       required this.options,
       this.alignment = Alignment.center,
       this.textAlignment = Alignment.topLeft,
-      required this.onTap,
+      this.onTap,
       this.splashColor,
       this.backgroundColor,
       this.containerBorder,
@@ -67,14 +67,17 @@ class CustomOptionWidget extends StatelessWidget {
                 ),
               ),
               if (description != null)
-              Align(
-              alignment: textAlignment,
-              child: Text(description!, 
-              style: descriptionStyle ?? textTheme.bodySmall?.copyWith(
-                color: colors.textColor.withValues(alpha: 0.4),
-                fontSize : 14,
-              ) ,) ,
-              ),
+                Align(
+                  alignment: textAlignment,
+                  child: Text(
+                    description!,
+                    style: descriptionStyle ??
+                        textTheme.bodySmall?.copyWith(
+                          color: colors.textColor.withValues(alpha: 0.4),
+                          fontSize: 14,
+                        ),
+                  ),
+                ),
               Container(
                 padding: const EdgeInsets.all(5),
                 decoration: BoxDecoration(
@@ -99,8 +102,12 @@ class CustomOptionWidget extends StatelessWidget {
                             shape: shapeBorder,
                             onTap: () {
                               vibrate();
+                              if (onTap != null) {
+                               onTap!(i);
+                              } else  if (option.onPressed != null){
+                                option.onPressed!();
+                              }
 
-                              onTap(i);
                             },
                             subtitle: option.subtitle,
                             leading: option.icon,

@@ -32,6 +32,9 @@ void showAccountList({
   required ActionWithIndexType changeAccount,
   required ActionWithIndexType showPrivateData,
   required ReorderList reorderList,
+  required DoubleFactor roundedOf,
+  required DoubleFactor fontSizeOf,
+  required DoubleFactor iconSizeOf,
 }) async {
   Key widgetKey = UniqueKey();
   String searchQuery = "";
@@ -96,7 +99,7 @@ void showAccountList({
                         child: TextField(
                             style: textTheme.bodyMedium?.copyWith(
                                 color: colors.textColor,
-                                fontSize: 14,
+                                fontSize: fontSizeOf(14),
                                 fontWeight: FontWeight.w500),
                             onChanged: (value) {
                               setModalState(() {
@@ -116,17 +119,17 @@ void showAccountList({
                               enabledBorder: OutlineInputBorder(
                                   borderSide: BorderSide(
                                       color: Colors.transparent, width: 0),
-                                  borderRadius: BorderRadius.circular(5)),
+                                  borderRadius: BorderRadius.circular(roundedOf(5))),
                               border: OutlineInputBorder(
-                                borderRadius: BorderRadius.circular(5),
+                                borderRadius: BorderRadius.circular(roundedOf(5)),
                               ),
                               focusedBorder: OutlineInputBorder(
                                   borderSide: BorderSide(
                                       color: Colors.transparent, width: 0),
-                                  borderRadius: BorderRadius.circular(5)),
+                                  borderRadius: BorderRadius.circular(roundedOf(5))),
                               hintText: 'Search wallets',
                               hintStyle: textTheme.bodySmall?.copyWith(
-                                  fontSize: 14,
+                                  fontSize: fontSizeOf (14),
                                   fontWeight: FontWeight.normal,
                                   color: colors.textColor.withOpacity(0.4)),
                             )),
@@ -291,7 +294,11 @@ void showAccountList({
                                 vibrate();
 
                                 showAppBarWalletActions(
-                                    child: WalletActions(colors: colors),
+                                    child: WalletActions(
+                                       roundedOf: roundedOf,
+                                       iconSizeOf: iconSizeOf,
+                                       fontSizeOf: fontSizeOf,
+                                      colors: colors),
                                     context: context,
                                     colors: colors);
                               },
@@ -299,7 +306,7 @@ void showAccountList({
                               label: Text(
                                 "Add Wallet",
                                 style: textTheme.bodyMedium?.copyWith(
-                                    fontSize: 16,
+                                    fontSize: (16),
                                     color: colors.primaryColor,
                                     fontWeight: FontWeight.bold),
                               ),

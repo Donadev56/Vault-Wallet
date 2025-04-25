@@ -152,7 +152,6 @@ void showSelectLastAddr(
                                                     color: colors.textColor
                                                         .withOpacity(0.7)),
                                           ),
-                                       
                                         ),
                                       );
                                     }),

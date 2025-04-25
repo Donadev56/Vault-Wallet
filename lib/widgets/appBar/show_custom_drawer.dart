@@ -1,10 +1,10 @@
 // ignore_for_file: deprecated_member_use, use_build_context_synchronously
 
 import 'dart:io';
-import 'dart:ui';
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:lucide_icons_flutter/lucide_icons.dart';
+import 'package:moonwallet/screens/dashboard/settings/settings.dart';
 import 'package:moonwallet/screens/dashboard/wallet_actions/private/private_key_screen.dart';
 import 'package:moonwallet/screens/dashboard/settings/change_colors.dart';
 import 'package:moonwallet/utils/number_formatter.dart';
@@ -20,6 +20,8 @@ import 'package:moonwallet/widgets/func/snackbar.dart';
 import 'package:moonwallet/widgets/profile_placeholder.dart';
 import 'package:simple_gesture_detector/simple_gesture_detector.dart';
 
+typedef DoubleFactor = double Function(double size);
+
 void showCustomDrawer({
   required BuildContext context,
   File? profileImage,
@@ -32,6 +34,12 @@ void showCustomDrawer({
   required bool canUseBio,
   required Future<bool> Function(bool state, String password) toggleCanUseBio,
   required bool isHidden,
+  required DoubleFactor roundedOf,
+  required DoubleFactor fontSizeOf,
+  required DoubleFactor iconSizeOf,
+  required DoubleFactor imageSizeOf,
+  required DoubleFactor listTitleHorizontalOf,
+  required DoubleFactor listTitleVerticalOf,
   required Future Function(
           {required PublicData account,
           String? name,
@@ -53,8 +61,8 @@ void showCustomDrawer({
       avatarChild: currentImage != null
           ? Image.file(
               currentImage,
-              width: 70,
-              height: 70,
+              width: imageSizeOf(70),
+              height: imageSizeOf(70),
               fit: BoxFit.cover,
             )
           : ProfilePlaceholder(colors: colors),
@@ -105,7 +113,7 @@ void showCustomDrawer({
                                     style: textTheme.bodySmall?.copyWith(
                                         color:
                                             colors.textColor.withOpacity(0.7),
-                                        fontSize: 17,
+                                        fontSize: fontSizeOf(17),
                                         fontWeight: FontWeight.bold),
                                   ),
                                   IconButton(
@@ -206,7 +214,7 @@ void showCustomDrawer({
                                                 BorderRadius.circular(20)),
                                         child: CryptoPicture(
                                             crypto: crypto,
-                                            size: 24,
+                                            size: imageSizeOf(24),
                                             colors: colors),
                                       ));
                                 })
@@ -227,14 +235,14 @@ void showCustomDrawer({
                                       : "***",
                                   style: textTheme.bodySmall?.copyWith(
                                       color: colors.textColor,
-                                      fontSize: 30,
+                                      fontSize: fontSizeOf(30),
                                       fontWeight: FontWeight.bold),
                                 ),
                                 Text(
                                   "Balance",
                                   style: textTheme.bodySmall?.copyWith(
                                     color: colors.textColor.withOpacity(0.6),
-                                    fontSize: 16,
+                                    fontSize: fontSizeOf(16),
                                   ),
                                 ),
                               ],
@@ -251,10 +259,10 @@ void showCustomDrawer({
                             Align(
                               alignment: Alignment.centerLeft,
                               child: Text(
-                                "Settings",
+                                "Preferences",
                                 style: textTheme.bodySmall?.copyWith(
                                     color: colors.textColor.withOpacity(0.8),
-                                    fontSize: 20,
+                                    fontSize: fontSizeOf(20),
                                     fontWeight: FontWeight.bold),
                               ),
                             ),
@@ -264,7 +272,7 @@ void showCustomDrawer({
                           height: 10,
                         ),
                         CustomOptionWidget(
-                          colors : colors ,
+                            colors: colors,
                             splashColor: colors.themeColor.withOpacity(0.1),
                             containerRadius: BorderRadius.circular(10),
                             spaceName: "Appearance",
@@ -277,28 +285,14 @@ void showCustomDrawer({
                                 ) ??
                                 GoogleFonts.roboto(color: colors.textColor),
                             options: [
-                              Option(
-                                  tileColor:
-                                      colors.secondaryColor.withOpacity(0.7),
-                                  title: "Change App Theme",
-                                  icon: Icon(
-                                    LucideIcons.palette,
-                                    color: colors.textColor.withOpacity(0.7),
-                                    size: 20,
-                                  ),
-                                  trailing: Icon(Icons.chevron_right,
-                                      color: colors.textColor.withOpacity(0.5)),
-                                  color: colors.secondaryColor,
-                                  titleStyle: textTheme.bodySmall?.copyWith(
-                                      color: colors.textColor, fontSize: 14)),
-                              Option(
+                                                            Option(
                                   tileColor:
                                       colors.secondaryColor.withOpacity(0.5),
                                   title: "Edit profile picture",
                                   icon: Icon(
                                     LucideIcons.user,
                                     color: colors.textColor.withOpacity(0.7),
-                                    size: 20,
+                                    size: iconSizeOf(20),
                                   ),
                                   trailing: Icon(
                                     Icons.chevron_right,
@@ -306,16 +300,33 @@ void showCustomDrawer({
                                   ),
                                   color: colors.secondaryColor,
                                   titleStyle: textTheme.bodySmall?.copyWith(
-                                      color: colors.textColor, fontSize: 14))
+                                      color: colors.textColor,
+                                      fontSize: fontSizeOf(14))),
+                              Option(
+                                  tileColor:
+                                      colors.secondaryColor.withOpacity(0.7),
+                                  title: "More Settings",
+                                  icon: Icon(
+                                    LucideIcons.settings,
+                                    color: colors.textColor.withOpacity(0.7),
+                                    size: iconSizeOf(20),
+                                  ),
+                                  trailing: Icon(Icons.chevron_right,
+                                      color: colors.textColor.withOpacity(0.5)),
+                                  color: colors.secondaryColor,
+                                  titleStyle: textTheme.bodySmall?.copyWith(
+                                      color: colors.textColor,
+                                      fontSize: fontSizeOf(14))),
+
                             ],
                             onTap: (i) async {
-                              if (i == 0) {
+                              if (i == 1) {
                                 Navigator.push(
                                     context,
                                     MaterialPageRoute(
-                                      builder: (context) => ChangeThemeView(),
+                                      builder: (context) => SettingsPage(colors: colors,),
                                     ));
-                              } else if (i == 1) {
+                              } else if (i == 0) {
                                 final file = await showProfileImagePicker(
                                     colors: colors,
                                     context: context,
@@ -332,14 +343,15 @@ void showCustomDrawer({
                           height: 10,
                         ),
                         CustomOptionWidget(
-                                                    colors : colors ,
-
+                            colors: colors,
                             splashColor: colors.themeColor.withOpacity(0.1),
-                            containerRadius: BorderRadius.circular(10),
+                            containerRadius:
+                                BorderRadius.circular(roundedOf(10)),
                             spaceName: "Security",
                             internalElementSpacing: 10,
                             shapeBorder: RoundedRectangleBorder(
-                                borderRadius: BorderRadius.circular(10)),
+                                borderRadius:
+                                    BorderRadius.circular(roundedOf(10))),
                             backgroundColor: Colors.transparent,
                             spaceNameStyle: textTheme.bodySmall?.copyWith(
                                   color: colors.textColor,
@@ -353,13 +365,14 @@ void showCustomDrawer({
                                   icon: Icon(
                                     LucideIcons.key,
                                     color: colors.textColor.withOpacity(0.7),
-                                    size: 20,
+                                    size: iconSizeOf(20),
                                   ),
                                   trailing: Icon(Icons.chevron_right,
                                       color: colors.textColor.withOpacity(0.5)),
                                   color: colors.secondaryColor,
                                   titleStyle: textTheme.bodySmall?.copyWith(
-                                      color: colors.textColor, fontSize: 14)),
+                                      color: colors.textColor,
+                                      fontSize: fontSizeOf(14))),
                               Option(
                                   tileColor:
                                       colors.secondaryColor.withOpacity(0.7),
@@ -367,7 +380,7 @@ void showCustomDrawer({
                                   icon: Icon(
                                     LucideIcons.keySquare,
                                     color: colors.textColor.withOpacity(0.7),
-                                    size: 20,
+                                    size: iconSizeOf(20),
                                   ),
                                   trailing: Icon(
                                     Icons.chevron_right,
@@ -375,7 +388,8 @@ void showCustomDrawer({
                                   ),
                                   color: colors.secondaryColor,
                                   titleStyle: textTheme.bodySmall?.copyWith(
-                                      color: colors.textColor, fontSize: 14))
+                                      color: colors.textColor,
+                                      fontSize: fontSizeOf(14)))
                             ],
                             onTap: (i) async {
                               if (i == 0) {
@@ -404,14 +418,15 @@ void showCustomDrawer({
                               }
                             }),
                         CustomOptionWidget(
-                                                    colors : colors ,
-
+                            colors: colors,
                             splashColor: colors.redColor.withOpacity(0.1),
-                            containerRadius: BorderRadius.circular(10),
+                            containerRadius:
+                                BorderRadius.circular(roundedOf(10)),
                             spaceName: "Others",
                             internalElementSpacing: 10,
                             shapeBorder: RoundedRectangleBorder(
-                                borderRadius: BorderRadius.circular(10)),
+                                borderRadius:
+                                    BorderRadius.circular(roundedOf(10))),
                             backgroundColor: Colors.transparent,
                             spaceNameStyle: textTheme.bodyMedium?.copyWith(
                                   color: colors.textColor,
@@ -425,7 +440,7 @@ void showCustomDrawer({
                                   icon: Icon(
                                     LucideIcons.fingerprint,
                                     color: colors.textColor.withOpacity(0.7),
-                                    size: 20,
+                                    size: iconSizeOf(20),
                                   ),
                                   trailing: Switch(
                                       value: useBio,
@@ -454,14 +469,15 @@ void showCustomDrawer({
                                       }),
                                   color: colors.textColor,
                                   titleStyle: textTheme.bodySmall?.copyWith(
-                                      color: colors.textColor, fontSize: 14)),
+                                      color: colors.textColor,
+                                      fontSize: fontSizeOf(14))),
                               Option(
                                   tileColor: colors.redColor.withOpacity(0.1),
                                   title: "Delete wallet",
                                   icon: Icon(
                                     LucideIcons.trash,
                                     color: colors.redColor.withOpacity(0.7),
-                                    size: 20,
+                                    size: iconSizeOf(20),
                                   ),
                                   trailing: Icon(
                                     Icons.chevron_right,
@@ -469,7 +485,8 @@ void showCustomDrawer({
                                   ),
                                   color: colors.redColor,
                                   titleStyle: textTheme.bodySmall?.copyWith(
-                                      color: colors.redColor, fontSize: 14))
+                                      color: colors.redColor,
+                                      fontSize: fontSizeOf(14)))
                             ],
                             onTap: (i) {
                               if (i == 1) {

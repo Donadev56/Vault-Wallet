@@ -16,8 +16,7 @@ Future<bool> showPinModalBottomSheet(
     required String title,
     bool canApplyBlur = false}) async {
   final result = await showCupertinoModalBottomSheet<bool>(
-    topRadius: Radius.circular(0),
-   
+      topRadius: Radius.circular(0),
       context: context,
       backgroundColor: Colors.transparent,
       builder: (BuildContext context) {

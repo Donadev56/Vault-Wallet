@@ -200,6 +200,35 @@ class _MainDashboardScreenState extends ConsumerState<MainDashboardScreen>
       reorganizedCrypto = data.where((e) => e.canDisplay).toList();
     });
 
+    double fontSizeOf(double size) {
+      return size * uiConfig.value.styles.fontSizeScaleFactor;
+    }
+
+    double listTitleVerticalOf(double size) {
+      return size * uiConfig.value.styles.listTitleVisualDensityVerticalFactor;
+    }
+
+    double listTitleHorizontalOf(double size) {
+      return size *
+          uiConfig.value.styles.listTitleVisualDensityHorizontalFactor;
+    }
+
+    double iconSizeOf(double size) {
+      return size * uiConfig.value.styles.iconSizeScaleFactor;
+    }
+
+    double imageSizeOf(double size) {
+      return size * uiConfig.value.styles.imageSizeScaleFactor;
+    }
+
+    double borderOpOf(double border) {
+      return border * uiConfig.value.styles.borderOpacity;
+    }
+
+    double roundedOf(double size) {
+      return size * uiConfig.value.styles.radiusScaleFactor;
+    }
+
     Future<bool> toggleCanUseBio(bool state, String password) async {
       try {
         return await secureConfigNotifier.toggleCanUseBio(state, password);
@@ -324,6 +353,12 @@ class _MainDashboardScreenState extends ConsumerState<MainDashboardScreen>
           }
 
           showCustomDrawer(
+              iconSizeOf: iconSizeOf,
+              imageSizeOf: imageSizeOf,
+              listTitleHorizontalOf: listTitleHorizontalOf,
+              listTitleVerticalOf: listTitleHorizontalOf,
+              fontSizeOf: fontSizeOf,
+              roundedOf: roundedOf,
               changeProfileImage: changeProfileImage,
               editWallet: editWallet,
               deleteWallet: (w) => deleteWallet(w.keyId),
@@ -446,6 +481,12 @@ class _MainDashboardScreenState extends ConsumerState<MainDashboardScreen>
 
     void showReceiveModal() {
       showCryptoModal(
+          iconSizeOf: iconSizeOf,
+          imageSizeOf: imageSizeOf,
+          listTitleHorizontalOf: listTitleHorizontalOf,
+          listTitleVerticalOf: listTitleHorizontalOf,
+          fontSizeOf: fontSizeOf,
+          roundedOf: roundedOf,
           colors: colors,
           context: context,
           primaryColor: colors.primaryColor,
@@ -472,6 +513,12 @@ class _MainDashboardScreenState extends ConsumerState<MainDashboardScreen>
 
     void showSendModal() {
       showCryptoModal(
+          iconSizeOf: iconSizeOf,
+          imageSizeOf: imageSizeOf,
+          listTitleHorizontalOf: listTitleHorizontalOf,
+          listTitleVerticalOf: listTitleHorizontalOf,
+          fontSizeOf: fontSizeOf,
+          roundedOf: roundedOf,
           colors: colors,
           context: context,
           primaryColor: colors.primaryColor,
@@ -500,6 +547,12 @@ class _MainDashboardScreenState extends ConsumerState<MainDashboardScreen>
         key: _scaffoldKey,
         backgroundColor: colors.primaryColor,
         appBar: CustomAppBar(
+            roundedOf: roundedOf,
+            fontSizeOf: fontSizeOf,
+            iconSizeOf: iconSizeOf,
+            imageSizeOf: imageSizeOf,
+            listTitleHorizontalOf: listTitleHorizontalOf,
+            listTitleVerticalOf: listTitleVerticalOf,
             changeProfileImage: changeProfileImage,
             currentAccount: currentAccount ??
                 PublicData(
@@ -598,7 +651,7 @@ class _MainDashboardScreenState extends ConsumerState<MainDashboardScreen>
                                                     : Icons
                                                         .remove_red_eye_outlined,
                                                 color: colors.textColor,
-                                                size: 20,
+                                                size: iconSizeOf(20),
                                               ))
                                         ],
                                       ),
@@ -618,7 +671,7 @@ class _MainDashboardScreenState extends ConsumerState<MainDashboardScreen>
                                             maxLines: 1,
                                             style: textTheme.headlineLarge
                                                 ?.copyWith(
-                                                    fontSize: 36,
+                                                    fontSize: fontSizeOf(36),
                                                     color: colors.textColor),
                                           ),
                                         ],
@@ -655,8 +708,10 @@ class _MainDashboardScreenState extends ConsumerState<MainDashboardScreen>
                                                 text: action["name"],
                                                 actIcon: action["icon"],
                                                 textColor: colors.textColor,
-                                                size: width <= 330 ? 40 : 50,
-                                                iconSize: 20,
+                                                size: width <= 330
+                                                    ? iconSizeOf(40)
+                                                    : iconSizeOf(50),
+                                                iconSize: iconSizeOf(20),
                                                 color: colors.secondaryColor);
                                           }))),
                                 ),
@@ -692,7 +747,7 @@ class _MainDashboardScreenState extends ConsumerState<MainDashboardScreen>
                                         },
                                         controller: _cryptoSearchTextController,
                                         style: textTheme.bodySmall?.copyWith(
-                                            fontSize: 13,
+                                            fontSize: fontSizeOf(13),
                                             color: colors.textColor),
                                         decoration: InputDecoration(
                                             prefixIcon: Icon(
@@ -711,24 +766,22 @@ class _MainDashboardScreenState extends ConsumerState<MainDashboardScreen>
                                             filled: true,
                                             fillColor: colors.secondaryColor,
                                             border: OutlineInputBorder(
-                                                borderRadius:
-                                                    BorderRadius.circular(40),
+                                                borderRadius: BorderRadius.circular(
+                                                    roundedOf(40)),
                                                 borderSide: BorderSide(
                                                     width: 0,
                                                     color: Colors.transparent)),
                                             enabledBorder: OutlineInputBorder(
                                                 borderRadius:
-                                                    BorderRadius.circular(40),
+                                                    BorderRadius.circular(
+                                                        roundedOf(40)),
                                                 borderSide: BorderSide(
                                                     width: 0,
                                                     color: Colors.transparent)),
                                             focusedBorder: OutlineInputBorder(
                                                 borderRadius:
-                                                    BorderRadius.circular(40),
-                                                borderSide: BorderSide(
-                                                    width: 0,
-                                                    color:
-                                                        Colors.transparent))),
+                                                    BorderRadius.circular(roundedOf(40)),
+                                                borderSide: BorderSide(width: 0, color: Colors.transparent))),
                                       ),
                                     ),
                                   )
@@ -736,8 +789,9 @@ class _MainDashboardScreenState extends ConsumerState<MainDashboardScreen>
                               )),
                           actions: [
                             PopupMenuButton(
-                                splashRadius: 10,
-                                borderRadius: BorderRadius.circular(20),
+                                splashRadius: roundedOf(10),
+                                borderRadius:
+                                    BorderRadius.circular(roundedOf(20)),
                                 requestFocus: true,
                                 menuPadding: const EdgeInsets.all(0),
                                 padding: const EdgeInsets.all(0),
@@ -753,7 +807,7 @@ class _MainDashboardScreenState extends ConsumerState<MainDashboardScreen>
                                         },
                                         child: Row(children: [
                                           Icon(fixedAppBarOptions[0]["icon"],
-                                              size: 25,
+                                              size: iconSizeOf(25),
                                               color: colors.textColor
                                                   .withOpacity(0.4)),
                                           SizedBox(width: 8),
@@ -817,11 +871,18 @@ class _MainDashboardScreenState extends ConsumerState<MainDashboardScreen>
                                     width: 30,
                                     child:
                                         LoadingAnimationWidget.discreteCircle(
-                                            color: colors.themeColor, size: 40),
+                                            color: colors.themeColor,
+                                            size: iconSizeOf(40)),
                                   ),
                                 );
                               }
                               return CoinCustomListTitle(
+                                  roundedOf: roundedOf,
+                                  fontSizeOf: fontSizeOf,
+                                  iconSizeOf: iconSizeOf,
+                                  imageSizeOf: imageSizeOf,
+                                  listTitleHorizontalOf: listTitleHorizontalOf,
+                                  listTitleVerticalOf: listTitleVerticalOf,
                                   trend: trend,
                                   cryptoPrice: cryptoPrice,
                                   colors: colors,

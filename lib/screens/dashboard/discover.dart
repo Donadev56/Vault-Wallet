@@ -5,7 +5,9 @@ import 'dart:convert';
 import 'package:fast_cached_network_image/fast_cached_network_image.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_feather_icons/flutter_feather_icons.dart';
+import 'package:flutter_hooks/flutter_hooks.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:lucide_icons_flutter/lucide_icons.dart';
 import 'package:moonwallet/logger/logger.dart';
 import 'package:moonwallet/notifiers/providers.dart';
@@ -19,7 +21,7 @@ import 'package:moonwallet/widgets/func/browser/change_network.dart';
 
 import 'package:moonwallet/widgets/func/snackbar.dart';
 
-class DiscoverScreen extends ConsumerStatefulWidget {
+class DiscoverScreen extends StatefulHookConsumerWidget {
   final AppColors? colors;
   const DiscoverScreen({super.key, this.colors});
 
@@ -304,6 +306,30 @@ class _DiscoverScreenState extends ConsumerState<DiscoverScreen>
     final currentAccountAsync = ref.watch(currentAccountProvider);
     final accountListAsync = ref.watch(accountsNotifierProvider);
     final savedCryptoAsync = ref.watch(savedCryptosProviderNotifier);
+    final uiConfig = useState<AppUIConfig>(AppUIConfig.defaultConfig);
+    final appUIConfigAsync = ref.watch(appUIConfigProvider);
+
+
+
+     useEffect(() {
+      appUIConfigAsync.whenData((data) {
+        uiConfig.value = data;
+      });
+      return null;
+    }, [appUIConfigAsync]);
+
+     double fontSizeOf(double size) {
+      return size * uiConfig.value.styles.fontSizeScaleFactor;
+    }
+ 
+
+    double imageSizeOf(double size) {
+      return size * uiConfig.value.styles.imageSizeScaleFactor;
+    }
+
+    double roundedOf(double size) {
+      return size * uiConfig.value.styles.radiusScaleFactor;
+    }
 
     currentAccountAsync.whenData(
       (value) {
@@ -334,7 +360,7 @@ class _DiscoverScreenState extends ConsumerState<DiscoverScreen>
           title: Text(
             "Discover",
             style: textTheme.headlineMedium?.copyWith(
-              fontSize: 24,
+              fontSize: fontSizeOf(24),
               fontWeight: FontWeight.bold,
               color: colors.textColor,
             ),
@@ -384,22 +410,22 @@ class _DiscoverScreenState extends ConsumerState<DiscoverScreen>
                         enabledBorder: OutlineInputBorder(
                           borderSide: BorderSide(
                               color: colors.textColor.withOpacity(0)),
-                          borderRadius: BorderRadius.circular(40),
+                          borderRadius: BorderRadius.circular(roundedOf(40)),
                         ),
                         focusedBorder: OutlineInputBorder(
                           borderSide: BorderSide(
                               color: colors.grayColor.withOpacity(0)),
-                          borderRadius: BorderRadius.circular(40),
+                          borderRadius: BorderRadius.circular(roundedOf(40)),
                         ),
                         contentPadding:
                             const EdgeInsets.only(left: 10, right: 10),
                         border: OutlineInputBorder(
                             borderSide: BorderSide(
                                 color: colors.grayColor.withOpacity(0)),
-                            borderRadius: BorderRadius.circular(40)),
+                            borderRadius: BorderRadius.circular(roundedOf(40))),
                         labelText: "Search",
                         labelStyle:
-                            TextStyle(color: colors.textColor, fontSize: 12),
+                            TextStyle(color: colors.textColor, fontSize:fontSizeOf (12)),
                         fillColor: colors.grayColor.withOpacity(0.2),
                       ),
                     ),
@@ -452,23 +478,23 @@ class _DiscoverScreenState extends ConsumerState<DiscoverScreen>
                             final dapp = dapps[index];
                             return ListTile(
                                 leading: ClipRRect(
-                                  borderRadius: BorderRadius.circular(50),
+                                  borderRadius: BorderRadius.circular(roundedOf(50)),
                                   child: dapp.isNetworkImage
                                       ? FastCachedImage(
                                           url: dapp.icon,
-                                          width: 50,
-                                          height: 50,
+                                          width: imageSizeOf(50),
+                                          height:imageSizeOf(50),
                                         )
                                       : Image.asset(
                                           dapp.icon,
-                                          width: 50,
-                                          height: 50,
+                                          width: imageSizeOf(50),
+                                          height: imageSizeOf(50),
                                         ),
                                 ),
                                 title: Text(
                                   dapp.name,
                                   style: textTheme.bodyMedium?.copyWith(
-                                    fontSize: 16,
+                                    fontSize: fontSizeOf(16),
                                     fontWeight: FontWeight.bold,
                                     color: colors.textColor,
                                   ),
@@ -478,7 +504,7 @@ class _DiscoverScreenState extends ConsumerState<DiscoverScreen>
                                 subtitle: Text(
                                   dapp.description,
                                   style: textTheme.bodyMedium?.copyWith(
-                                    fontSize: 14,
+                                    fontSize: fontSizeOf(14),
                                     color: colors.textColor.withOpacity(0.6),
                                   ),
                                   overflow: TextOverflow.ellipsis,
@@ -503,15 +529,15 @@ class _DiscoverScreenState extends ConsumerState<DiscoverScreen>
 
                     return ListTile(
                         leading: ClipRRect(
-                            borderRadius: BorderRadius.circular(50),
+                            borderRadius: BorderRadius.circular(roundedOf(50)),
                             child: Container(
                                 decoration: BoxDecoration(
                                     color: colors.grayColor.withOpacity(0.5)),
                                 child: Image.network(
                                   errorBuilder: (ctx, widget, error) {
                                     return SizedBox(
-                                      width: 30,
-                                      height: 30,
+                                      width: imageSizeOf(30),
+                                      height:imageSizeOf (30),
                                       child:
                                           ColoredBox(color: colors.themeColor),
                                     );
@@ -524,7 +550,7 @@ class _DiscoverScreenState extends ConsumerState<DiscoverScreen>
                         title: Text(
                           hist.title,
                           style: textTheme.bodyMedium?.copyWith(
-                            fontSize: 16,
+                            fontSize:fontSizeOf (16),
                             fontWeight: FontWeight.bold,
                             color: colors.textColor,
                           ),

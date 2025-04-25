@@ -12,6 +12,8 @@ import 'package:moonwallet/widgets/appBar/show_wallet_actions.dart';
 import 'package:moonwallet/widgets/appBar/wallet_actions.dart';
 import 'package:page_transition/page_transition.dart';
 
+typedef DoubleFactor = double Function(double size);
+
 typedef EditWalletNameType = void Function(String newName, int index);
 typedef ActionWithIndexType = void Function(int index);
 typedef ActionWithCryptoId = Future<bool> Function(
@@ -47,6 +49,13 @@ class CustomAppBar extends ConsumerWidget implements PreferredSizeWidget {
       IconData? icon,
       Color? color}) editWallet;
 
+  final DoubleFactor roundedOf;
+  final DoubleFactor fontSizeOf;
+  final DoubleFactor iconSizeOf;
+  final DoubleFactor imageSizeOf;
+  final DoubleFactor listTitleHorizontalOf;
+  final DoubleFactor listTitleVerticalOf;
+
   const CustomAppBar(
       {super.key,
       required this.canUseBio,
@@ -69,7 +78,13 @@ class CustomAppBar extends ConsumerWidget implements PreferredSizeWidget {
       required this.deleteWallet,
       required this.currentAccount,
       required this.changeProfileImage,
-      required this.accounts});
+      required this.accounts,
+      required this.fontSizeOf,
+      required this.iconSizeOf,
+      required this.imageSizeOf,
+      required this.listTitleHorizontalOf,
+      required this.listTitleVerticalOf,
+      required this.roundedOf});
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -82,6 +97,12 @@ class CustomAppBar extends ConsumerWidget implements PreferredSizeWidget {
       leading: IconButton(
           onPressed: () {
             showCustomDrawer(
+                iconSizeOf: iconSizeOf,
+                imageSizeOf: imageSizeOf,
+                listTitleHorizontalOf: listTitleHorizontalOf,
+                listTitleVerticalOf: listTitleHorizontalOf,
+                fontSizeOf: fontSizeOf,
+                roundedOf: roundedOf,
                 changeProfileImage: changeProfileImage,
                 isHidden: isHidden,
                 toggleCanUseBio: toggleCanUseBio,
@@ -99,11 +120,11 @@ class CustomAppBar extends ConsumerWidget implements PreferredSizeWidget {
           },
           icon: profileImage != null
               ? ClipRRect(
-                  borderRadius: BorderRadius.circular(50),
+                  borderRadius: BorderRadius.circular(roundedOf(50)),
                   child: Image.file(
                     profileImage!,
-                    width: 30,
-                    height: 30,
+                    width: imageSizeOf(30),
+                    height: imageSizeOf(30),
                     fit: BoxFit.cover,
                   ),
                 )
@@ -114,7 +135,7 @@ class CustomAppBar extends ConsumerWidget implements PreferredSizeWidget {
       title: Material(
         color: Colors.transparent,
         child: InkWell(
-            borderRadius: BorderRadius.circular(10),
+            borderRadius: BorderRadius.circular(roundedOf(10)),
             onTap: () async {
               await vibrate(duration: 10);
 
@@ -146,7 +167,8 @@ class CustomAppBar extends ConsumerWidget implements PreferredSizeWidget {
                 children: [
                   Text(currentAccount.walletName,
                       style: textTheme.bodyMedium?.copyWith(
-                          fontSize: 16, color: textColor.withOpacity(0.8))),
+                          fontSize: fontSizeOf(16),
+                          color: textColor.withOpacity(0.8))),
                   SizedBox(
                     width: 5,
                   ),
@@ -162,7 +184,12 @@ class CustomAppBar extends ConsumerWidget implements PreferredSizeWidget {
         IconButton(
             onPressed: () {
               showAppBarWalletActions(
-                  child: WalletActions(colors: colors),
+                  child: WalletActions
+                  (
+                    iconSizeOf: iconSizeOf,
+                    fontSizeOf: fontSizeOf,
+                    roundedOf: roundedOf,
+                    colors: colors),
                   context: context,
                   colors: colors);
             },

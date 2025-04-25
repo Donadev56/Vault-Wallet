@@ -1,5 +1,8 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_hooks/flutter_hooks.dart';
+import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:moonwallet/logger/logger.dart';
+import 'package:moonwallet/notifiers/providers.dart';
 import 'package:moonwallet/screens/dashboard/discover.dart';
 import 'package:moonwallet/screens/dashboard/main.dart';
 import 'package:moonwallet/screens/dashboard/swap.dart';
@@ -12,7 +15,7 @@ import 'package:moonwallet/utils/themes.dart';
 import 'package:moonwallet/widgets/navBar.dart';
 import 'package:moonwallet/widgets/view/show_transaction_details.dart';
 
-class PagesManagerView extends StatefulWidget {
+class PagesManagerView extends StatefulHookConsumerWidget {
   final types.AppColors? colors;
   final types.PublicData? currentAccount;
   final types.Crypto? crypto;
@@ -27,10 +30,10 @@ class PagesManagerView extends StatefulWidget {
   final pageIndex = 0;
 
   @override
-  State<PagesManagerView> createState() => _PagesManagerViewState();
+  ConsumerState<PagesManagerView> createState() => _PagesManagerViewState();
 }
 
-class _PagesManagerViewState extends State<PagesManagerView> {
+class _PagesManagerViewState extends ConsumerState<PagesManagerView> {
   int currentIndex = 2;
 
   bool _isInitialized = false;
@@ -133,12 +136,41 @@ class _PagesManagerViewState extends State<PagesManagerView> {
 
   @override
   Widget build(BuildContext context) {
+   final uiConfig = useState<types.AppUIConfig>(types.AppUIConfig.defaultConfig);
+    final appUIConfigAsync = ref.watch(appUIConfigProvider);
+
+
+
+     useEffect(() {
+      appUIConfigAsync.whenData((data) {
+        uiConfig.value = data;
+      });
+      return null;
+    }, [appUIConfigAsync]);
+
+     double fontSizeOf(double size) {
+      return size * uiConfig.value.styles.fontSizeScaleFactor;
+    }
+ 
+
+     double iconSizeOf(double size) {
+      return size * uiConfig.value.styles.iconSizeScaleFactor;
+    }
+
+    double roundedOf(double size) {
+      return size * uiConfig.value.styles.radiusScaleFactor;
+    }
+
+
     return Scaffold(
       body: IndexedStack(
         index: currentIndex,
         children: _pages(),
       ),
       bottomNavigationBar: BottomNav(
+          roundedOf: roundedOf,
+          fontSizeOf: fontSizeOf,
+           iconSizeOf: iconSizeOf,
           onTap: (index) async {
             await vibrate();
 

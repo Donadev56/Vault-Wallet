@@ -5,8 +5,16 @@ import 'package:modal_bottom_sheet/modal_bottom_sheet.dart';
 import 'package:moonwallet/types/types.dart';
 import 'package:moonwallet/widgets/crypto_picture.dart';
 
+typedef DoubleFactor = double Function(double size);
+
 void showCryptoModal(
-    {required BuildContext context,
+    {required DoubleFactor roundedOf,
+    required DoubleFactor fontSizeOf,
+    required DoubleFactor iconSizeOf,
+    required DoubleFactor imageSizeOf,
+    required DoubleFactor listTitleHorizontalOf,
+    required DoubleFactor listTitleVerticalOf,
+    required BuildContext context,
     required AppColors colors,
     required Color primaryColor,
     required Color textColor,
@@ -53,11 +61,11 @@ void showCryptoModal(
                         color: textColor.withOpacity(0.5),
                       ),
                       enabledBorder: OutlineInputBorder(
-                          borderRadius: BorderRadius.circular(10),
+                          borderRadius: BorderRadius.circular(roundedOf(10)),
                           borderSide:
                               BorderSide(width: 0, color: Colors.transparent)),
                       focusedBorder: OutlineInputBorder(
-                          borderRadius: BorderRadius.circular(10),
+                          borderRadius: BorderRadius.circular(roundedOf(10)),
                           borderSide:
                               BorderSide(width: 0, color: Colors.transparent)),
                     ),
@@ -83,7 +91,9 @@ void showCryptoModal(
                             onSelect(net);
                           },
                           leading: CryptoPicture(
-                              crypto: net, size: 35, colors: colors),
+                              crypto: net,
+                              size: imageSizeOf(35),
+                              colors: colors),
                           title: Row(
                             spacing: 10,
                             children: [
@@ -93,7 +103,7 @@ void showCryptoModal(
                                 overflow: TextOverflow.ellipsis,
                                 style: textTheme.bodyMedium?.copyWith(
                                   color: textColor,
-                                  fontSize: 16,
+                                  fontSize: fontSizeOf(16),
                                 ),
                               ),
                               Container(
@@ -101,7 +111,8 @@ void showCryptoModal(
                                     horizontal: 10, vertical: 2),
                                 decoration: BoxDecoration(
                                     color: surfaceTintColor.withOpacity(0.2),
-                                    borderRadius: BorderRadius.circular(20)),
+                                    borderRadius:
+                                        BorderRadius.circular(roundedOf(20))),
                                 child: Text(
                                   net.type == CryptoType.token
                                       ? "${net.network?.name}"

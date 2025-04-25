@@ -5,11 +5,18 @@ import 'package:moonwallet/types/types.dart';
 import 'package:moonwallet/utils/number_formatter.dart';
 import 'package:moonwallet/widgets/crypto_picture.dart';
 
+typedef DoubleFactor = double Function(double size);
+
 class CoinCustomListTitle extends StatelessWidget {
   final AppColors colors;
   final Crypto crypto;
   final PublicData currentAccount;
-
+  final DoubleFactor roundedOf;
+  final DoubleFactor fontSizeOf;
+  final DoubleFactor iconSizeOf;
+  final DoubleFactor imageSizeOf;
+  final DoubleFactor listTitleHorizontalOf;
+  final DoubleFactor listTitleVerticalOf;
   final double cryptoPrice;
   final double trend;
   final bool isCryptoHidden;
@@ -25,7 +32,13 @@ class CoinCustomListTitle extends StatelessWidget {
       required this.trend,
       required this.isCryptoHidden,
       required this.tokenBalance,
-      required this.usdBalance});
+      required this.usdBalance,
+      required this.fontSizeOf,
+      required this.iconSizeOf,
+      required this.imageSizeOf,
+      required this.roundedOf,
+      required this.listTitleHorizontalOf,
+      required this.listTitleVerticalOf});
 
   @override
   Widget build(BuildContext context) {
@@ -45,7 +58,9 @@ class CoinCustomListTitle extends StatelessWidget {
       child: Material(
           color: Colors.transparent,
           child: ListTile(
-            visualDensity: VisualDensity.compact,
+            visualDensity: VisualDensity(
+                vertical: listTitleVerticalOf(-2),
+                horizontal: listTitleHorizontalOf(-2)),
             splashColor: colors.textColor.withOpacity(0.05),
             onTap: () {
               log("Crypto id ${crypto.cryptoId}");
@@ -61,7 +76,8 @@ class CoinCustomListTitle extends StatelessWidget {
                             initialBalanceCrypto: tokenBalance,
                           ))));
             },
-            leading: CryptoPicture(crypto: crypto, size: 38, colors: colors),
+            leading: CryptoPicture(
+                crypto: crypto, size: imageSizeOf(38), colors: colors),
             title: LayoutBuilder(builder: (ctx, c) {
               return Row(
                 spacing: 10,
@@ -87,7 +103,7 @@ class CoinCustomListTitle extends StatelessWidget {
                             ? "${crypto.network?.name}"
                             : crypto.name,
                         style: textTheme.bodySmall?.copyWith(
-                            fontSize: 10,
+                            fontSize: fontSizeOf(10),
                             color: colors.textColor,
                             fontWeight: FontWeight.w500)),
                   )
@@ -100,14 +116,14 @@ class CoinCustomListTitle extends StatelessWidget {
                 Text(formatUsd(cryptoPrice.toString()),
                     style: textTheme.bodySmall?.copyWith(
                       color: colors.textColor.withOpacity(0.6),
-                      fontSize: 14,
+                      fontSize: fontSizeOf(14),
                     )),
                 if (trend != 0)
                   Text(
                     " ${(trend).toStringAsFixed(2)}%",
                     style: textTheme.bodySmall?.copyWith(
                       color: trend > 0 ? colors.greenColor : colors.redColor,
-                      fontSize: 14,
+                      fontSize: fontSizeOf(14),
                     ),
                   ),
               ],
@@ -125,7 +141,7 @@ class CoinCustomListTitle extends StatelessWidget {
                       overflow: TextOverflow.ellipsis,
                       maxLines: 1,
                       style: textTheme.bodyMedium?.copyWith(
-                          fontSize: 14,
+                          fontSize: fontSizeOf(14),
                           color: colors.textColor,
                           fontWeight: FontWeight.w600)),
                   Text(
@@ -136,7 +152,7 @@ class CoinCustomListTitle extends StatelessWidget {
                       maxLines: 1,
                       style: textTheme.bodySmall?.copyWith(
                           color: colors.textColor.withOpacity(0.6),
-                          fontSize: 14,
+                          fontSize: fontSizeOf(14),
                           fontWeight: FontWeight.w500))
                 ],
               ),

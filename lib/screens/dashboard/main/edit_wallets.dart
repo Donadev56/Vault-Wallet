@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_hooks/flutter_hooks.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:moonwallet/logger/logger.dart';
 import 'package:moonwallet/main.dart';
 import 'package:moonwallet/notifiers/providers.dart';
@@ -12,7 +14,7 @@ import 'package:moonwallet/widgets/appBar/wallet_actions.dart';
 import 'package:moonwallet/widgets/func/security/ask_password.dart';
 import 'package:moonwallet/widgets/func/snackbar.dart';
 
-class EditWalletsView extends ConsumerStatefulWidget {
+class EditWalletsView extends StatefulHookConsumerWidget {
   final AppColors colors;
   final PublicData account;
 
@@ -63,6 +65,18 @@ class _EditWalletsViewState extends ConsumerState<EditWalletsView> {
     final width = screen.width;
     final accountsProvider = ref.watch(accountsNotifierProvider);
     final providerNotifier = ref.watch(accountsNotifierProvider.notifier);
+    final uiConfig = useState<AppUIConfig>(AppUIConfig.defaultConfig);
+    final appUIConfigAsync = ref.watch(appUIConfigProvider);
+
+
+
+     useEffect(() {
+      appUIConfigAsync.whenData((data) {
+        uiConfig.value = data;
+      });
+      return null;
+    }, [appUIConfigAsync]);
+
 
     accountsProvider.whenData((data) {
       setState(
@@ -75,6 +89,28 @@ class _EditWalletsViewState extends ConsumerState<EditWalletsView> {
     void close() {
       Navigator.pop(context);
     }
+
+      double iconSizeOf(double size) {
+      return size * uiConfig.value.styles.iconSizeScaleFactor;
+    }
+
+    double imageSizeOf(double size) {
+      return size * uiConfig.value.styles.imageSizeScaleFactor;
+    }
+
+    double borderOpOf(double border) {
+      return border * uiConfig.value.styles.borderOpacity;
+    }
+
+    double roundedOf(double size) {
+      return size * uiConfig.value.styles.radiusScaleFactor;
+    }
+
+
+     double fontSizeOf(double size) {
+      return size * uiConfig.value.styles.fontSizeScaleFactor;
+    }
+
 
     Future<void> reorderList(int oldIndex, int newIndex) async {
       try {
@@ -228,7 +264,7 @@ class _EditWalletsViewState extends ConsumerState<EditWalletsView> {
           "Wallets",
           style: textTheme.bodyMedium?.copyWith(
             color: colors.textColor.withValues(alpha: 0.6),
-            fontSize: 20,
+            fontSize:fontSizeOf (20),
           ),
         ),
         backgroundColor: colors.primaryColor,
@@ -239,7 +275,7 @@ class _EditWalletsViewState extends ConsumerState<EditWalletsView> {
           alignment: Alignment.center,
           decoration: BoxDecoration(
               borderRadius: BorderRadius.only(
-                  topLeft: Radius.circular(15), topRight: Radius.circular(15)),
+                  topLeft: Radius.circular(roundedOf(15)), topRight: Radius.circular(roundedOf(15))),
               color: colors.primaryColor),
           child: Column(
             children: [
@@ -250,7 +286,7 @@ class _EditWalletsViewState extends ConsumerState<EditWalletsView> {
                 child: TextField(
                     style: textTheme.bodyMedium?.copyWith(
                         color: colors.textColor,
-                        fontSize: 14,
+                        fontSize: fontSizeOf (14),
                         fontWeight: FontWeight.w500),
                     onChanged: (value) {
                       setState(() {
@@ -270,17 +306,17 @@ class _EditWalletsViewState extends ConsumerState<EditWalletsView> {
                       enabledBorder: OutlineInputBorder(
                           borderSide:
                               BorderSide(color: Colors.transparent, width: 0),
-                          borderRadius: BorderRadius.circular(5)),
+                          borderRadius: BorderRadius.circular(roundedOf(5))),
                       border: OutlineInputBorder(
-                        borderRadius: BorderRadius.circular(5),
+                        borderRadius: BorderRadius.circular(roundedOf(5)),
                       ),
                       focusedBorder: OutlineInputBorder(
                           borderSide:
                               BorderSide(color: Colors.transparent, width: 0),
-                          borderRadius: BorderRadius.circular(5)),
+                          borderRadius: BorderRadius.circular(roundedOf(5))),
                       hintText: 'Search wallets',
                       hintStyle: textTheme.bodySmall?.copyWith(
-                          fontSize: 14,
+                          fontSize:fontSizeOf (14),
                           fontWeight: FontWeight.normal,
                           color: colors.textColor.withOpacity(0.4)),
                     )),
@@ -296,19 +332,20 @@ class _EditWalletsViewState extends ConsumerState<EditWalletsView> {
                         child: GlowingOverscrollIndicator(
                             color: colors.themeColor,
                             axisDirection: AxisDirection.down,
-                            child:  ReorderableListView.builder(
+                            child: ReorderableListView.builder(
                                 proxyDecorator: (child, index, animation) {
-                                  return AnimatedContainer(duration: Duration(seconds: 1), 
-                                  
-                                  child:   Transform.scale(
-                                    scale: 1.1,
-                                    
-                                    child:Material(
-                                    shadowColor: Colors.transparent,
-                                    elevation: 0,
-                                    color: colors.secondaryColor,
-                                    child: child,
-                                  ) ,) ,);
+                                  return AnimatedContainer(
+                                    duration: Duration(seconds: 1),
+                                    child: Transform.scale(
+                                      scale: 1.1,
+                                      child: Material(
+                                        shadowColor: Colors.transparent,
+                                        elevation: 0,
+                                        color: colors.secondaryColor,
+                                        child: child,
+                                      ),
+                                    ),
+                                  );
                                 },
                                 shrinkWrap: true,
                                 physics: ClampingScrollPhysics(),
@@ -401,7 +438,11 @@ class _EditWalletsViewState extends ConsumerState<EditWalletsView> {
                         vibrate();
 
                         showAppBarWalletActions(
-                            child: WalletActions(colors: colors),
+                            child: WalletActions(
+                                roundedOf: roundedOf,
+                                fontSizeOf: fontSizeOf,
+                                iconSizeOf: iconSizeOf,
+                              colors: colors),
                             context: context,
                             colors: colors);
                       },
@@ -409,7 +450,7 @@ class _EditWalletsViewState extends ConsumerState<EditWalletsView> {
                       label: Text(
                         "Add Wallet",
                         style: textTheme.bodyMedium?.copyWith(
-                            fontSize: 16,
+                            fontSize: fontSizeOf(16),
                             color: colors.primaryColor,
                             fontWeight: FontWeight.bold),
                       ),
@@ -419,7 +460,7 @@ class _EditWalletsViewState extends ConsumerState<EditWalletsView> {
                             vertical: 0, horizontal: 8),
                         backgroundColor: colors.themeColor,
                         shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(25),
+                          borderRadius: BorderRadius.circular(roundedOf(25)),
                         ),
                       ),
                     ),

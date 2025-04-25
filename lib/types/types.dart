@@ -732,6 +732,7 @@ class Option {
   final TextStyle? titleStyle;
   final Color? tileColor;
   final Color? splashColor;
+  final void Function()? onPressed;
 
   Option({
     required this.title,
@@ -742,6 +743,7 @@ class Option {
     this.tileColor,
     this.subtitle,
     this.splashColor,
+    this.onPressed
   });
 
   Map<String, dynamic> toJson() {
@@ -1190,7 +1192,7 @@ class AppStyle {
   final double listTitleVisualDensityHorizontalFactor;
 
   const AppStyle({
-    this.radiusScaleFactor = 1,
+    this.radiusScaleFactor = 0,
     this.borderOpacity = 0,
     this.fontSizeScaleFactor = 1,
     this.iconSizeScaleFactor = 1,
@@ -1327,3 +1329,5 @@ class TransferData {
       required this.to,
       required this.gas});
 }
+
+typedef DoubleFactor = double Function(double size);

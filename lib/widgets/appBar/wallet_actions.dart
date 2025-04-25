@@ -5,8 +5,15 @@ import 'package:moonwallet/types/types.dart';
 import 'package:moonwallet/widgets/appBar/button.dart';
 
 class WalletActions extends StatelessWidget {
+
+  final DoubleFactor roundedOf;
+  final DoubleFactor fontSizeOf;
+  final DoubleFactor iconSizeOf;
   final AppColors colors;
-  const WalletActions({super.key, required this.colors});
+  const WalletActions({super.key, required this.colors,
+  required this.fontSizeOf,
+  required this.iconSizeOf,
+  required this.roundedOf});
 
   @override
   Widget build(BuildContext context) {
@@ -14,6 +21,9 @@ class WalletActions extends StatelessWidget {
       spacing: 10,
       children: [
         CustomListTitleButton(
+          roundedOf: roundedOf,
+          fontSizeOf: fontSizeOf,
+          iconSizeOf: iconSizeOf,
             textColor: colors.textColor,
             text: "Create a new wallet",
             icon: Icons.add,
@@ -21,6 +31,9 @@ class WalletActions extends StatelessWidget {
               Navigator.pushNamed(context, Routes.createPrivateKeyMain);
             }),
         CustomListTitleButton(
+            roundedOf: roundedOf,
+          fontSizeOf: fontSizeOf,
+          iconSizeOf: iconSizeOf,
             textColor: colors.textColor,
             text: "Import Mnemonic phrases",
             icon: LucideIcons.fileText,
@@ -28,6 +41,9 @@ class WalletActions extends StatelessWidget {
               Navigator.pushNamed(context, Routes.createAccountFromSed);
             }),
         CustomListTitleButton(
+            roundedOf: roundedOf,
+          fontSizeOf: fontSizeOf,
+          iconSizeOf: iconSizeOf,
             textColor: colors.textColor,
             text: "Import private key",
             icon: LucideIcons.key,
@@ -35,6 +51,9 @@ class WalletActions extends StatelessWidget {
               Navigator.pushNamed(context, Routes.importWalletMain);
             }),
         CustomListTitleButton(
+            roundedOf: roundedOf,
+          fontSizeOf: fontSizeOf,
+          iconSizeOf: iconSizeOf,
             textColor: colors.textColor,
             text: "Observation wallet",
             icon: LucideIcons.eye,

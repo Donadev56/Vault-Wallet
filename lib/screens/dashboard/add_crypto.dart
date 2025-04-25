@@ -1,6 +1,8 @@
 // ignore_for_file: deprecated_member_use, use_build_context_synchronously
 
+import 'package:flutter_hooks/flutter_hooks.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:moonwallet/custom/web3_webview/lib/utils/loading.dart';
 import 'package:moonwallet/main.dart';
 import 'package:moonwallet/notifiers/providers.dart';
@@ -26,7 +28,7 @@ import 'package:moonwallet/service/web3_interactions/evm/token_manager.dart';
 import 'package:moonwallet/types/types.dart';
 import 'package:moonwallet/utils/prefs.dart';
 
-class AddCryptoView extends ConsumerStatefulWidget {
+class AddCryptoView extends StatefulHookConsumerWidget {
   final AppColors? colors;
   const AddCryptoView({super.key, this.colors});
 
@@ -110,6 +112,46 @@ class _AddCryptoViewState extends ConsumerState<AddCryptoView> {
     final savedCryptoProvider =
         ref.watch(savedCryptosProviderNotifier.notifier);
     final accountsProvider = ref.watch(accountsNotifierProvider);
+    final appUIConfigAsync = ref.watch(appUIConfigProvider);
+
+    final uiConfig = useState<AppUIConfig>(AppUIConfig.defaultConfig);
+        useEffect(() {
+      appUIConfigAsync.whenData((data) {
+        uiConfig.value = data;
+      });
+      return null;
+    }, [appUIConfigAsync]);
+
+   
+
+   /* double listTitleVerticalOf(double size) {
+      return size * uiConfig.value.styles.listTitleVisualDensityVerticalFactor;
+    }
+
+    double listTitleHorizontalOf(double size) {
+      return size *
+          uiConfig.value.styles.listTitleVisualDensityHorizontalFactor;
+    } */
+     double fontSizeOf(double size) {
+      return size * uiConfig.value.styles.fontSizeScaleFactor;
+    }
+    double iconSizeOf(double size) {
+      return size * uiConfig.value.styles.iconSizeScaleFactor;
+    }
+
+    double imageSizeOf(double size) {
+      return size * uiConfig.value.styles.imageSizeScaleFactor;
+    }
+
+    double borderOpOf(double border) {
+      return border * uiConfig.value.styles.borderOpacity;
+    }
+
+    double roundedOf(double size) {
+      return size * uiConfig.value.styles.radiusScaleFactor;
+    }
+
+
 
     savedCryptoAsync.whenData((data) => {
           setState(() {
@@ -228,7 +270,7 @@ class _AddCryptoViewState extends ConsumerState<AddCryptoView> {
             width: 35,
             decoration: BoxDecoration(
                 color: colors.grayColor.withOpacity(0.1),
-                borderRadius: BorderRadius.circular(5)),
+                borderRadius: BorderRadius.circular(roundedOf(5))),
             child: IconButton(
               onPressed: () {
                 showAppBarWalletActions(
@@ -238,6 +280,11 @@ class _AddCryptoViewState extends ConsumerState<AddCryptoView> {
                     spacing: 10,
                     children: [
                       CustomListTitleButton(
+            roundedOf: roundedOf,
+            fontSizeOf: fontSizeOf,
+            iconSizeOf: iconSizeOf,
+           
+                          
                           textColor: colors.textColor,
                           text: "Add custom token",
                           icon: Icons.add,
@@ -253,6 +300,11 @@ class _AddCryptoViewState extends ConsumerState<AddCryptoView> {
                                 hasSaved: hasSaved);
                           }),
                       CustomListTitleButton(
+                           roundedOf: roundedOf,
+            fontSizeOf: fontSizeOf,
+            iconSizeOf: iconSizeOf,
+           
+                        
                           textColor: colors.textColor,
                           text: "Add custom network",
                           icon: Icons.construction,
@@ -270,6 +322,10 @@ class _AddCryptoViewState extends ConsumerState<AddCryptoView> {
                             }
                           }),
                       CustomListTitleButton(
+                           roundedOf: roundedOf,
+            fontSizeOf: fontSizeOf,
+            iconSizeOf: iconSizeOf,
+           
                           textColor: colors.textColor,
                           text: "Edit network",
                           icon: Icons.border_color,
@@ -294,7 +350,7 @@ class _AddCryptoViewState extends ConsumerState<AddCryptoView> {
               icon: Icon(
                 LucideIcons.plus,
                 color: colors.textColor,
-                size: 20,
+                size: iconSizeOf(20),
               ),
             ),
           ),
@@ -310,7 +366,7 @@ class _AddCryptoViewState extends ConsumerState<AddCryptoView> {
         title: Text(
           "Manage Coins ",
           style: textTheme.bodyMedium
-              ?.copyWith(color: colors.textColor, fontSize: 20),
+              ?.copyWith(color: colors.textColor, fontSize: fontSizeOf(20)),
         ),
       ),
       body: Column(
@@ -345,11 +401,11 @@ class _AddCryptoViewState extends ConsumerState<AddCryptoView> {
                     filled: true,
                     fillColor: colors.grayColor.withOpacity(0.1),
                     enabledBorder: OutlineInputBorder(
-                        borderRadius: BorderRadius.circular(10),
+                        borderRadius: BorderRadius.circular(roundedOf(10)),
                         borderSide:
                             BorderSide(width: 0, color: Colors.transparent)),
                     focusedBorder: OutlineInputBorder(
-                        borderRadius: BorderRadius.circular(10),
+                        borderRadius: BorderRadius.circular(roundedOf(10)),
                         borderSide:
                             BorderSide(width: 0, color: Colors.transparent))),
               ),
@@ -379,12 +435,12 @@ class _AddCryptoViewState extends ConsumerState<AddCryptoView> {
                           vertical: 8, horizontal: 20),
                       onTap: () {},
                       leading: CryptoPicture(
-                          crypto: crypto, size: 40, colors: colors),
+                          crypto: crypto, size: imageSizeOf(40), colors: colors),
                       title: Text(
                         crypto.symbol,
                         style: textTheme.bodyMedium?.copyWith(
                             color: colors.textColor,
-                            fontSize: 16,
+                            fontSize: fontSizeOf (16),
                             fontWeight: FontWeight.bold),
                       ),
                       trailing: Switch(
