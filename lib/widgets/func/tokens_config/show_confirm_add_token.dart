@@ -8,6 +8,9 @@ Future<bool> showConfirmAddTokenDialog({
   required BuildContext context,
   required SearchingContractInfo tokenFoundedData,
   required AppColors colors,
+  required DoubleFactor roundedOf,
+  required DoubleFactor fontSizeOf,
+  required DoubleFactor iconSizeOf,
 }) async {
   final response = await showDialog<bool>(
       context: context,
@@ -37,6 +40,7 @@ Future<bool> showConfirmAddTokenDialog({
                               Text(
                                 "Name :",
                                 style: textTheme.bodyMedium?.copyWith(
+                                    fontSize: fontSizeOf(14),
                                     color: colors.textColor.withOpacity(0.5)),
                               ),
                               Text(
@@ -53,6 +57,7 @@ Future<bool> showConfirmAddTokenDialog({
                               Text(
                                 "Symbol :",
                                 style: textTheme.bodyMedium?.copyWith(
+                                    fontSize: fontSizeOf(14),
                                     color: colors.textColor.withOpacity(0.5)),
                               ),
                               Text(
@@ -69,11 +74,13 @@ Future<bool> showConfirmAddTokenDialog({
                               Text(
                                 "Decimals :",
                                 style: textTheme.bodyMedium?.copyWith(
+                                    fontSize: fontSizeOf(14),
                                     color: colors.textColor.withOpacity(0.5)),
                               ),
                               Text(
                                 "${tokenFoundedData.decimals}",
                                 style: textTheme.bodyMedium?.copyWith(
+                                    fontSize: fontSizeOf(14),
                                     color: colors.textColor.withOpacity(0.8),
                                     fontWeight: FontWeight.bold),
                               ),
@@ -95,6 +102,7 @@ Future<bool> showConfirmAddTokenDialog({
                                     child: Text(
                                       "Add Token",
                                       style: textTheme.bodyLarge?.copyWith(
+                                          fontSize: fontSizeOf(16),
                                           color: colors.primaryColor),
                                     ),
                                   )),
@@ -105,8 +113,8 @@ Future<bool> showConfirmAddTokenDialog({
                                         side:
                                             BorderSide(color: colors.redColor),
                                         shape: RoundedRectangleBorder(
-                                            borderRadius:
-                                                BorderRadius.circular(30))),
+                                            borderRadius: BorderRadius.circular(
+                                                roundedOf(30)))),
                                     child: Text(
                                       "Cancel",
                                       style: textTheme.bodyLarge

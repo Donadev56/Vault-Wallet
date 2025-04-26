@@ -2,6 +2,7 @@
 
 import 'package:flutter/material.dart';
 import 'package:lucide_icons_flutter/lucide_icons.dart';
+import 'package:web3dart/credentials.dart';
 
 enum CryptoType { native, token }
 
@@ -726,6 +727,7 @@ class AppColors {
 class Option {
   final String title;
   final Widget icon;
+  final double iconSize;
   final Widget trailing;
   final Widget? subtitle;
   final Color color;
@@ -734,17 +736,17 @@ class Option {
   final Color? splashColor;
   final void Function()? onPressed;
 
-  Option({
-    required this.title,
-    required this.icon,
-    required this.trailing,
-    required this.color,
-    this.titleStyle,
-    this.tileColor,
-    this.subtitle,
-    this.splashColor,
-    this.onPressed
-  });
+  Option(
+      {required this.title,
+      required this.icon,
+      required this.trailing,
+      required this.color,
+      this.titleStyle,
+      this.tileColor,
+      this.subtitle,
+      this.splashColor,
+      this.onPressed,
+      this.iconSize = 30});
 
   Map<String, dynamic> toJson() {
     return {
@@ -1192,7 +1194,7 @@ class AppStyle {
   final double listTitleVisualDensityHorizontalFactor;
 
   const AppStyle({
-    this.radiusScaleFactor = 0,
+    this.radiusScaleFactor = 1,
     this.borderOpacity = 0,
     this.fontSizeScaleFactor = 1,
     this.iconSizeScaleFactor = 1,
@@ -1273,17 +1275,29 @@ class AppStyle {
 
 class AppSecureConfig {
   final bool useBioMetric;
-  AppSecureConfig({this.useBioMetric = false});
+  final bool lockAtStartup;
+
+  AppSecureConfig({this.useBioMetric = false, this.lockAtStartup = false});
 
   factory AppSecureConfig.fromJson(Map<dynamic, dynamic> json) {
-    return AppSecureConfig(useBioMetric: json["useBioMetric"] ?? false);
+    return AppSecureConfig(
+      useBioMetric: json["useBioMetric"] ?? false,
+      lockAtStartup: json["lockAtStartup"] ?? false,
+    );
   }
-  AppSecureConfig copyWith({bool? useBioMetric}) {
-    return AppSecureConfig(useBioMetric: useBioMetric ?? this.useBioMetric);
+
+  AppSecureConfig copyWith({bool? useBioMetric, bool? lockAtStartup}) {
+    return AppSecureConfig(
+      useBioMetric: useBioMetric ?? this.useBioMetric,
+      lockAtStartup: lockAtStartup ?? this.lockAtStartup,
+    );
   }
 
   Map<dynamic, dynamic> toJson() {
-    return {"useBioMetric": useBioMetric};
+    return {
+      "useBioMetric": useBioMetric,
+      "lockAtStartup": lockAtStartup,
+    };
   }
 }
 
@@ -1331,3 +1345,11 @@ class TransferData {
 }
 
 typedef DoubleFactor = double Function(double size);
+
+class AccountAccess {
+  final Credentials cred;
+  final String key;
+  final String address;
+
+  AccountAccess({required this.address, required this.cred, required this.key});
+}

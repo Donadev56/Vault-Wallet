@@ -1,4 +1,3 @@
-
 import 'package:flutter/material.dart';
 import 'package:moonwallet/types/types.dart';
 
@@ -31,16 +30,17 @@ class CustomListTitleButton extends StatelessWidget {
         visualDensity: VisualDensity(horizontal: 0, vertical: 0),
         tileColor: textColor.withOpacity(0.05),
         onTap: onTap,
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(roundedOf(10))),
+        shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(roundedOf(10))),
         leading: Icon(
           size: iconSizeOf(20),
           icon,
           color: textColor,
         ),
         title: Text(
-          
           text,
-          style: textTheme.bodyMedium?.copyWith(color: textColor, fontSize: fontSizeOf(14)),
+          style: textTheme.bodyMedium
+              ?.copyWith(color: textColor, fontSize: fontSizeOf(14)),
         ),
       ),
     );

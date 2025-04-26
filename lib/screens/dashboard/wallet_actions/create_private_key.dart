@@ -1,12 +1,14 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:lucide_icons_flutter/lucide_icons.dart';
 import 'package:moonwallet/custom/web3_webview/lib/utils/loading.dart';
 import 'package:moonwallet/logger/logger.dart';
 import 'package:moonwallet/notifiers/providers.dart';
 import 'package:moonwallet/screens/dashboard/page_manager.dart';
-import 'package:moonwallet/service/db/wallet_saver.dart';
+import 'package:moonwallet/service/db/wallet_db.dart';
+import 'package:moonwallet/service/web3_interactions/evm/addresses.dart';
 import 'package:moonwallet/types/types.dart';
 import 'package:moonwallet/utils/colors.dart';
 import 'package:moonwallet/utils/prefs.dart';
@@ -15,7 +17,7 @@ import 'package:moonwallet/widgets/func/security/ask_password.dart';
 import 'package:moonwallet/widgets/func/snackbar.dart';
 import 'package:page_transition/page_transition.dart';
 
-class CreatePrivateKeyMain extends ConsumerStatefulWidget {
+class CreatePrivateKeyMain extends StatefulHookConsumerWidget {
   const CreatePrivateKeyMain({super.key});
 
   @override
@@ -29,8 +31,10 @@ class _CreatePrivateKeyState extends ConsumerState<CreatePrivateKeyMain> {
   int attempt = 0;
 
   final publicDataManager = PublicDataManager();
+
   bool isDarkMode = false;
-  final manager = WalletSaver();
+  final manager = WalletDatabase();
+  final ethAddresses = EthAddresses();
   AppColors colors = AppColors.defaultTheme;
 
   Themes themes = Themes();
@@ -64,7 +68,7 @@ class _CreatePrivateKeyState extends ConsumerState<CreatePrivateKeyMain> {
 
   Future<void> createKey() async {
     try {
-      final key = await manager.createPrivatekey();
+      final key = await ethAddresses.createPrivatekey();
       if (key.isNotEmpty) {
         setState(() {
           _textController.text = "0x${key["key"]}";

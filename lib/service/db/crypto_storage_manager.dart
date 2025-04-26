@@ -3,11 +3,11 @@
 import 'dart:convert';
 
 import 'package:moonwallet/logger/logger.dart';
-import 'package:moonwallet/service/db/wallet_saver.dart';
+import 'package:moonwallet/service/db/wallet_db.dart';
 import 'package:moonwallet/types/types.dart';
 
 class CryptoStorageManager {
-  final saver = WalletSaver();
+  final saver = WalletDatabase();
 
   Future<List<Crypto>?> getSavedCryptos({required PublicData wallet}) async {
     try {

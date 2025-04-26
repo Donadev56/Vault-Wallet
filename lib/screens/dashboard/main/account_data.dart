@@ -1,6 +1,7 @@
 import 'package:fl_chart/fl_chart.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:internet_connection_checker_plus/internet_connection_checker_plus.dart';
 import 'package:moment_dart/moment_dart.dart';
 import 'package:moonwallet/custom/web3_webview/lib/utils/loading.dart';
@@ -16,7 +17,7 @@ import 'package:moonwallet/widgets/charts_/line_chart.dart';
 import 'package:moonwallet/widgets/crypto_picture.dart';
 import 'package:moonwallet/widgets/view/transactions.dart';
 
-class AccountDataView extends ConsumerStatefulWidget {
+class AccountDataView extends StatefulHookConsumerWidget {
   const AccountDataView({super.key});
 
   @override

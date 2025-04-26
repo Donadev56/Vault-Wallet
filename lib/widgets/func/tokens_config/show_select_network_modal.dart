@@ -7,11 +7,15 @@ import 'package:moonwallet/widgets/crypto_picture.dart';
 Future<Crypto?> showSelectNetworkModal(
     {required BuildContext context,
     required AppColors colors,
+    required DoubleFactor roundedOf,
+    required DoubleFactor fontSizeOf,
+    required DoubleFactor iconSizeOf,
     required List<Crypto> networks}) {
   final response = showBarModalBottomSheet<Crypto>(
       shape: RoundedRectangleBorder(
           borderRadius: BorderRadius.only(
-              topLeft: Radius.circular(30), topRight: Radius.circular(30))),
+              topLeft: Radius.circular(roundedOf(30)),
+              topRight: Radius.circular(roundedOf(30)))),
       backgroundColor: colors.primaryColor,
       context: context,
       builder: (ctx) {
@@ -28,8 +32,8 @@ Future<Crypto?> showSelectNetworkModal(
                     .where((crypto) => crypto.type == CryptoType.native)
                     .toList()[i];
                 return ListTile(
-                  leading:
-                      CryptoPicture(crypto: crypto, size: 30, colors: colors),
+                  leading: CryptoPicture(
+                      crypto: crypto, size: iconSizeOf(30), colors: colors),
                   title: Text(crypto.name,
                       style: textTheme.bodyMedium
                           ?.copyWith(color: colors.textColor)),

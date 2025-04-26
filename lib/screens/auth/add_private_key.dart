@@ -5,7 +5,7 @@ import 'package:lucide_icons_flutter/lucide_icons.dart';
 import 'package:mobile_scanner/mobile_scanner.dart';
 import 'package:moonwallet/logger/logger.dart';
 import 'package:moonwallet/main.dart';
-import 'package:moonwallet/service/db/wallet_saver.dart';
+import 'package:moonwallet/service/db/wallet_db.dart';
 import 'package:moonwallet/types/types.dart';
 import 'package:moonwallet/widgets/bottom_pin_copy.dart';
 import 'package:moonwallet/widgets/func/snackbar.dart';
@@ -71,7 +71,7 @@ class _AddPrivateKeyState extends State<AddPrivateKey> {
       if (_textController.text.isEmpty) {
         throw Exception("No key generated yet.");
       }
-      final web3Manager = WalletSaver();
+      final web3Manager = WalletDatabase();
       final key = _textController.text.trim();
       if (firstPassword.isEmpty || firstPassword != secondPassword) {
         throw Exception("passwords must not be empty or not equal ");

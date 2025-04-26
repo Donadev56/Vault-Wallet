@@ -8,6 +8,9 @@ import 'package:moonwallet/widgets/func/snackbar.dart';
 Future<Crypto?> showEditNetwork(
     {required Crypto network,
     required BuildContext context,
+    required DoubleFactor roundedOf,
+    required DoubleFactor fontSizeOf,
+    required DoubleFactor iconSizeOf,
     required Future<bool> Function(
             {required int chainId,
             String? name,
@@ -94,12 +97,15 @@ Future<Crypto?> showEditNetwork(
                 child: ListView(
                   children: [
                     Text("Edit Network",
-                        style: textTheme.labelLarge
-                            ?.copyWith(color: colors.textColor, fontSize: 20)),
+                        style: textTheme.labelLarge?.copyWith(
+                            color: colors.textColor, fontSize: fontSizeOf(20))),
                     SizedBox(
                       height: 15,
                     ),
                     CustomFilledTextFormField(
+                      roundedOf: roundedOf,
+                      fontSizeOf: fontSizeOf,
+                      iconSizeOf: iconSizeOf,
                       labelText: "Name",
                       colors: colors,
                       hintText: "Name",
@@ -112,6 +118,9 @@ Future<Crypto?> showEditNetwork(
                       height: 10,
                     ),
                     CustomFilledTextFormField(
+                      roundedOf: roundedOf,
+                      fontSizeOf: fontSizeOf,
+                      iconSizeOf: iconSizeOf,
                       labelText: "Symbol",
                       colors: colors,
                       hintText: "Symbol",
@@ -124,6 +133,9 @@ Future<Crypto?> showEditNetwork(
                       height: 10,
                     ),
                     CustomFilledTextFormField(
+                      roundedOf: roundedOf,
+                      fontSizeOf: fontSizeOf,
+                      iconSizeOf: iconSizeOf,
                       labelText: "Chain Id",
                       colors: colors,
                       readOnly: true,
@@ -142,6 +154,9 @@ Future<Crypto?> showEditNetwork(
                       height: 10,
                     ),
                     CustomFilledTextFormField(
+                      roundedOf: roundedOf,
+                      fontSizeOf: fontSizeOf,
+                      iconSizeOf: iconSizeOf,
                       labelText: "Rpc Url",
                       colors: colors,
                       hintText: "Rpc Url",
@@ -154,6 +169,9 @@ Future<Crypto?> showEditNetwork(
                       height: 10,
                     ),
                     CustomFilledTextFormField(
+                      roundedOf: roundedOf,
+                      fontSizeOf: fontSizeOf,
+                      iconSizeOf: iconSizeOf,
                       labelText: "Explorer (optional)",
                       colors: colors,
                       hintText: "Explorer (optional)",

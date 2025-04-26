@@ -2,10 +2,11 @@ import 'dart:ui';
 
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:lucide_icons_flutter/lucide_icons.dart';
 import 'package:moonwallet/logger/logger.dart';
 import 'package:moonwallet/service/external_data/price_manager.dart';
-import 'package:moonwallet/service/db/wallet_saver.dart';
+import 'package:moonwallet/service/db/wallet_db.dart';
 import 'package:moonwallet/types/types.dart';
 import 'package:moonwallet/utils/colors.dart';
 import 'package:moonwallet/utils/crypto.dart';
@@ -13,7 +14,7 @@ import 'package:moonwallet/utils/prefs.dart';
 import 'package:moonwallet/utils/themes.dart';
 import 'package:moonwallet/widgets/func/snackbar.dart';
 
-class PrivateKeyScreen extends StatefulWidget {
+class PrivateKeyScreen extends StatefulHookConsumerWidget {
   final String? password;
   final String? walletId;
   final AppColors? colors;
@@ -21,10 +22,10 @@ class PrivateKeyScreen extends StatefulWidget {
       {super.key, this.password, this.walletId, this.colors});
 
   @override
-  State<PrivateKeyScreen> createState() => _PrivateKeyScreenState();
+  ConsumerState<PrivateKeyScreen> createState() => _PrivateKeyScreenState();
 }
 
-class _PrivateKeyScreenState extends State<PrivateKeyScreen> {
+class _PrivateKeyScreenState extends ConsumerState<PrivateKeyScreen> {
   bool isDarkMode = false;
   AppColors colors = AppColors.defaultTheme;
 
@@ -50,7 +51,7 @@ class _PrivateKeyScreenState extends State<PrivateKeyScreen> {
   final TextEditingController _privateKeyController = TextEditingController();
   bool _isInitialized = false;
 
-  final web3Manager = WalletSaver();
+  final web3Manager = WalletDatabase();
   final encryptService = EncryptService();
   final priceManager = PriceManager();
   final publicDataManager = PublicDataManager();

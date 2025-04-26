@@ -14,6 +14,7 @@ class ActionsWidgets extends StatelessWidget {
   final TextStyle? style;
   final bool showName;
   final AlignmentGeometry? alignment;
+  final double fontSize;
   const ActionsWidgets(
       {super.key,
       required this.color,
@@ -25,6 +26,7 @@ class ActionsWidgets extends StatelessWidget {
       this.iconSize = 18,
       this.style,
       this.showName = true,
+      this.fontSize = 12,
       this.alignment,
       this.actIcon});
 
@@ -60,7 +62,8 @@ class ActionsWidgets extends StatelessWidget {
               if (showName)
                 Text(text,
                     style: style ??
-                        textTheme.bodySmall?.copyWith(color: textColor))
+                        textTheme.bodySmall
+                            ?.copyWith(color: textColor, fontSize: fontSize))
             ],
           )),
     );

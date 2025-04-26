@@ -8,7 +8,7 @@ import 'package:moonwallet/main.dart';
 import 'package:moonwallet/service/web3_interactions/evm/token_manager.dart';
 import 'package:moonwallet/types/types.dart';
 import 'package:moonwallet/widgets/func/tokens_config/show_confirm_add_token.dart';
-import 'package:moonwallet/widgets/func/tokens_config/show_selecte_network_modal.dart';
+import 'package:moonwallet/widgets/func/tokens_config/show_select_network_modal.dart';
 
 typedef ActionWithIndexType = void Function(int index);
 typedef ActionWithCryptoId = void Function(String cryptoId);
@@ -17,6 +17,9 @@ void showAddToken(
     {required BuildContext context,
     required AppColors colors,
     required double width,
+    required DoubleFactor roundedOf,
+    required DoubleFactor fontSizeOf,
+    required DoubleFactor iconSizeOf,
     required void Function(String message) notifyError,
     required void Function(String message) notifySuccess,
     required void Function(SearchingContractInfo?, String, Crypto?) addCrypto,
@@ -58,6 +61,9 @@ void showAddToken(
                       });
                       if (tokenFoundedData != null) {
                         final response = await showConfirmAddTokenDialog(
+                            roundedOf: roundedOf,
+                            fontSizeOf: fontSizeOf,
+                            iconSizeOf: iconSizeOf,
                             context: context,
                             tokenFoundedData: tokenFoundedData,
                             colors: colors);
@@ -95,6 +101,9 @@ void showAddToken(
                   ListTile(
                     onTap: () async {
                       final selectedCrypto = await showSelectNetworkModal(
+                          roundedOf: roundedOf,
+                          fontSizeOf: fontSizeOf,
+                          iconSizeOf: iconSizeOf,
                           context: context,
                           colors: colors,
                           networks: reorganizedCrypto);
@@ -124,6 +133,7 @@ void showAddToken(
                       decoration: InputDecoration(
                           hintText: "Contract address",
                           hintStyle: textTheme.bodyMedium?.copyWith(
+                              fontSize: fontSizeOf(14),
                               color: colors.textColor.withOpacity(0.4)),
                           contentPadding: const EdgeInsets.symmetric(
                               vertical: 8, horizontal: 8),
@@ -134,11 +144,13 @@ void showAddToken(
                           filled: true,
                           fillColor: colors.grayColor.withOpacity(0.1),
                           enabledBorder: OutlineInputBorder(
-                              borderRadius: BorderRadius.circular(10),
+                              borderRadius:
+                                  BorderRadius.circular(roundedOf(10)),
                               borderSide: BorderSide(
                                   width: 0, color: Colors.transparent)),
                           focusedBorder: OutlineInputBorder(
-                              borderRadius: BorderRadius.circular(10),
+                              borderRadius:
+                                  BorderRadius.circular(roundedOf(10)),
                               borderSide: BorderSide(
                                   width: 0, color: Colors.transparent))),
                     ),

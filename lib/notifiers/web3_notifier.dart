@@ -1,17 +1,19 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:moonwallet/logger/logger.dart';
 import 'package:moonwallet/notifiers/providers.dart';
-import 'package:moonwallet/service/db/wallet_saver.dart';
+import 'package:moonwallet/service/db/wallet_db.dart';
+import 'package:moonwallet/service/web3_interactions/evm/addresses.dart';
 
 class Web3Notifier {
-  final WalletSaver web3Manager = WalletSaver();
+  final web3Manager = WalletDatabase();
+  final ethAddresses = EthAddresses();
 
   final Ref ref;
   Web3Notifier(this.ref);
 
   Future<bool> saveSeed(String seed, String userPassword) async {
     try {
-      final secretData = await web3Manager.createPrivatekeyFromSeed(seed);
+      final secretData = await ethAddresses.createPrivatekeyFromSeed(seed);
 
       final key = secretData["key"];
       if (userPassword.isEmpty) {

@@ -4,7 +4,8 @@ import 'package:google_fonts/google_fonts.dart';
 import 'package:lucide_icons_flutter/lucide_icons.dart';
 import 'package:moonwallet/logger/logger.dart';
 import 'package:moonwallet/main.dart';
-import 'package:moonwallet/service/db/wallet_saver.dart';
+import 'package:moonwallet/service/db/wallet_db.dart';
+import 'package:moonwallet/service/web3_interactions/evm/addresses.dart';
 import 'package:moonwallet/types/types.dart';
 import 'package:moonwallet/widgets/bottom_pin_copy.dart';
 import 'package:moonwallet/widgets/func/snackbar.dart';
@@ -21,7 +22,9 @@ class _CreatePrivateKeyState extends State<CreatePrivateKey> {
   Map<String, dynamic>? data;
   String firstPassword = "";
   String secondPassword = "";
-  final manager = WalletSaver();
+  final manager = WalletDatabase();
+  final ethAddresses = EthAddresses();
+
   AppColors colors = AppColors.defaultTheme;
 
   @override
@@ -39,7 +42,7 @@ class _CreatePrivateKeyState extends State<CreatePrivateKey> {
 
   Future<void> createKey() async {
     try {
-      final key = await manager.createPrivatekey();
+      final key = await ethAddresses.createPrivatekey();
       if (key.isNotEmpty) {
         setState(() {
           _textController.text = "0x${key["key"]}";

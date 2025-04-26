@@ -103,11 +103,10 @@ class CustomOptionWidget extends StatelessWidget {
                             onTap: () {
                               vibrate();
                               if (onTap != null) {
-                               onTap!(i);
-                              } else  if (option.onPressed != null){
+                                onTap!(i);
+                              } else if (option.onPressed != null) {
                                 option.onPressed!();
                               }
-
                             },
                             subtitle: option.subtitle,
                             leading: option.icon,

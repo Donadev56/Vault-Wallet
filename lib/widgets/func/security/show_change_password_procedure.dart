@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/widgets.dart';
-import 'package:moonwallet/service/db/wallet_saver.dart';
+import 'package:moonwallet/service/db/wallet_db.dart';
 import 'package:moonwallet/types/types.dart';
 import 'package:moonwallet/widgets/bottom_pin_copy.dart';
 import 'package:moonwallet/widgets/func/security/ask_password.dart';
@@ -57,7 +57,7 @@ void showChangePasswordProcedure(
       newPassword = "";
       confirmPassword = "";
     } else {
-      final walletManager = WalletSaver();
+      final walletManager = WalletDatabase();
       final result =
           await walletManager.changePassword(password, confirmPassword);
       if (!result) {

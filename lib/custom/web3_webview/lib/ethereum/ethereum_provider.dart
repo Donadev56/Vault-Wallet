@@ -14,6 +14,7 @@ import 'package:moonwallet/types/types.dart';
 import 'package:moonwallet/utils/id_manager.dart';
 import 'package:moonwallet/custom/web3_webview/lib/utils/loading.dart';
 import 'package:moonwallet/custom/web3_webview/lib/widgets/alert.dart';
+import 'package:moonwallet/widgets/func/security/ask_password.dart';
 import 'package:web3dart/web3dart.dart';
 
 import '../json_rpc_method.dart';
@@ -647,12 +648,12 @@ Future<SigningHandler?> getSigningHandler(
     required AppColors colors,
     WalletState? state}) async {
   try {
-    final credentials =
-        await getCredentials(context: context, colors: colors, state: state);
-    if (credentials != null) {
-      return SigningHandler(credentials);
+    final access =
+        await getAccess(context: context, colors: colors, state: state);
+    if (access != null) {
+      return SigningHandler(access.cred, access.key);
     } else {
-      logError("Incorrect password ${credentials?.address.hex}");
+      logError("Incorrect password ${access?.address}");
       throw WalletException('Incorrect password');
     }
   } catch (e) {
@@ -670,12 +671,12 @@ Future<TransactionHandler?> getTxHandler({
   WalletState? state,
 }) async {
   try {
-    final credentials =
-        await getCredentials(context: context, colors: colors, state: state);
-    if (credentials != null) {
+    final access =
+        await getAccess(context: context, colors: colors, state: state);
+    if (access != null) {
       final handler = TransactionHandler(
         web3client,
-        credentials,
+        access.cred,
         int.parse(network.chainId),
       );
       log("Handler ${handler.toString()}");
@@ -691,15 +692,26 @@ Future<TransactionHandler?> getTxHandler({
   }
 }
 
-Future<Credentials?> getCredentials(
+Future<AccountAccess?> getAccess(
     {required BuildContext context,
     required AppColors colors,
     WalletState? state}) async {
   try {
-    final credentials = await EthInteractionManager()
-        .getCredentialsUsingPassword(
-            context: context, colors: colors, address: state?.address ?? "");
-    return credentials;
+    final password = await askPassword(context: context, colors: colors);
+    final address = state?.address;
+    if (address == null) {
+      throw WalletException("Invalid State : address is null");
+    }
+    if (password.isEmpty) {
+      throw WalletException("Invalid Password");
+    }
+    final cred = await EthInteractionManager()
+        .getAccess(password: password, address: address);
+    if (cred == null) {
+      throw WalletException("Invalid Password");
+    }
+
+    return AccountAccess(address: address, cred: cred.cred, key: cred.key);
   } catch (e) {
     logError("Error ${e.toString()}");
     throw WalletException('Failed to create signing handler: $e');

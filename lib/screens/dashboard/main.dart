@@ -5,6 +5,7 @@ import 'dart:io';
 import 'package:loading_animation_widget/loading_animation_widget.dart';
 import 'package:moonwallet/custom/refresh/check_mark.dart';
 import 'package:moonwallet/notifiers/providers.dart';
+import 'package:moonwallet/screens/auth/home.dart';
 import 'package:moonwallet/screens/dashboard/main/wallet_overview/receive.dart';
 import 'package:moonwallet/screens/dashboard/main/wallet_overview/send.dart';
 import 'package:moonwallet/utils/number_formatter.dart';
@@ -191,6 +192,10 @@ class _MainDashboardScreenState extends ConsumerState<MainDashboardScreen>
 
     useEffect(() {
       accountsProvider.whenData((data) {
+        if (data.isEmpty) {
+          Navigator.push(
+              context, MaterialPageRoute(builder: (ctx) => HomeScreen()));
+        }
         accounts.value = data;
       });
       return null;
@@ -219,10 +224,6 @@ class _MainDashboardScreenState extends ConsumerState<MainDashboardScreen>
 
     double imageSizeOf(double size) {
       return size * uiConfig.value.styles.imageSizeScaleFactor;
-    }
-
-    double borderOpOf(double border) {
-      return border * uiConfig.value.styles.borderOpacity;
     }
 
     double roundedOf(double size) {
@@ -655,9 +656,6 @@ class _MainDashboardScreenState extends ConsumerState<MainDashboardScreen>
                                               ))
                                         ],
                                       ),
-                                      SizedBox(
-                                        height: 5,
-                                      ),
                                       Row(
                                         mainAxisAlignment:
                                             MainAxisAlignment.center,
@@ -671,7 +669,7 @@ class _MainDashboardScreenState extends ConsumerState<MainDashboardScreen>
                                             maxLines: 1,
                                             style: textTheme.headlineLarge
                                                 ?.copyWith(
-                                                    fontSize: fontSizeOf(36),
+                                                    fontSize: fontSizeOf(29.52),
                                                     color: colors.textColor),
                                           ),
                                         ],
@@ -708,6 +706,8 @@ class _MainDashboardScreenState extends ConsumerState<MainDashboardScreen>
                                                 text: action["name"],
                                                 actIcon: action["icon"],
                                                 textColor: colors.textColor,
+                                                radius: roundedOf(10),
+                                                fontSize: fontSizeOf(12),
                                                 size: width <= 330
                                                     ? iconSizeOf(40)
                                                     : iconSizeOf(50),

@@ -1,13 +1,14 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:lucide_icons_flutter/lucide_icons.dart';
 import 'package:mobile_scanner/mobile_scanner.dart';
 import 'package:moonwallet/custom/web3_webview/lib/utils/loading.dart';
 import 'package:moonwallet/logger/logger.dart';
 import 'package:moonwallet/notifiers/providers.dart';
 import 'package:moonwallet/screens/dashboard/page_manager.dart';
-import 'package:moonwallet/service/db/wallet_saver.dart' show WalletSaver;
+import 'package:moonwallet/service/db/wallet_db.dart';
 import 'package:moonwallet/types/types.dart';
 import 'package:moonwallet/utils/colors.dart';
 import 'package:moonwallet/utils/prefs.dart';
@@ -18,7 +19,7 @@ import 'package:moonwallet/widgets/scanner/show_scanner.dart';
 import 'package:page_transition/page_transition.dart';
 import 'package:web3dart/web3dart.dart';
 
-class AddPrivateKeyInMain extends ConsumerStatefulWidget {
+class AddPrivateKeyInMain extends StatefulHookConsumerWidget {
   const AddPrivateKeyInMain({super.key});
 
   @override
@@ -34,7 +35,7 @@ class _AddPrivateKeyState extends ConsumerState<AddPrivateKeyInMain> {
   final publicDataManager = PublicDataManager();
   bool isDarkMode = false;
 
-  final manager = WalletSaver();
+  final manager = WalletDatabase();
   AppColors colors = AppColors.defaultTheme;
 
   Themes themes = Themes();

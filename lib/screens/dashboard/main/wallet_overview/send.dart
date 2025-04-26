@@ -7,6 +7,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_feather_icons/flutter_feather_icons.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:intl/intl.dart';
 import 'package:lucide_icons_flutter/lucide_icons.dart';
 import 'package:mobile_scanner/mobile_scanner.dart';
@@ -19,7 +20,7 @@ import 'package:moonwallet/utils/number_formatter.dart';
 import 'package:moonwallet/service/external_data/price_manager.dart';
 import 'package:moonwallet/service/web3_interactions/evm/token_manager.dart';
 import 'package:moonwallet/service/vibration.dart';
-import 'package:moonwallet/service/db/wallet_saver.dart';
+import 'package:moonwallet/service/db/wallet_db.dart';
 import 'package:moonwallet/service/web3_interactions/evm/eth_interaction_manager.dart';
 import 'package:moonwallet/types/types.dart';
 import 'package:moonwallet/utils/colors.dart';
@@ -36,7 +37,7 @@ import 'package:permission_handler/permission_handler.dart';
 import 'package:qr_code_scanner_plus/qr_code_scanner_plus.dart';
 import 'package:web3dart/web3dart.dart';
 
-class SendTransactionScreen extends ConsumerStatefulWidget {
+class SendTransactionScreen extends StatefulHookConsumerWidget {
   final WidgetInitialData initData;
   const SendTransactionScreen({super.key, required this.initData});
 
@@ -71,7 +72,7 @@ class _SendTransactionScreenState extends ConsumerState<SendTransactionScreen> {
       walletName: "",
       address: "",
       isWatchOnly: false);
-  final web3Manager = WalletSaver();
+  final web3Manager = WalletDatabase();
   final encryptService = EncryptService();
   final priceManager = PriceManager();
   final publicDataManager = PublicDataManager();

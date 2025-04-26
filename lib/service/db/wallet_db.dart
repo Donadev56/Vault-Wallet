@@ -1,12 +1,8 @@
 import 'dart:convert';
 
-import 'package:bip39/bip39.dart' as bip39;
-import 'package:bip32/bip32.dart' as bip32;
 import 'package:flutter/material.dart';
 import 'package:moonwallet/logger/logger.dart';
 
-import 'package:hex/hex.dart';
-import 'dart:typed_data';
 import 'package:hive_ce/hive.dart';
 
 import 'package:moonwallet/service/db/secure_storage.dart';
@@ -14,83 +10,25 @@ import 'package:moonwallet/types/types.dart';
 import 'package:moonwallet/utils/crypto.dart';
 import 'package:web3dart/web3dart.dart';
 
-class WalletSaver {
+class WalletDatabase {
   final passwordName = "userPassword";
   final secureService = SecureStorageService();
   final encryptService = EncryptService();
   final boxName = "usersWallets";
+
   final publicWalletKey = "publicWallets";
   final privateWalletKey = "privateWallets";
 
-  Future<Box> getBox() async {
+  Future<Box?> getBox() async {
     try {
-      final boxExist = await Hive.boxExists(boxName);
-      if (!boxExist) {
-        return await Hive.openBox(boxName);
-      }
+      await Hive.openBox(boxName);
       return Hive.box(boxName);
     } catch (e) {
       logError(e.toString());
-      return await Hive.openBox(boxName);
-    }
-  }
-
-  Future<Map<String, dynamic>> createPrivatekey() async {
-    try {
-      final seed = generateMnemonic();
-      final privateKey = deriveEthereumPrivateKey(seed);
-
-      if (privateKey == null) {
-        logError("Private key is null");
-        return {};
-      }
-      final data = {"key": privateKey, "seed": seed};
-
-      return data;
-    } catch (e) {
-      logError(e.toString());
-      return {};
-    }
-  }
-
-  Future<Map<String, dynamic>> createPrivatekeyFromSeed(String seed) async {
-    try {
-      final privateKey = deriveEthereumPrivateKey(seed);
-      if (privateKey == null) {
-        logError("Private key is null");
-        return {};
-      }
-      final data = {"key": privateKey, "seed": seed};
-
-      return data;
-    } catch (e) {
-      logError(e.toString());
-      return {};
-    }
-  }
-
-  // generate a new wallet
-  String generateMnemonic() {
-    return bip39.generateMnemonic();
-  }
-
-  // derive Ethereum private key from mnemonic
-  String? deriveEthereumPrivateKey(String mnemonic) {
-    Uint8List seed = bip39.mnemonicToSeed(mnemonic);
-
-    final bip32.BIP32 root = bip32.BIP32.fromSeed(seed);
-
-    final bip32.BIP32 child = root.derivePath("m/44'/60'/0'/0/0");
-
-    final privateKey = child.privateKey;
-    if (privateKey == null) {
-      logError("Private key is null");
       return null;
     }
-    return HEX.encode(privateKey);
   }
 
-  // save privatekey to secure storage with password
   Future<bool> savePrivatekeyInStorage(String privatekey, String password,
       String walletName, String? mnemonicToSeed) async {
     try {
@@ -119,6 +57,7 @@ class WalletSaver {
       final publicDataJson = publicWallet.toJson();
       List<dynamic> listPublicDataJson;
       final publicDataResult = await getListDynamicData(name: publicWalletKey);
+
       if (publicDataResult != null) {
         listPublicDataJson = publicDataResult;
         log("Public data found ${json.encode(listPublicDataJson).toString()}");
@@ -126,13 +65,10 @@ class WalletSaver {
         listPublicDataJson = [];
       }
 
-      log("Saving : ${dataJson.toString()}");
-
       List<dynamic> dataToSave;
       final decryptedArrayData = await getDecryptedData(password);
       if (decryptedArrayData == null) {
-        log("Decrypted data is null");
-        return false;
+        throw ("Decrypted data is null");
       }
       dataToSave = decryptedArrayData;
 
@@ -142,24 +78,12 @@ class WalletSaver {
           data: listPublicDataJson, boxName: publicWalletKey);
       final result = await saveListPrivateKeyData(dataToSave, password);
       if (!result || !publicResult) {
-        logError(
-            "The result is $result and the public result is $publicResult, So error occurred");
-        return false;
+        throw ("The result is $result and the public result is $publicResult, So error occurred");
       } else {
-        saveLastAccount(wallet.address);
+        encryptService.saveLastConnectedData(wallet.keyId);
         log("Saved successfully");
         return true;
       }
-    } catch (e) {
-      logError(e.toString());
-      return false;
-    }
-  }
-
-  Future<bool> saveLastAccount(String address) async {
-    try {
-      final res = encryptService.saveLastConnectedData(address);
-      return res;
     } catch (e) {
       logError(e.toString());
       return false;
@@ -327,7 +251,7 @@ class WalletSaver {
         logError("The result  is $publicResult, So error occurred");
         return false;
       } else {
-        saveLastAccount(address.trim());
+        encryptService.saveLastConnectedData(keyId);
         log("Saved successfully");
         return true;
       }
@@ -361,16 +285,6 @@ class WalletSaver {
     }
   }
 
-  /* Future<bool> saveListPublicData ({required List<PublicData> wallets}) async {
-    try {
-      final Store store = await openStore(directory: 'person-db');
-
-    } catch (e) {
-      logError(e.toString());
-      return false;
-      
-    }
-  }*/
   Future<bool> saveListPublicDataJson(List<dynamic> data) async {
     try {
       final res =
@@ -413,7 +327,10 @@ class WalletSaver {
 
   Future<List<dynamic>?> getListDynamicData({required String name}) async {
     try {
-      final savedWallets = (await getBox()).get(name);
+      final savedWallets = (await getBox())?.get(name);
+      if (savedWallets == null) {
+        throw "No saved wallets";
+      }
       if (savedWallets != null) {
         return savedWallets;
       }
@@ -428,6 +345,9 @@ class WalletSaver {
       {required List<dynamic> data, required String boxName}) async {
     try {
       final box = await getBox();
+      if (box == null) {
+        throw "Box Not Initialized";
+      }
       box.put(boxName, data);
       return true;
     } catch (e) {
@@ -439,6 +359,9 @@ class WalletSaver {
   Future<dynamic> getDynamicData({required String name}) async {
     try {
       final box = await getBox();
+      if (box == null) {
+        throw "Box Not Initialized";
+      }
       final savedWallets = box.get(name);
       if (savedWallets != null) {
         return savedWallets;
@@ -454,6 +377,9 @@ class WalletSaver {
       {required String data, required String boxName}) async {
     try {
       final box = await getBox();
+      if (box == null) {
+        throw "Box Not Initialized";
+      }
       await box.put(boxName, data);
       return true;
     } catch (e) {

@@ -6,6 +6,7 @@ import 'package:flutter/services.dart';
 // ignore: depend_on_referenced_packages
 
 import 'package:flutter/material.dart';
+import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:internet_connection_checker_plus/internet_connection_checker_plus.dart';
 import 'package:loading_animation_widget/loading_animation_widget.dart';
 import 'package:moonwallet/custom/candlesticks/lib/candlesticks.dart';
@@ -19,7 +20,7 @@ import 'package:moonwallet/utils/number_formatter.dart';
 import 'package:moonwallet/service/external_data/price_manager.dart';
 import 'package:moonwallet/service/web3_interactions/evm/transaction_request_manager.dart';
 import 'package:moonwallet/service/external_data/transactions.dart';
-import 'package:moonwallet/service/db/wallet_saver.dart';
+import 'package:moonwallet/service/db/wallet_db.dart';
 import 'package:moonwallet/service/web3_interactions/evm/eth_interaction_manager.dart';
 import 'package:moonwallet/types/types.dart';
 import 'package:moonwallet/utils/colors.dart';
@@ -35,15 +36,15 @@ import 'package:moonwallet/widgets/view/transactions.dart';
 import 'package:skeletonizer/skeletonizer.dart';
 import 'package:url_launcher/url_launcher.dart';
 
-class WalletViewScreen extends StatefulWidget {
+class WalletViewScreen extends StatefulHookConsumerWidget {
   final WidgetInitialData initData;
   const WalletViewScreen({super.key, required this.initData});
 
   @override
-  State<WalletViewScreen> createState() => _WalletViewScreenState();
+  ConsumerState<WalletViewScreen> createState() => _WalletViewScreenState();
 }
 
-class _WalletViewScreenState extends State<WalletViewScreen>
+class _WalletViewScreenState extends ConsumerState<WalletViewScreen>
     with SingleTickerProviderStateMixin {
   late TabController _tabController;
   List<EsTransaction> transactions = [];
@@ -59,7 +60,7 @@ class _WalletViewScreenState extends State<WalletViewScreen>
   List<Crypto> reorganizedCrypto = [];
   String cryptoId = "";
 
-  final web3Manager = WalletSaver();
+  final web3Manager = WalletDatabase();
   bool isScrollingToTheBottom = false;
   final encryptService = EncryptService();
   final priceManager = PriceManager();
@@ -347,7 +348,6 @@ class _WalletViewScreenState extends State<WalletViewScreen>
 
   @override
   Widget build(BuildContext context) {
-    double width = MediaQuery.of(context).size.width;
     final textTheme = Theme.of(context).textTheme;
 
     if (currentCrypto == null) {

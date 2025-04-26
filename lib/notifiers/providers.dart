@@ -13,7 +13,7 @@ import 'package:moonwallet/notifiers/saved_crypto.dart';
 import 'package:moonwallet/notifiers/web3_notifier.dart';
 import 'package:moonwallet/service/db/crypto_storage_manager.dart';
 import 'package:moonwallet/service/external_data/price_manager.dart';
-import 'package:moonwallet/service/db/wallet_saver.dart';
+import 'package:moonwallet/service/db/wallet_db.dart';
 import 'package:moonwallet/types/types.dart' as types;
 import 'package:moonwallet/utils/colors.dart';
 import 'package:moonwallet/utils/crypto.dart';
@@ -39,7 +39,7 @@ final profileImageProviderNotifier =
 
 final colorsManagerProvider = Provider((ref) => ColorsManager());
 
-final walletSaverProvider = Provider((ref) => WalletSaver());
+final walletSaverProvider = Provider((ref) => WalletDatabase());
 final encryptServiceProvider = Provider((ref) => EncryptService());
 final priceProvider = Provider((ref) => PriceManager());
 

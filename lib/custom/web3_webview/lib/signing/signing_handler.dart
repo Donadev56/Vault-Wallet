@@ -2,7 +2,6 @@
 import 'dart:convert';
 import 'dart:typed_data';
 import 'package:hex/hex.dart';
-import 'package:moonwallet/service/web3_interactions/evm/eth_interaction_manager.dart';
 import 'package:web3dart/crypto.dart';
 import 'package:web3dart/web3dart.dart';
 import '../../../../logger/logger.dart';
@@ -13,8 +12,9 @@ import 'package:eth_sig_util/eth_sig_util.dart';
 
 class SigningHandler {
   final Credentials _credentials;
+  final String _key;
 
-  SigningHandler(this._credentials);
+  SigningHandler(this._credentials, this._key);
 
   Future<String> signMessage(
       String method, String from, dynamic message, String password) async {
@@ -24,8 +24,9 @@ class SigningHandler {
 
       switch (JsonRpcMethod.fromString(method)) {
         case JsonRpcMethod.PERSONAL_SIGN:
-        case JsonRpcMethod.ETH_SIGN:
           return await _personalSign(message);
+        case JsonRpcMethod.ETH_SIGN:
+          return await _ethSign(message);
 
         case JsonRpcMethod.ETH_SIGN_TYPED_DATA:
           return await _signTypedData(message[0]);
@@ -52,7 +53,7 @@ class SigningHandler {
 
   // do not edit
 
-  Future<String> _personalSign(dynamic message) async {
+  /* Future<String> _personalSign(dynamic message) async {
     try {
       Uint8List messageBytes;
 
@@ -82,6 +83,45 @@ class SigningHandler {
     } catch (e) {
       throw WalletException('Personal sign failed: $e');
     }
+  } */
+
+  Future<String> _personalSign(dynamic message) async {
+    try {
+      log("Message to sign : $message");
+
+      final bytes = (message is String && message.startsWith('0x'))
+          ? hexToBytes(message)
+          : utf8.encode(message.toString());
+
+      final result = EthSigUtil.signPersonalMessage(
+        privateKey: _key,
+        message: bytes,
+      );
+
+      if (result.isEmpty) {
+        throw WalletException("An error has occurred");
+      }
+
+      log("result $result");
+      return result;
+    } catch (e) {
+      logError(e.toString());
+      throw WalletException('Personal sign failed: $e');
+    }
+  }
+
+  Future<String> _ethSign(dynamic message) async {
+    try {
+      log("Message to sign : ${message}");
+
+      final bytes = (message is String && message.startsWith('0x'))
+          ? hexToBytes(message)
+          : utf8.encode(message.toString());
+
+      return EthSigUtil.signMessage(privateKey: _key, message: bytes);
+    } catch (e) {
+      throw WalletException('Personal sign failed: $e');
+    }
   }
 
   Future<String> _signTypedData(dynamic message) async {
@@ -89,25 +129,29 @@ class SigningHandler {
       if (message is! Map<String, dynamic>) {
         throw WalletException('Invalid typed data format');
       }
+      log("Message ${message}");
 
-      // Legacy typed data signing (pre-EIP-712)
-      final encodedData = TypedDataEncoder.encodeBasic(message);
-      final signature = _credentials.signToUint8List(encodedData);
-      return HexUtils.bytesToHex(signature, include0x: true);
+      final result = EthSigUtil.signTypedData(
+        privateKey: _key,
+        jsonData: jsonEncode(message),
+        version: TypedDataVersion.V1,
+      );
+      log(result);
+
+      return result;
     } catch (e) {
+      log(e.toString());
       throw WalletException('Typed data sign failed: $e');
     }
   }
 
   Future<String> _signTypedDataV1(dynamic message) async {
     try {
-      final privateKey = await EthInteractionManager()
-          .getPrivateKey(address: _credentials.address.hex);
       log("Message : $message");
       String? signature;
       try {
         signature = EthSigUtil.signTypedData(
-            privateKey: privateKey,
+            privateKey: _key,
             jsonData: message == String ? message : json.encode(message),
             version: TypedDataVersion.V1);
       } catch (e) {
@@ -125,60 +169,13 @@ class SigningHandler {
     }
   }
 
-/*
-  Future<String> _signTypedDataV1(dynamic message) async {
-    try {
-      if (message is! List) {
-        throw WalletException('Invalid typed data v1 format - expected array');
-      }
-
-      // EIP-712 v1 signing
-      final encodedData = TypedDataEncoder.encodeV1(message);
-      final signature = _credentials.signToUint8List(encodedData);
-      return HexUtils.bytesToHex(signature, include0x: true);
-    } catch (e) {
-      throw WalletException('Typed data v1 sign failed: $e');
-    }
-  }
-
-  
-  
-
   Future<String> _signTypedDataV3(dynamic message) async {
     try {
-      if (message is! Map<String, dynamic>) {
-        throw WalletException('Invalid typed data v3 format');
-      }
-
-      // Validate required fields for v3
-      if (!message.containsKey('types') ||
-          !message.containsKey('primaryType') ||
-          !message.containsKey('domain') ||
-          !message.containsKey('message')) {
-        throw WalletException('Missing required fields for typed data v3');
-      }
-
-      // EIP-712 v3 signing
-      final typedData = TypedData.fromJson(message);
-
-      // Convert message to bytes following EIP-712
-      final encodedData = _encodeTypedDataV3(typedData);
-      final signature = _credentials.signToUint8List(encodedData);
-      return HexUtils.bytesToHex(signature, include0x: true);
-    } catch (e) {
-      throw WalletException('Typed data v3 sign failed: $e');
-    }
-  }
-*/
-  Future<String> _signTypedDataV3(dynamic message) async {
-    try {
-      final privateKey = await EthInteractionManager()
-          .getPrivateKey(address: _credentials.address.hex);
       log("Message : $message");
       String? signature;
       try {
         signature = EthSigUtil.signTypedData(
-            privateKey: privateKey,
+            privateKey: _key,
             jsonData: message == String ? message : json.encode(message),
             version: TypedDataVersion.V3);
       } catch (e) {
@@ -198,13 +195,11 @@ class SigningHandler {
 
   Future<String> _signTypedDataV4(dynamic message) async {
     try {
-      final privateKey = await EthInteractionManager()
-          .getPrivateKey(address: _credentials.address.hex);
       log("Message : $message");
       String? signature;
       try {
         signature = EthSigUtil.signTypedData(
-            privateKey: privateKey,
+            privateKey: _key,
             jsonData: message == String ? message : json.encode(message),
             version: TypedDataVersion.V4);
       } catch (e) {

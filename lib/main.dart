@@ -8,7 +8,9 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_web3_webview/flutter_web3_webview.dart';
+import 'package:google_fonts/google_fonts.dart';
 import 'package:moonwallet/logger/logger.dart';
+import 'package:moonwallet/notifiers/accounts_notifier.dart';
 import 'package:moonwallet/screens/dashboard/main/account_data.dart';
 import 'package:moonwallet/screens/dashboard/add_crypto.dart';
 import 'package:moonwallet/screens/auth/add_private_key.dart';
@@ -25,9 +27,9 @@ import 'package:moonwallet/screens/dashboard/wallet_actions/add_w_o.dart';
 import 'package:moonwallet/screens/dashboard/wallet_actions/add_mnemonic.dart';
 import 'package:moonwallet/screens/dashboard/wallet_actions/add_private_key.dart';
 import 'package:moonwallet/screens/dashboard/wallet_actions/create_private_key.dart';
-import 'package:moonwallet/screens/test/test.dart';
+import 'package:moonwallet/secure_check_view.dart';
 import 'package:moonwallet/service/db/old_db.dart';
-import 'package:moonwallet/service/db/wallet_saver.dart';
+import 'package:moonwallet/service/db/wallet_db.dart';
 import 'package:moonwallet/types/types.dart';
 import 'package:moonwallet/utils/colors.dart';
 import 'package:moonwallet/utils/prefs.dart';
@@ -61,6 +63,7 @@ class Routes {
   static const String addObservationWallet = '/addObservationWallet';
   static const String privateDataScreen = '/privateDataScreen';
   static const String settings = '/settings';
+  static const String secureCheckView = '/secureCheckView';
 
   static const String addCrypto = '/main/addCrypto';
   static const String pageManager = '/main/pageManager';
@@ -120,8 +123,8 @@ class _MyAppState extends State<MyApp> {
       if (hasAlreadyUpgraded == null) {
         await upgradeDatabase();
       }
-      final lastConnected = await prefs.getLastConnectedAddress();
-      return lastConnected != null;
+      final accounts = await AccountsNotifier().getPublicData();
+      return accounts.isNotEmpty;
     } catch (e) {
       logError(e.toString());
       showCustomSnackBar(
@@ -137,7 +140,7 @@ class _MyAppState extends State<MyApp> {
   Future<void> upgradeDatabase() async {
     try {
       final lastDbManager = Web3Manager();
-      final newDbManager = WalletSaver();
+      final newDbManager = WalletDatabase();
       final prefs = PublicDataManager();
 
       final savedPassword = await lastDbManager.getSavedPassword();
@@ -206,93 +209,78 @@ class _MyAppState extends State<MyApp> {
                     backgroundColor: colors.primaryColor,
                   ),
                   textTheme: TextTheme(
-                    displayLarge: TextStyle(
-                      fontFamily: "roboto_reg",
+                    displayLarge: GoogleFonts.inter(
                       fontSize: 57,
                       fontWeight: FontWeight.bold,
                       color: colors.textColor,
                       letterSpacing: -0.25,
                     ),
-                    displayMedium: TextStyle(
-                      fontFamily: "roboto_reg",
+                    displayMedium: GoogleFonts.inter(
                       fontSize: 45,
                       fontWeight: FontWeight.bold,
                       color: colors.textColor,
                     ),
-                    displaySmall: TextStyle(
-                      fontFamily: "roboto_reg",
+                    displaySmall: GoogleFonts.inter(
                       fontSize: 36,
                       fontWeight: FontWeight.w600,
                       color: colors.textColor,
                     ),
-                    headlineLarge: TextStyle(
-                      fontFamily: "roboto_reg",
+                    headlineLarge: GoogleFonts.inter(
                       fontSize: 32,
                       fontWeight: FontWeight.w600,
                       color: colors.textColor,
                     ),
-                    headlineMedium: TextStyle(
-                      fontFamily: "roboto_reg",
+                    headlineMedium: GoogleFonts.inter(
                       fontSize: 28,
                       fontWeight: FontWeight.w500,
                       color: colors.textColor,
                     ),
-                    headlineSmall: TextStyle(
-                      fontFamily: "roboto_reg",
+                    headlineSmall: GoogleFonts.inter(
                       fontSize: 24,
                       fontWeight: FontWeight.w500,
                       color: colors.textColor,
                     ),
-                    titleLarge: TextStyle(
-                      fontFamily: "roboto_reg",
+                    titleLarge: GoogleFonts.inter(
                       fontSize: 22,
                       fontWeight: FontWeight.bold,
                       color: colors.textColor,
                     ),
-                    titleMedium: TextStyle(
-                      fontFamily: "roboto_reg",
+                    titleMedium: GoogleFonts.inter(
                       fontSize: 16,
                       fontWeight: FontWeight.w500,
                       color: colors.textColor.withOpacity(0.9),
                     ),
-                    titleSmall: TextStyle(
-                      fontFamily: "roboto_reg",
+                    titleSmall: GoogleFonts.inter(
                       fontSize: 14,
                       fontWeight: FontWeight.w500,
                       color: colors.textColor.withOpacity(0.85),
                     ),
-                    bodyLarge: TextStyle(
-                      fontFamily: "roboto_reg",
+                    bodyLarge: GoogleFonts.inter(
                       fontSize: 16,
                       fontWeight: FontWeight.normal,
                       color: colors.textColor,
                     ),
-                    bodyMedium: TextStyle(
-                      fontFamily: "roboto_reg",
+                    bodyMedium: GoogleFonts.inter(
                       fontSize: 14,
                       fontWeight: FontWeight.normal,
                       color: colors.textColor.withOpacity(0.9),
                     ),
-                    bodySmall: TextStyle(
-                      fontFamily: "roboto_reg",
+                    bodySmall: GoogleFonts.inter(
                       fontSize: 12,
                       fontWeight: FontWeight.normal,
                       color: colors.textColor.withOpacity(0.7),
                     ),
-                    labelLarge: TextStyle(
-                      fontFamily: "roboto_reg",
+                    labelLarge: GoogleFonts.inter(
                       fontSize: 14,
                       fontWeight: FontWeight.w600,
                       color: colors.textColor,
                     ),
-                    labelMedium: TextStyle(
-                      fontFamily: "roboto_reg",
+                    labelMedium: GoogleFonts.inter(
                       fontSize: 12,
                       fontWeight: FontWeight.w500,
                       color: colors.textColor.withOpacity(0.8),
                     ),
-                    labelSmall: TextStyle(
-                      fontFamily: "roboto_reg",
+                    labelSmall: GoogleFonts.inter(
                       fontSize: 11,
                       fontWeight: FontWeight.w400,
                       color: colors.textColor.withOpacity(0.6),
@@ -330,7 +318,8 @@ class _MyAppState extends State<MyApp> {
                         side: BorderSide(color: colors.themeColor)),
                   ),
                 ),
-                initialRoute: snapshot.data! ? Routes.pageManager : Routes.home,
+                initialRoute:
+                    snapshot.data! ? Routes.secureCheckView : Routes.home,
                 routes: {
                   Routes.main: (context) => MainDashboardScreen(
                         colors: colors,
@@ -363,7 +352,9 @@ class _MyAppState extends State<MyApp> {
                   Routes.changeTheme: (context) => ChangeThemeView(
                         colors: colors,
                       ),
-                  Routes.test: (context) => LineChartSample12(),
+                  Routes.secureCheckView: (context) => SecureCheckView(
+                        colors: colors,
+                      ),
                   Routes.accountData: (context) => AccountDataView(),
                 });
           } else {

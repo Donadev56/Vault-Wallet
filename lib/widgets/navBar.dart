@@ -14,17 +14,16 @@ class BottomNav extends StatelessWidget {
   final DoubleFactor fontSizeOf;
   final DoubleFactor iconSizeOf;
 
-  const BottomNav({
-    super.key,
-    required this.currentIndex,
-    this.onTap,
-    required this.primaryColor,
-    required this.textColor,
-    required this.secondaryColor,
-    required this.fontSizeOf,
-    required this.iconSizeOf,
-    required this.roundedOf
-  });
+  const BottomNav(
+      {super.key,
+      required this.currentIndex,
+      this.onTap,
+      required this.primaryColor,
+      required this.textColor,
+      required this.secondaryColor,
+      required this.fontSizeOf,
+      required this.iconSizeOf,
+      required this.roundedOf});
 
   @override
   Widget build(BuildContext context) {
@@ -66,7 +65,8 @@ class BottomNav extends StatelessWidget {
           type: BottomNavigationBarType.fixed,
           selectedItemColor: secondaryColor,
           unselectedItemColor: textColor,
-          selectedLabelStyle: textTheme.bodySmall?.copyWith(fontSize: fontSizeOf (10)),
+          selectedLabelStyle:
+              textTheme.bodySmall?.copyWith(fontSize: fontSizeOf(10)),
           unselectedLabelStyle: textTheme.bodySmall?.copyWith(
             fontSize: fontSizeOf(10),
             color: textColor.withOpacity(0.5),

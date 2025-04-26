@@ -8,8 +8,13 @@ import 'package:moonwallet/utils/id_manager.dart';
 import 'package:moonwallet/widgets/custom_filled_text_field.dart';
 import 'package:moonwallet/widgets/func/snackbar.dart';
 
-Future<Crypto?> showAddNetwork(
-    {required BuildContext context, required AppColors colors}) async {
+Future<Crypto?> showAddNetwork({
+  required BuildContext context,
+  required AppColors colors,
+  required DoubleFactor roundedOf,
+  required DoubleFactor fontSizeOf,
+  required DoubleFactor iconSizeOf,
+}) async {
   final formKey = GlobalKey<FormState>();
   final nameController = TextEditingController();
   final symbolController = TextEditingController();
@@ -85,12 +90,15 @@ Future<Crypto?> showAddNetwork(
                 child: ListView(
                   children: [
                     Text("Add Network",
-                        style: textTheme.labelLarge
-                            ?.copyWith(color: colors.textColor, fontSize: 20)),
+                        style: textTheme.labelLarge?.copyWith(
+                            color: colors.textColor, fontSize: fontSizeOf(20))),
                     SizedBox(
                       height: 15,
                     ),
                     CustomFilledTextFormField(
+                      roundedOf: roundedOf,
+                      fontSizeOf: fontSizeOf,
+                      iconSizeOf: iconSizeOf,
                       labelText: "Name",
                       colors: colors,
                       hintText: "Name",
@@ -107,6 +115,9 @@ Future<Crypto?> showAddNetwork(
                       height: 10,
                     ),
                     CustomFilledTextFormField(
+                      roundedOf: roundedOf,
+                      fontSizeOf: fontSizeOf,
+                      iconSizeOf: iconSizeOf,
                       labelText: "Symbol",
                       colors: colors,
                       hintText: "Symbol",
@@ -123,6 +134,9 @@ Future<Crypto?> showAddNetwork(
                       height: 10,
                     ),
                     CustomFilledTextFormField(
+                      roundedOf: roundedOf,
+                      fontSizeOf: fontSizeOf,
+                      iconSizeOf: iconSizeOf,
                       labelText: "Chain Id",
                       colors: colors,
                       hintText: "Chain Id",
@@ -140,6 +154,9 @@ Future<Crypto?> showAddNetwork(
                       height: 10,
                     ),
                     CustomFilledTextFormField(
+                      roundedOf: roundedOf,
+                      fontSizeOf: fontSizeOf,
+                      iconSizeOf: iconSizeOf,
                       labelText: "Rpc Url",
                       colors: colors,
                       hintText: "Rpc Url",
@@ -156,6 +173,9 @@ Future<Crypto?> showAddNetwork(
                       height: 10,
                     ),
                     CustomFilledTextFormField(
+                      roundedOf: roundedOf,
+                      fontSizeOf: fontSizeOf,
+                      iconSizeOf: iconSizeOf,
                       labelText: "Explorer (optional)",
                       colors: colors,
                       hintText: "Explorer (optional)",

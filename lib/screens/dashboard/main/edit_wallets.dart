@@ -68,15 +68,12 @@ class _EditWalletsViewState extends ConsumerState<EditWalletsView> {
     final uiConfig = useState<AppUIConfig>(AppUIConfig.defaultConfig);
     final appUIConfigAsync = ref.watch(appUIConfigProvider);
 
-
-
-     useEffect(() {
+    useEffect(() {
       appUIConfigAsync.whenData((data) {
         uiConfig.value = data;
       });
       return null;
     }, [appUIConfigAsync]);
-
 
     accountsProvider.whenData((data) {
       setState(
@@ -90,7 +87,7 @@ class _EditWalletsViewState extends ConsumerState<EditWalletsView> {
       Navigator.pop(context);
     }
 
-      double iconSizeOf(double size) {
+    double iconSizeOf(double size) {
       return size * uiConfig.value.styles.iconSizeScaleFactor;
     }
 
@@ -98,19 +95,22 @@ class _EditWalletsViewState extends ConsumerState<EditWalletsView> {
       return size * uiConfig.value.styles.imageSizeScaleFactor;
     }
 
-    double borderOpOf(double border) {
-      return border * uiConfig.value.styles.borderOpacity;
-    }
-
     double roundedOf(double size) {
       return size * uiConfig.value.styles.radiusScaleFactor;
     }
 
-
-     double fontSizeOf(double size) {
+    double fontSizeOf(double size) {
       return size * uiConfig.value.styles.fontSizeScaleFactor;
     }
 
+    double listTitleVerticalOf(double size) {
+      return size * uiConfig.value.styles.listTitleVisualDensityVerticalFactor;
+    }
+
+    double listTitleHorizontalOf(double size) {
+      return size *
+          uiConfig.value.styles.listTitleVisualDensityHorizontalFactor;
+    }
 
     Future<void> reorderList(int oldIndex, int newIndex) async {
       try {
@@ -264,7 +264,7 @@ class _EditWalletsViewState extends ConsumerState<EditWalletsView> {
           "Wallets",
           style: textTheme.bodyMedium?.copyWith(
             color: colors.textColor.withValues(alpha: 0.6),
-            fontSize:fontSizeOf (20),
+            fontSize: fontSizeOf(20),
           ),
         ),
         backgroundColor: colors.primaryColor,
@@ -275,7 +275,8 @@ class _EditWalletsViewState extends ConsumerState<EditWalletsView> {
           alignment: Alignment.center,
           decoration: BoxDecoration(
               borderRadius: BorderRadius.only(
-                  topLeft: Radius.circular(roundedOf(15)), topRight: Radius.circular(roundedOf(15))),
+                  topLeft: Radius.circular(roundedOf(15)),
+                  topRight: Radius.circular(roundedOf(15))),
               color: colors.primaryColor),
           child: Column(
             children: [
@@ -286,7 +287,7 @@ class _EditWalletsViewState extends ConsumerState<EditWalletsView> {
                 child: TextField(
                     style: textTheme.bodyMedium?.copyWith(
                         color: colors.textColor,
-                        fontSize: fontSizeOf (14),
+                        fontSize: fontSizeOf(14),
                         fontWeight: FontWeight.w500),
                     onChanged: (value) {
                       setState(() {
@@ -316,7 +317,7 @@ class _EditWalletsViewState extends ConsumerState<EditWalletsView> {
                           borderRadius: BorderRadius.circular(roundedOf(5))),
                       hintText: 'Search wallets',
                       hintStyle: textTheme.bodySmall?.copyWith(
-                          fontSize:fontSizeOf (14),
+                          fontSize: fontSizeOf(14),
                           fontWeight: FontWeight.normal,
                           color: colors.textColor.withOpacity(0.4)),
                     )),
@@ -365,6 +366,14 @@ class _EditWalletsViewState extends ConsumerState<EditWalletsView> {
                                             padding: EdgeInsets.symmetric(
                                                 vertical: 4, horizontal: 20),
                                             child: AccountListViewWidget(
+                                                listTitleHorizontalOf:
+                                                    listTitleHorizontalOf,
+                                                listTitleVerticalOf:
+                                                    listTitleVerticalOf,
+                                                imageSizeOf: imageSizeOf,
+                                                iconSizeOf: iconSizeOf,
+                                                fontSizeOf: fontSizeOf,
+                                                roundedOf: roundedOf,
                                                 isCurrent: wallet.keyId ==
                                                     account.keyId,
                                                 colors: colors,
@@ -442,7 +451,7 @@ class _EditWalletsViewState extends ConsumerState<EditWalletsView> {
                                 roundedOf: roundedOf,
                                 fontSizeOf: fontSizeOf,
                                 iconSizeOf: iconSizeOf,
-                              colors: colors),
+                                colors: colors),
                             context: context,
                             colors: colors);
                       },

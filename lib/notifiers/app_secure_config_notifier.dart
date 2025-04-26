@@ -5,13 +5,13 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:local_auth/local_auth.dart';
 import 'package:moonwallet/logger/logger.dart';
 import 'package:moonwallet/service/db/global_database.dart';
-import 'package:moonwallet/service/db/wallet_saver.dart';
+import 'package:moonwallet/service/db/wallet_db.dart';
 import 'package:moonwallet/types/types.dart';
 import 'package:moonwallet/utils/crypto.dart';
 
 class AppSecureConfigNotifier extends AsyncNotifier<AppSecureConfig> {
   final _db = GlobalDatabase();
-  final _walletStorage = WalletSaver();
+  final _walletStorage = WalletDatabase();
   final _encryptService = EncryptService();
   final LocalAuthentication _auth = LocalAuthentication();
 
@@ -56,11 +56,12 @@ class AppSecureConfigNotifier extends AsyncNotifier<AppSecureConfig> {
     }
   }
 
-  Future<bool> updateConfig({bool? useBio, required String password}) async {
+  Future<bool> updateConfig(
+      {bool? useBio, bool? lockAtStartup, required String password}) async {
     try {
       final lastSecureConfig = state.value;
       final newConfig = (lastSecureConfig ?? AppSecureConfig())
-          .copyWith(useBioMetric: useBio);
+          .copyWith(useBioMetric: useBio, lockAtStartup: lockAtStartup);
       return await saveConfig(newConfig, password);
     } catch (e) {
       logError(e.toString());
@@ -70,7 +71,7 @@ class AppSecureConfigNotifier extends AsyncNotifier<AppSecureConfig> {
 
   Future<bool> toggleCanUseBio(bool v, String password) async {
     try {
-      if (!(await WalletSaver().isPasswordValid(password))) {
+      if (!(await WalletDatabase().isPasswordValid(password))) {
         throw Exception("Wrong password");
       }
       if (!v) {

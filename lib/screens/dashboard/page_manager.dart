@@ -136,31 +136,28 @@ class _PagesManagerViewState extends ConsumerState<PagesManagerView> {
 
   @override
   Widget build(BuildContext context) {
-   final uiConfig = useState<types.AppUIConfig>(types.AppUIConfig.defaultConfig);
+    final uiConfig =
+        useState<types.AppUIConfig>(types.AppUIConfig.defaultConfig);
     final appUIConfigAsync = ref.watch(appUIConfigProvider);
 
-
-
-     useEffect(() {
+    useEffect(() {
       appUIConfigAsync.whenData((data) {
         uiConfig.value = data;
       });
       return null;
     }, [appUIConfigAsync]);
 
-     double fontSizeOf(double size) {
+    double fontSizeOf(double size) {
       return size * uiConfig.value.styles.fontSizeScaleFactor;
     }
- 
 
-     double iconSizeOf(double size) {
+    double iconSizeOf(double size) {
       return size * uiConfig.value.styles.iconSizeScaleFactor;
     }
 
     double roundedOf(double size) {
       return size * uiConfig.value.styles.radiusScaleFactor;
     }
-
 
     return Scaffold(
       body: IndexedStack(
@@ -170,7 +167,7 @@ class _PagesManagerViewState extends ConsumerState<PagesManagerView> {
       bottomNavigationBar: BottomNav(
           roundedOf: roundedOf,
           fontSizeOf: fontSizeOf,
-           iconSizeOf: iconSizeOf,
+          iconSizeOf: iconSizeOf,
           onTap: (index) async {
             await vibrate();
 

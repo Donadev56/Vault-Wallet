@@ -2,11 +2,11 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:moonwallet/logger/logger.dart';
 import 'package:moonwallet/notifiers/providers.dart';
+import 'package:moonwallet/service/db/wallet_db.dart';
 import 'package:moonwallet/types/types.dart';
 
 class AccountsNotifier extends AsyncNotifier<List<PublicData>> {
-  late final walletSaver = ref.read(walletSaverProvider);
-  late final encryptService = ref.read(encryptServiceProvider);
+  final walletSaver = WalletDatabase();
 
   List<PublicData> get currentAccounts => [...state.value ?? []];
 

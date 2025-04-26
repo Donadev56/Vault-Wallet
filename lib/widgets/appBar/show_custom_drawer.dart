@@ -6,7 +6,6 @@ import 'package:google_fonts/google_fonts.dart';
 import 'package:lucide_icons_flutter/lucide_icons.dart';
 import 'package:moonwallet/screens/dashboard/settings/settings.dart';
 import 'package:moonwallet/screens/dashboard/wallet_actions/private/private_key_screen.dart';
-import 'package:moonwallet/screens/dashboard/settings/change_colors.dart';
 import 'package:moonwallet/utils/number_formatter.dart';
 import 'package:moonwallet/types/types.dart';
 import 'package:moonwallet/widgets/avatar_modal.dart';
@@ -274,18 +273,20 @@ void showCustomDrawer({
                         CustomOptionWidget(
                             colors: colors,
                             splashColor: colors.themeColor.withOpacity(0.1),
-                            containerRadius: BorderRadius.circular(10),
+                            containerRadius:
+                                BorderRadius.circular(roundedOf(10)),
                             spaceName: "Appearance",
                             internalElementSpacing: 10,
                             shapeBorder: RoundedRectangleBorder(
-                                borderRadius: BorderRadius.circular(10)),
+                                borderRadius:
+                                    BorderRadius.circular(roundedOf(10))),
                             backgroundColor: Colors.transparent,
                             spaceNameStyle: textTheme.bodySmall?.copyWith(
                                   color: colors.textColor,
                                 ) ??
                                 GoogleFonts.roboto(color: colors.textColor),
                             options: [
-                                                            Option(
+                              Option(
                                   tileColor:
                                       colors.secondaryColor.withOpacity(0.5),
                                   title: "Edit profile picture",
@@ -317,14 +318,15 @@ void showCustomDrawer({
                                   titleStyle: textTheme.bodySmall?.copyWith(
                                       color: colors.textColor,
                                       fontSize: fontSizeOf(14))),
-
                             ],
                             onTap: (i) async {
                               if (i == 1) {
                                 Navigator.push(
                                     context,
                                     MaterialPageRoute(
-                                      builder: (context) => SettingsPage(colors: colors,),
+                                      builder: (context) => SettingsPage(
+                                        colors: colors,
+                                      ),
                                     ));
                               } else if (i == 0) {
                                 final file = await showProfileImagePicker(

@@ -9,7 +9,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:lucide_icons_flutter/lucide_icons.dart';
 import 'package:moonwallet/logger/logger.dart';
-import 'package:moonwallet/service/db/wallet_saver.dart';
+import 'package:moonwallet/service/db/wallet_db.dart';
 import 'package:moonwallet/types/types.dart';
 import 'package:moonwallet/utils/colors.dart';
 import 'package:moonwallet/utils/constant.dart';
@@ -61,7 +61,7 @@ class Web3BrowserScreenState extends State<Web3BrowserScreen> {
   List<PublicData> accounts = [];
   List<Crypto> networks = [];
   PublicData? currentAccount;
-  final web3Manager = WalletSaver();
+  final web3Manager = WalletDatabase();
   final priceManager = PriceManager();
 
   final encryptService = EncryptService();

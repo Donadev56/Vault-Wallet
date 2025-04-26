@@ -6,7 +6,7 @@ import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:moonwallet/custom/web3_webview/lib/utils/loading.dart';
 import 'package:moonwallet/main.dart';
 import 'package:moonwallet/notifiers/providers.dart';
-import 'package:moonwallet/service/db/wallet_saver.dart';
+import 'package:moonwallet/service/db/wallet_db.dart';
 import 'package:moonwallet/utils/colors.dart';
 import 'package:moonwallet/utils/crypto.dart';
 import 'package:moonwallet/utils/themes.dart';
@@ -17,7 +17,7 @@ import 'package:moonwallet/widgets/func/tokens_config/show_add_network.dart';
 import 'package:moonwallet/widgets/func/tokens_config/show_add_token.dart';
 import 'package:moonwallet/widgets/func/snackbar.dart';
 import 'package:moonwallet/widgets/func/tokens_config/show_edit_network_modal.dart';
-import 'package:moonwallet/widgets/func/tokens_config/show_selecte_network_modal.dart';
+import 'package:moonwallet/widgets/func/tokens_config/show_select_network_modal.dart';
 import 'package:ulid/ulid.dart';
 
 import 'package:flutter/material.dart';
@@ -42,7 +42,7 @@ class _AddCryptoViewState extends ConsumerState<AddCryptoView> {
   final cryptoStorageManager = CryptoStorageManager();
   final tokenManager = TokenManager();
   List<PublicData> accounts = [];
-  final web3Manager = WalletSaver();
+  final web3Manager = WalletDatabase();
   final encryptService = EncryptService();
 
   bool hasSaved = false;
@@ -115,16 +115,14 @@ class _AddCryptoViewState extends ConsumerState<AddCryptoView> {
     final appUIConfigAsync = ref.watch(appUIConfigProvider);
 
     final uiConfig = useState<AppUIConfig>(AppUIConfig.defaultConfig);
-        useEffect(() {
+    useEffect(() {
       appUIConfigAsync.whenData((data) {
         uiConfig.value = data;
       });
       return null;
     }, [appUIConfigAsync]);
 
-   
-
-   /* double listTitleVerticalOf(double size) {
+    /* double listTitleVerticalOf(double size) {
       return size * uiConfig.value.styles.listTitleVisualDensityVerticalFactor;
     }
 
@@ -132,9 +130,10 @@ class _AddCryptoViewState extends ConsumerState<AddCryptoView> {
       return size *
           uiConfig.value.styles.listTitleVisualDensityHorizontalFactor;
     } */
-     double fontSizeOf(double size) {
+    double fontSizeOf(double size) {
       return size * uiConfig.value.styles.fontSizeScaleFactor;
     }
+
     double iconSizeOf(double size) {
       return size * uiConfig.value.styles.iconSizeScaleFactor;
     }
@@ -143,15 +142,9 @@ class _AddCryptoViewState extends ConsumerState<AddCryptoView> {
       return size * uiConfig.value.styles.imageSizeScaleFactor;
     }
 
-    double borderOpOf(double border) {
-      return border * uiConfig.value.styles.borderOpacity;
-    }
-
     double roundedOf(double size) {
       return size * uiConfig.value.styles.radiusScaleFactor;
     }
-
-
 
     savedCryptoAsync.whenData((data) => {
           setState(() {
@@ -280,16 +273,17 @@ class _AddCryptoViewState extends ConsumerState<AddCryptoView> {
                     spacing: 10,
                     children: [
                       CustomListTitleButton(
-            roundedOf: roundedOf,
-            fontSizeOf: fontSizeOf,
-            iconSizeOf: iconSizeOf,
-           
-                          
+                          roundedOf: roundedOf,
+                          fontSizeOf: fontSizeOf,
+                          iconSizeOf: iconSizeOf,
                           textColor: colors.textColor,
                           text: "Add custom token",
                           icon: Icons.add,
                           onTap: () {
                             showAddToken(
+                                roundedOf: roundedOf,
+                                fontSizeOf: fontSizeOf,
+                                iconSizeOf: iconSizeOf,
                                 reorganizedCrypto: reorganizedCrypto,
                                 notifyError: notifyError,
                                 notifySuccess: notifySuccess,
@@ -300,17 +294,19 @@ class _AddCryptoViewState extends ConsumerState<AddCryptoView> {
                                 hasSaved: hasSaved);
                           }),
                       CustomListTitleButton(
-                           roundedOf: roundedOf,
-            fontSizeOf: fontSizeOf,
-            iconSizeOf: iconSizeOf,
-           
-                        
+                          roundedOf: roundedOf,
+                          fontSizeOf: fontSizeOf,
+                          iconSizeOf: iconSizeOf,
                           textColor: colors.textColor,
                           text: "Add custom network",
                           icon: Icons.construction,
                           onTap: () async {
                             final newNetwork = await showAddNetwork(
-                                context: context, colors: colors);
+                                roundedOf: roundedOf,
+                                fontSizeOf: fontSizeOf,
+                                iconSizeOf: iconSizeOf,
+                                context: context,
+                                colors: colors);
                             if (newNetwork != null) {
                               if (reorganizedCrypto.any(
                                   (c) => c.chainId == newNetwork.chainId)) {
@@ -322,21 +318,26 @@ class _AddCryptoViewState extends ConsumerState<AddCryptoView> {
                             }
                           }),
                       CustomListTitleButton(
-                           roundedOf: roundedOf,
-            fontSizeOf: fontSizeOf,
-            iconSizeOf: iconSizeOf,
-           
+                          roundedOf: roundedOf,
+                          fontSizeOf: fontSizeOf,
+                          iconSizeOf: iconSizeOf,
                           textColor: colors.textColor,
                           text: "Edit network",
                           icon: Icons.border_color,
                           onTap: () async {
                             final selectedNetwork =
                                 await showSelectNetworkModal(
+                                    roundedOf: roundedOf,
+                                    fontSizeOf: fontSizeOf,
+                                    iconSizeOf: iconSizeOf,
                                     context: context,
                                     colors: colors,
                                     networks: reorganizedCrypto);
                             if (selectedNetwork != null) {
                               showEditNetwork(
+                                  roundedOf: roundedOf,
+                                  fontSizeOf: fontSizeOf,
+                                  iconSizeOf: iconSizeOf,
                                   context: context,
                                   network: selectedNetwork,
                                   onSubmitted: editNetwork,
@@ -435,12 +436,14 @@ class _AddCryptoViewState extends ConsumerState<AddCryptoView> {
                           vertical: 8, horizontal: 20),
                       onTap: () {},
                       leading: CryptoPicture(
-                          crypto: crypto, size: imageSizeOf(40), colors: colors),
+                          crypto: crypto,
+                          size: imageSizeOf(40),
+                          colors: colors),
                       title: Text(
                         crypto.symbol,
                         style: textTheme.bodyMedium?.copyWith(
                             color: colors.textColor,
-                            fontSize: fontSizeOf (16),
+                            fontSize: fontSizeOf(16),
                             fontWeight: FontWeight.bold),
                       ),
                       trailing: Switch(

@@ -1,13 +1,14 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:lucide_icons_flutter/lucide_icons.dart';
 import 'package:mobile_scanner/mobile_scanner.dart';
 import 'package:moonwallet/custom/web3_webview/lib/utils/loading.dart';
 import 'package:moonwallet/logger/logger.dart';
 import 'package:moonwallet/notifiers/providers.dart';
 import 'package:moonwallet/screens/dashboard/page_manager.dart';
-import 'package:moonwallet/service/db/wallet_saver.dart';
+import 'package:moonwallet/service/db/wallet_db.dart';
 import 'package:moonwallet/types/types.dart';
 import 'package:moonwallet/utils/colors.dart';
 import 'package:moonwallet/utils/prefs.dart';
@@ -17,7 +18,7 @@ import 'package:moonwallet/widgets/func/snackbar.dart';
 import 'package:moonwallet/widgets/scanner/show_scanner.dart';
 import 'package:page_transition/page_transition.dart';
 
-class AddMnemonicScreen extends ConsumerStatefulWidget {
+class AddMnemonicScreen extends StatefulHookConsumerWidget {
   const AddMnemonicScreen({super.key});
 
   @override
@@ -30,7 +31,7 @@ class _AddPrivateKeyState extends ConsumerState<AddMnemonicScreen> {
   String userPassword = "";
   int attempt = 0;
   int secAttempt = 0;
-  final web3Manager = WalletSaver();
+  final web3Manager = WalletDatabase();
   final publicDataManager = PublicDataManager();
   bool isDarkMode = false;
 

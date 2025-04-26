@@ -13,6 +13,13 @@ class AccountListViewWidget extends StatelessWidget {
   final bool showMore;
   final bool isCurrent;
 
+  final DoubleFactor roundedOf;
+  final DoubleFactor fontSizeOf;
+  final DoubleFactor iconSizeOf;
+  final DoubleFactor imageSizeOf;
+  final DoubleFactor listTitleHorizontalOf;
+  final DoubleFactor listTitleVerticalOf;
+
   final AppColors colors;
   const AccountListViewWidget(
       {super.key,
@@ -22,7 +29,13 @@ class AccountListViewWidget extends StatelessWidget {
       required this.wallet,
       required this.onTap,
       required this.onMoreTap,
-      this.tileColor});
+      this.tileColor,
+      required this.fontSizeOf,
+      required this.iconSizeOf,
+      required this.imageSizeOf,
+      required this.listTitleHorizontalOf,
+      required this.listTitleVerticalOf,
+      required this.roundedOf});
 
   @override
   Widget build(BuildContext context) {
@@ -33,11 +46,12 @@ class AccountListViewWidget extends StatelessWidget {
     final textTheme = Theme.of(context).textTheme;
     return ListTile(
         tileColor: tileColor,
-        visualDensity: VisualDensity(horizontal: 0, vertical: -4),
+        visualDensity: VisualDensity(horizontal: (0), vertical: (-4)),
         contentPadding: const EdgeInsets.symmetric(vertical: 0, horizontal: 10),
         onTap: onTap,
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(6)),
-        leading: Jazzicon.getIconWidget(getJazzImage(wallet.address), size: 35),
+        leading: Jazzicon.getIconWidget(getJazzImage(wallet.address),
+            size: imageSizeOf(35)),
         title: Row(
           spacing: 5,
           children: [
@@ -53,7 +67,7 @@ class AccountListViewWidget extends StatelessWidget {
                   style: textTheme.bodyMedium?.copyWith(
                       color: colors.textColor,
                       fontWeight: FontWeight.w500,
-                      fontSize: 16),
+                      fontSize: fontSizeOf(16)),
                 ),
               );
             }),
@@ -61,13 +75,14 @@ class AccountListViewWidget extends StatelessWidget {
               Container(
                 padding: const EdgeInsets.symmetric(vertical: 3, horizontal: 6),
                 decoration: BoxDecoration(
-                    borderRadius: BorderRadius.circular(20),
+                    borderRadius: BorderRadius.circular(roundedOf(20)),
                     color: colors.secondaryColor.withOpacity(0.2),
                     border: Border.all(color: colors.secondaryColor)),
                 child: Text(
                   "Watch Only",
                   style: textTheme.bodySmall?.copyWith(
-                      color: colors.textColor.withOpacity(0.8), fontSize: 11),
+                      color: colors.textColor.withOpacity(0.8),
+                      fontSize: fontSizeOf(11)),
                 ),
               )
           ],
@@ -77,7 +92,8 @@ class AccountListViewWidget extends StatelessWidget {
           maxLines: 1,
           overflow: TextOverflow.ellipsis,
           style: textTheme.bodySmall?.copyWith(
-              color: colors.textColor.withOpacity(0.4), fontSize: 12),
+              color: colors.textColor.withOpacity(0.4),
+              fontSize: fontSizeOf(12)),
         ),
         trailing: ConstrainedBox(
           constraints: BoxConstraints(maxWidth: 80),

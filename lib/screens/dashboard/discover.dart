@@ -309,19 +309,16 @@ class _DiscoverScreenState extends ConsumerState<DiscoverScreen>
     final uiConfig = useState<AppUIConfig>(AppUIConfig.defaultConfig);
     final appUIConfigAsync = ref.watch(appUIConfigProvider);
 
-
-
-     useEffect(() {
+    useEffect(() {
       appUIConfigAsync.whenData((data) {
         uiConfig.value = data;
       });
       return null;
     }, [appUIConfigAsync]);
 
-     double fontSizeOf(double size) {
+    double fontSizeOf(double size) {
       return size * uiConfig.value.styles.fontSizeScaleFactor;
     }
- 
 
     double imageSizeOf(double size) {
       return size * uiConfig.value.styles.imageSizeScaleFactor;
@@ -424,8 +421,8 @@ class _DiscoverScreenState extends ConsumerState<DiscoverScreen>
                                 color: colors.grayColor.withOpacity(0)),
                             borderRadius: BorderRadius.circular(roundedOf(40))),
                         labelText: "Search",
-                        labelStyle:
-                            TextStyle(color: colors.textColor, fontSize:fontSizeOf (12)),
+                        labelStyle: TextStyle(
+                            color: colors.textColor, fontSize: fontSizeOf(12)),
                         fillColor: colors.grayColor.withOpacity(0.2),
                       ),
                     ),
@@ -439,8 +436,8 @@ class _DiscoverScreenState extends ConsumerState<DiscoverScreen>
                   TabBar(
                     dividerColor: Colors.transparent,
                     controller: _tabController,
-                    labelColor: colors.textColor,
-                    unselectedLabelColor: colors.grayColor.withOpacity(0.7),
+                    labelColor: colors.themeColor,
+                    unselectedLabelColor: colors.textColor,
                     indicatorColor: colors.themeColor,
                     tabs: [
                       Tab(text: 'DApps'),
@@ -478,12 +475,13 @@ class _DiscoverScreenState extends ConsumerState<DiscoverScreen>
                             final dapp = dapps[index];
                             return ListTile(
                                 leading: ClipRRect(
-                                  borderRadius: BorderRadius.circular(roundedOf(50)),
+                                  borderRadius:
+                                      BorderRadius.circular(roundedOf(50)),
                                   child: dapp.isNetworkImage
                                       ? FastCachedImage(
                                           url: dapp.icon,
                                           width: imageSizeOf(50),
-                                          height:imageSizeOf(50),
+                                          height: imageSizeOf(50),
                                         )
                                       : Image.asset(
                                           dapp.icon,
@@ -537,7 +535,7 @@ class _DiscoverScreenState extends ConsumerState<DiscoverScreen>
                                   errorBuilder: (ctx, widget, error) {
                                     return SizedBox(
                                       width: imageSizeOf(30),
-                                      height:imageSizeOf (30),
+                                      height: imageSizeOf(30),
                                       child:
                                           ColoredBox(color: colors.themeColor),
                                     );
@@ -550,7 +548,7 @@ class _DiscoverScreenState extends ConsumerState<DiscoverScreen>
                         title: Text(
                           hist.title,
                           style: textTheme.bodyMedium?.copyWith(
-                            fontSize:fontSizeOf (16),
+                            fontSize: fontSizeOf(16),
                             fontWeight: FontWeight.bold,
                             color: colors.textColor,
                           ),

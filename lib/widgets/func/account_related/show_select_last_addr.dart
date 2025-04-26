@@ -74,9 +74,10 @@ void showSelectLastAddr(
                             Icons.arrow_back,
                             color: colors.textColor,
                           )),
+                      centerTitle: true,
                       title: Text(
-                        "List of wallets",
-                        style: textTheme.headlineMedium
+                        "Wallets",
+                        style: textTheme.bodyMedium
                             ?.copyWith(color: colors.textColor, fontSize: 20),
                       ),
                       backgroundColor: colors.primaryColor,
@@ -87,21 +88,8 @@ void showSelectLastAddr(
                             child: Container(
                               margin:
                                   const EdgeInsets.symmetric(horizontal: 15),
-                              decoration: BoxDecoration(
-                                  borderRadius: BorderRadius.circular(10),
-                                  color:
-                                      colors.themeColor.withValues(alpha: 0.1)),
                               child: TabBar(
-                                indicatorSize: TabBarIndicatorSize.tab,
-                                indicatorPadding: const EdgeInsets.symmetric(
-                                    vertical: 5, horizontal: 10),
-                                indicator: BoxDecoration(
-                                    color: colors.themeColor,
-                                    borderRadius: BorderRadius.circular(10)),
                                 dividerColor: Colors.transparent,
-                                labelStyle: textTheme.bodyMedium?.copyWith(
-                                    color: colors.primaryColor,
-                                    fontWeight: FontWeight.bold),
                                 tabs: <Widget>[
                                   Tab(
                                     text: "Recent",

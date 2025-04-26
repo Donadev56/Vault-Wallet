@@ -2,11 +2,12 @@
 
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:lucide_icons_flutter/lucide_icons.dart';
 import 'package:moonwallet/logger/logger.dart';
 import 'package:moonwallet/service/db/crypto_storage_manager.dart';
 import 'package:moonwallet/service/external_data/price_manager.dart';
-import 'package:moonwallet/service/db/wallet_saver.dart';
+import 'package:moonwallet/service/db/wallet_db.dart';
 import 'package:moonwallet/types/types.dart';
 import 'package:moonwallet/utils/colors.dart';
 import 'package:moonwallet/utils/crypto.dart';
@@ -16,15 +17,15 @@ import 'package:moonwallet/widgets/app_bar_title.dart';
 import 'package:moonwallet/widgets/crypto_picture.dart';
 import 'package:qr_flutter/qr_flutter.dart';
 
-class ReceiveScreen extends StatefulWidget {
+class ReceiveScreen extends StatefulHookConsumerWidget {
   final WidgetInitialData initData;
   const ReceiveScreen({super.key, required this.initData});
 
   @override
-  State<ReceiveScreen> createState() => _ReceiveScreenState();
+  ConsumerState<ReceiveScreen> createState() => _ReceiveScreenState();
 }
 
-class _ReceiveScreenState extends State<ReceiveScreen> {
+class _ReceiveScreenState extends ConsumerState<ReceiveScreen> {
   Color warningColor = Colors.orange;
   bool isDarkMode = false;
   final cryptoStorageManager = CryptoStorageManager();
@@ -37,7 +38,7 @@ class _ReceiveScreenState extends State<ReceiveScreen> {
       walletName: "",
       address: "",
       isWatchOnly: false);
-  final web3Manager = WalletSaver();
+  final web3Manager = WalletDatabase();
   final encryptService = EncryptService();
   final priceManager = PriceManager();
   final publicDataManager = PublicDataManager();

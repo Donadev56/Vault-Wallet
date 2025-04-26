@@ -3,7 +3,7 @@ import 'package:moonwallet/custom/web3_webview/lib/utils/loading.dart';
 import 'package:moonwallet/logger/logger.dart';
 import 'package:moonwallet/service/external_data/price_manager.dart';
 import 'package:moonwallet/service/web3_interactions/evm/token_manager.dart';
-import 'package:moonwallet/service/db/wallet_saver.dart';
+import 'package:moonwallet/service/db/wallet_db.dart';
 import 'package:moonwallet/types/types.dart';
 import 'package:moonwallet/widgets/func/transactions/ask_user_for_conf.dart';
 import 'package:moonwallet/widgets/func/security/ask_password.dart';
@@ -15,7 +15,7 @@ import 'utils.dart';
 
 class EthInteractionManager {
   var httpClient = Client();
-  final web3Manager = WalletSaver();
+  final walletStorage = WalletDatabase();
   final priceManager = PriceManager();
   final tokenManager = TokenManager();
 
@@ -44,82 +44,10 @@ class EthInteractionManager {
     }
   }
 
-  Future<String?> getPrivateKey({required String address}) async {
-    try {
-      String password = "";
-      final pRes = await web3Manager.getSavedPassword();
-      if (pRes != null) {
-        password = pRes;
-      }
-      final savedPrivateKeys = await web3Manager.getDecryptedData(password);
-      if (savedPrivateKeys != null) {
-        log("Retrieved private key list");
-
-        if (savedPrivateKeys.isNotEmpty) {
-          log('the list is not empty');
-          for (final privatekey in savedPrivateKeys) {
-            final key = privatekey["privatekey"];
-            final Credentials fromHex = EthPrivateKey.fromHex(key);
-
-            final keyAddr = fromHex.address.hex;
-            log("Address  $address");
-            if (keyAddr.trim().toLowerCase() == address.trim().toLowerCase()) {
-              log("Key found for address $address");
-              log("Address $keyAddr == $address");
-              return key;
-            }
-          }
-
-          return null;
-        } else {
-          log("No key found for address $address");
-          throw Exception("Internal error : No key found for address $address");
-        }
-      } else {
-        log("Invalid password or no data found");
-        throw Exception("Internal error : Invalid password or no data found");
-      }
-    } catch (e) {
-      logError(e.toString());
-      return null;
-    }
-  }
-
-  Future<Credentials?> getCredentialsUsingPassword(
-      {required BuildContext context,
-      required String address,
-      required AppColors colors}) async {
-    try {
-      log("Address $address");
-      if (address.isEmpty) {
-        logError("Address is empty");
-        throw Exception("Address is empty");
-      }
-      final password =
-          await askPassword(context: context, colors: colors, useBio: true);
-      if (password.isNotEmpty) {
-        try {
-          final cred =
-              await getCredentials(password: password, address: address);
-          return cred;
-        } catch (e) {
-          logError("Error: $e");
-          return null;
-        }
-      } else {
-        log("Password is empty");
-        throw Exception("Password is empty");
-      }
-    } catch (e) {
-      logError(e.toString());
-      return null;
-    }
-  }
-
-  Future<Credentials?> getCredentials(
+  Future<AccountAccess?> getAccess(
       {required String password, required String address}) async {
     try {
-      final savedPrivateKeys = await web3Manager.getDecryptedData(password);
+      final savedPrivateKeys = await walletStorage.getDecryptedData(password);
       if (savedPrivateKeys != null) {
         if (savedPrivateKeys.isNotEmpty) {
           for (final privatekey in savedPrivateKeys) {
@@ -129,47 +57,7 @@ class EthInteractionManager {
             final keyAddr = fromHex.address.hex;
             if (keyAddr.trim().toLowerCase() == address.trim().toLowerCase()) {
               log("Key found for address $address");
-              return fromHex;
-            }
-          }
-
-          return null;
-        } else {
-          log("No key found for address $address");
-          throw Exception("Internal error : No key found for address $address");
-        }
-      } else {
-        log("Invalid password or no data found");
-        throw Exception("Internal error : Invalid password or no data found");
-      }
-    } catch (e) {
-      logError(e.toString());
-      return null;
-    }
-  }
-
-  Future<Credentials?> getCredentialsV2({required String address}) async {
-    try {
-      String password = "";
-      final pRes = await web3Manager.getSavedPassword();
-      if (pRes != null) {
-        password = pRes;
-      }
-      final savedPrivateKeys = await web3Manager.getDecryptedData(password);
-      if (savedPrivateKeys != null) {
-        log("Retrieved private key list");
-
-        if (savedPrivateKeys.isNotEmpty) {
-          log('the list is not empty');
-          for (final privatekey in savedPrivateKeys) {
-            final key = privatekey["privatekey"];
-            final Credentials fromHex = EthPrivateKey.fromHex(key);
-
-            final keyAddr = fromHex.address.hex;
-            log("Address found $address");
-            if (keyAddr.trim().toLowerCase() == address.trim().toLowerCase()) {
-              log("Key found for address $address");
-              return fromHex;
+              return AccountAccess(address: address, cred: fromHex, key: key);
             }
           }
 
@@ -202,8 +90,9 @@ class EthInteractionManager {
         throw Exception("Internal error : rpcUrl is empty");
       }
       var ethClient = Web3Client(rpcUrl, httpClient);
-      final credentials =
-          await getCredentials(password: password, address: address);
+      final access = await getAccess(password: password, address: address);
+      final credentials = access?.cred;
+
       if (credentials != null) {
         final hash = await ethClient.sendTransaction(
           credentials,
@@ -214,7 +103,7 @@ class EthInteractionManager {
           showCustomSnackBar(
               type: MessageType.success,
               context: context,
-              message: "Hash : $hash",
+              message: "Transfer Sent",
               colors: colors,
               icon: Icons.check_circle,
               iconColor: colors.greenColor);
