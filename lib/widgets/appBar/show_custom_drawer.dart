@@ -9,7 +9,7 @@ import 'package:moonwallet/screens/dashboard/wallet_actions/private/private_key_
 import 'package:moonwallet/utils/number_formatter.dart';
 import 'package:moonwallet/types/types.dart';
 import 'package:moonwallet/widgets/avatar_modal.dart';
-import 'package:moonwallet/widgets/crypto_picture.dart';
+import 'package:moonwallet/widgets/screen_widgets/crypto_picture.dart';
 import 'package:moonwallet/widgets/custom_options.dart';
 import 'package:moonwallet/widgets/func/security/ask_password.dart';
 import 'package:moonwallet/widgets/func/security/show_change_password_procedure.dart';
@@ -190,43 +190,12 @@ void showCustomDrawer({
                                   ],
                                 );
                               }),
-                        SizedBox(
-                          height: 10,
-                        ),
-                        SizedBox(
-                          height: 50,
-                          child: Stack(
-                            clipBehavior: Clip.none,
-                            children: availableCryptos
-                                .asMap()
-                                .entries
-                                .map((entry) {
-                                  int index = entry.key;
-                                  var crypto = entry.value;
-                                  return Positioned(
-                                      left: index * 18.0,
-                                      child: Container(
-                                        padding: const EdgeInsets.all(3),
-                                        decoration: BoxDecoration(
-                                            color: colors.primaryColor,
-                                            borderRadius:
-                                                BorderRadius.circular(20)),
-                                        child: CryptoPicture(
-                                            crypto: crypto,
-                                            size: imageSizeOf(24),
-                                            colors: colors),
-                                      ));
-                                })
-                                .toList()
-                                .reversed
-                                .toList(),
-                          ),
-                        ),
                         Align(
                             alignment: Alignment.centerLeft,
                             child: Column(
                               mainAxisAlignment: MainAxisAlignment.start,
                               crossAxisAlignment: CrossAxisAlignment.start,
+                              spacing: 6,
                               children: [
                                 Text(
                                   !isHidden
@@ -234,18 +203,54 @@ void showCustomDrawer({
                                       : "***",
                                   style: textTheme.bodySmall?.copyWith(
                                       color: colors.textColor,
-                                      fontSize: fontSizeOf(30),
+                                      fontSize: fontSizeOf(25),
                                       fontWeight: FontWeight.bold),
                                 ),
                                 Text(
                                   "Balance",
                                   style: textTheme.bodySmall?.copyWith(
                                     color: colors.textColor.withOpacity(0.6),
-                                    fontSize: fontSizeOf(16),
+                                    fontSize: fontSizeOf(14),
                                   ),
                                 ),
                               ],
                             )),
+                        SizedBox(
+                          height: 10,
+                        ),
+                        SingleChildScrollView(
+                          scrollDirection: Axis.horizontal,
+                          child: SizedBox(
+                            height: 50,
+                            width: MediaQuery.of(context).size.width,
+                            child: Stack(
+                              clipBehavior: Clip.none,
+                              children: availableCryptos
+                                  .asMap()
+                                  .entries
+                                  .map((entry) {
+                                    int index = entry.key;
+                                    var crypto = entry.value;
+                                    return Positioned(
+                                        left: index * 18.0,
+                                        child: Container(
+                                          padding: const EdgeInsets.all(3),
+                                          decoration: BoxDecoration(
+                                              color: colors.primaryColor,
+                                              borderRadius:
+                                                  BorderRadius.circular(20)),
+                                          child: CryptoPicture(
+                                              crypto: crypto,
+                                              size: imageSizeOf(24),
+                                              colors: colors),
+                                        ));
+                                  })
+                                  .toList()
+                                  .reversed
+                                  .toList(),
+                            ),
+                          ),
+                        ),
                         SizedBox(
                           height: 10,
                         ),
@@ -287,8 +292,7 @@ void showCustomDrawer({
                                 GoogleFonts.roboto(color: colors.textColor),
                             options: [
                               Option(
-                                  tileColor:
-                                      colors.secondaryColor.withOpacity(0.5),
+                                  tileColor: colors.secondaryColor,
                                   title: "Edit profile picture",
                                   icon: Icon(
                                     LucideIcons.user,
@@ -304,8 +308,7 @@ void showCustomDrawer({
                                       color: colors.textColor,
                                       fontSize: fontSizeOf(14))),
                               Option(
-                                  tileColor:
-                                      colors.secondaryColor.withOpacity(0.7),
+                                  tileColor: colors.secondaryColor,
                                   title: "More Settings",
                                   icon: Icon(
                                     LucideIcons.settings,
@@ -361,9 +364,8 @@ void showCustomDrawer({
                                 GoogleFonts.roboto(color: colors.textColor),
                             options: [
                               Option(
-                                  tileColor:
-                                      colors.secondaryColor.withOpacity(0.7),
-                                  title: "View private data",
+                                  tileColor: colors.secondaryColor,
+                                  title: "Backup",
                                   icon: Icon(
                                     LucideIcons.key,
                                     color: colors.textColor.withOpacity(0.7),
@@ -376,8 +378,7 @@ void showCustomDrawer({
                                       color: colors.textColor,
                                       fontSize: fontSizeOf(14))),
                               Option(
-                                  tileColor:
-                                      colors.secondaryColor.withOpacity(0.7),
+                                  tileColor: colors.secondaryColor,
                                   title: "Change password",
                                   icon: Icon(
                                     LucideIcons.keySquare,

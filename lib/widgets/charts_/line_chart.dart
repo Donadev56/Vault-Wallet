@@ -24,6 +24,7 @@ class CustomLineChart extends StatelessWidget {
   final double tooltipRoundedRadius;
   final FlBorderData? borderData;
   final Color? chartBackgroundColor;
+  final bool showGradient;
 
   const CustomLineChart(
       {super.key,
@@ -45,7 +46,8 @@ class CustomLineChart extends StatelessWidget {
       this.chartData,
       this.transformationController,
       required this.colors,
-      required this.isPositive});
+      required this.isPositive,
+      this.showGradient = true});
 
   @override
   Widget build(BuildContext context) {
@@ -81,19 +83,23 @@ class CustomLineChart extends StatelessWidget {
             ),
             belowBarData: BarAreaData(
               show: true,
-              gradient: LinearGradient(
-                colors: [
-                  isPositive
-                      ? colors.themeColor.withValues(alpha: 0.2)
-                      : colors.redColor.withValues(alpha: 0.2),
-                  isPositive
-                      ? colors.themeColor.withValues(alpha: 0.0)
-                      : colors.redColor.withValues(alpha: 0.0),
-                ],
-                stops: const [0.5, 1.0],
-                begin: Alignment.topCenter,
-                end: Alignment.bottomCenter,
-              ),
+              gradient: showGradient
+                  ? LinearGradient(
+                      colors: [
+                        isPositive
+                            ? colors.themeColor.withValues(alpha: 0.2)
+                            : colors.redColor.withValues(alpha: 0.2),
+                        isPositive
+                            ? colors.themeColor.withValues(alpha: 0.0)
+                            : colors.redColor.withValues(alpha: 0.0),
+                      ],
+                      stops: const [0.5, 1.0],
+                      begin: Alignment.topCenter,
+                      end: Alignment.bottomCenter,
+                    )
+                  : LinearGradient(
+                      colors: [Colors.transparent, Colors.transparent],
+                    ),
             ),
           ),
         ],

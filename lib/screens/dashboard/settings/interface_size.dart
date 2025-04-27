@@ -6,7 +6,7 @@ import 'package:lucide_icons_flutter/lucide_icons.dart';
 import 'package:moonwallet/logger/logger.dart';
 import 'package:moonwallet/notifiers/providers.dart';
 import 'package:moonwallet/types/types.dart';
-import 'package:moonwallet/widgets/account_list_view_widget.dart';
+import 'package:moonwallet/widgets/screen_widgets/account_list_view_widget.dart';
 import 'package:moonwallet/widgets/actions.dart';
 import 'package:syncfusion_flutter_sliders/sliders.dart';
 

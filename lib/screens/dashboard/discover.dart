@@ -492,7 +492,7 @@ class _DiscoverScreenState extends ConsumerState<DiscoverScreen>
                                 title: Text(
                                   dapp.name,
                                   style: textTheme.bodyMedium?.copyWith(
-                                    fontSize: fontSizeOf(16),
+                                    fontSize: fontSizeOf(14),
                                     fontWeight: FontWeight.bold,
                                     color: colors.textColor,
                                   ),
@@ -526,6 +526,7 @@ class _DiscoverScreenState extends ConsumerState<DiscoverScreen>
                     final hist = history[index];
 
                     return ListTile(
+                        visualDensity: VisualDensity.compact,
                         leading: ClipRRect(
                             borderRadius: BorderRadius.circular(roundedOf(50)),
                             child: Container(
@@ -548,7 +549,7 @@ class _DiscoverScreenState extends ConsumerState<DiscoverScreen>
                         title: Text(
                           hist.title,
                           style: textTheme.bodyMedium?.copyWith(
-                            fontSize: fontSizeOf(16),
+                            fontSize: fontSizeOf(14),
                             fontWeight: FontWeight.bold,
                             color: colors.textColor,
                           ),

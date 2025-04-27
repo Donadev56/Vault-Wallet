@@ -3,7 +3,7 @@
 import 'package:flutter/material.dart';
 import 'package:modal_bottom_sheet/modal_bottom_sheet.dart';
 import 'package:moonwallet/types/types.dart';
-import 'package:moonwallet/widgets/crypto_picture.dart';
+import 'package:moonwallet/widgets/screen_widgets/crypto_picture.dart';
 
 typedef DoubleFactor = double Function(double size);
 

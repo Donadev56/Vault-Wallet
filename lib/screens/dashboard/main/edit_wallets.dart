@@ -7,7 +7,7 @@ import 'package:moonwallet/main.dart';
 import 'package:moonwallet/notifiers/providers.dart';
 import 'package:moonwallet/service/vibration.dart';
 import 'package:moonwallet/types/types.dart';
-import 'package:moonwallet/widgets/account_list_view_widget.dart';
+import 'package:moonwallet/widgets/screen_widgets/account_list_view_widget.dart';
 import 'package:moonwallet/widgets/appBar/show_account_options.dart';
 import 'package:moonwallet/widgets/appBar/show_wallet_actions.dart';
 import 'package:moonwallet/widgets/appBar/wallet_actions.dart';

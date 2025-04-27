@@ -2,9 +2,11 @@
 
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:flutter_hooks/flutter_hooks.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:lucide_icons_flutter/lucide_icons.dart';
 import 'package:moonwallet/logger/logger.dart';
+import 'package:moonwallet/notifiers/providers.dart';
 import 'package:moonwallet/service/db/crypto_storage_manager.dart';
 import 'package:moonwallet/service/external_data/price_manager.dart';
 import 'package:moonwallet/service/db/wallet_db.dart';
@@ -14,7 +16,7 @@ import 'package:moonwallet/utils/crypto.dart';
 import 'package:moonwallet/utils/prefs.dart';
 import 'package:moonwallet/utils/themes.dart';
 import 'package:moonwallet/widgets/app_bar_title.dart';
-import 'package:moonwallet/widgets/crypto_picture.dart';
+import 'package:moonwallet/widgets/screen_widgets/crypto_picture.dart';
 import 'package:qr_flutter/qr_flutter.dart';
 
 class ReceiveScreen extends StatefulHookConsumerWidget {
@@ -84,6 +86,32 @@ class _ReceiveScreenState extends ConsumerState<ReceiveScreen> {
     final width = MediaQuery.of(context).size.width;
     final textTheme = Theme.of(context).textTheme;
     //final height = MediaQuery.of(context).size.height;
+    final appUIConfigAsync = ref.watch(appUIConfigProvider);
+
+    final uiConfig = useState<AppUIConfig>(AppUIConfig.defaultConfig);
+
+    useEffect(() {
+      appUIConfigAsync.whenData((data) {
+        uiConfig.value = data;
+      });
+      return null;
+    }, [appUIConfigAsync]);
+
+    double fontSizeOf(double size) {
+      return size * uiConfig.value.styles.fontSizeScaleFactor;
+    }
+
+    double iconSizeOf(double size) {
+      return size * uiConfig.value.styles.iconSizeScaleFactor;
+    }
+
+    double imageSizeOf(double size) {
+      return size * uiConfig.value.styles.imageSizeScaleFactor;
+    }
+
+    double roundedOf(double size) {
+      return size * uiConfig.value.styles.radiusScaleFactor;
+    }
 
     if (crypto == null) {
       return Center(
@@ -167,7 +195,10 @@ class _ReceiveScreenState extends ConsumerState<ReceiveScreen> {
                     mainAxisAlignment: MainAxisAlignment.center,
                     crossAxisAlignment: CrossAxisAlignment.center,
                     children: [
-                      CryptoPicture(crypto: crypto!, size: 30, colors: colors),
+                      CryptoPicture(
+                          crypto: crypto!,
+                          size: imageSizeOf(30),
+                          colors: colors),
                       SizedBox(
                         width: 10,
                       ),
@@ -175,7 +206,7 @@ class _ReceiveScreenState extends ConsumerState<ReceiveScreen> {
                         crypto!.symbol,
                         style: textTheme.bodyMedium?.copyWith(
                             color: colors.textColor,
-                            fontSize: 20,
+                            fontSize: fontSizeOf(20),
                             fontWeight: FontWeight.w500),
                       )
                     ],
@@ -191,7 +222,7 @@ class _ReceiveScreenState extends ConsumerState<ReceiveScreen> {
                           padding: const EdgeInsets.all(10),
                           margin: const EdgeInsets.all(10),
                           decoration: BoxDecoration(
-                            borderRadius: BorderRadius.circular(10),
+                            borderRadius: BorderRadius.circular(roundedOf(10)),
                             color: Colors.white,
                           ),
                           child: LayoutBuilder(builder: (ctx, c) {
@@ -211,33 +242,15 @@ class _ReceiveScreenState extends ConsumerState<ReceiveScreen> {
                                 ),
                                 Positioned(
                                     child: Container(
-                                  padding: const EdgeInsets.all(2),
-                                  decoration: BoxDecoration(
-                                      color: Colors.white,
-                                      borderRadius: BorderRadius.circular(50)),
-                                  child: crypto!.icon != null &&
-                                          crypto!.icon!
-                                              .toLowerCase()
-                                              .startsWith("http")
-                                      ? ClipRRect(
-                                          borderRadius:
-                                              BorderRadius.circular(50),
-                                          child: Image.network(
-                                            crypto!.icon ?? "",
-                                            width: 40,
-                                            height: 40,
-                                          ),
-                                        )
-                                      : ClipRRect(
-                                          borderRadius:
-                                              BorderRadius.circular(50),
-                                          child: Image.asset(
-                                            crypto!.icon ?? "",
-                                            width: 40,
-                                            height: 40,
-                                          ),
-                                        ),
-                                ))
+                                        padding: const EdgeInsets.all(2),
+                                        decoration: BoxDecoration(
+                                            color: Colors.white,
+                                            borderRadius: BorderRadius.circular(
+                                                roundedOf(50))),
+                                        child: CryptoPicture(
+                                            crypto: crypto!,
+                                            size: 30,
+                                            colors: colors)))
                               ],
                             ));
                           })))
@@ -255,13 +268,14 @@ class _ReceiveScreenState extends ConsumerState<ReceiveScreen> {
                   child: Container(
                       padding: const EdgeInsets.all(10),
                       decoration: BoxDecoration(
-                          borderRadius: BorderRadius.circular(30),
+                          borderRadius: BorderRadius.circular(roundedOf(30)),
                           color: colors.grayColor.withOpacity(0.2)),
                       child: Center(
                         child: Text(
                           currentAccount.address,
-                          style: textTheme.bodyMedium
-                              ?.copyWith(color: colors.textColor, fontSize: 11),
+                          style: textTheme.bodyMedium?.copyWith(
+                              color: colors.textColor,
+                              fontSize: fontSizeOf(11)),
                         ),
                       ))),
             ),
@@ -287,8 +301,8 @@ class _ReceiveScreenState extends ConsumerState<ReceiveScreen> {
                     ),
                     label: Text(
                       "Copy the address",
-                      style: textTheme.bodyMedium
-                          ?.copyWith(color: colors.primaryColor),
+                      style: textTheme.bodyMedium?.copyWith(
+                          color: colors.primaryColor, fontSize: fontSizeOf(14)),
                     ),
                   ),
                 ))

@@ -1,5 +1,6 @@
 import 'package:fl_chart/fl_chart.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_hooks/flutter_hooks.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:internet_connection_checker_plus/internet_connection_checker_plus.dart';
@@ -14,7 +15,7 @@ import 'package:moonwallet/types/types.dart';
 import 'package:moonwallet/utils/colors.dart';
 import 'package:moonwallet/widgets/app_bar_title.dart';
 import 'package:moonwallet/widgets/charts_/line_chart.dart';
-import 'package:moonwallet/widgets/crypto_picture.dart';
+import 'package:moonwallet/widgets/screen_widgets/crypto_picture.dart';
 import 'package:moonwallet/widgets/view/transactions.dart';
 
 class AccountDataView extends StatefulHookConsumerWidget {
@@ -208,6 +209,33 @@ class _AccountDataViewState extends ConsumerState<AccountDataView>
     final savedCryptoAsync = ref.watch(savedCryptosProviderNotifier);
     final assetsAsync = ref.watch(assetsNotifierProvider);
     final textTheme = TextTheme.of(context);
+    final asyncAccounts = ref.watch(accountsNotifierProvider);
+    final appUIConfigAsync = ref.watch(appUIConfigProvider);
+
+    final uiConfig = useState<AppUIConfig>(AppUIConfig.defaultConfig);
+
+    useEffect(() {
+      appUIConfigAsync.whenData((data) {
+        uiConfig.value = data;
+      });
+      return null;
+    }, [appUIConfigAsync]);
+
+    double fontSizeOf(double size) {
+      return size * uiConfig.value.styles.fontSizeScaleFactor;
+    }
+
+    double iconSizeOf(double size) {
+      return size * uiConfig.value.styles.iconSizeScaleFactor;
+    }
+
+    double imageSizeOf(double size) {
+      return size * uiConfig.value.styles.imageSizeScaleFactor;
+    }
+
+    double roundedOf(double size) {
+      return size * uiConfig.value.styles.radiusScaleFactor;
+    }
 
     accountAsync.whenData((data) => setState(() {
           account = data;
@@ -320,7 +348,7 @@ class _AccountDataViewState extends ConsumerState<AccountDataView>
                                   style: textTheme.headlineMedium?.copyWith(
                                       color: colors.textColor,
                                       fontWeight: FontWeight.bold,
-                                      fontSize: 22),
+                                      fontSize: fontSizeOf(22)),
                                   maxLines: 1,
                                   overflow: TextOverflow.ellipsis,
                                 ),
@@ -329,7 +357,7 @@ class _AccountDataViewState extends ConsumerState<AccountDataView>
                                   style: textTheme.bodyMedium?.copyWith(
                                       color: colors.textColor
                                           .withValues(alpha: 0.4),
-                                      fontSize: 12),
+                                      fontSize: fontSizeOf(12)),
                                 )
                               ],
                             ),
@@ -344,7 +372,7 @@ class _AccountDataViewState extends ConsumerState<AccountDataView>
                             "From ${fromDate.toMoment().date}",
                             style: textTheme.bodyMedium?.copyWith(
                               color: colors.textColor,
-                              fontSize: 13,
+                              fontSize: fontSizeOf(13),
                             ),
                           ),
                         ),
@@ -376,13 +404,13 @@ class _AccountDataViewState extends ConsumerState<AccountDataView>
                             Text(
                               "Received",
                               style: textTheme.bodyMedium?.copyWith(
-                                color: colors.textColor,
-                              ),
+                                  color: colors.textColor,
+                                  fontSize: fontSizeOf(14)),
                             ),
                             Text("Sent",
                                 style: textTheme.bodyMedium?.copyWith(
-                                  color: colors.textColor,
-                                ))
+                                    color: colors.textColor,
+                                    fontSize: fontSizeOf(14)))
                           ],
                         ),
                         SizedBox(
@@ -391,7 +419,8 @@ class _AccountDataViewState extends ConsumerState<AccountDataView>
                         Container(
                           padding: const EdgeInsets.all(0),
                           decoration: BoxDecoration(
-                              borderRadius: BorderRadius.circular(10)),
+                              borderRadius:
+                                  BorderRadius.circular(roundedOf(10))),
                           child: AspectRatio(
                             aspectRatio: 1.7,
                             child: CustomLineChart(
@@ -417,12 +446,14 @@ class _AccountDataViewState extends ConsumerState<AccountDataView>
                             spacing: 10,
                             children: [
                               TotalText(
+                                  fontSizeOf: fontSizeOf,
                                   colors: colors,
                                   title: "Total Received".toUpperCase(),
                                   amount:
                                       ("+${NumberFormatter().formatCrypto(value: calculateTotal(allTransactions[i], 0).toString())}"),
                                   symbol: crypto.symbol),
                               TotalText(
+                                  fontSizeOf: fontSizeOf,
                                   colors: colors,
                                   title: "Total Sent".toUpperCase(),
                                   amount:
@@ -448,7 +479,7 @@ class _AccountDataViewState extends ConsumerState<AccountDataView>
                                 style: textTheme.headlineMedium?.copyWith(
                                     color: colors.textColor,
                                     fontWeight: FontWeight.bold,
-                                    fontSize: 18),
+                                    fontSize: fontSizeOf(18)),
                                 maxLines: 1,
                                 overflow: TextOverflow.ellipsis,
                               ),
@@ -469,6 +500,8 @@ class _AccountDataViewState extends ConsumerState<AccountDataView>
                                               .toLowerCase() ==
                                           account?.address.trim().toLowerCase();
                                       return TransactionsListElement(
+                                        roundedOf: roundedOf,
+                                        fontSizeOf: fontSizeOf,
                                         colors: colors,
                                         surfaceTintColor: colors.grayColor,
                                         isFrom: isFrom,
@@ -505,12 +538,14 @@ class TotalText extends StatelessWidget {
   final String amount;
   final String symbol;
   final AppColors colors;
+  final DoubleFactor fontSizeOf;
   const TotalText(
       {super.key,
       required this.colors,
       required this.title,
       required this.amount,
-      required this.symbol});
+      required this.symbol,
+      required this.fontSizeOf});
 
   @override
   Widget build(BuildContext context) {
@@ -530,7 +565,7 @@ class TotalText extends StatelessWidget {
               title,
               style: textTheme.headlineMedium?.copyWith(
                 color: colors.textColor,
-                fontSize: 12,
+                fontSize: fontSizeOf(12),
               ),
             ),
             Row(
@@ -539,13 +574,13 @@ class TotalText extends StatelessWidget {
                 Text(
                   amount,
                   style: textTheme.headlineMedium?.copyWith(
-                      fontSize: 22,
+                      fontSize: fontSizeOf(22),
                       fontWeight: FontWeight.bold,
                       color: colors.textColor.withValues(alpha: 0.7)),
                 ),
                 Text(symbol,
                     style: textTheme.headlineMedium?.copyWith(
-                        fontSize: 25,
+                        fontSize: fontSizeOf(25),
                         color: colors.textColor.withValues(alpha: 0.4),
                         fontWeight: FontWeight.bold))
               ],

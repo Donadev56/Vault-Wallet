@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:flutter_hooks/flutter_hooks.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:lucide_icons_flutter/lucide_icons.dart';
@@ -101,6 +102,24 @@ class _CreatePrivateKeyState extends ConsumerState<CreatePrivateKeyMain> {
   Widget build(BuildContext context) {
     final textTheme = Theme.of(context).textTheme;
     final web3Provider = ref.read(web3ProviderNotifier);
+    final appUIConfigAsync = ref.watch(appUIConfigProvider);
+
+    final uiConfig = useState<AppUIConfig>(AppUIConfig.defaultConfig);
+
+    useEffect(() {
+      appUIConfigAsync.whenData((data) {
+        uiConfig.value = data;
+      });
+      return null;
+    }, [appUIConfigAsync]);
+
+    double fontSizeOf(double size) {
+      return size * uiConfig.value.styles.fontSizeScaleFactor;
+    }
+
+    double roundedOf(double size) {
+      return size * uiConfig.value.styles.radiusScaleFactor;
+    }
 
     Future<void> saveData() async {
       try {
@@ -123,7 +142,10 @@ class _CreatePrivateKeyState extends ConsumerState<CreatePrivateKeyMain> {
           notifySuccess("Wallet created successfully");
 
           Navigator.of(context).push(PageTransition(
-              type: PageTransitionType.leftToRight, child: PagesManagerView()));
+              type: PageTransitionType.leftToRight,
+              child: PagesManagerView(
+                colors: colors,
+              )));
         } else {
           throw Exception("Failed to save the key.");
         }
@@ -178,7 +200,7 @@ class _CreatePrivateKeyState extends ConsumerState<CreatePrivateKeyMain> {
                     "Create private key",
                     style: textTheme.headlineMedium?.copyWith(
                         color: colors.textColor,
-                        fontSize: 24,
+                        fontSize: fontSizeOf(24),
                         decoration: TextDecoration.none),
                   ),
                 ),
@@ -209,7 +231,7 @@ class _CreatePrivateKeyState extends ConsumerState<CreatePrivateKeyMain> {
                       labelText: 'Private Key',
                       labelStyle: TextStyle(color: colors.textColor),
                       border: OutlineInputBorder(
-                        borderRadius: BorderRadius.circular(10),
+                        borderRadius: BorderRadius.circular(roundedOf(10)),
                         borderSide: BorderSide(color: colors.textColor),
                       ),
                     ),
@@ -228,7 +250,7 @@ class _CreatePrivateKeyState extends ConsumerState<CreatePrivateKeyMain> {
                   label: Text(
                     "Copy the Private key",
                     style: textTheme.bodyMedium?.copyWith(
-                      fontSize: 16,
+                      fontSize: fontSizeOf(16),
                       color: colors.themeColor,
                     ),
                   ),
@@ -236,7 +258,7 @@ class _CreatePrivateKeyState extends ConsumerState<CreatePrivateKeyMain> {
                     side: BorderSide(color: colors.themeColor),
                     minimumSize: const Size(double.infinity, 50),
                     shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(30),
+                      borderRadius: BorderRadius.circular(roundedOf(30)),
                     ),
                   ),
                 ),
@@ -262,7 +284,7 @@ class _CreatePrivateKeyState extends ConsumerState<CreatePrivateKeyMain> {
                           ),
                           Text("Important :",
                               style: textTheme.bodyMedium?.copyWith(
-                                  fontSize: 16,
+                                  fontSize: fontSizeOf(16),
                                   color: colors.textColor,
                                   decoration: TextDecoration.none)),
                         ],
@@ -273,7 +295,7 @@ class _CreatePrivateKeyState extends ConsumerState<CreatePrivateKeyMain> {
                           child: Text(
                             "The private key is secret and is the only way to access your funds. Never share your private key with anyone.",
                             style: textTheme.bodyMedium?.copyWith(
-                                fontSize: 16,
+                                fontSize: fontSizeOf(16),
                                 color: colors.textColor.withOpacity(0.5),
                                 decoration: TextDecoration.none),
                           ),
@@ -295,7 +317,7 @@ class _CreatePrivateKeyState extends ConsumerState<CreatePrivateKeyMain> {
                         backgroundColor: colors.primaryColor,
                         side: BorderSide(color: colors.themeColor, width: 1),
                         shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(30),
+                          borderRadius: BorderRadius.circular(roundedOf(30)),
                         ),
                       ),
                       onPressed: () {
@@ -304,7 +326,7 @@ class _CreatePrivateKeyState extends ConsumerState<CreatePrivateKeyMain> {
                       child: Text(
                         "Previous",
                         style: textTheme.bodyMedium?.copyWith(
-                          fontSize: 18,
+                          fontSize: fontSizeOf(18),
                           color: colors.themeColor,
                           decoration: TextDecoration.none,
                         ),
@@ -318,7 +340,7 @@ class _CreatePrivateKeyState extends ConsumerState<CreatePrivateKeyMain> {
                     child: ElevatedButton(
                       style: ElevatedButton.styleFrom(
                           shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(30),
+                            borderRadius: BorderRadius.circular(roundedOf(30)),
                           ),
                           backgroundColor: colors.themeColor),
                       onPressed: () async {
@@ -327,7 +349,7 @@ class _CreatePrivateKeyState extends ConsumerState<CreatePrivateKeyMain> {
                       child: Text(
                         "Next",
                         style: textTheme.bodyMedium?.copyWith(
-                          fontSize: 18,
+                          fontSize: fontSizeOf(18),
                           color: colors.primaryColor,
                           decoration: TextDecoration.none,
                         ),

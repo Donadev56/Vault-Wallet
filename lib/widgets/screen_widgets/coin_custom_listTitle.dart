@@ -3,7 +3,7 @@ import 'package:moonwallet/logger/logger.dart';
 import 'package:moonwallet/screens/dashboard/main/wallet_overview.dart';
 import 'package:moonwallet/types/types.dart';
 import 'package:moonwallet/utils/number_formatter.dart';
-import 'package:moonwallet/widgets/crypto_picture.dart';
+import 'package:moonwallet/widgets/screen_widgets/crypto_picture.dart';
 
 typedef DoubleFactor = double Function(double size);
 
@@ -54,7 +54,7 @@ class CoinCustomListTitle extends StatelessWidget {
 
     final width = MediaQuery.of(context).size.width;
     return Padding(
-      padding: const EdgeInsets.symmetric(vertical: 2, horizontal: 4),
+      padding: const EdgeInsets.symmetric(vertical: 7, horizontal: 8),
       child: Material(
         color: Colors.transparent,
         //color:  colors.secondaryColor,
@@ -64,9 +64,8 @@ class CoinCustomListTitle extends StatelessWidget {
           textColor: colors.secondaryColor,
           shape:
               RoundedRectangleBorder(borderRadius: BorderRadius.circular(50)),
-          visualDensity: VisualDensity(
-              vertical: listTitleVerticalOf(-2),
-              horizontal: listTitleHorizontalOf(-2)),
+          visualDensity: VisualDensity(vertical: -4, horizontal: -2),
+          contentPadding: const EdgeInsets.symmetric(horizontal: 8),
           splashColor: colors.textColor.withOpacity(0.05),
           onTap: () {
             log("Crypto id ${crypto.cryptoId}");

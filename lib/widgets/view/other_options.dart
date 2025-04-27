@@ -1,14 +1,15 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:lucide_icons_flutter/lucide_icons.dart';
-import 'package:modal_bottom_sheet/modal_bottom_sheet.dart';
 import 'package:moonwallet/types/types.dart';
-import 'package:moonwallet/widgets/crypto_picture.dart';
+import 'package:moonwallet/widgets/screen_widgets/crypto_picture.dart';
 import 'package:moonwallet/widgets/flowting_modat.dart';
 import 'package:url_launcher/url_launcher.dart';
 
 void showOtherOptions(
     {required BuildContext context,
+    required DoubleFactor fontSizeOf,
+    required DoubleFactor roundedOf,
     required AppColors colors,
     required Crypto currentCrypto}) async {
   showFloatingModalBottomSheet(
@@ -22,16 +23,14 @@ void showOtherOptions(
             child: Container(
               decoration: BoxDecoration(
                 color: colors.primaryColor,
-                borderRadius: BorderRadius.only(
-                    topLeft: Radius.circular(15),
-                    topRight: Radius.circular(15)),
+                borderRadius: BorderRadius.all(Radius.circular(roundedOf(15))),
               ),
               child: ListView(
                 shrinkWrap: true,
                 children: [
                   ListTile(
                     leading: CryptoPicture(
-                        crypto: currentCrypto, size: 40, colors: colors),
+                        crypto: currentCrypto, size: (40), colors: colors),
                     title: Text(
                       currentCrypto.symbol,
                       style: textTheme.bodyMedium?.copyWith(
@@ -66,7 +65,8 @@ void showOtherOptions(
                           alignment: Alignment.center,
                           child: Container(
                               decoration: BoxDecoration(
-                                  borderRadius: BorderRadius.circular(5),
+                                  borderRadius:
+                                      BorderRadius.circular(roundedOf(5)),
                                   color: colors.grayColor.withOpacity(0.25)),
                               child: Column(
                                 children: [
@@ -78,12 +78,14 @@ void showOtherOptions(
                                     ),
                                     title: Text(
                                       "Network",
-                                      style: textTheme.bodyMedium
-                                          ?.copyWith(color: colors.textColor),
+                                      style: textTheme.bodyMedium?.copyWith(
+                                          color: colors.textColor,
+                                          fontSize: fontSizeOf(14)),
                                     ),
                                     trailing: Text(
                                       "${currentCrypto.type == CryptoType.native ? currentCrypto.name : currentCrypto.network?.name}",
                                       style: textTheme.bodyMedium?.copyWith(
+                                          fontSize: fontSizeOf(15),
                                           color: colors.textColor
                                               .withOpacity(0.5)),
                                     ),
@@ -102,12 +104,14 @@ void showOtherOptions(
                                     ),
                                     title: Text(
                                       "Contract",
-                                      style: textTheme.bodyMedium
-                                          ?.copyWith(color: colors.textColor),
+                                      style: textTheme.bodyMedium?.copyWith(
+                                          color: colors.textColor,
+                                          fontSize: fontSizeOf(14)),
                                     ),
                                     trailing: Text(
                                       "${currentCrypto.contractAddress != null ? currentCrypto.contractAddress!.length > 10 ? currentCrypto.contractAddress?.substring(0, 10) : "" : ""}...",
                                       style: textTheme.bodyMedium?.copyWith(
+                                          fontSize: fontSizeOf(14),
                                           color: colors.textColor
                                               .withOpacity(0.5)),
                                     ),
@@ -119,7 +123,8 @@ void showOtherOptions(
                           alignment: Alignment.center,
                           child: Container(
                               decoration: BoxDecoration(
-                                  borderRadius: BorderRadius.circular(5),
+                                  borderRadius:
+                                      BorderRadius.circular(roundedOf(5)),
                                   color: colors.grayColor.withOpacity(0.25)),
                               child: Column(
                                 children: [
@@ -140,8 +145,9 @@ void showOtherOptions(
                                       ),
                                       title: Text(
                                         "View on Explorer",
-                                        style: textTheme.bodyMedium
-                                            ?.copyWith(color: colors.textColor),
+                                        style: textTheme.bodyMedium?.copyWith(
+                                            color: colors.textColor,
+                                            fontSize: fontSizeOf(14)),
                                       ),
                                       trailing: Icon(
                                         Icons.chevron_right,

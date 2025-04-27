@@ -12,6 +12,8 @@ import '../../logger/logger.dart';
 
 void showCryptoCandleModal(
     {required BuildContext context,
+    required DoubleFactor roundedOf,
+    required DoubleFactor fontSizeOf,
     required AppColors colors,
     required Crypto currentCrypto}) {
   final priceManager = PriceManager();
@@ -107,10 +109,8 @@ void showCryptoCandleModal(
               child: Container(
                 decoration: BoxDecoration(
                   color: colors.primaryColor,
-                  borderRadius: BorderRadius.only(
-                    topLeft: Radius.circular(15),
-                    topRight: Radius.circular(15),
-                  ),
+                  borderRadius:
+                      BorderRadius.all(Radius.circular(roundedOf(15))),
                 ),
                 child: ListView(shrinkWrap: true, children: [
                   Padding(
@@ -128,7 +128,7 @@ void showCryptoCandleModal(
                                 color: isPositive
                                     ? colors.themeColor
                                     : colors.redColor,
-                                fontSize: 22,
+                                fontSize: fontSizeOf(22),
                                 fontWeight: FontWeight.bold,
                               ),
                             ),
@@ -140,7 +140,7 @@ void showCryptoCandleModal(
                                 color: isPositive
                                     ? colors.themeColor
                                     : colors.redColor,
-                                fontSize: 14,
+                                fontSize: fontSizeOf(14),
                               ),
                             ),
                           ],
@@ -250,7 +250,8 @@ void showCryptoCandleModal(
                                 color: currentIndex == index
                                     ? Colors.transparent
                                     : colors.themeColor,
-                                borderRadius: BorderRadius.circular(8),
+                                borderRadius:
+                                    BorderRadius.circular(roundedOf(8)),
                               ),
                               child: Center(
                                 child: Text(
@@ -260,7 +261,7 @@ void showCryptoCandleModal(
                                       color: currentIndex == index
                                           ? colors.themeColor
                                           : colors.primaryColor,
-                                      fontSize: 10),
+                                      fontSize: fontSizeOf(10)),
                                 ),
                               ),
                             ),

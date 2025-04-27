@@ -6,6 +6,7 @@ import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_feather_icons/flutter_feather_icons.dart';
+import 'package:flutter_hooks/flutter_hooks.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:intl/intl.dart';
@@ -28,7 +29,7 @@ import 'package:moonwallet/utils/crypto.dart';
 import 'package:moonwallet/utils/prefs.dart';
 import 'package:moonwallet/utils/themes.dart';
 import 'package:moonwallet/widgets/app_bar_title.dart';
-import 'package:moonwallet/widgets/crypto_picture.dart';
+import 'package:moonwallet/widgets/screen_widgets/crypto_picture.dart';
 import 'package:moonwallet/widgets/func/account_related/show_select_account.dart';
 import 'package:moonwallet/widgets/func/account_related/show_select_last_addr.dart';
 import 'package:moonwallet/widgets/func/snackbar.dart';
@@ -419,6 +420,32 @@ class _SendTransactionScreenState extends ConsumerState<SendTransactionScreen> {
     final width = MediaQuery.of(context).size.width;
     final textTheme = Theme.of(context).textTheme;
     final asyncAccounts = ref.watch(accountsNotifierProvider);
+    final appUIConfigAsync = ref.watch(appUIConfigProvider);
+
+    final uiConfig = useState<AppUIConfig>(AppUIConfig.defaultConfig);
+
+    useEffect(() {
+      appUIConfigAsync.whenData((data) {
+        uiConfig.value = data;
+      });
+      return null;
+    }, [appUIConfigAsync]);
+
+    double fontSizeOf(double size) {
+      return size * uiConfig.value.styles.fontSizeScaleFactor;
+    }
+
+    double iconSizeOf(double size) {
+      return size * uiConfig.value.styles.iconSizeScaleFactor;
+    }
+
+    double imageSizeOf(double size) {
+      return size * uiConfig.value.styles.imageSizeScaleFactor;
+    }
+
+    double roundedOf(double size) {
+      return size * uiConfig.value.styles.radiusScaleFactor;
+    }
 
     if (crypto == null) {
       return Material(
@@ -459,7 +486,7 @@ class _SendTransactionScreenState extends ConsumerState<SendTransactionScreen> {
                 spacing: 10,
                 children: [
                   InkWell(
-                    borderRadius: BorderRadius.circular(15),
+                    borderRadius: BorderRadius.circular(roundedOf(15)),
                     onTap: () {
                       vibrate();
                       Clipboard.setData(
@@ -470,7 +497,7 @@ class _SendTransactionScreenState extends ConsumerState<SendTransactionScreen> {
                       padding: const EdgeInsets.all(5),
                       decoration: BoxDecoration(
                         color: colors.secondaryColor,
-                        borderRadius: BorderRadius.circular(15),
+                        borderRadius: BorderRadius.circular(roundedOf(15)),
                       ),
                       child: Row(
                         mainAxisAlignment: MainAxisAlignment.center,
@@ -478,7 +505,7 @@ class _SendTransactionScreenState extends ConsumerState<SendTransactionScreen> {
                         children: [
                           CryptoPicture(
                             crypto: crypto!,
-                            size: 20,
+                            size: imageSizeOf(20),
                             colors: colors,
                             primaryColor: colors.secondaryColor,
                           ),
@@ -486,8 +513,9 @@ class _SendTransactionScreenState extends ConsumerState<SendTransactionScreen> {
                             currentAccount.address.isNotEmpty
                                 ? "${currentAccount.address.substring(0, 6)}...${currentAccount.address.substring(currentAccount.address.length - 6, currentAccount.address.length)}"
                                 : "No Account",
-                            style: textTheme.bodyMedium
-                                ?.copyWith(color: colors.textColor),
+                            style: textTheme.bodyMedium?.copyWith(
+                                color: colors.textColor,
+                                fontSize: fontSizeOf(14)),
                           )
                         ],
                       ),
@@ -512,7 +540,7 @@ class _SendTransactionScreenState extends ConsumerState<SendTransactionScreen> {
                         padding: const EdgeInsets.all(5),
                         decoration: BoxDecoration(
                           color: colors.secondaryColor,
-                          borderRadius: BorderRadius.circular(15),
+                          borderRadius: BorderRadius.circular(roundedOf(15)),
                         ),
                         child: Center(
                           child: Text(
@@ -530,14 +558,14 @@ class _SendTransactionScreenState extends ConsumerState<SendTransactionScreen> {
                 padding: const EdgeInsets.all(8),
                 decoration: BoxDecoration(
                   color: colors.secondaryColor,
-                  borderRadius: BorderRadius.circular(15),
+                  borderRadius: BorderRadius.circular(roundedOf(15)),
                 ),
                 child: Row(
                   spacing: 10,
                   children: [
                     CryptoPicture(
                       crypto: crypto!,
-                      size: 30,
+                      size: imageSizeOf(30),
                       colors: colors,
                       primaryColor: colors.secondaryColor,
                     ),
@@ -548,6 +576,7 @@ class _SendTransactionScreenState extends ConsumerState<SendTransactionScreen> {
                           crypto!.symbol,
                           style: textTheme.bodyMedium?.copyWith(
                               color: colors.textColor,
+                              fontSize: fontSizeOf(14),
                               fontWeight: FontWeight.bold),
                         )
                       ],
@@ -599,6 +628,7 @@ class _SendTransactionScreenState extends ConsumerState<SendTransactionScreen> {
                 key: _formKey,
                 child: TextFormField(
                   style: textTheme.bodyMedium?.copyWith(
+                      fontSize: fontSizeOf(14),
                       color: colors.textColor.withOpacity(0.8),
                       fontWeight: FontWeight.w500),
                   validator: (value) {
@@ -625,7 +655,7 @@ class _SendTransactionScreenState extends ConsumerState<SendTransactionScreen> {
                   controller: _addressController,
                   decoration: InputDecoration(
                     border: OutlineInputBorder(
-                      borderRadius: BorderRadius.circular(15),
+                      borderRadius: BorderRadius.circular(roundedOf(15)),
                     ),
                     filled: true,
                     fillColor: colors.grayColor.withOpacity(0.4),
@@ -646,11 +676,11 @@ class _SendTransactionScreenState extends ConsumerState<SendTransactionScreen> {
                     labelStyle:
                         textTheme.bodyMedium?.copyWith(color: colors.textColor),
                     focusedBorder: OutlineInputBorder(
-                      borderRadius: BorderRadius.circular(5),
+                      borderRadius: BorderRadius.circular(roundedOf(5)),
                       borderSide: BorderSide(color: colors.themeColor),
                     ),
                     enabledBorder: OutlineInputBorder(
-                      borderRadius: BorderRadius.circular(5),
+                      borderRadius: BorderRadius.circular(roundedOf(5)),
                       borderSide: BorderSide(color: Colors.transparent),
                     ),
                   ),
@@ -661,13 +691,16 @@ class _SendTransactionScreenState extends ConsumerState<SendTransactionScreen> {
                 child: Text(
                   "Amount",
                   style: textTheme.bodyMedium?.copyWith(
-                      color: colors.textColor, fontWeight: FontWeight.bold),
+                      fontSize: fontSizeOf(14),
+                      color: colors.textColor,
+                      fontWeight: FontWeight.bold),
                 ),
               ),
               TextFormField(
                 style: textTheme.bodyMedium?.copyWith(
                     color: colors.textColor.withOpacity(0.8),
-                    fontWeight: FontWeight.w500),
+                    fontSize: fontSizeOf(14),
+                    fontWeight: FontWeight.w600),
                 validator: (v) {
                   log("Value $v");
                   if (double.parse(v ?? "") >= nativeBalance) {
@@ -695,7 +728,7 @@ class _SendTransactionScreenState extends ConsumerState<SendTransactionScreen> {
                 controller: _amountController,
                 decoration: InputDecoration(
                   border: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(15),
+                    borderRadius: BorderRadius.circular(roundedOf(15)),
                   ),
                   filled: true,
                   fillColor: colors.grayColor.withOpacity(0.4),
@@ -703,7 +736,7 @@ class _SendTransactionScreenState extends ConsumerState<SendTransactionScreen> {
                   suffixIcon: Container(
                     margin: const EdgeInsets.all(5),
                     child: InkWell(
-                      borderRadius: BorderRadius.circular(10),
+                      borderRadius: BorderRadius.circular(roundedOf(10)),
                       onTap: () {
                         setState(() {
                           if (crypto!.type == CryptoType.native) {
@@ -724,13 +757,14 @@ class _SendTransactionScreenState extends ConsumerState<SendTransactionScreen> {
                         width: 50,
                         height: 5,
                         decoration: BoxDecoration(
-                          borderRadius: BorderRadius.circular(10),
+                          borderRadius: BorderRadius.circular(roundedOf(10)),
                         ),
                         child: Center(
                           child: Text(
                             "Max",
-                            style: textTheme.bodyMedium
-                                ?.copyWith(color: colors.textColor),
+                            style: textTheme.bodyMedium?.copyWith(
+                                color: colors.textColor,
+                                fontSize: fontSizeOf(14)),
                           ),
                         ),
                       ),
@@ -739,11 +773,11 @@ class _SendTransactionScreenState extends ConsumerState<SendTransactionScreen> {
                   labelStyle: textTheme.bodyMedium
                       ?.copyWith(color: colors.textColor.withOpacity(0.3)),
                   focusedBorder: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(5),
+                    borderRadius: BorderRadius.circular(roundedOf(5)),
                     borderSide: BorderSide(color: colors.themeColor),
                   ),
                   enabledBorder: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(5),
+                    borderRadius: BorderRadius.circular(roundedOf(5)),
                     borderSide: BorderSide(color: Colors.transparent),
                   ),
                 ),
@@ -751,7 +785,7 @@ class _SendTransactionScreenState extends ConsumerState<SendTransactionScreen> {
               TextField(
                 style: textTheme.bodyMedium?.copyWith(
                     color: colors.textColor.withOpacity(0.8),
-                    fontWeight: FontWeight.w500),
+                    fontWeight: FontWeight.w600),
                 keyboardType: TextInputType.number,
                 onChanged: (value) {
                   if (value.isEmpty) {
@@ -768,7 +802,7 @@ class _SendTransactionScreenState extends ConsumerState<SendTransactionScreen> {
                 controller: _amountUsdController,
                 decoration: InputDecoration(
                   border: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(15),
+                    borderRadius: BorderRadius.circular(roundedOf(15)),
                   ),
                   filled: true,
                   fillColor: colors.grayColor.withOpacity(0.4),
@@ -778,8 +812,8 @@ class _SendTransactionScreenState extends ConsumerState<SendTransactionScreen> {
                     child: Center(
                       child: Text(
                         "USD",
-                        style: textTheme.bodyMedium
-                            ?.copyWith(color: colors.textColor, fontSize: 15),
+                        style: textTheme.bodyMedium?.copyWith(
+                            color: colors.textColor, fontSize: fontSizeOf(15)),
                       ),
                     ),
                   ),
@@ -787,11 +821,11 @@ class _SendTransactionScreenState extends ConsumerState<SendTransactionScreen> {
                   labelStyle: textTheme.bodyMedium
                       ?.copyWith(color: colors.textColor.withOpacity(0.3)),
                   focusedBorder: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(5),
+                    borderRadius: BorderRadius.circular(roundedOf(5)),
                     borderSide: BorderSide(color: colors.themeColor),
                   ),
                   enabledBorder: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(5),
+                    borderRadius: BorderRadius.circular(roundedOf(5)),
                     borderSide: BorderSide(color: Colors.transparent),
                   ),
                 ),
@@ -800,8 +834,9 @@ class _SendTransactionScreenState extends ConsumerState<SendTransactionScreen> {
                 alignment: Alignment.topLeft,
                 child: Text(
                   "Balance : ${formatCryptoValue(crypto!.type == CryptoType.native ? nativeBalance.toString() : tokenBalance.toString())} ${crypto!.symbol}",
-                  style: textTheme.bodyMedium
-                      ?.copyWith(color: colors.textColor.withOpacity(0.7)),
+                  style: textTheme.bodyMedium?.copyWith(
+                      color: colors.textColor.withOpacity(0.7),
+                      fontSize: fontSizeOf(14)),
                 ),
               ),
               ConstrainedBox(
@@ -826,8 +861,8 @@ class _SendTransactionScreenState extends ConsumerState<SendTransactionScreen> {
                     },
                     child: Text(
                       "Next",
-                      style: textTheme.bodyMedium
-                          ?.copyWith(color: colors.primaryColor),
+                      style: textTheme.bodyMedium?.copyWith(
+                          color: colors.primaryColor, fontSize: fontSizeOf(14)),
                     )),
               )
             ],

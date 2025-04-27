@@ -13,6 +13,7 @@ Future<String> askPassword(
     bool useBio = true,
     String title = "Enter Password"}) async {
   String userPassword = "";
+
   int attempt = 0;
   final LocalAuthentication auth = LocalAuthentication();
   bool didAuthenticate = false;

@@ -23,6 +23,7 @@ void showAccountOptions({
   required int index,
 }) {
   TextEditingController textController = TextEditingController();
+
   showFloatingModalBottomSheet(
       backgroundColor: colors.primaryColor,
       context: context,

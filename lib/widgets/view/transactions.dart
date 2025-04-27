@@ -3,7 +3,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_feather_icons/flutter_feather_icons.dart';
-import 'package:google_fonts/google_fonts.dart';
 import 'package:moonwallet/types/types.dart';
 import 'package:moonwallet/utils/constant.dart';
 import 'package:moonwallet/utils/number_formatter.dart';
@@ -21,18 +20,22 @@ class TransactionsListElement extends StatelessWidget {
   final Color primaryColor;
   final Color darkColor;
   final Crypto currentCrypto;
-  const TransactionsListElement({
-    super.key,
-    required this.surfaceTintColor,
-    required this.isFrom,
-    required this.tr,
-    required this.textColor,
-    required this.secondaryColor,
-    required this.primaryColor,
-    required this.darkColor,
-    required this.currentCrypto,
-    required this.colors,
-  });
+  final DoubleFactor roundedOf;
+  final DoubleFactor fontSizeOf;
+
+  const TransactionsListElement(
+      {super.key,
+      required this.surfaceTintColor,
+      required this.isFrom,
+      required this.tr,
+      required this.textColor,
+      required this.secondaryColor,
+      required this.primaryColor,
+      required this.darkColor,
+      required this.currentCrypto,
+      required this.colors,
+      required this.fontSizeOf,
+      required this.roundedOf});
 
   @override
   Widget build(BuildContext context) {
@@ -40,6 +43,7 @@ class TransactionsListElement extends StatelessWidget {
         value: (BigInt.parse(tr.value) /
                 BigInt.from(10).pow(currentCrypto.decimals))
             .toString());
+    final textTheme = TextTheme.of(context);
     return Material(
         color: Colors.transparent,
         child: Padding(
@@ -77,8 +81,10 @@ class TransactionsListElement extends StatelessWidget {
             ),
             title: Text(
               isFrom ? "Send" : "Receive",
-              style: GoogleFonts.roboto(
-                  color: textColor, fontWeight: FontWeight.bold, fontSize: 15),
+              style: textTheme.bodyMedium?.copyWith(
+                  color: textColor,
+                  fontWeight: FontWeight.bold,
+                  fontSize: fontSizeOf(15)),
             ),
             subtitle: Text(
                 isFrom
@@ -88,24 +94,28 @@ class TransactionsListElement extends StatelessWidget {
                     : tr.from.length > 6
                         ? "From : ${tr.from.substring(0, 6)}... ${tr.from.substring(tr.from.length - 6, tr.from.length)}"
                         : "From : ...",
-                style: GoogleFonts.roboto(
-                    color: textColor.withOpacity(0.4), fontSize: 12)),
+                style: textTheme.bodyMedium?.copyWith(
+                    color: textColor.withOpacity(0.4),
+                    fontSize: fontSizeOf(12))),
             trailing: Column(
               mainAxisAlignment: MainAxisAlignment.center,
               crossAxisAlignment: CrossAxisAlignment.end,
               children: [
                 Text(
                   isFrom ? "- $formattedAmount" : "+ $formattedAmount",
-                  style: GoogleFonts.roboto(
-                      color: textColor, fontWeight: FontWeight.bold),
+                  style: textTheme.bodyMedium?.copyWith(
+                      fontSize: fontSizeOf(14),
+                      color: textColor,
+                      fontWeight: FontWeight.bold),
                 ),
                 TimerBuilder.periodic(
                   Duration(seconds: 5),
                   builder: (ctx) {
                     return Text(
                       formatTimeElapsed(int.parse(tr.timeStamp)),
-                      style: GoogleFonts.roboto(
-                          color: textColor.withOpacity(0.5), fontSize: 12),
+                      style: textTheme.bodyMedium?.copyWith(
+                          color: textColor.withOpacity(0.5),
+                          fontSize: fontSizeOf(12)),
                     );
                   },
                 )

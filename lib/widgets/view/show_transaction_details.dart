@@ -5,7 +5,7 @@ import 'package:modal_bottom_sheet/modal_bottom_sheet.dart';
 import 'package:moonwallet/logger/logger.dart';
 import 'package:moonwallet/types/types.dart';
 import 'package:moonwallet/utils/constant.dart';
-import 'package:moonwallet/widgets/crypto_picture.dart';
+import 'package:moonwallet/widgets/screen_widgets/crypto_picture.dart';
 import 'package:moonwallet/widgets/view/details_container.dart';
 import 'package:timer_builder/timer_builder.dart';
 import 'package:url_launcher/url_launcher.dart';

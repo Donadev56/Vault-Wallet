@@ -6,12 +6,14 @@ import 'package:flutter/services.dart';
 // ignore: depend_on_referenced_packages
 
 import 'package:flutter/material.dart';
+import 'package:flutter_hooks/flutter_hooks.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:internet_connection_checker_plus/internet_connection_checker_plus.dart';
 import 'package:loading_animation_widget/loading_animation_widget.dart';
 import 'package:moonwallet/custom/candlesticks/lib/candlesticks.dart';
 import 'package:moonwallet/custom/refresh/check_mark.dart';
 import 'package:moonwallet/logger/logger.dart';
+import 'package:moonwallet/notifiers/providers.dart';
 import 'package:moonwallet/screens/dashboard/main/wallet_overview/receive.dart';
 import 'package:moonwallet/screens/dashboard/main/wallet_overview/send.dart';
 import 'package:moonwallet/service/external_data/crypto_request_manager.dart';
@@ -29,7 +31,7 @@ import 'package:moonwallet/utils/prefs.dart';
 import 'package:moonwallet/utils/themes.dart';
 import 'package:moonwallet/widgets/actions.dart';
 import 'package:moonwallet/widgets/app_bar_title.dart';
-import 'package:moonwallet/widgets/crypto_picture.dart';
+import 'package:moonwallet/widgets/screen_widgets/crypto_picture.dart';
 import 'package:moonwallet/widgets/view/other_options.dart';
 import 'package:moonwallet/widgets/view/show_crypto_candle_data.dart';
 import 'package:moonwallet/widgets/view/transactions.dart';
@@ -349,6 +351,33 @@ class _WalletViewScreenState extends ConsumerState<WalletViewScreen>
   @override
   Widget build(BuildContext context) {
     final textTheme = Theme.of(context).textTheme;
+    final asyncAccounts = ref.watch(accountsNotifierProvider);
+    final appUIConfigAsync = ref.watch(appUIConfigProvider);
+
+    final uiConfig = useState<AppUIConfig>(AppUIConfig.defaultConfig);
+
+    useEffect(() {
+      appUIConfigAsync.whenData((data) {
+        uiConfig.value = data;
+      });
+      return null;
+    }, [appUIConfigAsync]);
+
+    double fontSizeOf(double size) {
+      return size * uiConfig.value.styles.fontSizeScaleFactor;
+    }
+
+    double iconSizeOf(double size) {
+      return size * uiConfig.value.styles.iconSizeScaleFactor;
+    }
+
+    double imageSizeOf(double size) {
+      return size * uiConfig.value.styles.imageSizeScaleFactor;
+    }
+
+    double roundedOf(double size) {
+      return size * uiConfig.value.styles.radiusScaleFactor;
+    }
 
     if (currentCrypto == null) {
       return Center(
@@ -377,6 +406,8 @@ class _WalletViewScreenState extends ConsumerState<WalletViewScreen>
               IconButton(
                 onPressed: () {
                   showCryptoCandleModal(
+                      fontSizeOf: fontSizeOf,
+                      roundedOf: roundedOf,
                       context: context,
                       colors: colors,
                       currentCrypto: currentCrypto!);
@@ -389,6 +420,8 @@ class _WalletViewScreenState extends ConsumerState<WalletViewScreen>
             IconButton(
               onPressed: () {
                 showOtherOptions(
+                    fontSizeOf: fontSizeOf,
+                    roundedOf: roundedOf,
                     context: context,
                     colors: colors,
                     currentCrypto: currentCrypto!);
@@ -417,7 +450,7 @@ class _WalletViewScreenState extends ConsumerState<WalletViewScreen>
                               ),
                               child: CryptoPicture(
                                   crypto: currentCrypto!,
-                                  size: 65,
+                                  size: imageSizeOf(65),
                                   colors: colors),
                             ),
                             SizedBox(
@@ -434,7 +467,7 @@ class _WalletViewScreenState extends ConsumerState<WalletViewScreen>
                                   style: textTheme.bodyMedium?.copyWith(
                                       color: colors.textColor,
                                       fontWeight: FontWeight.bold,
-                                      fontSize: 24),
+                                      fontSize: fontSizeOf(24)),
                                 )))),
                             SizedBox(
                               height: 5,
@@ -445,7 +478,7 @@ class _WalletViewScreenState extends ConsumerState<WalletViewScreen>
                                   "= \$ ${formatUsd((totalBalanceUsd).toString())}",
                                   style: textTheme.bodySmall?.copyWith(
                                       color: colors.textColor.withOpacity(0.5),
-                                      fontSize: 14),
+                                      fontSize: fontSizeOf(14)),
                                 )),
                             SizedBox(
                               height: 15,
@@ -455,8 +488,10 @@ class _WalletViewScreenState extends ConsumerState<WalletViewScreen>
                               crossAxisAlignment: CrossAxisAlignment.center,
                               children: [
                                 ActionsWidgets(
-                                    size: 50,
-                                    iconSize: 22,
+                                    radius: roundedOf(10),
+                                    fontSize: fontSizeOf(12),
+                                    size: (50),
+                                    iconSize: iconSizeOf(22),
                                     color: colors.secondaryColor,
                                     actIcon: Icons.arrow_upward,
                                     textColor: colors.textColor,
@@ -476,8 +511,10 @@ class _WalletViewScreenState extends ConsumerState<WalletViewScreen>
                                                           totalBalanceUsd),
                                                 )))),
                                 ActionsWidgets(
-                                    size: 50,
-                                    iconSize: 22,
+                                    radius: roundedOf(10),
+                                    fontSize: fontSizeOf(12),
+                                    size: (50),
+                                    iconSize: iconSizeOf(22),
                                     color: colors.secondaryColor,
                                     actIcon: Icons.arrow_downward,
                                     textColor: colors.textColor,
@@ -552,7 +589,7 @@ class _WalletViewScreenState extends ConsumerState<WalletViewScreen>
                         height: 70,
                         margin: const EdgeInsets.only(top: 30),
                         decoration: BoxDecoration(
-                          borderRadius: BorderRadius.circular(15),
+                          borderRadius: BorderRadius.circular(roundedOf(15)),
                         ),
                         child: Align(
                             alignment: Alignment.center,
@@ -577,8 +614,9 @@ class _WalletViewScreenState extends ConsumerState<WalletViewScreen>
                                   },
                                   child: Text(
                                     "Check explorer",
-                                    style: textTheme.bodyMedium
-                                        ?.copyWith(color: colors.themeColor),
+                                    style: textTheme.bodyMedium?.copyWith(
+                                        color: colors.themeColor,
+                                        fontSize: fontSizeOf(14)),
                                   ),
                                 )
                               ],
@@ -609,6 +647,8 @@ class _WalletViewScreenState extends ConsumerState<WalletViewScreen>
                                 transaction.from.trim().toLowerCase() ==
                                     currentAccount.address.trim().toLowerCase();
                             return TransactionsListElement(
+                              roundedOf: roundedOf,
+                              fontSizeOf: fontSizeOf,
                               colors: colors,
                               surfaceTintColor: colors.grayColor,
                               isFrom: isFrom,

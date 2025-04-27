@@ -12,7 +12,7 @@ import 'package:moonwallet/utils/crypto.dart';
 import 'package:moonwallet/utils/themes.dart';
 import 'package:moonwallet/widgets/appBar/button.dart';
 import 'package:moonwallet/widgets/appBar/show_wallet_actions.dart';
-import 'package:moonwallet/widgets/crypto_picture.dart';
+import 'package:moonwallet/widgets/screen_widgets/crypto_picture.dart';
 import 'package:moonwallet/widgets/func/tokens_config/show_add_network.dart';
 import 'package:moonwallet/widgets/func/tokens_config/show_add_token.dart';
 import 'package:moonwallet/widgets/func/snackbar.dart';
@@ -115,6 +115,7 @@ class _AddCryptoViewState extends ConsumerState<AddCryptoView> {
     final appUIConfigAsync = ref.watch(appUIConfigProvider);
 
     final uiConfig = useState<AppUIConfig>(AppUIConfig.defaultConfig);
+
     useEffect(() {
       appUIConfigAsync.whenData((data) {
         uiConfig.value = data;

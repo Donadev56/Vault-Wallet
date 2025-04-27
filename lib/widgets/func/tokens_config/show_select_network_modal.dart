@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:lucide_icons_flutter/lucide_icons.dart';
 import 'package:modal_bottom_sheet/modal_bottom_sheet.dart';
 import 'package:moonwallet/types/types.dart';
-import 'package:moonwallet/widgets/crypto_picture.dart';
+import 'package:moonwallet/widgets/screen_widgets/crypto_picture.dart';
 
 Future<Crypto?> showSelectNetworkModal(
     {required BuildContext context,
@@ -14,8 +14,7 @@ Future<Crypto?> showSelectNetworkModal(
   final response = showBarModalBottomSheet<Crypto>(
       shape: RoundedRectangleBorder(
           borderRadius: BorderRadius.only(
-              topLeft: Radius.circular(roundedOf(30)),
-              topRight: Radius.circular(roundedOf(30)))),
+              topLeft: Radius.circular((30)), topRight: Radius.circular((30)))),
       backgroundColor: colors.primaryColor,
       context: context,
       builder: (ctx) {

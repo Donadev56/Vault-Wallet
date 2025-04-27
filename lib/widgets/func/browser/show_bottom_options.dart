@@ -7,7 +7,7 @@ import 'package:moonwallet/custom/web3_webview/lib/web3_webview.dart';
 import 'package:moonwallet/logger/logger.dart';
 import 'package:moonwallet/types/types.dart';
 import 'package:moonwallet/utils/constant.dart';
-import 'package:moonwallet/widgets/crypto_picture.dart';
+import 'package:moonwallet/widgets/screen_widgets/crypto_picture.dart';
 import 'package:moonwallet/widgets/func/browser/change_network.dart';
 
 void showBrowserBottomOptions(

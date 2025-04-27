@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:flutter_hooks/flutter_hooks.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:lucide_icons_flutter/lucide_icons.dart';
@@ -97,6 +98,24 @@ class _AddPrivateKeyState extends ConsumerState<AddMnemonicScreen> {
   Widget build(BuildContext context) {
     final textTheme = Theme.of(context).textTheme;
     final web3Provider = ref.read(web3ProviderNotifier);
+    final appUIConfigAsync = ref.watch(appUIConfigProvider);
+
+    final uiConfig = useState<AppUIConfig>(AppUIConfig.defaultConfig);
+
+    useEffect(() {
+      appUIConfigAsync.whenData((data) {
+        uiConfig.value = data;
+      });
+      return null;
+    }, [appUIConfigAsync]);
+
+    double fontSizeOf(double size) {
+      return size * uiConfig.value.styles.fontSizeScaleFactor;
+    }
+
+    double roundedOf(double size) {
+      return size * uiConfig.value.styles.radiusScaleFactor;
+    }
 
     Future<void> saveData() async {
       try {
@@ -114,7 +133,10 @@ class _AddPrivateKeyState extends ConsumerState<AddMnemonicScreen> {
         if (result) {
           notifySuccess("Wallet created successfully");
           Navigator.of(context).push(PageTransition(
-              type: PageTransitionType.leftToRight, child: PagesManagerView()));
+              type: PageTransitionType.leftToRight,
+              child: PagesManagerView(
+                colors: colors,
+              )));
         }
       } catch (e) {
         logError(e.toString());
@@ -165,7 +187,7 @@ class _AddPrivateKeyState extends ConsumerState<AddMnemonicScreen> {
                         "Add Mnemonic phrase",
                         style: textTheme.headlineMedium?.copyWith(
                             color: colors.textColor,
-                            fontSize: 24,
+                            fontSize: fontSizeOf(24),
                             decoration: TextDecoration.none),
                       ),
                     ),
@@ -210,7 +232,7 @@ class _AddPrivateKeyState extends ConsumerState<AddMnemonicScreen> {
                           labelText: 'Mnemonic',
                           labelStyle: TextStyle(color: colors.textColor),
                           border: OutlineInputBorder(
-                            borderRadius: BorderRadius.circular(10),
+                            borderRadius: BorderRadius.circular(roundedOf(10)),
                             borderSide: BorderSide(color: colors.textColor),
                           ),
                         ),
@@ -239,7 +261,7 @@ class _AddPrivateKeyState extends ConsumerState<AddMnemonicScreen> {
                             label: Text(
                               "Paste",
                               style: textTheme.bodyMedium?.copyWith(
-                                fontSize: 16,
+                                fontSize: fontSizeOf(16),
                                 color: colors.themeColor,
                               ),
                             ),
@@ -248,7 +270,8 @@ class _AddPrivateKeyState extends ConsumerState<AddMnemonicScreen> {
                               // Instead of setting an infinite width, just set the height.
                               minimumSize: const Size.fromHeight(50),
                               shape: RoundedRectangleBorder(
-                                borderRadius: BorderRadius.circular(30),
+                                borderRadius:
+                                    BorderRadius.circular(roundedOf(30)),
                               ),
                             ),
                           ),
@@ -274,7 +297,7 @@ class _AddPrivateKeyState extends ConsumerState<AddMnemonicScreen> {
                             label: Text(
                               "Scan",
                               style: textTheme.bodyMedium?.copyWith(
-                                fontSize: 16,
+                                fontSize: fontSizeOf(16),
                                 color: colors.themeColor,
                               ),
                             ),
@@ -282,7 +305,8 @@ class _AddPrivateKeyState extends ConsumerState<AddMnemonicScreen> {
                               side: BorderSide(color: colors.themeColor),
                               minimumSize: const Size.fromHeight(50),
                               shape: RoundedRectangleBorder(
-                                borderRadius: BorderRadius.circular(30),
+                                borderRadius:
+                                    BorderRadius.circular(roundedOf(30)),
                               ),
                             ),
                           ),
@@ -311,7 +335,7 @@ class _AddPrivateKeyState extends ConsumerState<AddMnemonicScreen> {
                               ),
                               Text("Important :",
                                   style: textTheme.bodyMedium?.copyWith(
-                                      fontSize: 16,
+                                      fontSize: fontSizeOf(16),
                                       color: colors.textColor,
                                       decoration: TextDecoration.none)),
                             ],
@@ -322,7 +346,7 @@ class _AddPrivateKeyState extends ConsumerState<AddMnemonicScreen> {
                               child: Text(
                                 "The Seed phrase is secret and is the only way to access your funds. Never share your private key with anyone and keep it in a safe place.",
                                 style: textTheme.bodyMedium?.copyWith(
-                                    fontSize: 16,
+                                    fontSize: fontSizeOf(16),
                                     color: colors.textColor.withOpacity(0.5),
                                     decoration: TextDecoration.none),
                               ),
@@ -345,7 +369,8 @@ class _AddPrivateKeyState extends ConsumerState<AddMnemonicScreen> {
                             side:
                                 BorderSide(color: colors.themeColor, width: 1),
                             shape: RoundedRectangleBorder(
-                              borderRadius: BorderRadius.circular(30),
+                              borderRadius:
+                                  BorderRadius.circular(roundedOf(30)),
                             ),
                           ),
                           onPressed: () {
@@ -354,7 +379,7 @@ class _AddPrivateKeyState extends ConsumerState<AddMnemonicScreen> {
                           child: Text(
                             "Previous",
                             style: textTheme.bodyMedium?.copyWith(
-                              fontSize: 18,
+                              fontSize: fontSizeOf(18),
                               color: colors.themeColor,
                               decoration: TextDecoration.none,
                             ),
@@ -368,7 +393,8 @@ class _AddPrivateKeyState extends ConsumerState<AddMnemonicScreen> {
                         child: ElevatedButton(
                           style: ElevatedButton.styleFrom(
                               shape: RoundedRectangleBorder(
-                                borderRadius: BorderRadius.circular(30),
+                                borderRadius:
+                                    BorderRadius.circular(roundedOf(30)),
                               ),
                               backgroundColor: colors.themeColor),
                           onPressed: () async {
@@ -379,7 +405,7 @@ class _AddPrivateKeyState extends ConsumerState<AddMnemonicScreen> {
                           child: Text(
                             "Next",
                             style: textTheme.bodyMedium?.copyWith(
-                              fontSize: 18,
+                              fontSize: fontSizeOf(18),
                               color: colors.primaryColor,
                               decoration: TextDecoration.none,
                             ),

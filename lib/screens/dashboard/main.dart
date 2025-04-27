@@ -11,7 +11,7 @@ import 'package:moonwallet/screens/dashboard/main/wallet_overview/send.dart';
 import 'package:moonwallet/utils/number_formatter.dart';
 import 'package:moonwallet/utils/colors.dart';
 import 'package:moonwallet/widgets/appBar/show_custom_drawer.dart';
-import 'package:moonwallet/widgets/coin_custom_listTitle.dart';
+import 'package:moonwallet/widgets/screen_widgets/coin_custom_listTitle.dart';
 import 'package:moonwallet/widgets/pop_menu_divider.dart';
 import 'package:moonwallet/widgets/func/security/ask_password.dart';
 import 'package:moonwallet/widgets/func/show_crypto_modal.dart';

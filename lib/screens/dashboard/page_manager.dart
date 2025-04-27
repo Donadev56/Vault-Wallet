@@ -16,14 +16,14 @@ import 'package:moonwallet/widgets/navBar.dart';
 import 'package:moonwallet/widgets/view/show_transaction_details.dart';
 
 class PagesManagerView extends StatefulHookConsumerWidget {
-  final types.AppColors? colors;
+  final types.AppColors colors;
   final types.PublicData? currentAccount;
   final types.Crypto? crypto;
   final types.TransactionDetails? transaction;
 
   const PagesManagerView(
       {super.key,
-      this.colors,
+      required this.colors,
       this.currentAccount,
       this.crypto,
       this.transaction});
@@ -72,6 +72,7 @@ class _PagesManagerViewState extends ConsumerState<PagesManagerView> {
         key: ValueKey<int>(1),
       ),
       TrendingScreen(
+        colors: colors,
         key: ValueKey<int>(2),
       ),
       DiscoverScreen(
@@ -83,11 +84,8 @@ class _PagesManagerViewState extends ConsumerState<PagesManagerView> {
   @override
   void initState() {
     super.initState();
-    if (widget.colors != null) {
-      setState(() {
-        colors = widget.colors!;
-      });
-    }
+    colors = widget.colors;
+
     WidgetsBinding.instance.addPostFrameCallback((_) {
       try {
         if (widget.transaction != null &&
