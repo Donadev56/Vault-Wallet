@@ -60,7 +60,7 @@ class CryptoPicture extends StatelessWidget {
                       height: size,
                     ),
         ),
-        if (crypto.type == CryptoType.token)
+        if (!crypto.isNative)
           Positioned(
               top: size / 1.8,
               left: size / 1.8,

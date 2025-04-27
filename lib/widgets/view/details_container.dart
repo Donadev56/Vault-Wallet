@@ -14,7 +14,7 @@ class DetailsContainer extends StatelessWidget {
         padding: const EdgeInsets.only(left: 20, right: 20),
         decoration: BoxDecoration(
             borderRadius: BorderRadius.circular(20),
-            color: colors.grayColor.withOpacity(0.2)),
+            color: colors.secondaryColor),
         child: child);
   }
 }

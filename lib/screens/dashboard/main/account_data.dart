@@ -507,9 +507,6 @@ class _AccountDataViewState extends ConsumerState<AccountDataView>
                                         isFrom: isFrom,
                                         tr: transaction,
                                         textColor: colors.textColor,
-                                        secondaryColor: colors.themeColor,
-                                        darkColor: colors.primaryColor,
-                                        primaryColor: colors.primaryColor,
                                         currentCrypto: crypto,
                                       );
                                     }),

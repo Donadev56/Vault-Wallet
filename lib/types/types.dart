@@ -22,34 +22,37 @@ extension IconJson on IconData {
 }
 
 class SecureData {
-  int id;
   final String privateKey;
   final String keyId;
   final int creationDate;
   final String walletName;
   final String? mnemonic;
   final String address;
+  final bool createdLocally;
+  final bool isBackup;
 
   SecureData({
-    this.id = 0,
+    required this.createdLocally,
     required this.privateKey,
     required this.keyId,
     required this.creationDate,
     required this.walletName,
     this.mnemonic,
     required this.address,
+    required this.isBackup
   });
 
   factory SecureData.fromJson(Map<dynamic, dynamic> json) {
     return SecureData(
-      privateKey: json['privatekey'] as String,
-      keyId: json['keyId'] as String,
-      creationDate: json['creationDate'] as int,
-      walletName: json['walletName'] as String,
-      mnemonic: json['mnemonic'] as String,
-      address: json['address'] as String,
-      id: json['id'] ?? 0,
-    );
+        privateKey: json['privatekey'] ,
+        keyId: json['keyId'] ?? "",
+        creationDate: json['creationDate'] ?? 0,
+        walletName: json['walletName'] ?? "" ,
+        mnemonic: json['mnemonic']  ,
+        address: json['address'] ?? "",
+        createdLocally: json["createdLocally"] ?? false,
+        isBackup: json["isBackup"] ?? false
+        );
   }
 
   Map<String, dynamic> toJson() {
@@ -60,8 +63,30 @@ class SecureData {
       'walletName': walletName,
       'mnemonic': mnemonic,
       'address': address,
-      'id': id,
+      "createdLocally": createdLocally,
+      "isBackup" : isBackup 
     };
+  }
+
+  SecureData copyWith({
+    String? privateKey,
+    String? keyId,
+    int? creationDate,
+    String? walletName,
+    String? mnemonic,
+    String? address,
+    bool? createdLocally,
+  }) {
+    return SecureData(
+      privateKey: privateKey ?? this.privateKey,
+      keyId: keyId ?? this.keyId,
+      creationDate: creationDate ?? this.creationDate,
+      walletName: walletName ?? this.walletName,
+      mnemonic: mnemonic ?? this.mnemonic,
+      address: address ?? this.address,
+      createdLocally: createdLocally ?? this.createdLocally,
+      isBackup: isBackup
+    );
   }
 }
 
@@ -134,6 +159,8 @@ class PublicData {
   final bool isWatchOnly;
   final IconData? walletIcon;
   final Color? walletColor;
+  final bool isBackup;
+  final bool createdLocally;
 
   PublicData(
       {required this.keyId,
@@ -143,26 +170,29 @@ class PublicData {
       required this.isWatchOnly,
       this.walletIcon = LucideIcons.wallet,
       this.walletColor = Colors.transparent,
+      this.isBackup = false,
+      required this.createdLocally,
       this.id = 0});
 
   factory PublicData.fromJson(Map<dynamic, dynamic> json) {
     return PublicData(
-      keyId: json['keyId'] as String,
-      creationDate: json['creationDate'] as int,
-      walletName: json['walletName'] as String,
-      address: json['address'] as String,
-      isWatchOnly: json['isWatchOnly'] as bool,
-      walletIcon: json["walletIcon"] != null
-          ? IconData(json['walletIcon']["codePoint"],
-              fontFamily: json['walletIcon']['fontFamily'],
-              matchTextDirection: json['walletIcon']["matchTextDirection"],
-              fontPackage: json['walletIcon']['fontPackage'])
-          : Icons.wallet,
-      walletColor: json['walletColor'] != null
-          ? Color(json['walletColor'] ?? 0x00000000)
-          : Colors.transparent,
-      id: json['id'] ?? 0,
-    );
+        keyId: json['keyId'] as String,
+        creationDate: json['creationDate'] as int,
+        walletName: json['walletName'] as String,
+        address: json['address'] as String,
+        isWatchOnly: json['isWatchOnly'] as bool,
+        walletIcon: json["walletIcon"] != null
+            ? IconData(json['walletIcon']["codePoint"],
+                fontFamily: json['walletIcon']['fontFamily'],
+                matchTextDirection: json['walletIcon']["matchTextDirection"],
+                fontPackage: json['walletIcon']['fontPackage'])
+            : Icons.wallet,
+        walletColor: json['walletColor'] != null
+            ? Color(json['walletColor'] ?? 0x00000000)
+            : Colors.transparent,
+        id: json['id'] ?? 0,
+        isBackup: json["isBackup"] ?? false,
+        createdLocally: json["createdUsingThisWallet"] ?? false);
   }
 
   Map<String, dynamic> toJson() {
@@ -175,7 +205,34 @@ class PublicData {
       'walletIcon': walletIcon?.toJson() ?? Icons.wallet.toJson(),
       'walletColor': walletColor?.value ?? Colors.transparent.value,
       'id': id,
+      "isBackup": isBackup,
+      "createdLocally": createdLocally
     };
+  }
+
+  PublicData copyWith({
+    int? id,
+    String? keyId,
+    int? creationDate,
+    String? walletName,
+    String? address,
+    bool? isWatchOnly,
+    IconData? walletIcon,
+    Color? walletColor,
+    bool? isBackup,
+    bool? createdLocally,
+  }) {
+    return PublicData(
+        id: id ?? this.id,
+        keyId: keyId ?? this.keyId,
+        creationDate: creationDate ?? this.creationDate,
+        walletName: walletName ?? this.walletName,
+        address: address ?? this.address,
+        isWatchOnly: isWatchOnly ?? this.isWatchOnly,
+        walletIcon: walletIcon ?? this.walletIcon,
+        walletColor: walletColor ?? this.walletColor,
+        isBackup: isBackup ?? this.isBackup,
+        createdLocally: createdLocally ?? this.createdLocally);
   }
 }
 
@@ -371,6 +428,8 @@ class Crypto {
       "cgSymbol": cgSymbol,
     };
   }
+
+  bool get isNative => type == CryptoType.native;
 
   Crypto copyWith({
     String? name,

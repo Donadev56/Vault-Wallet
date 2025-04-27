@@ -86,6 +86,8 @@ class Web3Manager {
       log("Address found : $addr");
       // generate a new wallet
       final SecureData wallet = SecureData(
+          createdLocally: false,
+          isBackup: false,
           address: addr,
           keyId: keyId,
           privateKey: privatekey,
@@ -94,6 +96,8 @@ class Web3Manager {
           creationDate: date);
 
       final PublicData publicWallet = PublicData(
+          createdLocally: false,
+          isBackup: false,
           isWatchOnly: false,
           address: addr,
           keyId: keyId,
@@ -240,6 +244,8 @@ class Web3Manager {
       // generate a new wallet
 
       final PublicData publicWallet = PublicData(
+          createdLocally: false,
+          isBackup: false,
           address: addr,
           keyId: keyId,
           isWatchOnly: true,

@@ -131,10 +131,7 @@ class _CreatePrivateKeyState extends ConsumerState<CreatePrivateKeyMain> {
           throw Exception("passwords must not be empty or not equal ");
         }
         final result = await web3Provider
-            .saveSeed(
-              mnemonic,
-              userPassword,
-            )
+            .saveSeed(mnemonic, userPassword, true)
             .withLoading(context, colors, "Creating wallet");
 
         if (result) {

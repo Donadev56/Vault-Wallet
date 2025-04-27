@@ -42,6 +42,7 @@ class EthereumProvider {
   late Web3Client _web3client;
   PublicData? currentAccount;
   final nullAccount = PublicData(
+    createdLocally: false,
       keyId: "",
       creationDate: 0,
       walletName: "",

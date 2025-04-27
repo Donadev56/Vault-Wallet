@@ -159,7 +159,7 @@ class _AddPrivateKeyState extends ConsumerState<AddPrivateKeyInMain> {
           throw Exception("passwords must not be empty ");
         }
         final result = await web3Provider
-            .savePrivateKey(key, userPassword)
+            .savePrivateKey(key, userPassword, false)
             .withLoading(context, colors, "Creating wallet");
         if (result) {
           if (!mounted) return;

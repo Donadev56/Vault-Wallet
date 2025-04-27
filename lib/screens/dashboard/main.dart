@@ -8,6 +8,7 @@ import 'package:moonwallet/notifiers/providers.dart';
 import 'package:moonwallet/screens/auth/home.dart';
 import 'package:moonwallet/screens/dashboard/main/wallet_overview/receive.dart';
 import 'package:moonwallet/screens/dashboard/main/wallet_overview/send.dart';
+import 'package:moonwallet/screens/dashboard/wallet_actions/private/private_key_screen.dart';
 import 'package:moonwallet/utils/number_formatter.dart';
 import 'package:moonwallet/utils/colors.dart';
 import 'package:moonwallet/widgets/appBar/show_custom_drawer.dart';
@@ -30,6 +31,7 @@ import 'package:moonwallet/utils/prefs.dart';
 import 'package:moonwallet/widgets/actions.dart';
 import 'package:moonwallet/widgets/appBar.dart';
 import 'package:moonwallet/widgets/func/snackbar.dart';
+import 'package:page_transition/page_transition.dart';
 import 'package:simple_gesture_detector/simple_gesture_detector.dart';
 import 'package:flutter_hooks/flutter_hooks.dart';
 
@@ -251,6 +253,10 @@ class _MainDashboardScreenState extends ConsumerState<MainDashboardScreen>
 
     void showOptionsModal() async {
       showHomeOptionsDialog(
+        isHidden: uiConfig.value.isCryptoHidden ,
+        roundedOf: roundedOf,
+        iconSizeOf: iconSizeOf,
+        fontSizeOf: fontSizeOf,
           context: context, toggleHidden: toggleHidden, colors: colors);
     }
 
@@ -406,11 +412,8 @@ class _MainDashboardScreenState extends ConsumerState<MainDashboardScreen>
             await askPassword(context: context, colors: colors, useBio: false);
 
         if (mounted && userPassword.isNotEmpty) {
-          Navigator.pushNamed(context, Routes.privateDataScreen,
-              arguments: ({
-                "keyId": accounts.value[index].keyId,
-                "password": userPassword
-              }));
+          Navigator.push(context, PageTransition(type: PageTransitionType.fade, child: PrivateKeyScreen(account: currentAccount!, password: userPassword, colors: colors,)));
+     
         }
       } catch (e) {
         logError(e.toString());
@@ -452,14 +455,12 @@ class _MainDashboardScreenState extends ConsumerState<MainDashboardScreen>
               ..sort((a, b) => a.crypto.symbol.compareTo(b.crypto.symbol));
             break;
           case 2:
-            assets.value = initialAssets.value
-                .where((a) => a.crypto.type == CryptoType.native)
-                .toList();
+            assets.value =
+                initialAssets.value.where((a) => a.crypto.isNative).toList();
             break;
           case 3:
-            assets.value = initialAssets.value
-                .where((a) => a.crypto.type == CryptoType.token)
-                .toList();
+            assets.value =
+                initialAssets.value.where((a) => !a.crypto.isNative).toList();
             break;
         }
       });
@@ -557,6 +558,7 @@ class _MainDashboardScreenState extends ConsumerState<MainDashboardScreen>
             changeProfileImage: changeProfileImage,
             currentAccount: currentAccount ??
                 PublicData(
+                    createdLocally: false,
                     keyId: "",
                     creationDate: 0,
                     walletName: "",

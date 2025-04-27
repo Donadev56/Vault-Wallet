@@ -83,7 +83,7 @@ void showOtherOptions(
                                           fontSize: fontSizeOf(14)),
                                     ),
                                     trailing: Text(
-                                      "${currentCrypto.type == CryptoType.native ? currentCrypto.name : currentCrypto.network?.name}",
+                                      "${currentCrypto.isNative ? currentCrypto.name : currentCrypto.network?.name}",
                                       style: textTheme.bodyMedium?.copyWith(
                                           fontSize: fontSizeOf(15),
                                           color: colors.textColor
@@ -92,8 +92,7 @@ void showOtherOptions(
                                   ),
                                   ListTile(
                                     onTap: () {
-                                      if (currentCrypto.type ==
-                                          CryptoType.native) return;
+                                      if (currentCrypto.isNative) return;
                                       Clipboard.setData(ClipboardData(
                                           text: currentCrypto.contractAddress ??
                                               ""));
@@ -130,8 +129,7 @@ void showOtherOptions(
                                 children: [
                                   ListTile(
                                       onTap: () {
-                                        if (currentCrypto.type ==
-                                            CryptoType.token) {
+                                        if (!currentCrypto.isNative) {
                                           launchUrl(Uri.parse(
                                               '${currentCrypto.network?.explorers![0]}/address/${currentCrypto.contractAddress}'));
                                         } else {

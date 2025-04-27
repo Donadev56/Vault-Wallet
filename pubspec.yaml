@@ -114,6 +114,7 @@ dependencies:
   hooks_riverpod: ^2.6.1
   flutter_hooks: ^0.21.2
   syncfusion_flutter_sliders: ^29.1.39
+  bip39_mnemonic: ^3.0.9
 
 
 

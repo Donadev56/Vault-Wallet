@@ -5,6 +5,7 @@ import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:moonwallet/logger/logger.dart';
 import 'package:moonwallet/main.dart';
 import 'package:moonwallet/notifiers/providers.dart';
+import 'package:moonwallet/screens/dashboard/wallet_actions/private/private_key_screen.dart';
 import 'package:moonwallet/service/vibration.dart';
 import 'package:moonwallet/types/types.dart';
 import 'package:moonwallet/widgets/screen_widgets/account_list_view_widget.dart';
@@ -13,6 +14,7 @@ import 'package:moonwallet/widgets/appBar/show_wallet_actions.dart';
 import 'package:moonwallet/widgets/appBar/wallet_actions.dart';
 import 'package:moonwallet/widgets/func/security/ask_password.dart';
 import 'package:moonwallet/widgets/func/snackbar.dart';
+import 'package:page_transition/page_transition.dart';
 
 class EditWalletsView extends StatefulHookConsumerWidget {
   final AppColors colors;
@@ -139,11 +141,12 @@ class _EditWalletsViewState extends ConsumerState<EditWalletsView> {
             await askPassword(context: context, colors: colors, useBio: false);
 
         if (mounted && userPassword.isNotEmpty) {
-          Navigator.pushNamed(context, Routes.privateDataScreen,
-              arguments: ({
-                "keyId": accounts[index].keyId,
-                "password": userPassword
-              }));
+          Navigator.push(context, PageTransition(type: PageTransitionType.fade,
+          child: PrivateKeyScreen(account: wallet, password:userPassword, colors: colors,)
+          
+          ),
+        );
+       
         }
       } catch (e) {
         logError(e.toString());

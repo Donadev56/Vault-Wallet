@@ -343,8 +343,7 @@ class _DiscoverScreenState extends ConsumerState<DiscoverScreen>
     savedCryptoAsync.whenData(
       (value) {
         networks = value
-            .where((crypto) =>
-                crypto.canDisplay && crypto.type == CryptoType.native)
+            .where((crypto) => crypto.canDisplay && crypto.isNative)
             .toList();
       },
     );

@@ -58,4 +58,5 @@ class EthAddresses {
     }
     return HEX.encode(privateKey);
   }
+
 }

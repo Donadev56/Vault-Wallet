@@ -1,4 +1,3 @@
-import 'dart:ui';
 
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
@@ -12,14 +11,16 @@ import 'package:moonwallet/utils/colors.dart';
 import 'package:moonwallet/utils/crypto.dart';
 import 'package:moonwallet/utils/prefs.dart';
 import 'package:moonwallet/utils/themes.dart';
+import 'package:moonwallet/widgets/alerts/show_alert.dart';
+import 'package:moonwallet/widgets/custom_filled_text_field.dart';
 import 'package:moonwallet/widgets/func/snackbar.dart';
 
 class PrivateKeyScreen extends StatefulHookConsumerWidget {
   final String? password;
-  final String? walletId;
+  final PublicData account;
   final AppColors? colors;
   const PrivateKeyScreen(
-      {super.key, this.password, this.walletId, this.colors});
+      {super.key, this.password,required this.account, this.colors});
 
   @override
   ConsumerState<PrivateKeyScreen> createState() => _PrivateKeyScreenState();
@@ -55,6 +56,9 @@ class _PrivateKeyScreenState extends ConsumerState<PrivateKeyScreen> {
   final encryptService = EncryptService();
   final priceManager = PriceManager();
   final publicDataManager = PublicDataManager();
+  SecureData? secureData ;
+  late PublicData account ;
+
   String walletKeyId = "";
   String password = "";
 
@@ -66,146 +70,81 @@ class _PrivateKeyScreenState extends ConsumerState<PrivateKeyScreen> {
       showWarn();
     });
     if (widget.password != null) {
-      setState(() {
         password = widget.password!;
-      });
     }
     if (widget.colors != null) {
-      setState(() {
         colors = widget.colors!;
-      });
     }
-    if (widget.walletId != null) {
-      walletKeyId = widget.walletId!;
-    }
+    account = widget.account;
+    
   }
 
-  Future<void> getDecryptedData() async {
-    try {
-      final decryptedData = await web3Manager.getDecryptedData(password);
-      final List<SecureData> listEncData = [];
-      if (decryptedData != null) {
-        for (final data in decryptedData) {
-          final SecureData newData = SecureData(
-            address: data["address"],
-            privateKey: data["privatekey"],
-            keyId: data["keyId"],
-            creationDate: data["creationDate"],
-            walletName: data["walletName"],
-            mnemonic: data["mnemonic"] ?? "No Mnemonic",
-          );
-          listEncData.add(newData);
-        }
-
-        if (listEncData.isNotEmpty) {
-          for (final eachData in listEncData) {
-            if (eachData.keyId.trim().toLowerCase() ==
-                walletKeyId.trim().toLowerCase()) {
-              if (eachData.mnemonic != null && eachData.mnemonic is String) {
-                _mnemonicController.text =
-                    eachData.mnemonic ?? "No data found for Mnemonic";
-              }
-              if (eachData.privateKey.isNotEmpty) {
-                _privateKeyController.text = eachData.privateKey;
-              }
-            }
-          }
-        } else {
-          if (mounted) {
-            showCustomSnackBar(
-                colors: colors,
-                type: MessageType.error,
-                context: context,
-                message: "No encrypted data found",
-                iconColor: Colors.pinkAccent);
-          }
-        }
-      } else {
-        if (mounted) {
-          showCustomSnackBar(
-              colors: colors,
-              type: MessageType.error,
-              context: context,
-              message: "No decrypted data found",
-              iconColor: Colors.pinkAccent);
-        }
-      }
-    } catch (e) {
-      if (mounted) {
-        showCustomSnackBar(
-            colors: colors,
-            type: MessageType.error,
-            context: context,
-            message: "An error occurred data",
-            iconColor: Colors.pinkAccent);
-      }
-
-      logError(e.toString());
-    }
-  }
 
   void showWarn() {
-    showDialog(
+    showWarning(
         context: context,
-        builder: (BuildContext ctx) {
-          final textTheme = Theme.of(context).textTheme;
-          return BackdropFilter(
-            filter: ImageFilter.blur(
-              sigmaX: 8.0,
-              sigmaY: 8.0,
+        colors: colors,
+        title: "Warning",
+        titleColor: Colors.orange,
+        content: Text(
+          "You are about to view sensitive information, make sure you are not in a public place and that no one is looking at your screen.",
+          style: TextTheme.of(context)
+              .bodyMedium
+              ?.copyWith(color: Colors.pinkAccent),
+        ),
+        actions: [
+          TextButton.icon(
+            icon: Icon(
+              Icons.arrow_back,
+              color: colors.textColor,
             ),
-            child: AlertDialog(
-              backgroundColor: colors.primaryColor,
-              title: Text(
-                "Warning",
-                style: textTheme.headlineMedium
-                    ?.copyWith(color: Colors.orange, fontSize: 20),
-              ),
-              content: Text(
-                "You are about to view sensitive information, make sure you are not in a public place and that no one is looking at your screen.",
-                style: textTheme.bodyMedium?.copyWith(color: Colors.pinkAccent),
-              ),
-              actions: [
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  crossAxisAlignment: CrossAxisAlignment.center,
-                  children: [
-                    TextButton.icon(
-                      icon: Icon(
-                        Icons.arrow_back,
-                        color: colors.textColor,
-                      ),
-                      onPressed: () {
-                        Navigator.pop(ctx);
-                        Navigator.pop(context);
-                      },
-                      label: Text(
-                        "Go back",
-                        style: textTheme.bodyMedium
-                            ?.copyWith(color: colors.textColor),
-                      ),
-                    ),
-                    TextButton.icon(
-                      icon: Icon(
-                        Icons.remove_red_eye,
-                        color: colors.textColor,
-                      ),
-                      onPressed: () {
-                        getDecryptedData();
-                        Navigator.pop(ctx);
-                      },
-                      label: Text(
-                        "View",
-                        style: textTheme.bodyMedium
-                            ?.copyWith(color: colors.textColor),
-                      ),
-                    ),
-                  ],
-                )
-              ],
+            onPressed: () {
+              Navigator.pop(context);
+              Navigator.pop(context);
+            },
+            label: Text(
+              "Go back",
+              style: TextTheme.of(context)
+                  .bodyMedium
+                  ?.copyWith(color: colors.textColor),
             ),
-          );
+          ),
+          TextButton.icon(
+            icon: Icon(
+              Icons.remove_red_eye,
+              color: colors.textColor,
+            ),
+            onPressed: () {
+              getSecureData();
+              Navigator.pop(context);
+            },
+            label: Text(
+              "View",
+              style: TextTheme.of(context)
+                  .bodyMedium
+                  ?.copyWith(color: colors.textColor),
+            ),
+          ),
+        ]);
+  }
+
+  Future<void> getSecureData () async {
+    try {
+
+      final data = await WalletDatabase().getSecureData(password: password, account: account );
+      if (data != null) {
+        _mnemonicController.text = data.mnemonic ?? "No Mnemonic";
+        _privateKeyController.text = data.privateKey;
+
+        setState(() {
+          secureData = data ;
         });
+      }
+      
+    } catch (e) {
+      logError(e.toString());
+      
+    }
   }
 
   @override
@@ -227,6 +166,16 @@ class _PrivateKeyScreenState extends ConsumerState<PrivateKeyScreen> {
       _isInitialized = true;
     }
   }
+  notifyError(String message) => showCustomSnackBar(
+      context: context,
+      message: message,
+      colors: colors,
+      type: MessageType.error);
+
+  double calcDouble (double value)  {
+    return value ;
+  }
+
 
   @override
   Widget build(BuildContext context) {
@@ -242,56 +191,27 @@ class _PrivateKeyScreenState extends ConsumerState<PrivateKeyScreen> {
             Navigator.pop(context);
           },
         ),
+        centerTitle: true,
         title: Text(
           "Private Data Overview",
           style: textTheme.bodyMedium?.copyWith(color: colors.textColor),
         ),
       ),
       body: Padding(
-        padding: const EdgeInsets.all(10),
-        child: Column(
+        padding: const EdgeInsets.all(20),
+        child: ListView(
           children: [
-            TextField(
-              readOnly: true,
-              controller: _mnemonicController,
-              minLines: 4,
-              maxLines: 5,
-              style: textTheme.bodyMedium?.copyWith(color: colors.textColor),
-              decoration: InputDecoration(
-                  label: Text("Mnemonic"),
-                  labelStyle:
-                      textTheme.bodyMedium?.copyWith(color: colors.textColor),
-                  enabledBorder: OutlineInputBorder(
-                      borderSide:
-                          BorderSide(width: 1, color: colors.themeColor)),
-                  border: OutlineInputBorder(
-                      borderSide:
-                          BorderSide(width: 1, color: colors.themeColor))),
-            ),
+           CustomFilledTextFormField(colors: colors, readOnly: true, fontSizeOf: calcDouble, iconSizeOf: calcDouble, roundedOf: calcDouble, maxLines: 5, minLines: 4, labelText: "Mnemonic", controller: _mnemonicController,),
             SizedBox(
               height: 15,
             ),
-            TextField(
-              readOnly: true,
-              controller: _privateKeyController,
-              minLines: 2,
-              maxLines: 3,
-              style: textTheme.bodyMedium?.copyWith(color: colors.textColor),
-              decoration: InputDecoration(
-                  label: Text("Private  Key"),
-                  labelStyle:
-                      textTheme.bodyMedium?.copyWith(color: colors.textColor),
-                  enabledBorder: OutlineInputBorder(
-                      borderSide:
-                          BorderSide(width: 1, color: colors.themeColor)),
-                  border: OutlineInputBorder(
-                      borderSide:
-                          BorderSide(width: 1, color: colors.themeColor))),
-            ),
+             CustomFilledTextFormField(colors: colors, readOnly: true, fontSizeOf: calcDouble, iconSizeOf: calcDouble, roundedOf: calcDouble, maxLines: 3, minLines: 3, labelText: "Private Key",controller: _privateKeyController,),
+
             SizedBox(
               height: 15,
             ),
-            Row(
+         if (secureData?.createdLocally == false || secureData?.isBackup == true)  
+         Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               crossAxisAlignment: CrossAxisAlignment.center,
               children: [
@@ -302,12 +222,7 @@ class _PrivateKeyScreenState extends ConsumerState<PrivateKeyScreen> {
                         backgroundColor: colors.themeColor),
                     onPressed: () {
                       if (_mnemonicController.text.isEmpty) {
-                        showCustomSnackBar(
-                            colors: colors,
-                            type: MessageType.error,
-                            context: context,
-                            message: "No Mnemonic found",
-                            iconColor: colors.redColor);
+                        notifyError( "No Mnemonic found");
                         return;
                       }
                       Clipboard.setData(
@@ -331,12 +246,7 @@ class _PrivateKeyScreenState extends ConsumerState<PrivateKeyScreen> {
                         backgroundColor: colors.themeColor),
                     onPressed: () {
                       if (_privateKeyController.text.isEmpty) {
-                        showCustomSnackBar(
-                            colors: colors,
-                            type: MessageType.error,
-                            context: context,
-                            message: "No Private Key found",
-                            iconColor: colors.redColor);
+                        notifyError( "No Private Key found");
                         return;
                       }
                       Clipboard.setData(
@@ -354,7 +264,23 @@ class _PrivateKeyScreenState extends ConsumerState<PrivateKeyScreen> {
                   ),
                 )
               ],
-            ),
+            ) else 
+           SizedBox(
+            width: width,
+            child:  ElevatedButton.icon(onPressed: () {
+
+            }, label: Text("Backup phrases", style: textTheme.bodyMedium?.copyWith(
+              color: colors.primaryColor
+
+            ),), icon: Icon(Icons.save, color: colors.primaryColor,),
+            style: ElevatedButton.styleFrom(
+              backgroundColor: Colors.orange ,
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(20),
+              )
+            ), ),
+           )
+            ,
             Align(
               alignment: Alignment.topLeft,
               child: Padding(

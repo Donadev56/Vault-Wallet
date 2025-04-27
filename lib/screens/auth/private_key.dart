@@ -99,8 +99,12 @@ class _CreatePrivateKeyState extends State<CreatePrivateKey> {
       if (firstPassword.isEmpty || firstPassword != secondPassword) {
         throw Exception("passwords must not be empty or not equal ");
       }
-      final result = await manager.savePrivatekeyInStorage(
-          key, firstPassword, "MoonWallet-1", mnemonic);
+      final result = await manager.savePrivateData(
+          createdLocally: true,
+          privatekey: key,
+          password: firstPassword,
+          walletName: "MoonWallet-1",
+          mnemonic: mnemonic);
       if (result) {
         if (!mounted) return;
         showCustomSnackBar(

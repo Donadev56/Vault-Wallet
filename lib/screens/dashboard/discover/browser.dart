@@ -231,8 +231,7 @@ class Web3BrowserScreenState extends State<Web3BrowserScreen> {
           await CryptoStorageManager().getSavedCryptos(wallet: account);
       if (savedCryptos != null) {
         setState(() {
-          networks =
-              savedCryptos.where((c) => c.type == CryptoType.native).toList();
+          networks = savedCryptos.where((c) => c.isNative).toList();
         });
       }
     } catch (e) {

@@ -1,5 +1,6 @@
 import 'package:http/http.dart';
 import 'package:moonwallet/logger/logger.dart';
+import 'package:moonwallet/types/types.dart';
 import 'package:web3dart/web3dart.dart';
 
 class DynamicWeb3Client {
@@ -23,6 +24,21 @@ class DynamicWeb3Client {
     try {
       final result = await client.getTransactionReceipt(tx);
       return result;
+    } catch (e) {
+      logError(e.toString());
+      return null;
+    }
+  }
+
+  Future<String?> getStatus(String tx, Crypto crypto) async {
+    try {
+      final web3Client = DynamicWeb3Client(
+          rpcUrl: (!crypto.isNative
+                  ? crypto.network?.rpcUrls?.firstOrNull
+                  : crypto.rpcUrls?.firstOrNull) ??
+              "");
+      final receipt = await web3Client.getReceipt(tx);
+      return receipt?.status == true ? "Success" : "Failed";
     } catch (e) {
       logError(e.toString());
       return null;

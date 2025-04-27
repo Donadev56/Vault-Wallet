@@ -16,9 +16,7 @@ class TransactionsListElement extends StatelessWidget {
   final EsTransaction tr;
   final AppColors colors;
   final Color textColor;
-  final Color secondaryColor;
-  final Color primaryColor;
-  final Color darkColor;
+
   final Crypto currentCrypto;
   final DoubleFactor roundedOf;
   final DoubleFactor fontSizeOf;
@@ -29,9 +27,6 @@ class TransactionsListElement extends StatelessWidget {
       required this.isFrom,
       required this.tr,
       required this.textColor,
-      required this.secondaryColor,
-      required this.primaryColor,
-      required this.darkColor,
       required this.currentCrypto,
       required this.colors,
       required this.fontSizeOf,
@@ -76,7 +71,7 @@ class TransactionsListElement extends StatelessWidget {
               child: Icon(
                 isFrom ? FeatherIcons.arrowUpRight : FeatherIcons.arrowDown,
                 size: 15,
-                color: isFrom ? textColor.withOpacity(0.4) : secondaryColor,
+                color: isFrom ? textColor.withOpacity(0.4) : colors.themeColor,
               ),
             ),
             title: Text(

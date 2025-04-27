@@ -29,8 +29,12 @@ class WalletDatabase {
     }
   }
 
-  Future<bool> savePrivatekeyInStorage(String privatekey, String password,
-      String walletName, String? mnemonicToSeed) async {
+  Future<bool> savePrivateData(
+      {required String privatekey,
+      required String password,
+      required String walletName,
+      String? mnemonic,
+      required bool createdLocally}) async {
     try {
       final date = (DateTime.now().microsecondsSinceEpoch);
       final keyId = encryptService.generateUniqueId();
@@ -39,17 +43,20 @@ class WalletDatabase {
       log("Address found : $addr");
       // generate a new wallet
       final SecureData wallet = SecureData(
+          isBackup: false,
           address: addr,
           keyId: keyId,
           privateKey: privatekey,
           walletName: walletName,
-          mnemonic: mnemonicToSeed,
+          mnemonic: mnemonic,
+          createdLocally: createdLocally,
           creationDate: date);
 
       final PublicData publicWallet = PublicData(
           isWatchOnly: false,
           address: addr,
           keyId: keyId,
+          createdLocally: createdLocally,
           walletName: walletName,
           creationDate: date);
 
@@ -172,6 +179,8 @@ class WalletDatabase {
           address: account.address,
           walletName: newName ?? account.walletName,
           creationDate: account.creationDate,
+          createdLocally: account.createdLocally,
+          isBackup: account.isBackup,
           keyId: account.keyId);
 
       for (final acc in savedAccounts) {
@@ -228,6 +237,8 @@ class WalletDatabase {
       // generate a new wallet
 
       final PublicData publicWallet = PublicData(
+         isBackup: true,
+          createdLocally: false,
           address: addr,
           keyId: keyId,
           isWatchOnly: true,
@@ -387,4 +398,34 @@ class WalletDatabase {
       return false;
     }
   }
+
+    Future<SecureData?> getSecureData({required String password , required PublicData account }) async {
+    try {
+      final decryptedData = await getDecryptedData(password);
+      final List<SecureData> listEncData = [];
+      if (decryptedData != null) {
+        for (final data in decryptedData) {
+          final SecureData newData = SecureData.fromJson(data);
+          listEncData.add(newData);
+        }
+
+        if (listEncData.isNotEmpty) {
+          for (final e in listEncData) {
+            if (e.keyId.trim().toLowerCase() ==
+                account.keyId.toLowerCase()) {
+             return e ;
+            }
+          }
+        }
+      }
+
+      return null ;
+    } catch (e) {
+     logError(e.toString());
+
+      rethrow ;
+
+    }
+  }
+
 }

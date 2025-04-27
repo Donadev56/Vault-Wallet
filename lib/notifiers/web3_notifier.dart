@@ -11,7 +11,8 @@ class Web3Notifier {
   final Ref ref;
   Web3Notifier(this.ref);
 
-  Future<bool> saveSeed(String seed, String userPassword) async {
+  Future<bool> saveSeed(
+      String seed, String userPassword, bool createdLocally) async {
     try {
       final secretData = await ethAddresses.createPrivatekeyFromSeed(seed);
 
@@ -19,8 +20,12 @@ class Web3Notifier {
       if (userPassword.isEmpty) {
         throw Exception("passwords must not be empty ");
       }
-      final result = await web3Manager.savePrivatekeyInStorage(
-          key, userPassword, "New Wallet", seed);
+      final result = await web3Manager.savePrivateData(
+          createdLocally: createdLocally,
+          privatekey: key,
+          password: userPassword,
+          walletName: "New Wallet",
+          mnemonic: seed);
       ref.invalidate(accountsNotifierProvider);
       if (result) {
         return result;
@@ -33,10 +38,15 @@ class Web3Notifier {
     }
   }
 
-  Future<bool> savePrivateKey(String privateKey, String userPassword) async {
+  Future<bool> savePrivateKey(
+      String privateKey, String userPassword, bool createdLocally) async {
     try {
-      final response = await web3Manager.savePrivatekeyInStorage(
-          privateKey, userPassword, "MoonWallet-1", null);
+      final response = await web3Manager.savePrivateData(
+        createdLocally: createdLocally,
+        privatekey: privateKey,
+        password: userPassword,
+        walletName: "MoonWallet-1",
+      );
       if (response) {
         ref.invalidate(accountsNotifierProvider);
 

@@ -23,13 +23,10 @@ Future<Crypto?> showSelectNetworkModal(
             color: Colors.transparent,
             child: ListView.builder(
               shrinkWrap: true,
-              itemCount: networks
-                  .where((crypto) => crypto.type == CryptoType.native)
-                  .length,
+              itemCount: networks.where((crypto) => crypto.isNative).length,
               itemBuilder: (ctx, i) {
-                final crypto = networks
-                    .where((crypto) => crypto.type == CryptoType.native)
-                    .toList()[i];
+                final crypto =
+                    networks.where((crypto) => crypto.isNative).toList()[i];
                 return ListTile(
                   leading: CryptoPicture(
                       crypto: crypto, size: iconSizeOf(30), colors: colors),

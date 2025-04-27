@@ -146,7 +146,7 @@ final List<Map<String, dynamic>> appBarButtonOptions = [
   },
   {
     'icon': LucideIcons.key,
-    'name': 'View private data',
+    'name': 'Backup',
   },
   {
     'icon': LucideIcons.trash,

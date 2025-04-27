@@ -47,13 +47,11 @@ Future<bool> showChangeNetworkModal(
             Expanded(
               child: ListView.builder(
                 shrinkWrap: true,
-                itemCount: networks
-                    .where((crypto) => crypto.type != CryptoType.token)
-                    .toList()
-                    .length,
+                itemCount:
+                    networks.where((crypto) => crypto.isNative).toList().length,
                 itemBuilder: (BuildContext context, int index) {
                   final network = networks
-                      .where((crypto) => crypto.type != CryptoType.token)
+                      .where((crypto) => crypto.isNative)
                       .toList()[index];
                   return Material(
                     color: chainId == network.chainId

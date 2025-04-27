@@ -104,9 +104,7 @@ class _CryptoTrendViewState extends State<CryptoTrendView> {
   @override
   Widget build(BuildContext context) {
     final textTheme = TextTheme.of(context);
-    final explorers = coin.type == CryptoType.native
-        ? coin.explorers
-        : coin.network?.explorers;
+    final explorers = coin.isNative ? coin.explorers : coin.network?.explorers;
 
     return Scaffold(
       backgroundColor: colors.primaryColor,
@@ -153,7 +151,7 @@ class _CryptoTrendViewState extends State<CryptoTrendView> {
                                 color: colors.textColor),
                           ),
                           Text(
-                            "${coin.type == CryptoType.native ? coin.name : coin.network?.name}",
+                            "${coin.isNative ? coin.name : coin.network?.name}",
                             style: textTheme.bodyLarge?.copyWith(
                                 fontSize: fontSizeOf(14),
                                 color: colors.textColor.withValues(alpha: 0.7)),
@@ -279,7 +277,7 @@ class _CryptoTrendViewState extends State<CryptoTrendView> {
                   SizedBox(
                     height: 10,
                   ),
-                  if (coin.type == CryptoType.token)
+                  if (!coin.isNative)
                     if (coin.network != null)
                       Align(
                         alignment: Alignment.center,
@@ -287,7 +285,8 @@ class _CryptoTrendViewState extends State<CryptoTrendView> {
                           visualDensity:
                               VisualDensity(vertical: -2, horizontal: -4),
                           shape: RoundedRectangleBorder(
-                              borderRadius: BorderRadius.circular(10)),
+                              borderRadius:
+                                  BorderRadius.circular(roundedOf(10))),
                           tileColor: colors.secondaryColor,
                           onTap: () async {
                             final baseUrl =

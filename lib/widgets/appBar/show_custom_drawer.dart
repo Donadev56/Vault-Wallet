@@ -412,7 +412,8 @@ void showCustomDrawer({
                                           builder: (context) =>
                                               PrivateKeyScreen(
                                                 password: password,
-                                                walletId: account.keyId,
+                                                account: account,
+                                                colors: colors,
                                               )));
                                 }
                               } else if (i == 1) {

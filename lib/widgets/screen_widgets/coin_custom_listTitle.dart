@@ -104,7 +104,7 @@ class CoinCustomListTitle extends StatelessWidget {
                       color: colors.grayColor.withOpacity(0.9).withOpacity(0.2),
                       borderRadius: BorderRadius.circular(20)),
                   child: Text(
-                      crypto.type == CryptoType.token
+                      !crypto.isNative
                           ? "${crypto.network?.name}"
                           : crypto.name,
                       style: textTheme.bodySmall?.copyWith(

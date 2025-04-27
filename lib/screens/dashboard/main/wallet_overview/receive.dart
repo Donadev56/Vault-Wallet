@@ -35,6 +35,7 @@ class _ReceiveScreenState extends ConsumerState<ReceiveScreen> {
   List<PublicData> accounts = [];
   List<PublicData> filteredAccounts = [];
   PublicData currentAccount = PublicData(
+    createdLocally: false,
       keyId: "",
       creationDate: 0,
       walletName: "",
@@ -99,10 +100,6 @@ class _ReceiveScreenState extends ConsumerState<ReceiveScreen> {
 
     double fontSizeOf(double size) {
       return size * uiConfig.value.styles.fontSizeScaleFactor;
-    }
-
-    double iconSizeOf(double size) {
-      return size * uiConfig.value.styles.iconSizeScaleFactor;
     }
 
     double imageSizeOf(double size) {
@@ -269,10 +266,11 @@ class _ReceiveScreenState extends ConsumerState<ReceiveScreen> {
                       padding: const EdgeInsets.all(10),
                       decoration: BoxDecoration(
                           borderRadius: BorderRadius.circular(roundedOf(30)),
-                          color: colors.grayColor.withOpacity(0.2)),
+                          color: colors.secondaryColor),
                       child: Center(
                         child: Text(
                           currentAccount.address,
+                          overflow: TextOverflow.ellipsis,
                           style: textTheme.bodyMedium?.copyWith(
                               color: colors.textColor,
                               fontSize: fontSizeOf(11)),

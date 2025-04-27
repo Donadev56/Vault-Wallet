@@ -20,7 +20,6 @@ import 'package:moonwallet/screens/auth/private_key.dart';
 import 'package:moonwallet/screens/dashboard/discover.dart';
 import 'package:moonwallet/screens/dashboard/main.dart';
 import 'package:moonwallet/screens/dashboard/page_manager.dart';
-import 'package:moonwallet/screens/dashboard/wallet_actions/private/private_key_screen.dart';
 import 'package:moonwallet/screens/dashboard/settings/change_colors.dart';
 import 'package:moonwallet/screens/dashboard/settings/settings.dart';
 import 'package:moonwallet/screens/dashboard/wallet_actions/add_w_o.dart';
@@ -61,7 +60,6 @@ class Routes {
   static const String addPrivateKey = '/addPrivateKey';
   static const String pinAuth = '/pinAuth';
   static const String addObservationWallet = '/addObservationWallet';
-  static const String privateDataScreen = '/privateDataScreen';
   static const String settings = '/settings';
   static const String secureCheckView = '/secureCheckView';
 
@@ -337,9 +335,7 @@ class _MyAppState extends State<MyApp> {
                   Routes.createAccountFromSed: (context) => AddMnemonicScreen(),
                   Routes.addObservationWallet: (context) =>
                       AddObservationWallet(),
-                  Routes.privateDataScreen: (context) => PrivateKeyScreen(
-                        colors: colors,
-                      ),
+                
                   Routes.settings: (context) => SettingsPage(
                         colors: colors,
                       ),

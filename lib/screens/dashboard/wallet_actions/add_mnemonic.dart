@@ -128,7 +128,7 @@ class _AddPrivateKeyState extends ConsumerState<AddMnemonicScreen> {
           throw Exception("No Seed generated yet.");
         }
         final result = await web3Provider
-            .saveSeed(_textController.text, userPassword)
+            .saveSeed(_textController.text, userPassword, false)
             .withLoading(context, colors, "Creating Wallet");
         if (result) {
           notifySuccess("Wallet created successfully");

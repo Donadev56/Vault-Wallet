@@ -68,6 +68,7 @@ class _SendTransactionScreenState extends ConsumerState<SendTransactionScreen> {
   List<dynamic> lastEthUsedAddresses = [];
   List<String> lastAddresses = [];
   PublicData currentAccount = PublicData(
+    createdLocally: false,
       keyId: "",
       creationDate: 0,
       walletName: "",
@@ -112,7 +113,10 @@ class _SendTransactionScreenState extends ConsumerState<SendTransactionScreen> {
       crypto = widget.initData.crypto;
       colors = widget.initData.colors;
       if (widget.initData.initialBalanceCrypto != null) {
-        if (crypto!.type == CryptoType.token) {
+        if (crypto == null) {
+          throw "No Token Found";
+        }
+        if (!crypto!.isNative) {
           tokenBalance = widget.initData.initialBalanceCrypto ?? 0;
         } else {
           nativeBalance = widget.initData.initialBalanceCrypto ?? 0;
@@ -174,8 +178,11 @@ class _SendTransactionScreenState extends ConsumerState<SendTransactionScreen> {
 
   Future<TransactionReceipt?> getReceipt(String? tx) async {
     try {
+      if (crypto == null) {
+        throw ("Token not found");
+      }
       final web3Client = DynamicWeb3Client(
-          rpcUrl: (crypto?.type == CryptoType.token
+          rpcUrl: (!crypto!.isNative == true
                   ? crypto?.network?.rpcUrls?.firstOrNull
                   : crypto?.rpcUrls?.firstOrNull) ??
               "");
@@ -345,7 +352,7 @@ class _SendTransactionScreenState extends ConsumerState<SendTransactionScreen> {
         // 3
         ethInteractionManager.getBalance(currentAccount, crypto!),
         // 4
-        crypto?.type == CryptoType.token
+        !crypto!.isNative
             ? ethInteractionManager.getGasPrice(
                 crypto!.network?.rpcUrls?.first ??
                     "https://opbnb-mainnet-rpc.bnbchain.org")
@@ -362,7 +369,7 @@ class _SendTransactionScreenState extends ConsumerState<SendTransactionScreen> {
       final price = (results[1] as CryptoMarketData).currentPrice;
       final targetTokenBalance = results[2];
       double nativeTargetTokenBalance = 0;
-      if (crypto?.type == CryptoType.token) {
+      if (!crypto!.isNative) {
         nativeTargetTokenBalance = await ethInteractionManager.getBalance(
             currentAccount, crypto!.network!);
       }
@@ -381,7 +388,7 @@ class _SendTransactionScreenState extends ConsumerState<SendTransactionScreen> {
 
       setState(() {
         cryptoPrice = price;
-        if (crypto!.type == CryptoType.token) {
+        if (!crypto!.isNative) {
           setState(() {
             nativeBalance = nativeTargetTokenBalance;
             tokenBalance = targetTokenBalance as double;
@@ -433,10 +440,6 @@ class _SendTransactionScreenState extends ConsumerState<SendTransactionScreen> {
 
     double fontSizeOf(double size) {
       return size * uiConfig.value.styles.fontSizeScaleFactor;
-    }
-
-    double iconSizeOf(double size) {
-      return size * uiConfig.value.styles.iconSizeScaleFactor;
     }
 
     double imageSizeOf(double size) {
@@ -739,7 +742,7 @@ class _SendTransactionScreenState extends ConsumerState<SendTransactionScreen> {
                       borderRadius: BorderRadius.circular(roundedOf(10)),
                       onTap: () {
                         setState(() {
-                          if (crypto!.type == CryptoType.native) {
+                          if (crypto!.isNative) {
                             final value = nativeBalance - transactionFee;
                             log("value $value , balance $nativeBalance");
                             _amountController.text = formatter.format(value);
@@ -833,7 +836,7 @@ class _SendTransactionScreenState extends ConsumerState<SendTransactionScreen> {
               Align(
                 alignment: Alignment.topLeft,
                 child: Text(
-                  "Balance : ${formatCryptoValue(crypto!.type == CryptoType.native ? nativeBalance.toString() : tokenBalance.toString())} ${crypto!.symbol}",
+                  "Balance : ${formatCryptoValue(crypto!.isNative ? nativeBalance.toString() : tokenBalance.toString())} ${crypto!.symbol}",
                   style: textTheme.bodyMedium?.copyWith(
                       color: colors.textColor.withOpacity(0.7),
                       fontSize: fontSizeOf(14)),
@@ -852,7 +855,7 @@ class _SendTransactionScreenState extends ConsumerState<SendTransactionScreen> {
 
                       if (_formKey.currentState!.validate()) {
                         log("Validation success !");
-                        if (crypto!.type == CryptoType.native) {
+                        if (crypto!.isNative) {
                           await sendTransaction();
                         } else {
                           await sendTokenTransaction();

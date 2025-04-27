@@ -22,11 +22,11 @@ class EthInteractionManager {
   Future<double> getBalance(PublicData account, Crypto crypto) async {
     try {
       final address = account.address;
-      final rpc = crypto.type == CryptoType.native
+      final rpc = crypto.isNative
           ? crypto.rpcUrls?.firstOrNull
           : crypto.network?.rpcUrls?.firstOrNull;
 
-      if (crypto.type == CryptoType.token) {
+      if (!crypto.isNative) {
         return await tokenManager.getTokenBalance(crypto, address);
       }
 
@@ -232,7 +232,7 @@ class EthInteractionManager {
 
   Future<BigInt?> simulateTransaction(Crypto crypto, PublicData account) async {
     return estimateGas(
-        rpcUrl: crypto.type == CryptoType.token
+        rpcUrl: !crypto.isNative
             ? crypto.network?.rpcUrls?.firstOrNull ?? ""
             : crypto.rpcUrls?.firstOrNull ?? "",
         sender: account.address,

@@ -114,7 +114,7 @@ void showCryptoModal(
                                     borderRadius:
                                         BorderRadius.circular(roundedOf(20))),
                                 child: Text(
-                                  net.type == CryptoType.token
+                                  !net.isNative
                                       ? "${net.network?.name}"
                                       : net.name,
                                   style: textTheme.bodySmall?.copyWith(

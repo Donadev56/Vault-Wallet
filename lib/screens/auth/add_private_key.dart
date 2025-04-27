@@ -76,8 +76,11 @@ class _AddPrivateKeyState extends State<AddPrivateKey> {
       if (firstPassword.isEmpty || firstPassword != secondPassword) {
         throw Exception("passwords must not be empty or not equal ");
       }
-      final result = await web3Manager.savePrivatekeyInStorage(
-          key, firstPassword, "MoonWallet-1", null);
+      final result = await web3Manager.savePrivateData(
+          createdLocally: false,
+          privatekey: key,
+          password: firstPassword,
+          walletName: "MoonWallet-1");
 
       if (result) {
         if (!mounted) return;

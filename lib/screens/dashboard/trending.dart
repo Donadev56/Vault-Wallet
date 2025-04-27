@@ -67,8 +67,7 @@ class _TrendingScreenState extends ConsumerState<TrendingScreen> {
 
     final uiConfig = useState<AppUIConfig>(AppUIConfig.defaultConfig);
     final cryptoList = useState<List<Crypto>>([]);
-    final networks =
-        cryptoList.value.where((c) => c.type == CryptoType.native).toList();
+    final networks = cryptoList.value.where((c) => c.isNative).toList();
     final networkKeyId = useState<String?>(null);
     final query = useState<String>("");
 

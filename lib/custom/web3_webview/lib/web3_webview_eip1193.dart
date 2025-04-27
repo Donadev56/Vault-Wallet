@@ -811,6 +811,7 @@ class InAppWebViewEIP1193State extends State<Web3WebView> {
     _provider.initialize(
       account: widget.web3WalletConfig?.currentAccount ??
           PublicData(
+            createdLocally: false,
               keyId: "",
               creationDate: 0,
               walletName: "",

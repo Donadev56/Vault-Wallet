@@ -52,6 +52,7 @@ class _WalletViewScreenState extends ConsumerState<WalletViewScreen>
   List<EsTransaction> transactions = [];
   late InternetConnection internetChecker;
   PublicData currentAccount = PublicData(
+    createdLocally: false,
       keyId: "",
       creationDate: 0,
       walletName: "",
@@ -603,8 +604,7 @@ class _WalletViewScreenState extends ConsumerState<WalletViewScreen>
                                 ),
                                 InkWell(
                                   onTap: () async {
-                                    if (currentCrypto!.type ==
-                                        CryptoType.native) {
+                                    if (currentCrypto!.isNative) {
                                       await launchUrl(Uri.parse(
                                           "${currentCrypto!.explorers![0]}/address/${currentAccount.address}"));
                                     } else {
@@ -654,9 +654,6 @@ class _WalletViewScreenState extends ConsumerState<WalletViewScreen>
                               isFrom: isFrom,
                               tr: transaction,
                               textColor: colors.textColor,
-                              secondaryColor: colors.themeColor,
-                              darkColor: colors.primaryColor,
-                              primaryColor: colors.primaryColor,
                               currentCrypto: currentCrypto!,
                             );
                           }));

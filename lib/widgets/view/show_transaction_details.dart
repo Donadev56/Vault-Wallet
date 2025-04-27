@@ -324,14 +324,14 @@ void showTransactionDetails(
                         borderRadius: BorderRadius.circular(10),
                         onTap: () async {
                           final url =
-                              "${currentNetwork.type == CryptoType.token ? currentNetwork.network?.explorers![0] : currentNetwork.explorers![0]}/tx/${tr.hash}";
+                              "${!currentNetwork.isNative ? currentNetwork.network?.explorers![0] : currentNetwork.explorers![0]}/tx/${tr.hash}";
                           log("The url is $url");
                           await launchUrl(Uri.parse(url));
                         },
                         child: Container(
                           padding: const EdgeInsets.all(10),
                           decoration: BoxDecoration(
-                              color: colors.grayColor.withOpacity(0.2),
+                              color: colors.secondaryColor,
                               borderRadius: BorderRadius.circular(10)),
                           child: Center(
                             child: Text(
@@ -352,7 +352,7 @@ void showTransactionDetails(
                         borderRadius: BorderRadius.circular(10),
                         onTap: () async {
                           final text =
-                              "${currentNetwork.type == CryptoType.token ? currentNetwork.network?.explorers![0] : currentNetwork.explorers![0]}/tx/${tr.hash}";
+                              "${!currentNetwork.isNative ? currentNetwork.network?.explorers![0] : currentNetwork.explorers![0]}/tx/${tr.hash}";
                           share(text: text, subject: "Share Transaction Hash");
                         },
                         child: Container(
