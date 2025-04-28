@@ -1,4 +1,3 @@
-import 'package:cherry_toast/cherry_toast.dart';
 import 'package:flutter/material.dart';
 import 'package:moonwallet/types/types.dart';
 

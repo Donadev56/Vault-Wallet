@@ -190,7 +190,7 @@ class PublicData {
             : Colors.transparent,
         id: json['id'] ?? 0,
         isBackup: json["isBackup"] ?? false,
-        createdLocally: json["createdUsingThisWallet"] ?? false);
+        createdLocally: json["createdLocally"] ?? false);
   }
 
   Map<String, dynamic> toJson() {

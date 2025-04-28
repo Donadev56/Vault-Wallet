@@ -5,7 +5,7 @@ import 'package:jazzicon/jazzicon.dart';
 import 'package:jazzicon/jazziconshape.dart';
 import 'package:moonwallet/types/types.dart';
 
-class AccountListViewWidget extends StatelessWidget {
+class AccountListTitleWidget extends StatelessWidget {
   final PublicData wallet;
   final Function() onTap;
   final Function() onMoreTap;
@@ -21,7 +21,7 @@ class AccountListViewWidget extends StatelessWidget {
   final DoubleFactor listTitleVerticalOf;
 
   final AppColors colors;
-  const AccountListViewWidget(
+  const AccountListTitleWidget(
       {super.key,
       this.showMore = true,
       this.isCurrent = false,
@@ -67,7 +67,7 @@ class AccountListViewWidget extends StatelessWidget {
                   style: textTheme.bodyMedium?.copyWith(
                       color: colors.textColor,
                       fontWeight: FontWeight.w500,
-                      fontSize: fontSizeOf(16)),
+                      fontSize: fontSizeOf(14)),
                 ),
               );
             }),
@@ -82,7 +82,21 @@ class AccountListViewWidget extends StatelessWidget {
                   "Watch Only",
                   style: textTheme.bodySmall?.copyWith(
                       color: colors.textColor.withOpacity(0.8),
-                      fontSize: fontSizeOf(11)),
+                      fontSize: fontSizeOf(10)),
+                ),
+              ),
+            if (!wallet.isBackup && wallet.createdLocally)
+              Container(
+                padding: const EdgeInsets.symmetric(vertical: 3, horizontal: 6),
+                decoration: BoxDecoration(
+                    borderRadius: BorderRadius.circular(roundedOf(20)),
+                    color: colors.secondaryColor.withOpacity(0.2),
+                    border: Border.all(color: Colors.orange)),
+                child: Text(
+                  "No Backup",
+                  style: textTheme.bodySmall?.copyWith(
+                      color: Colors.orange.withOpacity(0.8),
+                      fontSize: fontSizeOf(10)),
                 ),
               )
           ],

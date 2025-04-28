@@ -121,7 +121,7 @@ class _BackupSeedScreenState extends State<BackupSeedScreen> {
                         PageTransition(
                             type: PageTransitionType.fade,
                             child: BackupTestScreen(
-                              publicAccount: publicAccount,
+                                publicAccount: publicAccount,
                                 colors: colors,
                                 password: password,
                                 wallet: wallet))),

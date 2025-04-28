@@ -6,7 +6,7 @@ import 'package:lucide_icons_flutter/lucide_icons.dart';
 import 'package:moonwallet/logger/logger.dart';
 import 'package:moonwallet/notifiers/providers.dart';
 import 'package:moonwallet/types/types.dart';
-import 'package:moonwallet/widgets/screen_widgets/account_list_view_widget.dart';
+import 'package:moonwallet/widgets/screen_widgets/account_list_title_widget.dart';
 import 'package:moonwallet/widgets/actions.dart';
 import 'package:syncfusion_flutter_sliders/sliders.dart';
 
@@ -213,7 +213,7 @@ class _InterfaceSizeViewState extends ConsumerState<InterfaceSizeView> {
             ),
             Align(
               alignment: Alignment.center,
-              child: AccountListViewWidget(
+              child: AccountListTitleWidget(
                   colors: colors,
                   wallet: account.value ??
                       PublicData(

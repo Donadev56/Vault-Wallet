@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
-import 'package:lucide_icons_flutter/lucide_icons.dart';
 import 'package:moonwallet/logger/logger.dart';
 import 'package:moonwallet/screens/dashboard/wallet_actions/private/backup.dart';
 import 'package:moonwallet/service/external_data/price_manager.dart';
@@ -12,6 +11,7 @@ import 'package:moonwallet/utils/crypto.dart';
 import 'package:moonwallet/utils/prefs.dart';
 import 'package:moonwallet/utils/themes.dart';
 import 'package:moonwallet/widgets/alerts/show_alert.dart';
+import 'package:moonwallet/widgets/backup/warning_static_message.dart';
 import 'package:moonwallet/widgets/custom_filled_text_field.dart';
 import 'package:moonwallet/widgets/func/snackbar.dart';
 import 'package:page_transition/page_transition.dart';
@@ -78,7 +78,6 @@ class _PrivateKeyScreenState extends ConsumerState<PrivateKeyScreen> {
       colors = widget.colors!;
     }
     account = widget.account;
-
   }
 
   void showWarn() {
@@ -190,10 +189,12 @@ class _PrivateKeyScreenState extends ConsumerState<PrivateKeyScreen> {
             Navigator.pop(context);
           },
         ),
-        centerTitle: true,
         title: Text(
           "Private Data Overview",
-          style: textTheme.bodyMedium?.copyWith(color: colors.textColor),
+          style: textTheme.headlineMedium?.copyWith(
+              color: colors.textColor,
+              fontSize: 20,
+              fontWeight: FontWeight.bold),
         ),
       ),
       body: Padding(
@@ -293,7 +294,7 @@ class _PrivateKeyScreenState extends ConsumerState<PrivateKeyScreen> {
                       PageTransition(
                           type: PageTransitionType.fade,
                           child: BackupSeedScreen(
-                            publicAccount: account,
+                              publicAccount: account,
                               password: password,
                               wallet: secureData!,
                               colors: colors))),
@@ -303,7 +304,7 @@ class _PrivateKeyScreenState extends ConsumerState<PrivateKeyScreen> {
                         ?.copyWith(color: colors.primaryColor),
                   ),
                   icon: Icon(
-                    Icons.save,
+                    Icons.info,
                     color: colors.primaryColor,
                   ),
                   style: ElevatedButton.styleFrom(
@@ -315,41 +316,11 @@ class _PrivateKeyScreenState extends ConsumerState<PrivateKeyScreen> {
               ),
             Align(
               alignment: Alignment.topLeft,
-              child: Padding(
-                padding: const EdgeInsets.all(20),
-                child: RichText(
-                  text: TextSpan(children: [
-                    WidgetSpan(
-                        child: Row(
-                      children: [
-                        Icon(
-                          LucideIcons.circleAlert,
-                          color: colors.redColor,
-                        ),
-                        SizedBox(
-                          width: 5,
-                        ),
-                        Text("Important :",
-                            style: textTheme.bodyMedium?.copyWith(
-                                fontSize: 16,
-                                color: colors.textColor,
-                                decoration: TextDecoration.none)),
-                      ],
-                    )),
-                    WidgetSpan(
-                      child: Padding(
-                        padding: const EdgeInsets.only(top: 10),
-                        child: Text(
-                          "The private key and Mnemonic are secret and is the only way to access your funds. Never share your private key or Mnemonic with anyone.",
-                          style: textTheme.bodyMedium?.copyWith(
-                              fontSize: 16,
-                              color: colors.textColor.withOpacity(0.5),
-                              decoration: TextDecoration.none),
-                        ),
-                      ),
-                    ),
-                  ]),
-                ),
+              child: WarningStaticMessage(
+                colors: colors,
+                title: "Important :",
+                content:
+                    "The private key and Mnemonic are secret and is the only way to access your funds. Never share your private key or Mnemonic with anyone.",
               ),
             ),
           ],

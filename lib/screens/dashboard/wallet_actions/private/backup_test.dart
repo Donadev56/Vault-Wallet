@@ -13,7 +13,7 @@ class BackupTestScreen extends StatefulWidget {
   final String password;
   final SecureData wallet;
   final AppColors colors;
-  final PublicData publicAccount ;
+  final PublicData publicAccount;
 
   const BackupTestScreen(
       {super.key,
@@ -47,7 +47,7 @@ class _BackupTestScreenState extends State<BackupTestScreen> {
     init();
   }
 
-  void notify(String message)  {
+  void notify(String message) {
     showCustomSnackBar(context: context, message: message, colors: colors);
   }
 
@@ -57,10 +57,11 @@ class _BackupTestScreenState extends State<BackupTestScreen> {
       originalWorldsList = originalWorlds.split(" ");
       mixedWordsList = originalWorldsList..shuffle(Random());
     });
-   log("Original words $originalWorlds");
+    log("Original words $originalWorlds");
     setState(() {
       randomNumbers =
-          (List.generate(originalWorldsList.length, (index) => index + 1).toList()
+          (List.generate(originalWorldsList.length, (index) => index + 1)
+                  .toList()
                 ..shuffle())
               .toList()
               .sublist(0, 3);
@@ -74,7 +75,6 @@ class _BackupTestScreenState extends State<BackupTestScreen> {
       final pos2 = randomNumbers[1];
       final pos3 = randomNumbers[2];
 
-
       final word1 = selectedWords[0];
       final word2 = selectedWords[1];
       final word3 = selectedWords[2];
@@ -85,28 +85,27 @@ class _BackupTestScreenState extends State<BackupTestScreen> {
       final respectiveWord3 = originals[pos3 - 1];
 
       if (word1 != respectiveWord1) {
-        throw "$word1 doesn't ";
+        throw "$word1 doesn't match";
       }
       if (word2 != respectiveWord2) {
-       throw "$word2 doesn't match ";
-
+        throw "$word2 doesn't match ";
       }
-        if (word3 != respectiveWord3) {
-       throw "$word3 doesn't match ";
-
+      if (word3 != respectiveWord3) {
+        throw "$word3 doesn't match ";
       }
-      
-      await walletDb.editPrivateWalletData(account: wallet, password: password, isBackup: true);
-      await walletDb.editWallet(account: publicAccount, isBackup: true );
-      Navigator.push(context, PageTransition(type: PageTransitionType.theme, 
-      child: PagesManagerView(colors: colors)), 
-      
-    );
 
+      await walletDb.editPrivateWalletData(
+          account: wallet, password: password, isBackup: true);
+      await walletDb.editWallet(account: publicAccount, isBackup: true);
+      Navigator.push(
+        context,
+        PageTransition(
+            type: PageTransitionType.theme,
+            child: PagesManagerView(colors: colors)),
+      );
     } catch (e) {
       logError(e.toString());
-        notify(e.toString());
-
+      notify(e.toString());
     }
   }
 
@@ -238,20 +237,19 @@ class _BackupTestScreenState extends State<BackupTestScreen> {
                   SizedBox(
                     height: 20,
                   ),
-
                   if (selectedWords.length == 3)
-                  Align(
-                      alignment: Alignment.center,
-                      child: SizedBox(
-                        width: MediaQuery.of(context).size.width,
-                        child: ElevatedButton.icon(
-                            onPressed: handleSave,
-                            label: Text(
-                              "Continue",
-                              style: textTheme.bodyMedium
-                                  ?.copyWith(color: colors.primaryColor),
-                            )),
-                      ))
+                    Align(
+                        alignment: Alignment.center,
+                        child: SizedBox(
+                          width: MediaQuery.of(context).size.width,
+                          child: ElevatedButton.icon(
+                              onPressed: handleSave,
+                              label: Text(
+                                "Continue",
+                                style: textTheme.bodyMedium
+                                    ?.copyWith(color: colors.primaryColor),
+                              )),
+                        ))
                 ],
               ),
             ),

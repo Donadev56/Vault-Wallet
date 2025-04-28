@@ -419,7 +419,6 @@ class _MainDashboardScreenState extends ConsumerState<MainDashboardScreen>
               PageTransition(
                   type: PageTransitionType.fade,
                   child: PrivateKeyScreen(
-                    
                     account: currentAccount!,
                     password: userPassword,
                     colors: colors,

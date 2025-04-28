@@ -76,8 +76,9 @@ class CustomFilledTextFormField extends StatelessWidget {
               color: colors.textColor.withValues(alpha: 0.2),
               fontSize: fontSizeOf(14)),
           labelText: labelText,
-          labelStyle: textTheme.bodySmall
-              ?.copyWith(color: colors.textColor.withOpacity(0.8))),
+          labelStyle: textTheme.bodyMedium?.copyWith(
+              color: colors.textColor.withOpacity(0.8),
+              fontSize: fontSizeOf(14))),
     );
   }
 }
