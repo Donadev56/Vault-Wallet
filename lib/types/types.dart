@@ -31,28 +31,26 @@ class SecureData {
   final bool createdLocally;
   final bool isBackup;
 
-  SecureData({
-    required this.createdLocally,
-    required this.privateKey,
-    required this.keyId,
-    required this.creationDate,
-    required this.walletName,
-    this.mnemonic,
-    required this.address,
-    required this.isBackup
-  });
+  SecureData(
+      {required this.createdLocally,
+      required this.privateKey,
+      required this.keyId,
+      required this.creationDate,
+      required this.walletName,
+      this.mnemonic,
+      required this.address,
+      required this.isBackup});
 
   factory SecureData.fromJson(Map<dynamic, dynamic> json) {
     return SecureData(
-        privateKey: json['privatekey'] ,
+        privateKey: json['privatekey'],
         keyId: json['keyId'] ?? "",
         creationDate: json['creationDate'] ?? 0,
-        walletName: json['walletName'] ?? "" ,
-        mnemonic: json['mnemonic']  ,
+        walletName: json['walletName'] ?? "",
+        mnemonic: json['mnemonic'],
         address: json['address'] ?? "",
         createdLocally: json["createdLocally"] ?? false,
-        isBackup: json["isBackup"] ?? false
-        );
+        isBackup: json["isBackup"] ?? false);
   }
 
   Map<String, dynamic> toJson() {
@@ -64,7 +62,7 @@ class SecureData {
       'mnemonic': mnemonic,
       'address': address,
       "createdLocally": createdLocally,
-      "isBackup" : isBackup 
+      "isBackup": isBackup
     };
   }
 
@@ -75,18 +73,18 @@ class SecureData {
     String? walletName,
     String? mnemonic,
     String? address,
+    bool? isBackup,
     bool? createdLocally,
   }) {
     return SecureData(
-      privateKey: privateKey ?? this.privateKey,
-      keyId: keyId ?? this.keyId,
-      creationDate: creationDate ?? this.creationDate,
-      walletName: walletName ?? this.walletName,
-      mnemonic: mnemonic ?? this.mnemonic,
-      address: address ?? this.address,
-      createdLocally: createdLocally ?? this.createdLocally,
-      isBackup: isBackup
-    );
+        privateKey: privateKey ?? this.privateKey,
+        keyId: keyId ?? this.keyId,
+        creationDate: creationDate ?? this.creationDate,
+        walletName: walletName ?? this.walletName,
+        mnemonic: mnemonic ?? this.mnemonic,
+        address: address ?? this.address,
+        createdLocally: createdLocally ?? this.createdLocally,
+        isBackup: isBackup ?? this.isBackup);
   }
 }
 

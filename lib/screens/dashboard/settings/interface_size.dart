@@ -217,7 +217,7 @@ class _InterfaceSizeViewState extends ConsumerState<InterfaceSizeView> {
                   colors: colors,
                   wallet: account.value ??
                       PublicData(
-                           createdLocally: false,
+                          createdLocally: false,
                           keyId: "",
                           creationDate: 0,
                           walletName: "",

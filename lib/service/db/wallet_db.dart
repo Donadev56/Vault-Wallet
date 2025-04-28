@@ -42,7 +42,7 @@ class WalletDatabase {
       final addr = fromHex.address.hex;
       log("Address found : $addr");
       // generate a new wallet
-      final SecureData wallet = SecureData(
+      final SecureData privateWallet = SecureData(
           isBackup: false,
           address: addr,
           keyId: keyId,
@@ -60,8 +60,9 @@ class WalletDatabase {
           walletName: walletName,
           creationDate: date);
 
-      final dataJson = wallet.toJson();
+      final dataJson = privateWallet.toJson();
       final publicDataJson = publicWallet.toJson();
+
       List<dynamic> listPublicDataJson;
       final publicDataResult = await getListDynamicData(name: publicWalletKey);
 
@@ -72,45 +73,28 @@ class WalletDatabase {
         listPublicDataJson = [];
       }
 
-      List<dynamic> dataToSave;
+      List<dynamic> privateDataList;
       final decryptedArrayData = await getDecryptedData(password);
       if (decryptedArrayData == null) {
-        throw ("Decrypted data is null");
+        throw ("Invalid Password");
       }
-      dataToSave = decryptedArrayData;
+      privateDataList = decryptedArrayData;
 
       listPublicDataJson.add(publicDataJson);
-      dataToSave.add(dataJson);
+      privateDataList.add(dataJson);
+
       final publicResult = await saveListDynamicData(
           data: listPublicDataJson, boxName: publicWalletKey);
-      final result = await saveListPrivateKeyData(dataToSave, password);
-      if (!result || !publicResult) {
-        throw ("The result is $result and the public result is $publicResult, So error occurred");
+
+      final privateSaveResult =
+          await saveListPrivateDataJson(privateDataList, password);
+
+      if (!privateSaveResult || !publicResult) {
+        throw ("The result is $privateSaveResult and the public result is $publicResult, So error occurred");
       } else {
-        encryptService.saveLastConnectedData(wallet.keyId);
+        encryptService.saveLastConnectedData(privateWallet.keyId);
         log("Saved successfully");
         return true;
-      }
-    } catch (e) {
-      logError(e.toString());
-      return false;
-    }
-  }
-
-  Future<bool> saveListPrivateKeyData(
-      List<dynamic> dataArrayJson, String password) async {
-    try {
-      final String jsonDataArray = json.encode(dataArrayJson);
-      final encryptedData =
-          await encryptService.encryptJson(jsonDataArray, password);
-
-      if (encryptedData != null) {
-        await saveDynamicData(data: encryptedData, boxName: privateWalletKey);
-        await secureService.saveDataInFSS(password, passwordName);
-        return true;
-      } else {
-        logError("An error occurred");
-        return false;
       }
     } catch (e) {
       logError(e.toString());
@@ -168,27 +152,54 @@ class WalletDatabase {
       {required PublicData account,
       String? newName,
       IconData? icon,
+      bool? isBackup,
       Color? color}) async {
     try {
       List<PublicData> savedAccounts = await getSavedWallets();
 
-      final PublicData newWallet = PublicData(
-          walletColor: color ?? account.walletColor,
-          walletIcon: icon ?? account.walletIcon,
-          isWatchOnly: account.isWatchOnly,
-          address: account.address,
-          walletName: newName ?? account.walletName,
-          creationDate: account.creationDate,
-          createdLocally: account.createdLocally,
-          isBackup: account.isBackup,
-          keyId: account.keyId);
+      final PublicData newWallet = account.copyWith(
+          walletColor: color,
+          walletIcon: icon,
+          walletName: newName,
+          isBackup: isBackup);
 
       for (final acc in savedAccounts) {
-        if (acc.address.trim().toLowerCase() ==
-            account.address.trim().toLowerCase()) {
+        if (acc.keyId.trim().toLowerCase() ==
+            account.keyId.trim().toLowerCase()) {
           final index = savedAccounts.indexOf(acc);
           savedAccounts[index] = newWallet;
           await saveListPublicData(savedAccounts);
+          return newWallet;
+        }
+      }
+
+      return null;
+    } catch (e) {
+      logError(e.toString());
+      return null;
+    }
+  }
+
+  Future<SecureData?> editPrivateWalletData({
+    required SecureData account,
+    required String password,
+    bool? isBackup,
+  }) async {
+    try {
+      final listSecureData = await getListSecureData(password: password);
+      if (listSecureData == null) {
+        throw "An error has occurred";
+      }
+
+      final SecureData newWallet = account.copyWith(isBackup: isBackup);
+
+      for (final acc in listSecureData) {
+        if (acc.keyId.trim().toLowerCase() ==
+            account.keyId.trim().toLowerCase()) {
+          final index = listSecureData.indexOf(acc);
+          listSecureData[index] = newWallet;
+          await saveListPrivateDataJson(
+              listSecureData.map((e) => e.toJson()).toList(), password);
           return newWallet;
         }
       }
@@ -237,7 +248,7 @@ class WalletDatabase {
       // generate a new wallet
 
       final PublicData publicWallet = PublicData(
-         isBackup: true,
+          isBackup: true,
           createdLocally: false,
           address: addr,
           keyId: keyId,
@@ -272,7 +283,7 @@ class WalletDatabase {
     }
   }
 
-  // get the savedKey if the user use fingerprint
+  // get the savedKey if the user uses fingerprint
   Future<String?> getSavedPassword() async {
     try {
       final password = await secureService.loadDataFromFSS(passwordName);
@@ -296,6 +307,49 @@ class WalletDatabase {
     }
   }
 
+  Future<SecureData?> getSecureData(
+      {required String password, required PublicData account}) async {
+    try {
+      final listSecureData = await getListSecureData(password: password);
+      if (listSecureData == null) {
+        throw "An error has occurred";
+      }
+
+      if (listSecureData.isNotEmpty) {
+        for (final e in listSecureData) {
+          if (e.keyId.trim().toLowerCase() == account.keyId.toLowerCase()) {
+            return e;
+          }
+        }
+      }
+
+      return null;
+    } catch (e) {
+      logError(e.toString());
+
+      rethrow;
+    }
+  }
+
+  Future<List<SecureData>?> getListSecureData(
+      {required String password}) async {
+    try {
+      final decryptedData = await getDecryptedData(password);
+      if (decryptedData == null) {
+        throw 'Invalid password';
+      }
+      final List<SecureData> listSecureData = [];
+      for (final data in decryptedData) {
+        final SecureData newData = SecureData.fromJson(data);
+        listSecureData.add(newData);
+      }
+      return listSecureData;
+    } catch (e) {
+      logError(e.toString());
+      rethrow;
+    }
+  }
+
   Future<bool> saveListPublicDataJson(List<dynamic> data) async {
     try {
       final res =
@@ -303,6 +357,27 @@ class WalletDatabase {
       if (res) {
         return true;
       } else {
+        return false;
+      }
+    } catch (e) {
+      logError(e.toString());
+      return false;
+    }
+  }
+
+  Future<bool> saveListPrivateDataJson(
+      List<dynamic> dataArrayJson, String password) async {
+    try {
+      final String jsonDataArray = json.encode(dataArrayJson);
+      final encryptedData =
+          await encryptService.encryptJson(jsonDataArray, password);
+
+      if (encryptedData != null) {
+        await saveDynamicData(data: encryptedData, boxName: privateWalletKey);
+        await secureService.saveDataInFSS(password, passwordName);
+        return true;
+      } else {
+        logError("An error occurred");
         return false;
       }
     } catch (e) {
@@ -398,34 +473,4 @@ class WalletDatabase {
       return false;
     }
   }
-
-    Future<SecureData?> getSecureData({required String password , required PublicData account }) async {
-    try {
-      final decryptedData = await getDecryptedData(password);
-      final List<SecureData> listEncData = [];
-      if (decryptedData != null) {
-        for (final data in decryptedData) {
-          final SecureData newData = SecureData.fromJson(data);
-          listEncData.add(newData);
-        }
-
-        if (listEncData.isNotEmpty) {
-          for (final e in listEncData) {
-            if (e.keyId.trim().toLowerCase() ==
-                account.keyId.toLowerCase()) {
-             return e ;
-            }
-          }
-        }
-      }
-
-      return null ;
-    } catch (e) {
-     logError(e.toString());
-
-      rethrow ;
-
-    }
-  }
-
 }

@@ -155,7 +155,7 @@ class _MyAppState extends State<MyApp> {
           }
         }
         if (decryptedData != null) {
-          final saved = await newDbManager.saveListPrivateKeyData(
+          final saved = await newDbManager.saveListPrivateDataJson(
               decryptedData, savedPassword);
           if (saved) {
             savedTimes++;
@@ -335,7 +335,6 @@ class _MyAppState extends State<MyApp> {
                   Routes.createAccountFromSed: (context) => AddMnemonicScreen(),
                   Routes.addObservationWallet: (context) =>
                       AddObservationWallet(),
-                
                   Routes.settings: (context) => SettingsPage(
                         colors: colors,
                       ),

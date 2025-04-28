@@ -52,7 +52,7 @@ class _WalletViewScreenState extends ConsumerState<WalletViewScreen>
   List<EsTransaction> transactions = [];
   late InternetConnection internetChecker;
   PublicData currentAccount = PublicData(
-    createdLocally: false,
+      createdLocally: false,
       keyId: "",
       creationDate: 0,
       walletName: "",

@@ -35,7 +35,7 @@ class _ReceiveScreenState extends ConsumerState<ReceiveScreen> {
   List<PublicData> accounts = [];
   List<PublicData> filteredAccounts = [];
   PublicData currentAccount = PublicData(
-    createdLocally: false,
+      createdLocally: false,
       keyId: "",
       creationDate: 0,
       walletName: "",

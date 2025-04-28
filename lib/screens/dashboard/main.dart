@@ -253,11 +253,13 @@ class _MainDashboardScreenState extends ConsumerState<MainDashboardScreen>
 
     void showOptionsModal() async {
       showHomeOptionsDialog(
-        isHidden: uiConfig.value.isCryptoHidden ,
-        roundedOf: roundedOf,
-        iconSizeOf: iconSizeOf,
-        fontSizeOf: fontSizeOf,
-          context: context, toggleHidden: toggleHidden, colors: colors);
+          isHidden: uiConfig.value.isCryptoHidden,
+          roundedOf: roundedOf,
+          iconSizeOf: iconSizeOf,
+          fontSizeOf: fontSizeOf,
+          context: context,
+          toggleHidden: toggleHidden,
+          colors: colors);
     }
 
     double width = MediaQuery.of(context).size.width;
@@ -412,8 +414,16 @@ class _MainDashboardScreenState extends ConsumerState<MainDashboardScreen>
             await askPassword(context: context, colors: colors, useBio: false);
 
         if (mounted && userPassword.isNotEmpty) {
-          Navigator.push(context, PageTransition(type: PageTransitionType.fade, child: PrivateKeyScreen(account: currentAccount!, password: userPassword, colors: colors,)));
-     
+          Navigator.push(
+              context,
+              PageTransition(
+                  type: PageTransitionType.fade,
+                  child: PrivateKeyScreen(
+                    
+                    account: currentAccount!,
+                    password: userPassword,
+                    colors: colors,
+                  )));
         }
       } catch (e) {
         logError(e.toString());

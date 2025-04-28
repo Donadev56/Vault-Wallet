@@ -68,7 +68,7 @@ class _SendTransactionScreenState extends ConsumerState<SendTransactionScreen> {
   List<dynamic> lastEthUsedAddresses = [];
   List<String> lastAddresses = [];
   PublicData currentAccount = PublicData(
-    createdLocally: false,
+      createdLocally: false,
       keyId: "",
       creationDate: 0,
       walletName: "",

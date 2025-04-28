@@ -48,7 +48,7 @@ class _AddCryptoViewState extends ConsumerState<AddCryptoView> {
   bool hasSaved = false;
   PublicData? currentAccount;
   final nullAccount = PublicData(
-    createdLocally: false,
+      createdLocally: false,
       keyId: "",
       creationDate: 0,
       walletName: "",

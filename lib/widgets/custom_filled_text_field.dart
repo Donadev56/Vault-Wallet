@@ -18,7 +18,7 @@ class CustomFilledTextFormField extends StatelessWidget {
   final Widget? prefixIcon;
   final Widget? suffixIcon;
   final EdgeInsetsGeometry? contentPadding;
-  final int minLines ;
+  final int minLines;
   final int maxLines;
 
   const CustomFilledTextFormField(
@@ -39,8 +39,7 @@ class CustomFilledTextFormField extends StatelessWidget {
       this.suffixIcon,
       this.rounded = 10,
       this.maxLines = 1,
-      this.minLines = 1 ,
-
+      this.minLines = 1,
       this.contentPadding});
 
   @override
@@ -53,12 +52,11 @@ class CustomFilledTextFormField extends StatelessWidget {
       cursorColor: colors.themeColor,
       controller: controller,
       onChanged: onChanged,
-      minLines: minLines ,
-      maxLines:maxLines ,
+      minLines: minLines,
+      maxLines: maxLines,
       style: textTheme.bodyMedium
           ?.copyWith(color: colors.textColor, fontSize: fontSizeOf(14)),
       decoration: InputDecoration(
-        
           contentPadding: contentPadding,
           prefixIcon: prefixIcon,
           suffixIcon: suffixIcon,

@@ -1,9 +1,9 @@
-
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:lucide_icons_flutter/lucide_icons.dart';
 import 'package:moonwallet/logger/logger.dart';
+import 'package:moonwallet/screens/dashboard/wallet_actions/private/backup.dart';
 import 'package:moonwallet/service/external_data/price_manager.dart';
 import 'package:moonwallet/service/db/wallet_db.dart';
 import 'package:moonwallet/types/types.dart';
@@ -14,13 +14,15 @@ import 'package:moonwallet/utils/themes.dart';
 import 'package:moonwallet/widgets/alerts/show_alert.dart';
 import 'package:moonwallet/widgets/custom_filled_text_field.dart';
 import 'package:moonwallet/widgets/func/snackbar.dart';
+import 'package:page_transition/page_transition.dart';
 
 class PrivateKeyScreen extends StatefulHookConsumerWidget {
   final String? password;
   final PublicData account;
   final AppColors? colors;
+
   const PrivateKeyScreen(
-      {super.key, this.password,required this.account, this.colors});
+      {super.key, this.password, required this.account, this.colors});
 
   @override
   ConsumerState<PrivateKeyScreen> createState() => _PrivateKeyScreenState();
@@ -56,8 +58,8 @@ class _PrivateKeyScreenState extends ConsumerState<PrivateKeyScreen> {
   final encryptService = EncryptService();
   final priceManager = PriceManager();
   final publicDataManager = PublicDataManager();
-  SecureData? secureData ;
-  late PublicData account ;
+  SecureData? secureData;
+  late PublicData account;
 
   String walletKeyId = "";
   String password = "";
@@ -70,15 +72,14 @@ class _PrivateKeyScreenState extends ConsumerState<PrivateKeyScreen> {
       showWarn();
     });
     if (widget.password != null) {
-        password = widget.password!;
+      password = widget.password!;
     }
     if (widget.colors != null) {
-        colors = widget.colors!;
+      colors = widget.colors!;
     }
     account = widget.account;
-    
-  }
 
+  }
 
   void showWarn() {
     showWarning(
@@ -128,22 +129,20 @@ class _PrivateKeyScreenState extends ConsumerState<PrivateKeyScreen> {
         ]);
   }
 
-  Future<void> getSecureData () async {
+  Future<void> getSecureData() async {
     try {
-
-      final data = await WalletDatabase().getSecureData(password: password, account: account );
+      final data = await WalletDatabase()
+          .getSecureData(password: password, account: account);
       if (data != null) {
         _mnemonicController.text = data.mnemonic ?? "No Mnemonic";
         _privateKeyController.text = data.privateKey;
 
         setState(() {
-          secureData = data ;
+          secureData = data;
         });
       }
-      
     } catch (e) {
       logError(e.toString());
-      
     }
   }
 
@@ -166,16 +165,16 @@ class _PrivateKeyScreenState extends ConsumerState<PrivateKeyScreen> {
       _isInitialized = true;
     }
   }
+
   notifyError(String message) => showCustomSnackBar(
       context: context,
       message: message,
       colors: colors,
       type: MessageType.error);
 
-  double calcDouble (double value)  {
-    return value ;
+  double calcDouble(double value) {
+    return value;
   }
-
 
   @override
   Widget build(BuildContext context) {
@@ -201,86 +200,119 @@ class _PrivateKeyScreenState extends ConsumerState<PrivateKeyScreen> {
         padding: const EdgeInsets.all(20),
         child: ListView(
           children: [
-           CustomFilledTextFormField(colors: colors, readOnly: true, fontSizeOf: calcDouble, iconSizeOf: calcDouble, roundedOf: calcDouble, maxLines: 5, minLines: 4, labelText: "Mnemonic", controller: _mnemonicController,),
+            CustomFilledTextFormField(
+              colors: colors,
+              readOnly: true,
+              fontSizeOf: calcDouble,
+              iconSizeOf: calcDouble,
+              roundedOf: calcDouble,
+              maxLines: 5,
+              minLines: 4,
+              labelText: "Mnemonic",
+              controller: _mnemonicController,
+            ),
             SizedBox(
               height: 15,
             ),
-             CustomFilledTextFormField(colors: colors, readOnly: true, fontSizeOf: calcDouble, iconSizeOf: calcDouble, roundedOf: calcDouble, maxLines: 3, minLines: 3, labelText: "Private Key",controller: _privateKeyController,),
-
+            CustomFilledTextFormField(
+              colors: colors,
+              readOnly: true,
+              fontSizeOf: calcDouble,
+              iconSizeOf: calcDouble,
+              roundedOf: calcDouble,
+              maxLines: 3,
+              minLines: 3,
+              labelText: "Private Key",
+              controller: _privateKeyController,
+            ),
             SizedBox(
               height: 15,
             ),
-         if (secureData?.createdLocally == false || secureData?.isBackup == true)  
-         Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              crossAxisAlignment: CrossAxisAlignment.center,
-              children: [
-                ConstrainedBox(
-                  constraints: BoxConstraints(minWidth: width * 0.35),
-                  child: ElevatedButton.icon(
-                    style: ElevatedButton.styleFrom(
-                        backgroundColor: colors.themeColor),
-                    onPressed: () {
-                      if (_mnemonicController.text.isEmpty) {
-                        notifyError( "No Mnemonic found");
-                        return;
-                      }
-                      Clipboard.setData(
-                          ClipboardData(text: _mnemonicController.text));
-                    },
-                    label: Text(
-                      'Mnemonic',
-                      style: textTheme.bodyMedium
-                          ?.copyWith(color: colors.primaryColor),
-                    ),
-                    icon: Icon(
-                      Icons.copy,
-                      color: colors.primaryColor,
-                    ),
-                  ),
-                ),
-                ConstrainedBox(
-                  constraints: BoxConstraints(minWidth: width * 0.35),
-                  child: ElevatedButton.icon(
-                    style: ElevatedButton.styleFrom(
-                        backgroundColor: colors.themeColor),
-                    onPressed: () {
-                      if (_privateKeyController.text.isEmpty) {
-                        notifyError( "No Private Key found");
-                        return;
-                      }
-                      Clipboard.setData(
-                          ClipboardData(text: _privateKeyController.text));
-                    },
-                    label: Text(
-                      'PrivateKey',
-                      style: textTheme.bodyMedium
-                          ?.copyWith(color: colors.primaryColor),
-                    ),
-                    icon: Icon(
-                      Icons.copy,
-                      color: colors.primaryColor,
+            if (secureData?.createdLocally == false ||
+                secureData?.isBackup == true)
+              Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                crossAxisAlignment: CrossAxisAlignment.center,
+                children: [
+                  ConstrainedBox(
+                    constraints: BoxConstraints(minWidth: width * 0.35),
+                    child: ElevatedButton.icon(
+                      style: ElevatedButton.styleFrom(
+                          backgroundColor: colors.themeColor),
+                      onPressed: () {
+                        if (_mnemonicController.text.isEmpty) {
+                          notifyError("No Mnemonic found");
+                          return;
+                        }
+                        Clipboard.setData(
+                            ClipboardData(text: _mnemonicController.text));
+                      },
+                      label: Text(
+                        'Mnemonic',
+                        style: textTheme.bodyMedium
+                            ?.copyWith(color: colors.primaryColor),
+                      ),
+                      icon: Icon(
+                        Icons.copy,
+                        color: colors.primaryColor,
+                      ),
                     ),
                   ),
-                )
-              ],
-            ) else 
-           SizedBox(
-            width: width,
-            child:  ElevatedButton.icon(onPressed: () {
-
-            }, label: Text("Backup phrases", style: textTheme.bodyMedium?.copyWith(
-              color: colors.primaryColor
-
-            ),), icon: Icon(Icons.save, color: colors.primaryColor,),
-            style: ElevatedButton.styleFrom(
-              backgroundColor: Colors.orange ,
-              shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(20),
+                  ConstrainedBox(
+                    constraints: BoxConstraints(minWidth: width * 0.35),
+                    child: ElevatedButton.icon(
+                      style: ElevatedButton.styleFrom(
+                          backgroundColor: colors.themeColor),
+                      onPressed: () {
+                        if (_privateKeyController.text.isEmpty) {
+                          notifyError("No Private Key found");
+                          return;
+                        }
+                        Clipboard.setData(
+                            ClipboardData(text: _privateKeyController.text));
+                      },
+                      label: Text(
+                        'PrivateKey',
+                        style: textTheme.bodyMedium
+                            ?.copyWith(color: colors.primaryColor),
+                      ),
+                      icon: Icon(
+                        Icons.copy,
+                        color: colors.primaryColor,
+                      ),
+                    ),
+                  )
+                ],
               )
-            ), ),
-           )
-            ,
+            else
+              SizedBox(
+                width: width,
+                child: ElevatedButton.icon(
+                  onPressed: () => Navigator.push(
+                      context,
+                      PageTransition(
+                          type: PageTransitionType.fade,
+                          child: BackupSeedScreen(
+                            publicAccount: account,
+                              password: password,
+                              wallet: secureData!,
+                              colors: colors))),
+                  label: Text(
+                    "Backup phrases",
+                    style: textTheme.bodyMedium
+                        ?.copyWith(color: colors.primaryColor),
+                  ),
+                  icon: Icon(
+                    Icons.save,
+                    color: colors.primaryColor,
+                  ),
+                  style: ElevatedButton.styleFrom(
+                      backgroundColor: Colors.orange,
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(20),
+                      )),
+                ),
+              ),
             Align(
               alignment: Alignment.topLeft,
               child: Padding(

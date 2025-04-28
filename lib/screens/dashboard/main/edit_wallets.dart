@@ -141,12 +141,16 @@ class _EditWalletsViewState extends ConsumerState<EditWalletsView> {
             await askPassword(context: context, colors: colors, useBio: false);
 
         if (mounted && userPassword.isNotEmpty) {
-          Navigator.push(context, PageTransition(type: PageTransitionType.fade,
-          child: PrivateKeyScreen(account: wallet, password:userPassword, colors: colors,)
-          
-          ),
-        );
-       
+          Navigator.push(
+            context,
+            PageTransition(
+                type: PageTransitionType.fade,
+                child: PrivateKeyScreen(
+                  account: wallet,
+                  password: userPassword,
+                  colors: colors,
+                )),
+          );
         }
       } catch (e) {
         logError(e.toString());
