@@ -113,7 +113,7 @@ class _CreatePrivateKeyState extends ConsumerState<CreatePrivateKeyMain> {
       });
       return null;
     }, [appUIConfigAsync]);
- useEffect(() {
+    useEffect(() {
       accountsAsync.whenData((data) {
         accounts.value = data;
       });
@@ -141,13 +141,13 @@ class _CreatePrivateKeyState extends ConsumerState<CreatePrivateKeyMain> {
             .withLoading(context, colors, "Creating wallet");
 
         if (result != null) {
-         await lastAccountNotifier.updateKeyId(result.keyId);
-    
-            Navigator.of(context).push(PageTransition(
-                          type: PageTransitionType.leftToRight,
-                          child: PagesManagerView(
-                            colors: colors,
-                          )));
+          await lastAccountNotifier.updateKeyId(result.keyId);
+
+          Navigator.of(context).push(PageTransition(
+              type: PageTransitionType.leftToRight,
+              child: PagesManagerView(
+                colors: colors,
+              )));
           if (!mounted) return;
           notifySuccess("Wallet created successfully");
         } else {
@@ -162,56 +162,53 @@ class _CreatePrivateKeyState extends ConsumerState<CreatePrivateKeyMain> {
       }
     }
 
+    Future<PinSubmitResult> handleFirstSetupSubmit(String numbers) async {
+      try {
+        if (firstPassword.isEmpty) {
+          setState(() {
+            firstPassword = numbers;
+          });
+          return PinSubmitResult(
+              success: true, repeat: true, newTitle: "Re-enter the password");
+        } else if (firstPassword == numbers) {
+          setState(() {
+            secondPassword = numbers;
+          });
+          if (firstPassword.isEmpty || firstPassword != secondPassword) {
+            throw Exception("passwords must not be empty or not equal ");
+          }
 
-      Future<PinSubmitResult> handleFirstSetupSubmit (String numbers) async {
-    try {
+          setState(() {
+            userPassword = firstPassword;
+          });
 
-    if (firstPassword.isEmpty) {
-      setState(() {
-        firstPassword = numbers;
-      });
-      return PinSubmitResult(
-          success: true, repeat: true, newTitle: "Re-enter the password");
-    } else if (firstPassword == numbers) {
-      setState(() {
-        secondPassword = numbers;
-      });
-        if (firstPassword.isEmpty || firstPassword != secondPassword) {
-        throw Exception("passwords must not be empty or not equal ");
+          saveData();
+          return PinSubmitResult(success: true, repeat: false);
+        } else {
+          setState(() {
+            firstPassword = "";
+            secondPassword = "";
+          });
+          return PinSubmitResult(
+              success: false,
+              repeat: true,
+              newTitle: "Enter a secure password",
+              error: "Password does not match");
+        }
+      } catch (e) {
+        logError(e.toString());
+        return PinSubmitResult(
+            success: false,
+            repeat: true,
+            newTitle: "Enter a secure password",
+            error: "Password does not match");
       }
-
-      setState(() {
-        userPassword = firstPassword;
-      });
-
-      saveData();
-      return PinSubmitResult(success: true, repeat: false);
-    } else {
-      setState(() {
-        firstPassword = "";
-        secondPassword = "";
-      });
-      return PinSubmitResult(
-          success: false,
-          repeat: true,
-          newTitle: "Enter a secure password",
-          error: "Password does not match");
     }
-  
-      
-    } catch (e) {
-      logError(e.toString());
-       return PinSubmitResult(
-          success: false,
-          repeat: true,
-          newTitle: "Enter a secure password",
-          error: "Password does not match");
-    }
-   }
 
     Future<void> handleSubmit() async {
       try {
-        final password = await askPassword(context: context, colors: colors, useBio: false);
+        final password =
+            await askPassword(context: context, colors: colors, useBio: false);
         if (password.isNotEmpty) {
           setState(() {
             userPassword = password;
@@ -220,22 +217,22 @@ class _CreatePrivateKeyState extends ConsumerState<CreatePrivateKeyMain> {
         }
       } catch (e) {
         logError(e.toString());
-      notifyError("Error occurred while creating private key.");
+        notifyError("Error occurred while creating private key.");
       }
     }
 
-    Future<void> onSubmit () async {
+    Future<void> onSubmit() async {
       if (accounts.value.isEmpty) {
-       await  showPinModalBottomSheet(
-                                  colors: colors,
-                                  handleSubmit: handleFirstSetupSubmit,
-                                  context: context,
-                                  title: "Enter a secure password");
+        await showPinModalBottomSheet(
+            colors: colors,
+            handleSubmit: handleFirstSetupSubmit,
+            context: context,
+            title: "Enter a secure password");
       } else {
-      await  handleSubmit();
+        await handleSubmit();
       }
-
     }
+
     if (data == null) {
       return Material(
         child: Center(
@@ -320,35 +317,32 @@ class _CreatePrivateKeyState extends ConsumerState<CreatePrivateKeyMain> {
             SizedBox(
               height: 30,
             ),
-               Align(
-                  alignment: Alignment.center,
-                  child:SizedBox(
-                    width: MediaQuery.of(context).size.width * 0.9,
-
-                    child:  OutlinedButton(
-                    style: ElevatedButton.styleFrom(
-                      backgroundColor: colors.primaryColor,
-                      side: BorderSide(color: colors.themeColor, width: 1),
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(roundedOf(30)),
-                      ),
-                    ),
-                    onPressed: () async {
-                      await onSubmit();
-                    
-                    },
-                    child: Text(
-                      "Start Using",
-                      style: textTheme.bodyMedium?.copyWith(
-                        fontSize: fontSizeOf(14),
-                        color: colors.themeColor,
-                        decoration: TextDecoration.none,
-                      ),
+            Align(
+              alignment: Alignment.center,
+              child: SizedBox(
+                width: MediaQuery.of(context).size.width * 0.9,
+                child: OutlinedButton(
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: colors.primaryColor,
+                    side: BorderSide(color: colors.themeColor, width: 1),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(roundedOf(30)),
                     ),
                   ),
-
+                  onPressed: () async {
+                    await onSubmit();
+                  },
+                  child: Text(
+                    "Start Using",
+                    style: textTheme.bodyMedium?.copyWith(
+                      fontSize: fontSizeOf(14),
+                      color: colors.themeColor,
+                      decoration: TextDecoration.none,
+                    ),
                   ),
-                )
+                ),
+              ),
+            )
           ],
         ),
       ),

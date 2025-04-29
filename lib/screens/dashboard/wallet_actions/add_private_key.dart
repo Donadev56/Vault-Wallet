@@ -188,7 +188,8 @@ class _AddPrivateKeyState extends ConsumerState<AddPrivateKeyInMain> {
 
     Future<void> handleSubmit() async {
       try {
-        final password = await askPassword(context: context, colors: colors, useBio: false);
+        final password =
+            await askPassword(context: context, colors: colors, useBio: false);
         if (password.isNotEmpty) {
           setState(() {
             userPassword = password;

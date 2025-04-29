@@ -732,7 +732,7 @@ class AppColors {
     required this.redColor,
   });
 
-  static const defaultTheme =  AppColors(
+  static const defaultTheme = AppColors(
       primaryColor: Color(0XFFFFFFFF),
       themeColor: Colors.lightBlueAccent,
       greenColor: const Color.fromARGB(255, 0, 175, 90),
@@ -741,8 +741,6 @@ class AppColors {
       textColor: Colors.black,
       redColor: Colors.redAccent,
       type: ColorType.light);
-
- 
 
   Map<dynamic, dynamic> toJson() {
     return {

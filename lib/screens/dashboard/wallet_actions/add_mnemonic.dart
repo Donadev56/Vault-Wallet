@@ -115,8 +115,8 @@ class _AddPrivateKeyState extends ConsumerState<AddMnemonicScreen> {
       });
       return null;
     }, [appUIConfigAsync]);
-    
-     useEffect(() {
+
+    useEffect(() {
       accountsAsync.whenData((data) {
         accounts.value = data;
       });
@@ -146,15 +146,14 @@ class _AddPrivateKeyState extends ConsumerState<AddMnemonicScreen> {
             .withLoading(context, colors, "Creating Wallet");
 
         if (result != null) {
-         await lastAccountNotifier.updateKeyId(result.keyId);
+          await lastAccountNotifier.updateKeyId(result.keyId);
           notifySuccess("Wallet created successfully");
 
-       
-         Navigator.of(context).push(PageTransition(
-                          type: PageTransitionType.leftToRight,
-                          child: PagesManagerView(
-                            colors: colors,
-                          )));
+          Navigator.of(context).push(PageTransition(
+              type: PageTransitionType.leftToRight,
+              child: PagesManagerView(
+                colors: colors,
+              )));
         }
       } catch (e) {
         logError(e.toString());
@@ -165,55 +164,53 @@ class _AddPrivateKeyState extends ConsumerState<AddMnemonicScreen> {
       }
     }
 
-   Future<PinSubmitResult> handleFirstSetupSubmit (String numbers) async {
-    try {
-
-    if (firstPassword.isEmpty) {
-      setState(() {
-        firstPassword = numbers;
-      });
-      return PinSubmitResult(
-          success: true, repeat: true, newTitle: "Re-enter the password");
-    } else if (firstPassword == numbers) {
-      setState(() {
-        secondPassword = numbers;
-      });
-        if (firstPassword.isEmpty || firstPassword != secondPassword) {
-        throw Exception("passwords must not be empty or not equal ");
-      }
-
-      setState(() {
-        userPassword = firstPassword;
-      });
-
-      saveData();
-      return PinSubmitResult(success: true, repeat: false);
-    } else {
-      setState(() {
-        firstPassword = "";
-        secondPassword = "";
-      });
-      return PinSubmitResult(
-          success: false,
-          repeat: true,
-          newTitle: "Enter a secure password",
-          error: "Password does not match");
-    }
-  
-      
-    } catch (e) {
-      logError(e.toString());
-       return PinSubmitResult(
-          success: false,
-          repeat: true,
-          newTitle: "Enter a secure password",
-          error: "Password does not match");
-    }
-   }
-
-     Future<void> handleSubmit() async {
+    Future<PinSubmitResult> handleFirstSetupSubmit(String numbers) async {
       try {
-        final password = await askPassword(context: context, colors: colors, useBio: false);
+        if (firstPassword.isEmpty) {
+          setState(() {
+            firstPassword = numbers;
+          });
+          return PinSubmitResult(
+              success: true, repeat: true, newTitle: "Re-enter the password");
+        } else if (firstPassword == numbers) {
+          setState(() {
+            secondPassword = numbers;
+          });
+          if (firstPassword.isEmpty || firstPassword != secondPassword) {
+            throw Exception("passwords must not be empty or not equal ");
+          }
+
+          setState(() {
+            userPassword = firstPassword;
+          });
+
+          saveData();
+          return PinSubmitResult(success: true, repeat: false);
+        } else {
+          setState(() {
+            firstPassword = "";
+            secondPassword = "";
+          });
+          return PinSubmitResult(
+              success: false,
+              repeat: true,
+              newTitle: "Enter a secure password",
+              error: "Password does not match");
+        }
+      } catch (e) {
+        logError(e.toString());
+        return PinSubmitResult(
+            success: false,
+            repeat: true,
+            newTitle: "Enter a secure password",
+            error: "Password does not match");
+      }
+    }
+
+    Future<void> handleSubmit() async {
+      try {
+        final password =
+            await askPassword(context: context, colors: colors, useBio: false);
         if (password.isNotEmpty) {
           setState(() {
             userPassword = password;
@@ -232,19 +229,18 @@ class _AddPrivateKeyState extends ConsumerState<AddMnemonicScreen> {
       }
     }
 
-    Future<void> onSubmit () async {
+    Future<void> onSubmit() async {
       if (accounts.value.isEmpty) {
         await showPinModalBottomSheet(
-                                  colors: colors,
-                                  handleSubmit: handleFirstSetupSubmit,
-                                  context: context,
-                                  title: "Enter a secure password");
+            colors: colors,
+            handleSubmit: handleFirstSetupSubmit,
+            context: context,
+            title: "Enter a secure password");
       } else {
-       await handleSubmit();
+        await handleSubmit();
       }
-
     }
-  
+
     return Scaffold(
         backgroundColor: colors.primaryColor,
         appBar: AppBar(
