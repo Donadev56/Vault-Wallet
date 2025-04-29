@@ -219,7 +219,7 @@ class _AddPrivateKeyState extends ConsumerState<AddPrivateKeyInMain> {
                 color: colors.textColor,
               )),
           title: Text(
-            "Add Private Key",
+            "Private Key",
             style: textTheme.headlineMedium?.copyWith(
                 color: colors.textColor,
                 fontSize: fontSizeOf(20),

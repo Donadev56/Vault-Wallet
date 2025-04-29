@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:google_fonts/google_fonts.dart';
-import 'package:moonwallet/main.dart';
 import 'package:moonwallet/screens/dashboard/wallet_actions/add_mnemonic.dart';
 import 'package:moonwallet/screens/dashboard/wallet_actions/create_private_key.dart';
 import 'package:moonwallet/types/types.dart';

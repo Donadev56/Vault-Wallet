@@ -144,14 +144,17 @@ class _AddPrivateKeyState extends ConsumerState<AddMnemonicScreen> {
         final result = await web3Provider
             .saveSeed(_textController.text, userPassword, false)
             .withLoading(context, colors, "Creating Wallet");
+
         if (result != null) {
-          lastAccountNotifier.updateKeyId(result.keyId);
+         await lastAccountNotifier.updateKeyId(result.keyId);
           notifySuccess("Wallet created successfully");
-          Navigator.of(context).push(PageTransition(
-              type: PageTransitionType.leftToRight,
-              child: PagesManagerView(
-                colors: colors,
-              )));
+
+       
+         Navigator.of(context).push(PageTransition(
+                          type: PageTransitionType.leftToRight,
+                          child: PagesManagerView(
+                            colors: colors,
+                          )));
         }
       } catch (e) {
         logError(e.toString());
@@ -231,13 +234,13 @@ class _AddPrivateKeyState extends ConsumerState<AddMnemonicScreen> {
 
     Future<void> onSubmit () async {
       if (accounts.value.isEmpty) {
-         showPinModalBottomSheet(
+        await showPinModalBottomSheet(
                                   colors: colors,
                                   handleSubmit: handleFirstSetupSubmit,
                                   context: context,
                                   title: "Enter a secure password");
       } else {
-        handleSubmit();
+       await handleSubmit();
       }
 
     }
@@ -254,7 +257,7 @@ class _AddPrivateKeyState extends ConsumerState<AddMnemonicScreen> {
                 color: colors.textColor,
               )),
           title: Text(
-            "Add Mnemonic Phrase",
+            "Mnemonic",
             style: textTheme.headlineMedium?.copyWith(
                 color: colors.textColor,
                 fontSize: fontSizeOf(20),

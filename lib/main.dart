@@ -13,10 +13,7 @@ import 'package:moonwallet/logger/logger.dart';
 import 'package:moonwallet/notifiers/accounts_notifier.dart';
 import 'package:moonwallet/screens/dashboard/main/account_data.dart';
 import 'package:moonwallet/screens/dashboard/add_crypto.dart';
-import 'package:moonwallet/screens/auth/add_private_key.dart';
 import 'package:moonwallet/screens/auth/home.dart';
-import 'package:moonwallet/screens/auth/pinManager.dart';
-import 'package:moonwallet/screens/auth/private_key.dart';
 import 'package:moonwallet/screens/dashboard/discover.dart';
 import 'package:moonwallet/screens/dashboard/main.dart';
 import 'package:moonwallet/screens/dashboard/page_manager.dart';
@@ -317,7 +314,7 @@ class _MyAppState extends State<MyApp> {
                   ),
                 ),
                 initialRoute:
-                    snapshot.data! ? Routes.pageManager : Routes.home,
+                    snapshot.data! ? Routes.secureCheckView : Routes.home,
                 routes: {
                   Routes.main: (context) => MainDashboardScreen(
                         colors: colors,
@@ -326,9 +323,7 @@ class _MyAppState extends State<MyApp> {
                         colors: colors,
                       ),
                   Routes.home: (context) => HomeScreen(),
-                  Routes.privateKeyCreator: (context) => CreatePrivateKey(),
-                  Routes.addPrivateKey: (context) => AddPrivateKey(),
-                  Routes.pinAuth: (context) => PinManagerScreen(),
+               
                   Routes.importWalletMain: (context) => AddPrivateKeyInMain(),
                   Routes.createPrivateKeyMain: (context) =>
                       CreatePrivateKeyMain(),

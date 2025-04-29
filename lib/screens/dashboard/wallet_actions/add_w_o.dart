@@ -182,7 +182,7 @@ class _AddPrivateKeyState extends ConsumerState<AddObservationWallet> {
                 color: colors.textColor,
               )),
           title: Text(
-            "Add Public Address",
+            "Public Wallet",
             style: textTheme.headlineMedium?.copyWith(
                 color: colors.textColor,
                 fontSize: fontSizeOf(20),

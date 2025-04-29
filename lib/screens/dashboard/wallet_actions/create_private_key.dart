@@ -141,10 +141,13 @@ class _CreatePrivateKeyState extends ConsumerState<CreatePrivateKeyMain> {
             .withLoading(context, colors, "Creating wallet");
 
         if (result != null) {
-          lastAccountNotifier.updateKeyId(result.keyId);
-          setState(() {
-            account = result;
-          });
+         await lastAccountNotifier.updateKeyId(result.keyId);
+    
+            Navigator.of(context).push(PageTransition(
+                          type: PageTransitionType.leftToRight,
+                          child: PagesManagerView(
+                            colors: colors,
+                          )));
           if (!mounted) return;
           notifySuccess("Wallet created successfully");
         } else {
@@ -223,13 +226,13 @@ class _CreatePrivateKeyState extends ConsumerState<CreatePrivateKeyMain> {
 
     Future<void> onSubmit () async {
       if (accounts.value.isEmpty) {
-         showPinModalBottomSheet(
+       await  showPinModalBottomSheet(
                                   colors: colors,
                                   handleSubmit: handleFirstSetupSubmit,
                                   context: context,
                                   title: "Enter a secure password");
       } else {
-        handleSubmit();
+      await  handleSubmit();
       }
 
     }
@@ -332,11 +335,7 @@ class _CreatePrivateKeyState extends ConsumerState<CreatePrivateKeyMain> {
                     ),
                     onPressed: () async {
                       await onSubmit();
-                      Navigator.of(context).push(PageTransition(
-                          type: PageTransitionType.leftToRight,
-                          child: PagesManagerView(
-                            colors: colors,
-                          )));
+                    
                     },
                     child: Text(
                       "Start Using",
