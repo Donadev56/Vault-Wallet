@@ -732,25 +732,17 @@ class AppColors {
     required this.redColor,
   });
 
-  static const defaultTheme = AppColors(
-      primaryColor: Color(0XFF2C2C2C),
-      themeColor: Colors.blueAccent,
-      greenColor: Color.fromARGB(255, 0, 175, 90),
-      secondaryColor: Color(0XFF3A3A3A),
-      grayColor: Color(0XFF707070),
-      textColor: Colors.white,
-      redColor: Colors.pinkAccent,
-      type: ColorType.dark);
-
-  static const lightColors = AppColors(
-      primaryColor: Color(0XFFF8F8F8),
-      themeColor: Color.fromARGB(255, 0, 193, 100),
-      greenColor: Color.fromARGB(255, 0, 193, 100),
+  static const defaultTheme =  AppColors(
+      primaryColor: Color(0XFFFFFFFF),
+      themeColor: Colors.lightBlueAccent,
+      greenColor: const Color.fromARGB(255, 0, 175, 90),
       secondaryColor: Color(0XFFF0F0F0),
       grayColor: Color(0XFFBDBDBD),
-      textColor: Colors.black87,
-      redColor: Color.fromARGB(255, 248, 107, 64),
+      textColor: Colors.black,
+      redColor: Colors.redAccent,
       type: ColorType.light);
+
+ 
 
   Map<dynamic, dynamic> toJson() {
     return {

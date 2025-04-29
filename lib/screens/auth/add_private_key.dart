@@ -82,7 +82,7 @@ class _AddPrivateKeyState extends State<AddPrivateKey> {
           password: firstPassword,
           walletName: "MoonWallet-1");
 
-      if (result) {
+      if (result != null) {
         if (!mounted) return;
         showCustomSnackBar(
             type: MessageType.success,

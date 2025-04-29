@@ -3,6 +3,7 @@ import 'package:moonwallet/logger/logger.dart';
 import 'package:moonwallet/notifiers/providers.dart';
 import 'package:moonwallet/service/db/wallet_db.dart';
 import 'package:moonwallet/service/web3_interactions/evm/addresses.dart';
+import 'package:moonwallet/types/types.dart';
 
 class Web3Notifier {
   final web3Manager = WalletDatabase();
@@ -11,7 +12,7 @@ class Web3Notifier {
   final Ref ref;
   Web3Notifier(this.ref);
 
-  Future<bool> saveSeed(
+  Future<PublicData?> saveSeed(
       String seed, String userPassword, bool createdLocally) async {
     try {
       final secretData = await ethAddresses.createPrivatekeyFromSeed(seed);
@@ -27,7 +28,7 @@ class Web3Notifier {
           walletName: "New Wallet",
           mnemonic: seed);
       ref.invalidate(accountsNotifierProvider);
-      if (result) {
+      if (result != null) {
         return result;
       } else {
         throw Exception("Failed to save the key.");
@@ -38,7 +39,7 @@ class Web3Notifier {
     }
   }
 
-  Future<bool> savePrivateKey(
+  Future<PublicData?> savePrivateKey(
       String privateKey, String userPassword, bool createdLocally) async {
     try {
       final response = await web3Manager.savePrivateData(
@@ -47,7 +48,7 @@ class Web3Notifier {
         password: userPassword,
         walletName: "MoonWallet-1",
       );
-      if (response) {
+      if (response != null) {
         ref.invalidate(accountsNotifierProvider);
 
         return response;
@@ -60,11 +61,11 @@ class Web3Notifier {
     }
   }
 
-  Future<bool> saveWO(String address) async {
+  Future<PublicData?> saveWO(String address) async {
     try {
       final result = await web3Manager.saveObservationWalletInStorage(
           "New view Wallet", address);
-      if (result) {
+      if (result != null) {
         ref.invalidate(accountsNotifierProvider);
         return result;
       }

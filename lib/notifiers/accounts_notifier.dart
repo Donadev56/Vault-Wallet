@@ -53,10 +53,15 @@ class AccountsNotifier extends AsyncNotifier<List<PublicData>> {
   Future<bool> deleteWallet(PublicData accountToRemove) async {
     try {
       if (state.value == null) throw ("No account found");
+      if (state.value?.length != null && (state.value?.length ?? 0) == 1) {
+        await walletSaver.saveListPublicData([]);
+        state = AsyncData([]);
+      }
 
       final newState = AsyncValue.data(state.value!
           .where((val) => val.keyId != accountToRemove.keyId)
           .toList());
+
       final currentAccount = await ref.read(currentAccountProvider.future);
       final accountIndex = currentAccounts
           .indexWhere((acc) => acc.keyId == accountToRemove.keyId);

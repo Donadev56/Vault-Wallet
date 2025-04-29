@@ -29,7 +29,7 @@ class WalletDatabase {
     }
   }
 
-  Future<bool> savePrivateData(
+  Future<PublicData?> savePrivateData(
       {required String privatekey,
       required String password,
       required String walletName,
@@ -94,11 +94,11 @@ class WalletDatabase {
       } else {
         encryptService.saveLastConnectedData(privateWallet.keyId);
         log("Saved successfully");
-        return true;
+        return publicWallet;
       }
     } catch (e) {
       logError(e.toString());
-      return false;
+      return null;
     }
   }
 
@@ -238,7 +238,7 @@ class WalletDatabase {
     }
   }
 
-  Future<bool> saveObservationWalletInStorage(
+  Future<PublicData?> saveObservationWalletInStorage(
       String walletName, String address) async {
     try {
       final date = (DateTime.now().microsecondsSinceEpoch);
@@ -271,15 +271,15 @@ class WalletDatabase {
           data: listPublicDataJson, boxName: publicWalletKey);
       if (!publicResult) {
         logError("The result  is $publicResult, So error occurred");
-        return false;
+        return null;
       } else {
         encryptService.saveLastConnectedData(keyId);
         log("Saved successfully");
-        return true;
+        return publicWallet;
       }
     } catch (e) {
       logError(e.toString());
-      return false;
+      return null;
     }
   }
 

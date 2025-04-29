@@ -42,7 +42,7 @@ class _CreatePrivateKeyState extends State<CreatePrivateKey> {
 
   Future<void> createKey() async {
     try {
-      final key = await ethAddresses.createPrivatekey();
+      final key = await ethAddresses.createWallet();
       if (key.isNotEmpty) {
         setState(() {
           _textController.text = "0x${key["key"]}";
@@ -105,7 +105,7 @@ class _CreatePrivateKeyState extends State<CreatePrivateKey> {
           password: firstPassword,
           walletName: "MoonWallet-1",
           mnemonic: mnemonic);
-      if (result) {
+      if (result != null) {
         if (!mounted) return;
         showCustomSnackBar(
             type: MessageType.success,

@@ -1,9 +1,6 @@
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
 import 'package:flutter_hooks/flutter_hooks.dart';
-import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
-import 'package:lucide_icons_flutter/lucide_icons.dart';
 import 'package:moonwallet/custom/web3_webview/lib/utils/loading.dart';
 import 'package:moonwallet/logger/logger.dart';
 import 'package:moonwallet/notifiers/providers.dart';
@@ -14,6 +11,8 @@ import 'package:moonwallet/types/types.dart';
 import 'package:moonwallet/utils/colors.dart';
 import 'package:moonwallet/utils/prefs.dart';
 import 'package:moonwallet/utils/themes.dart';
+import 'package:moonwallet/widgets/backup/backup_related.dart';
+import 'package:moonwallet/widgets/bottom_pin_copy.dart';
 import 'package:moonwallet/widgets/func/security/ask_password.dart';
 import 'package:moonwallet/widgets/func/snackbar.dart';
 import 'package:page_transition/page_transition.dart';
@@ -26,7 +25,6 @@ class CreatePrivateKeyMain extends StatefulHookConsumerWidget {
 }
 
 class _CreatePrivateKeyState extends ConsumerState<CreatePrivateKeyMain> {
-  late TextEditingController _textController;
   Map<String, dynamic>? data;
   String userPassword = "";
   int attempt = 0;
@@ -36,10 +34,13 @@ class _CreatePrivateKeyState extends ConsumerState<CreatePrivateKeyMain> {
   bool isDarkMode = false;
   final manager = WalletDatabase();
   final ethAddresses = EthAddresses();
+  PublicData? account;
   AppColors colors = AppColors.defaultTheme;
 
   Themes themes = Themes();
   String savedThemeName = "";
+  String firstPassword = "";
+  String secondPassword = "";
   Future<void> getSavedTheme() async {
     try {
       final manager = ColorsManager();
@@ -58,33 +59,27 @@ class _CreatePrivateKeyState extends ConsumerState<CreatePrivateKeyMain> {
 
   @override
   void initState() {
-    _textController = TextEditingController();
     getSavedTheme();
     WidgetsBinding.instance.addPostFrameCallback((time) async {
-      await createKey().withLoading(context, colors);
+      await createWallet().withLoading(context, colors);
     });
 
     super.initState();
   }
 
-  Future<void> createKey() async {
+  Future<void> createWallet() async {
     try {
-      final key = await ethAddresses.createPrivatekey();
-      if (key.isNotEmpty) {
+      final wallet = await ethAddresses.createWallet();
+      if (wallet.isNotEmpty) {
         setState(() {
-          _textController.text = "0x${key["key"]}";
-          data = key;
+          data = wallet;
         });
       } else {
         throw Exception("The key is Null");
       }
     } catch (e) {
       if (!mounted) return;
-      showCustomSnackBar(
-          colors: colors,
-          type: MessageType.error,
-          context: context,
-          message: "Failed to create a key");
+      notifyError("Failed to create a wallet");
     }
   }
 
@@ -98,11 +93,17 @@ class _CreatePrivateKeyState extends ConsumerState<CreatePrivateKeyMain> {
       message: message,
       colors: colors,
       type: MessageType.error);
+
   @override
   Widget build(BuildContext context) {
     final textTheme = Theme.of(context).textTheme;
     final web3Provider = ref.read(web3ProviderNotifier);
     final appUIConfigAsync = ref.watch(appUIConfigProvider);
+    final lastAccountNotifier =
+        ref.watch(lastConnectedKeyIdNotifierProvider.notifier);
+    final accountsAsync = ref.watch(accountsNotifierProvider);
+
+    final accounts = useState<List<PublicData>>([]);
 
     final uiConfig = useState<AppUIConfig>(AppUIConfig.defaultConfig);
 
@@ -112,7 +113,12 @@ class _CreatePrivateKeyState extends ConsumerState<CreatePrivateKeyMain> {
       });
       return null;
     }, [appUIConfigAsync]);
-
+ useEffect(() {
+      accountsAsync.whenData((data) {
+        accounts.value = data;
+      });
+      return null;
+    }, [accountsAsync]);
     double fontSizeOf(double size) {
       return size * uiConfig.value.styles.fontSizeScaleFactor;
     }
@@ -134,35 +140,75 @@ class _CreatePrivateKeyState extends ConsumerState<CreatePrivateKeyMain> {
             .saveSeed(mnemonic, userPassword, true)
             .withLoading(context, colors, "Creating wallet");
 
-        if (result) {
+        if (result != null) {
+          lastAccountNotifier.updateKeyId(result.keyId);
+          setState(() {
+            account = result;
+          });
           if (!mounted) return;
           notifySuccess("Wallet created successfully");
-
-          Navigator.of(context).push(PageTransition(
-              type: PageTransitionType.leftToRight,
-              child: PagesManagerView(
-                colors: colors,
-              )));
         } else {
           throw Exception("Failed to save the key.");
         }
       } catch (e) {
         logError(e.toString());
-        showCustomSnackBar(
-            colors: colors,
-            type: MessageType.error,
-            context: context,
-            message: "Failed to save the key.",
-            iconColor: Colors.pinkAccent);
+        notifyError("Failed to save the wallet.");
         setState(() {
           userPassword = "";
         });
       }
     }
 
+
+      Future<PinSubmitResult> handleFirstSetupSubmit (String numbers) async {
+    try {
+
+    if (firstPassword.isEmpty) {
+      setState(() {
+        firstPassword = numbers;
+      });
+      return PinSubmitResult(
+          success: true, repeat: true, newTitle: "Re-enter the password");
+    } else if (firstPassword == numbers) {
+      setState(() {
+        secondPassword = numbers;
+      });
+        if (firstPassword.isEmpty || firstPassword != secondPassword) {
+        throw Exception("passwords must not be empty or not equal ");
+      }
+
+      setState(() {
+        userPassword = firstPassword;
+      });
+
+      saveData();
+      return PinSubmitResult(success: true, repeat: false);
+    } else {
+      setState(() {
+        firstPassword = "";
+        secondPassword = "";
+      });
+      return PinSubmitResult(
+          success: false,
+          repeat: true,
+          newTitle: "Enter a secure password",
+          error: "Password does not match");
+    }
+  
+      
+    } catch (e) {
+      logError(e.toString());
+       return PinSubmitResult(
+          success: false,
+          repeat: true,
+          newTitle: "Enter a secure password",
+          error: "Password does not match");
+    }
+   }
+
     Future<void> handleSubmit() async {
       try {
-        final password = await askPassword(context: context, colors: colors);
+        final password = await askPassword(context: context, colors: colors, useBio: false);
         if (password.isNotEmpty) {
           setState(() {
             userPassword = password;
@@ -171,193 +217,141 @@ class _CreatePrivateKeyState extends ConsumerState<CreatePrivateKeyMain> {
         }
       } catch (e) {
         logError(e.toString());
-        showCustomSnackBar(
-            colors: colors,
-            type: MessageType.error,
-            context: context,
-            message: "Error occurred while creating private key.",
-            icon: Icons.error,
-            iconColor: Colors.redAccent);
+      notifyError("Error occurred while creating private key.");
       }
     }
 
+    Future<void> onSubmit () async {
+      if (accounts.value.isEmpty) {
+         showPinModalBottomSheet(
+                                  colors: colors,
+                                  handleSubmit: handleFirstSetupSubmit,
+                                  context: context,
+                                  title: "Enter a secure password");
+      } else {
+        handleSubmit();
+      }
+
+    }
+    if (data == null) {
+      return Material(
+        child: Center(
+          child: CircularProgressIndicator(
+            color: colors.themeColor,
+          ),
+        ),
+      );
+    }
+
+    final seed = (data!["seed"] as String).split(" ");
+
     return Scaffold(
       backgroundColor: colors.primaryColor,
-      body: Container(
-        decoration: BoxDecoration(color: colors.primaryColor),
-        child: SafeArea(
-            child: SingleChildScrollView(
-          child: Column(
-            children: [
-              Align(
-                alignment: Alignment.topLeft,
-                child: Container(
+      appBar: AppBar(
+        backgroundColor: colors.primaryColor,
+        leading: IconButton(
+            onPressed: () => Navigator.pop(context),
+            icon: Icon(
+              Icons.arrow_back,
+              color: colors.textColor,
+            )),
+        title: Text(
+          "Wallet creation",
+          style: textTheme.headlineMedium?.copyWith(
+              color: colors.textColor,
+              fontSize: fontSizeOf(20),
+              fontWeight: FontWeight.bold,
+              decoration: TextDecoration.none),
+        ),
+      ),
+      body: SingleChildScrollView(
+        child: Column(
+          children: [
+            Align(
+              alignment: Alignment.topLeft,
+              child: Container(
                   margin: const EdgeInsets.only(top: 25, left: 20),
-                  child: Text(
-                    "Create private key",
-                    style: textTheme.headlineMedium?.copyWith(
-                        color: colors.textColor,
-                        fontSize: fontSizeOf(24),
-                        decoration: TextDecoration.none),
-                  ),
-                ),
-              ),
-              SizedBox(
-                height: 20,
-              ),
-              Container(
-                margin: const EdgeInsets.all(20),
-                child: Material(
-                  color: Colors.transparent,
-                  child: TextField(
-                    style:
-                        textTheme.bodyMedium?.copyWith(color: colors.textColor),
-                    readOnly: true,
-                    minLines: 3,
-                    maxLines: 5,
-                    controller: _textController,
-                    decoration: InputDecoration(
-                      filled: true,
-                      fillColor: colors.secondaryColor,
-                      enabledBorder: OutlineInputBorder(
-                          borderSide:
-                              BorderSide(width: 0, color: Colors.transparent)),
-                      focusedBorder: OutlineInputBorder(
-                          borderSide:
-                              BorderSide(width: 0, color: Colors.transparent)),
-                      labelText: 'Private Key',
-                      labelStyle: TextStyle(color: colors.textColor),
-                      border: OutlineInputBorder(
-                        borderRadius: BorderRadius.circular(roundedOf(10)),
-                        borderSide: BorderSide(color: colors.textColor),
-                      ),
-                    ),
-                  ),
-                ),
-              ),
-              const SizedBox(height: 16),
-              Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 20),
-                child: OutlinedButton.icon(
-                  onPressed: () {
-                    Clipboard.setData(
-                        ClipboardData(text: _textController.text));
-                  },
-                  icon: Icon(Icons.copy, color: colors.themeColor),
-                  label: Text(
-                    "Copy the Private key",
-                    style: textTheme.bodyMedium?.copyWith(
-                      fontSize: fontSizeOf(16),
-                      color: colors.themeColor,
-                    ),
-                  ),
-                  style: OutlinedButton.styleFrom(
-                    side: BorderSide(color: colors.themeColor),
-                    minimumSize: const Size(double.infinity, 50),
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(roundedOf(30)),
-                    ),
-                  ),
-                ),
-              ),
-              SizedBox(
-                height: 20,
-              ),
-              Align(
-                alignment: Alignment.topLeft,
-                child: Padding(
-                  padding: const EdgeInsets.all(20),
-                  child: RichText(
-                    text: TextSpan(children: [
-                      WidgetSpan(
-                          child: Row(
-                        children: [
-                          Icon(
-                            LucideIcons.circleAlert,
-                            color: Colors.pinkAccent,
-                          ),
-                          SizedBox(
-                            width: 5,
-                          ),
-                          Text("Important :",
-                              style: textTheme.bodyMedium?.copyWith(
-                                  fontSize: fontSizeOf(16),
-                                  color: colors.textColor,
-                                  decoration: TextDecoration.none)),
-                        ],
-                      )),
-                      WidgetSpan(
-                        child: Padding(
-                          padding: const EdgeInsets.only(top: 10),
-                          child: Text(
-                            "The private key is secret and is the only way to access your funds. Never share your private key with anyone.",
-                            style: textTheme.bodyMedium?.copyWith(
-                                fontSize: fontSizeOf(16),
-                                color: colors.textColor.withOpacity(0.5),
-                                decoration: TextDecoration.none),
-                          ),
+                  child: Column(
+                    spacing: 15,
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        "Create new Wallet",
+                        style: textTheme.headlineMedium?.copyWith(
+                          color: colors.textColor,
+                          fontSize: 25,
+                          fontWeight: FontWeight.bold,
                         ),
                       ),
-                    ]),
-                  ),
-                ),
+                      Text(
+                        "These 12 words are unique and confidential. They're your only way to access your data. Make sure you keep them safe and never share them with anyone.",
+                        style: textTheme.bodySmall?.copyWith(
+                            color: colors.textColor.withValues(
+                          alpha: 0.7,
+                        )),
+                      ),
+                    ],
+                  )),
+            ),
+            SizedBox(
+              height: 20,
+            ),
+            Container(
+              margin: const EdgeInsets.all(20),
+              padding: const EdgeInsets.all(20),
+              decoration: BoxDecoration(
+                  color: colors.secondaryColor,
+                  borderRadius: BorderRadius.circular(10)),
+              child: Wrap(
+                children: List.generate(seed.length, (index) {
+                  final word = seed[index];
+                  return MnemonicChip(
+                      density: VisualDensity(vertical: -2, horizontal: -2),
+                      colors: colors,
+                      index: index,
+                      word: word);
+                }),
               ),
-              Row(
-                mainAxisAlignment: MainAxisAlignment.center,
-                crossAxisAlignment: CrossAxisAlignment.center,
-                children: [
-                  Padding(
-                    padding: EdgeInsets.only(
-                        bottom: 20, left: 20), // Optional padding
-                    child: OutlinedButton(
-                      style: ElevatedButton.styleFrom(
-                        backgroundColor: colors.primaryColor,
-                        side: BorderSide(color: colors.themeColor, width: 1),
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(roundedOf(30)),
-                        ),
+            ),
+            const SizedBox(height: 16),
+            SizedBox(
+              height: 30,
+            ),
+               Align(
+                  alignment: Alignment.center,
+                  child:SizedBox(
+                    width: MediaQuery.of(context).size.width * 0.9,
+
+                    child:  OutlinedButton(
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: colors.primaryColor,
+                      side: BorderSide(color: colors.themeColor, width: 1),
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(roundedOf(30)),
                       ),
-                      onPressed: () {
-                        Navigator.pop(context);
-                      },
-                      child: Text(
-                        "Previous",
-                        style: textTheme.bodyMedium?.copyWith(
-                          fontSize: fontSizeOf(18),
-                          color: colors.themeColor,
-                          decoration: TextDecoration.none,
-                        ),
+                    ),
+                    onPressed: () async {
+                      await onSubmit();
+                      Navigator.of(context).push(PageTransition(
+                          type: PageTransitionType.leftToRight,
+                          child: PagesManagerView(
+                            colors: colors,
+                          )));
+                    },
+                    child: Text(
+                      "Start Using",
+                      style: textTheme.bodyMedium?.copyWith(
+                        fontSize: fontSizeOf(14),
+                        color: colors.themeColor,
+                        decoration: TextDecoration.none,
                       ),
                     ),
                   ),
-                  Spacer(),
-                  Padding(
-                    padding: EdgeInsets.only(
-                        bottom: 20, right: 20), // Optional padding
-                    child: ElevatedButton(
-                      style: ElevatedButton.styleFrom(
-                          shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(roundedOf(30)),
-                          ),
-                          backgroundColor: colors.themeColor),
-                      onPressed: () async {
-                        await handleSubmit();
-                      },
-                      child: Text(
-                        "Next",
-                        style: textTheme.bodyMedium?.copyWith(
-                          fontSize: fontSizeOf(18),
-                          color: colors.primaryColor,
-                          decoration: TextDecoration.none,
-                        ),
-                      ),
-                    ),
+
                   ),
-                ],
-              )
-            ],
-          ),
-        )),
+                )
+          ],
+        ),
       ),
     );
   }

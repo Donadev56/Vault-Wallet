@@ -146,7 +146,7 @@ dev_dependencies:
 flutter_launcher_icons:
   android: "launcher_icon"
   ios: true
-  image_path: "assets/icon/icon1.png"
+  image_path: "assets/logo/main/image.png"
   min_sdk_android: 21 # android min sdk min:16, default 21
 
 
@@ -183,28 +183,12 @@ flutter:
   - assets/blur1.png
   - assets/blur/blur.png
   - assets/icon/icon4.png
-  
-  - assets/screens/1.png
-  - assets/screens/2.png
-  - assets/screens/3.png
-  - assets/screens/4.png
-  - assets/screens/5.png
-  - assets/screens/6.png
-  - assets/screens/7.png
-  - assets/screens/8.png
-  - assets/screens/9.png
-  - assets/screens/10.png
-  - assets/screens/11.png
-  - assets/screens/12.png
-  - assets/screens/13.png
-  - assets/screens/14.png
-  - assets/screens/15.png
-  - assets/screens/16.png
-  - assets/screens/17.png
-  - assets/screens/18.png
-  - assets/screens/19.png
-  - assets/screens/20.png
-  - assets/screens/21.png
+  - assets/logo/png/v_b.png
+  - assets/logo/png/vault_1.png
+  - assets/logo/png/vault2.png
+  - assets/logo/png/v_png.png
+  - assets/logo/png/v_t.png
+  - assets/logo/png/v_t2.png
 
 
   - assets/i1.png
@@ -220,18 +204,6 @@ flutter:
   - assets/web3/ethers.min.js
 
 
-
-
-
-  - assets/home/36.png
-  - assets/home/37.png
-  - assets/home/38.png
-  - assets/home/39.png
-  - assets/home/40.png
-  - assets/home/41.png
-  - assets/data/btc_price.json
-
-  
 
   # The following line ensures that the Material Icons font is
   # included with your application, so that you can use the icons in

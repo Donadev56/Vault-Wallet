@@ -15,6 +15,7 @@ import 'package:moonwallet/types/types.dart';
 import 'package:moonwallet/utils/colors.dart';
 import 'package:moonwallet/utils/prefs.dart';
 import 'package:moonwallet/utils/themes.dart';
+import 'package:moonwallet/widgets/backup/warning_static_message.dart';
 import 'package:moonwallet/widgets/func/security/ask_password.dart';
 import 'package:moonwallet/widgets/func/snackbar.dart';
 import 'package:moonwallet/widgets/scanner/show_scanner.dart';
@@ -93,6 +94,8 @@ class _AddPrivateKeyState extends ConsumerState<AddObservationWallet> {
     final textTheme = Theme.of(context).textTheme;
     final web3Provider = ref.read(web3ProviderNotifier);
     final appUIConfigAsync = ref.watch(appUIConfigProvider);
+    final lastAccountNotifier =
+        ref.watch(lastConnectedKeyIdNotifierProvider.notifier);
 
     final uiConfig = useState<AppUIConfig>(AppUIConfig.defaultConfig);
 
@@ -124,7 +127,9 @@ class _AddPrivateKeyState extends ConsumerState<AddObservationWallet> {
         final result = await web3Provider
             .saveWO(_textController.text.trim())
             .withLoading(context, colors);
-        if (result) {
+        if (result != null) {
+          lastAccountNotifier.updateKeyId(result.keyId);
+
           if (!mounted) return;
           notifySuccess("Wallet added ");
           Navigator.of(context).push(PageTransition(
@@ -146,7 +151,7 @@ class _AddPrivateKeyState extends ConsumerState<AddObservationWallet> {
 
     Future<void> handleSubmit() async {
       try {
-        final password = await askPassword(context: context, colors: colors);
+        final password = await askPassword(context: context, colors: colors, useBio: false);
         if (password.isNotEmpty) {
           setState(() {
             userPassword = password;
@@ -167,211 +172,239 @@ class _AddPrivateKeyState extends ConsumerState<AddObservationWallet> {
 
     return Scaffold(
         backgroundColor: colors.primaryColor,
+        appBar: AppBar(
+          automaticallyImplyLeading: false,
+          backgroundColor: colors.primaryColor,
+          leading: IconButton(
+              onPressed: () => Navigator.pop(context),
+              icon: Icon(
+                Icons.arrow_back,
+                color: colors.textColor,
+              )),
+          title: Text(
+            "Add Public Address",
+            style: textTheme.headlineMedium?.copyWith(
+                color: colors.textColor,
+                fontSize: fontSizeOf(20),
+                fontWeight: FontWeight.bold,
+                decoration: TextDecoration.none),
+          ),
+        ),
         body: Form(
           key: _formKey,
-          child: Container(
-            decoration: BoxDecoration(color: colors.primaryColor),
-            child: SafeArea(
-                child: SingleChildScrollView(
-              child: Column(
-                mainAxisSize: MainAxisSize.max,
-                children: [
-                  Align(
-                    alignment: Alignment.topLeft,
-                    child: Container(
+          child: SingleChildScrollView(
+            child: Column(
+              mainAxisSize: MainAxisSize.max,
+              children: [
+                Align(
+                  alignment: Alignment.topLeft,
+                  child: Container(
                       margin: const EdgeInsets.only(top: 25, left: 20),
-                      child: Text(
-                        "Add Public Address",
-                        style: textTheme.headlineMedium?.copyWith(
-                            color: colors.textColor,
-                            fontSize: 24,
-                            decoration: TextDecoration.none),
-                      ),
-                    ),
-                  ),
-                  SizedBox(
-                    height: 20,
-                  ),
-                  Container(
-                    margin: const EdgeInsets.all(20),
-                    child: Material(
-                      color: Colors.transparent,
-                      child: TextFormField(
-                        validator: (value) {
-                          if (value != null) {
-                            final res = keyTester(value);
-                            if (res) {
-                              return null;
-                            } else {
-                              return "Invalid Address";
-                            }
+                      child: Column(
+                        spacing: 15,
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            "Add public address",
+                            style: textTheme.headlineMedium?.copyWith(
+                              color: colors.textColor,
+                              fontSize: 25,
+                              fontWeight: FontWeight.bold,
+                            ),
+                          ),
+                          Text(
+                            "Enter a valid address starting with 0x.",
+                            style: textTheme.bodySmall?.copyWith(
+                                color: colors.textColor.withValues(
+                              alpha: 0.7,
+                            )),
+                          ),
+                        ],
+                      )),
+                ),
+                Container(
+                  margin: const EdgeInsets.all(20),
+                  child: Material(
+                    color: Colors.transparent,
+                    child: TextFormField(
+                      validator: (value) {
+                        if (value != null) {
+                          final res = keyTester(value);
+                          if (res) {
+                            return null;
                           } else {
-                            return "Please enter the public address";
+                            return "Invalid Address";
                           }
-                        },
-                        style: textTheme.bodyMedium?.copyWith(
-                          color: colors.textColor,
-                        ),
-                        cursorColor: colors.themeColor,
-                        minLines: 3,
-                        maxLines: 5,
-                        controller: _textController,
-                        decoration: InputDecoration(
-                          filled: true,
-                          fillColor: colors.secondaryColor,
-                          enabledBorder: OutlineInputBorder(
-                              borderSide: BorderSide(
-                                  width: 0, color: Colors.transparent)),
-                          focusedBorder: OutlineInputBorder(
-                              borderSide: BorderSide(
-                                  width: 0, color: Colors.transparent)),
-                          labelText: 'Address',
-                          labelStyle: TextStyle(color: colors.textColor),
-                          border: OutlineInputBorder(
-                            borderRadius: BorderRadius.circular(10),
-                            borderSide: BorderSide(color: colors.textColor),
-                          ),
+                        } else {
+                          return "Please enter the public address";
+                        }
+                      },
+                      style: textTheme.bodyMedium?.copyWith(
+                        color: colors.textColor,
+                      ),
+                      cursorColor: colors.themeColor,
+                      minLines: 3,
+                      maxLines: 5,
+                      controller: _textController,
+                      decoration: InputDecoration(
+                        filled: true,
+                        fillColor: colors.secondaryColor,
+                        enabledBorder: OutlineInputBorder(
+                            borderSide: BorderSide(
+                                width: 0, color: Colors.transparent)),
+                        focusedBorder: OutlineInputBorder(
+                            borderSide: BorderSide(
+                                width: 0, color: Colors.transparent)),
+                        labelText: 'Address',
+                        labelStyle: TextStyle(color: colors.textColor),
+                        border: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(10),
+                          borderSide: BorderSide(color: colors.textColor),
                         ),
                       ),
                     ),
                   ),
-                  const SizedBox(height: 16),
-                  Row(
-                    children: [
-                      Expanded(
-                        child: Padding(
-                          padding: const EdgeInsets.symmetric(horizontal: 20),
-                          child: OutlinedButton.icon(
-                            onPressed: () async {
-                              final data =
-                                  await Clipboard.getData("text/plain");
-                              if (data != null && data.text != null) {
-                                log(data.toString());
-                                setState(() {
-                                  String text = data.text ?? "";
-                                  _textController.text = text;
-                                });
-                              }
-                            },
-                            icon: Icon(Icons.paste, color: colors.themeColor),
-                            label: Text(
-                              "Paste",
-                              style: textTheme.bodyMedium?.copyWith(
-                                fontSize: fontSizeOf(16),
-                                color: colors.themeColor,
-                              ),
-                            ),
-                            style: OutlinedButton.styleFrom(
-                              side: BorderSide(color: colors.themeColor),
-                              // Instead of setting an infinite width, just set the height.
-                              minimumSize: const Size.fromHeight(50),
-                              shape: RoundedRectangleBorder(
-                                borderRadius:
-                                    BorderRadius.circular(roundedOf(30)),
-                              ),
+                ),
+                const SizedBox(height: 16),
+                Row(
+                  children: [
+                    Expanded(
+                      child: Padding(
+                        padding: const EdgeInsets.symmetric(horizontal: 20),
+                        child: OutlinedButton.icon(
+                          onPressed: () async {
+                            final data = await Clipboard.getData("text/plain");
+                            if (data != null && data.text != null) {
+                              log(data.toString());
+                              setState(() {
+                                String text = data.text ?? "";
+                                _textController.text = text;
+                              });
+                            }
+                          },
+                          icon: Icon(Icons.paste, color: colors.themeColor),
+                          label: Text(
+                            "Paste",
+                            style: textTheme.bodyMedium?.copyWith(
+                              fontSize: fontSizeOf(16),
+                              color: colors.themeColor,
                             ),
                           ),
-                        ),
-                      ),
-                      Expanded(
-                        child: Padding(
-                          padding: const EdgeInsets.symmetric(horizontal: 20),
-                          child: OutlinedButton.icon(
-                            onPressed: () {
-                              showScanner(
-                                  context: context,
-                                  controller: _mobileScannerController,
-                                  colors: colors,
-                                  onResult: (result) {
-                                    _textController.text = result;
-                                  });
-                            },
-                            icon: Icon(LucideIcons.maximize,
-                                color: colors.themeColor),
-                            label: Text(
-                              "Scan",
-                              style: textTheme.bodyMedium?.copyWith(
-                                fontSize: fontSizeOf(16),
-                                color: colors.themeColor,
-                              ),
-                            ),
-                            style: OutlinedButton.styleFrom(
-                              side: BorderSide(color: colors.themeColor),
-                              minimumSize: const Size.fromHeight(50),
-                              shape: RoundedRectangleBorder(
-                                borderRadius:
-                                    BorderRadius.circular(roundedOf(30)),
-                              ),
-                            ),
-                          ),
-                        ),
-                      ),
-                    ],
-                  ),
-                  SizedBox(
-                    height: 40,
-                  ),
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    crossAxisAlignment: CrossAxisAlignment.center,
-                    children: [
-                      Padding(
-                        padding: EdgeInsets.only(
-                            bottom: 20, left: 20), // Optional padding
-                        child: OutlinedButton(
-                          style: ElevatedButton.styleFrom(
-                            backgroundColor: colors.primaryColor,
-                            side:
-                                BorderSide(color: colors.themeColor, width: 1),
+                          style: OutlinedButton.styleFrom(
+                            side: BorderSide(color: colors.themeColor),
+                            // Instead of setting an infinite width, just set the height.
+                            minimumSize: const Size.fromHeight(50),
                             shape: RoundedRectangleBorder(
                               borderRadius:
                                   BorderRadius.circular(roundedOf(30)),
                             ),
                           ),
+                        ),
+                      ),
+                    ),
+                    Expanded(
+                      child: Padding(
+                        padding: const EdgeInsets.symmetric(horizontal: 20),
+                        child: OutlinedButton.icon(
                           onPressed: () {
-                            Navigator.pop(context);
+                            showScanner(
+                                context: context,
+                                controller: _mobileScannerController,
+                                colors: colors,
+                                onResult: (result) {
+                                  _textController.text = result;
+                                });
                           },
-                          child: Text(
-                            "Previous",
+                          icon: Icon(LucideIcons.maximize,
+                              color: colors.themeColor),
+                          label: Text(
+                            "Scan",
                             style: textTheme.bodyMedium?.copyWith(
-                              fontSize: fontSizeOf(18),
+                              fontSize: fontSizeOf(16),
                               color: colors.themeColor,
-                              decoration: TextDecoration.none,
+                            ),
+                          ),
+                          style: OutlinedButton.styleFrom(
+                            side: BorderSide(color: colors.themeColor),
+                            minimumSize: const Size.fromHeight(50),
+                            shape: RoundedRectangleBorder(
+                              borderRadius:
+                                  BorderRadius.circular(roundedOf(30)),
                             ),
                           ),
                         ),
                       ),
-                      Spacer(),
-                      Padding(
-                        padding: EdgeInsets.only(
-                            bottom: 20, right: 20), // Optional padding
-                        child: ElevatedButton(
-                          style: ElevatedButton.styleFrom(
-                              shape: RoundedRectangleBorder(
-                                borderRadius:
-                                    BorderRadius.circular(roundedOf(30)),
-                              ),
-                              backgroundColor: colors.themeColor),
-                          onPressed: () async {
-                            if (_formKey.currentState?.validate() ?? false) {
-                              await handleSubmit();
-                            }
-                          },
-                          child: Text(
-                            "Next",
-                            style: textTheme.bodyMedium?.copyWith(
-                              fontSize: fontSizeOf(18),
-                              color: colors.primaryColor,
-                              decoration: TextDecoration.none,
-                            ),
+                    ),
+                  ],
+                ),
+                SizedBox(
+                  height: 10,
+                ),
+                WarningStaticMessage(
+                    colors: colors,
+                    title: "Warning",
+                    content:
+                        "Please conduct your own research before adding an observation portfolio. We are not responsible for your interactions with external addresses."),
+                SizedBox(
+                  height: 40,
+                ),
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  crossAxisAlignment: CrossAxisAlignment.center,
+                  children: [
+                    Padding(
+                      padding: EdgeInsets.only(
+                          bottom: 20, left: 20), // Optional padding
+                      child: OutlinedButton(
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: colors.primaryColor,
+                          side: BorderSide(color: colors.themeColor, width: 1),
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(roundedOf(30)),
+                          ),
+                        ),
+                        onPressed: () {
+                          Navigator.pop(context);
+                        },
+                        child: Text(
+                          "Back",
+                          style: textTheme.bodyMedium?.copyWith(
+                            fontSize: fontSizeOf(18),
+                            color: colors.themeColor,
+                            decoration: TextDecoration.none,
                           ),
                         ),
                       ),
-                    ],
-                  )
-                ],
-              ),
-            )),
+                    ),
+                    Padding(
+                      padding: EdgeInsets.only(
+                          bottom: 20, right: 20), // Optional padding
+                      child: ElevatedButton(
+                        style: ElevatedButton.styleFrom(
+                            shape: RoundedRectangleBorder(
+                              borderRadius:
+                                  BorderRadius.circular(roundedOf(30)),
+                            ),
+                            backgroundColor: colors.themeColor),
+                        onPressed: () async {
+                          if (_formKey.currentState?.validate() ?? false) {
+                            await handleSubmit();
+                          }
+                        },
+                        child: Text(
+                          "Next",
+                          style: textTheme.bodyMedium?.copyWith(
+                            fontSize: fontSizeOf(18),
+                            color: colors.primaryColor,
+                            decoration: TextDecoration.none,
+                          ),
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+              ],
+            ),
           ),
         ));
   }

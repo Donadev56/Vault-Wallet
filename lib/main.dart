@@ -317,7 +317,7 @@ class _MyAppState extends State<MyApp> {
                   ),
                 ),
                 initialRoute:
-                    snapshot.data! ? Routes.secureCheckView : Routes.home,
+                    snapshot.data! ? Routes.pageManager : Routes.home,
                 routes: {
                   Routes.main: (context) => MainDashboardScreen(
                         colors: colors,

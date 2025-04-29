@@ -6,7 +6,7 @@ import 'package:hex/hex.dart';
 import 'dart:typed_data';
 
 class EthAddresses {
-  Future<Map<String, dynamic>> createPrivatekey() async {
+  Future<Map<String, dynamic>> createWallet() async {
     try {
       final seed = generateMnemonic();
       final privateKey = deriveEthereumPrivateKey(seed);

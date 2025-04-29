@@ -2,6 +2,9 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:moonwallet/main.dart';
+import 'package:moonwallet/screens/dashboard/wallet_actions/add_mnemonic.dart';
+import 'package:moonwallet/screens/dashboard/wallet_actions/create_private_key.dart';
+import 'package:moonwallet/types/types.dart';
 
 class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
@@ -11,12 +14,13 @@ class HomeScreen extends StatefulWidget {
 }
 
 class _HomeScreenState extends State<HomeScreen> {
+  final colors = AppColors.defaultTheme;
   @override
   void initState() {
     super.initState();
     SystemChrome.setSystemUIOverlayStyle(
-      const SystemUiOverlayStyle(
-        statusBarColor: Color(0xFF0D0D0D),
+       SystemUiOverlayStyle(
+        statusBarColor: colors.primaryColor,
         statusBarIconBrightness: Brightness.light,
       ),
     );
@@ -24,29 +28,19 @@ class _HomeScreenState extends State<HomeScreen> {
 
   @override
   Widget build(BuildContext context) {
-    final height = MediaQuery.of(context).size.height;
-    return SafeArea(
-      child: SingleChildScrollView(
-        child: Container(
-          height: height,
-          decoration: const BoxDecoration(
-              color: Color(0XFF0D0D0D),
-              image: DecorationImage(
-                  image: AssetImage(
-                    "assets/blur/blur.png",
-                  ),
-                  fit: BoxFit.cover)),
-          child: SingleChildScrollView(
+    return Scaffold(
+      backgroundColor: colors.primaryColor,
+      body: SingleChildScrollView(
+        child: SingleChildScrollView(
             child: Column(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
                 Column(
                   children: [
                     const SizedBox(height: 50),
-                    Image.asset(
-                      "assets/icon/icon4.png",
-                      width: height < 550 ? 210 : 280,
-                      height: height < 550 ? 210 : 280,
+                    Image.asset("assets/logo/png/v_png.png",
+                    width: 300,
+                    height: 300,
                     ),
                     const SizedBox(height: 20),
                     Padding(
@@ -60,14 +54,14 @@ class _HomeScreenState extends State<HomeScreen> {
                                   text: "Welcome to the \n",
                                   style: GoogleFonts.exo2(
                                       fontSize: 23,
-                                      color: Colors.white,
+                                      color: colors.textColor,
                                       fontWeight: FontWeight.w100),
                                 ),
                                 TextSpan(
-                                  text: "moon crypto wallet".toUpperCase(),
+                                  text: "Vault crypto wallet".toUpperCase(),
                                   style: GoogleFonts.audiowide(
                                     fontSize: 25,
-                                    color: Colors.greenAccent,
+                                    color: colors.textColor,
                                     fontWeight: FontWeight.bold,
                                   ),
                                 ),
@@ -82,7 +76,7 @@ class _HomeScreenState extends State<HomeScreen> {
                         "Create or import your account to start using the wallet securely.",
                         style: GoogleFonts.exo2(
                             fontSize: 16,
-                            color: Colors.white70,
+                            color: colors.textColor.withValues(alpha: 0.7),
                             decoration: TextDecoration.none),
                         textAlign: TextAlign.left,
                       ),
@@ -99,16 +93,17 @@ class _HomeScreenState extends State<HomeScreen> {
                       padding: const EdgeInsets.symmetric(horizontal: 20),
                       child: ElevatedButton.icon(
                         onPressed: () {
-                          Navigator.pushNamed(
-                              context, Routes.privateKeyCreator);
+                          Navigator.push(context, MaterialPageRoute(builder: (ctx)=> CreatePrivateKeyMain()) );
                         },
-                        icon: const Icon(Icons.add, color: Colors.black),
+                        icon:  Icon(Icons.add, color: colors.primaryColor),
                         label: Text(
                           "Create a new wallet",
                           style: GoogleFonts.exo2(
-                              fontSize: 16, color: Colors.black),
+                              fontSize: 16, color:colors.primaryColor),
                         ),
                         style: ElevatedButton.styleFrom(
+                          
+                          backgroundColor: colors.themeColor,
                           minimumSize: const Size(double.infinity, 50),
                           shape: RoundedRectangleBorder(
                             borderRadius: BorderRadius.circular(30),
@@ -121,19 +116,19 @@ class _HomeScreenState extends State<HomeScreen> {
                       padding: const EdgeInsets.symmetric(horizontal: 20),
                       child: OutlinedButton.icon(
                         onPressed: () {
-                          Navigator.pushNamed(context, Routes.addPrivateKey);
+                          Navigator.push(context, MaterialPageRoute(builder: (ctx)=> AddMnemonicScreen()) );
                         },
                         icon:
-                            const Icon(Icons.input, color: Colors.greenAccent),
+                             Icon(Icons.input, color: colors.themeColor),
                         label: Text(
                           "Import your wallet",
                           style: GoogleFonts.exo2(
                             fontSize: 16,
-                            color: Colors.greenAccent,
+                            color: colors.themeColor,
                           ),
                         ),
                         style: OutlinedButton.styleFrom(
-                          side: const BorderSide(color: Colors.greenAccent),
+                          side:  BorderSide(color: colors.themeColor),
                           minimumSize: const Size(double.infinity, 50),
                           shape: RoundedRectangleBorder(
                             borderRadius: BorderRadius.circular(30),
@@ -148,7 +143,7 @@ class _HomeScreenState extends State<HomeScreen> {
                         "Read terms and conditions",
                         style: GoogleFonts.exo2(
                           fontSize: 14,
-                          color: Colors.white70,
+                          color: colors.textColor.withValues(alpha: 0.7),
                           decoration: TextDecoration.none,
                         ),
                       ),
@@ -160,7 +155,7 @@ class _HomeScreenState extends State<HomeScreen> {
             ),
           ),
         ),
-      ),
+      
     );
   }
 }

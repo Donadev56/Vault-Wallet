@@ -5,7 +5,6 @@ import 'package:moonwallet/types/types.dart';
 import 'package:moonwallet/utils/number_formatter.dart';
 import 'package:moonwallet/widgets/charts_/line_chart.dart';
 import 'package:moonwallet/widgets/func/snackbar.dart';
-import 'package:moonwallet/widgets/screen_widgets/chips.dart';
 import 'package:moonwallet/widgets/screen_widgets/crypto_picture.dart';
 import 'package:url_launcher/url_launcher.dart';
 
