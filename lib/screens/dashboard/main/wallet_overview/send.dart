@@ -414,11 +414,11 @@ class _SendTransactionScreenState extends ConsumerState<SendTransactionScreen> {
     }
   }
 
-  String formatUsd(String value) {
+  String formatUsd(double value) {
     return NumberFormatter().formatUsd(value: value);
   }
 
-  String formatCryptoValue(String value) {
+  String formatCryptoValue(double value) {
     return NumberFormatter().formatCrypto(value: value);
   }
 
@@ -706,9 +706,9 @@ class _SendTransactionScreenState extends ConsumerState<SendTransactionScreen> {
                     fontWeight: FontWeight.w600),
                 validator: (v) {
                   log("Value $v");
-                  if (double.parse(v ?? "") >= nativeBalance) {
+                  if (double.parse(v ?? "0") >= nativeBalance) {
                     return "Amount exceeds balance";
-                  } else if (double.parse(v ?? "") == nativeBalance &&
+                  } else if (double.parse(v ?? "0") == nativeBalance &&
                       nativeBalance > 0) {
                     return "Transaction fee must be deducted";
                   } else {
@@ -724,8 +724,8 @@ class _SendTransactionScreenState extends ConsumerState<SendTransactionScreen> {
                   }
                   final double cryptoAmount = double.parse(value);
                   setState(() {
-                    _amountUsdController.text =
-                        (cryptoAmount * cryptoPrice).toString();
+                    _amountUsdController.text = NumberFormatter()
+                        .formatDecimal((cryptoAmount * cryptoPrice).toString());
                   });
                 },
                 controller: _amountController,
@@ -745,12 +745,15 @@ class _SendTransactionScreenState extends ConsumerState<SendTransactionScreen> {
                           if (crypto!.isNative) {
                             final value = nativeBalance - transactionFee;
                             log("value $value , balance $nativeBalance");
-                            _amountController.text = formatter.format(value);
+                            _amountController.text = NumberFormatter()
+                                .formatDecimal(value.toStringAsFixed(8),
+                                    maxDecimals: 8);
                             _amountUsdController.text =
                                 ((nativeBalance) * cryptoPrice).toString();
                           } else {
-                            _amountController.text =
-                                formatter.format(tokenBalance);
+                            _amountController.text = NumberFormatter()
+                                .formatDecimal(tokenBalance.toStringAsFixed(8),
+                                    maxDecimals: 8);
                             _amountUsdController.text =
                                 ((tokenBalance) * cryptoPrice).toString();
                           }
@@ -798,8 +801,8 @@ class _SendTransactionScreenState extends ConsumerState<SendTransactionScreen> {
                   }
                   final double usdAmount = double.parse(value);
                   setState(() {
-                    _amountController.text =
-                        (usdAmount / cryptoPrice).toString();
+                    _amountController.text = NumberFormatter()
+                        .formatDecimal((usdAmount / cryptoPrice).toString());
                   });
                 },
                 controller: _amountUsdController,
@@ -836,7 +839,7 @@ class _SendTransactionScreenState extends ConsumerState<SendTransactionScreen> {
               Align(
                 alignment: Alignment.topLeft,
                 child: Text(
-                  "Balance : ${formatCryptoValue(crypto!.isNative ? nativeBalance.toString() : tokenBalance.toString())} ${crypto!.symbol}",
+                  "Balance : ${formatCryptoValue(crypto!.isNative ? nativeBalance : tokenBalance)} ${crypto!.symbol}",
                   style: textTheme.bodyMedium?.copyWith(
                       color: colors.textColor.withOpacity(0.7),
                       fontSize: fontSizeOf(14)),

@@ -52,7 +52,7 @@ void showCustomDrawer({
   File? currentImage = profileImage;
   bool useBio = canUseBio;
 
-  String formatUsd(String value) {
+  String formatUsd(double value) {
     return NumberFormatter().formatUsd(value: value);
   }
 
@@ -199,7 +199,7 @@ void showCustomDrawer({
                               children: [
                                 Text(
                                   !isHidden
-                                      ? "\$${(formatUsd(totalBalanceUsd.toString()))}"
+                                      ? "\$${(formatUsd(totalBalanceUsd))}"
                                       : "***",
                                   style: textTheme.bodySmall?.copyWith(
                                       color: colors.textColor,

@@ -158,8 +158,7 @@ class CustomLineChart extends StatelessWidget {
                     ),
                     TextSpan(
                       text: isCrypto
-                          ? NumberFormatter()
-                              .formatCrypto(value: price.toString())
+                          ? NumberFormatter().formatCrypto(value: price)
                           : '\n${AppUtils.getFormattedCurrency(context, price, noDecimals: true, symbol: symbol)}',
                       style: textTheme.bodyMedium?.copyWith(
                         color: isPositive ? colors.themeColor : colors.redColor,

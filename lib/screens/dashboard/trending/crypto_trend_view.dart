@@ -6,6 +6,7 @@ import 'package:moonwallet/utils/number_formatter.dart';
 import 'package:moonwallet/widgets/charts_/line_chart.dart';
 import 'package:moonwallet/widgets/func/snackbar.dart';
 import 'package:moonwallet/widgets/screen_widgets/crypto_picture.dart';
+import 'package:numeral/numeral.dart';
 import 'package:url_launcher/url_launcher.dart';
 
 class CryptoTrendView extends StatefulWidget {
@@ -166,7 +167,7 @@ class _CryptoTrendViewState extends State<CryptoTrendView> {
                     spacing: 15,
                     children: [
                       Text(
-                        "\$${data.currentPrice}",
+                        "\$${NumberFormatter().formatDecimal(data.currentPrice.toString())}",
                         style: textTheme.bodyMedium?.copyWith(
                             color: colors.textColor, fontSize: fontSizeOf(15)),
                       ),
@@ -252,23 +253,21 @@ class _CryptoTrendViewState extends State<CryptoTrendView> {
                           TrendDataRow(
                               colors: colors,
                               title: "Market Cap",
-                              value:
-                                  "\$${formatter.formatUsd(value: (data.marketCap ?? 0).toString())}"),
+                              value: "\$${(data.marketCap ?? 0).numeral()}"),
                           TrendDataRow(
                               colors: colors,
                               title: "Circulation Supply",
                               value:
-                                  "\$${formatter.formatUsd(value: (data.circulatingSupply ?? 0).toString())}"),
+                                  "\$${(data.circulatingSupply ?? 0).numeral()}"),
                           TrendDataRow(
                               colors: colors,
                               title: "Total Supply",
-                              value:
-                                  "\$${formatter.formatUsd(value: (data.totalSupply ?? 0).toString())}"),
+                              value: "\$${(data.totalSupply ?? 0).numeral()}"),
                           TrendDataRow(
                               colors: colors,
                               title: "Price Change 24H",
                               value: formatter.formatUsd(
-                                  value: (data.priceChange24h ?? 0).toString()))
+                                  value: (data.priceChange24h ?? 0)))
                         ],
                       ),
                     ),
@@ -345,33 +344,38 @@ class _CryptoTrendViewState extends State<CryptoTrendView> {
                     height: 15,
                   ),
                   if (explorers != null)
-                    Align(
-                      alignment: Alignment.centerLeft,
-                      child: SizedBox(
-                        width: 180,
-                        child: GestureDetector(
-                          onTap: () {
-                            final baseUrl =
-                                Uri.parse(explorers.firstOrNull ?? "");
-                            launchUrl(baseUrl);
-                          },
-                          child: Chip(
-                              shape: RoundedRectangleBorder(
-                                  borderRadius:
-                                      BorderRadius.circular(roundedOf(30))),
-                              backgroundColor: colors.primaryColor,
-                              avatar: Icon(
-                                Icons.link,
-                                color: colors.textColor,
-                              ),
-                              label: Text(
-                                explorers.firstOrNull ?? "",
-                                style: textTheme.bodyMedium?.copyWith(
-                                    fontSize: 14,
-                                    fontWeight: FontWeight.bold,
-                                    color: colors.textColor),
-                              )),
-                        ),
+                    SingleChildScrollView(
+                      scrollDirection: Axis.horizontal,
+                      child: Row(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: List.generate(explorers.length, (index) {
+                          final explorer = explorers[index];
+                          return SizedBox(
+                            width: 180,
+                            child: GestureDetector(
+                              onTap: () {
+                                final baseUrl = Uri.parse(explorer);
+                                launchUrl(baseUrl);
+                              },
+                              child: Chip(
+                                  shape: RoundedRectangleBorder(
+                                      borderRadius:
+                                          BorderRadius.circular(roundedOf(30))),
+                                  backgroundColor: colors.primaryColor,
+                                  avatar: Icon(
+                                    Icons.link,
+                                    color: colors.textColor,
+                                  ),
+                                  label: Text(
+                                    explorer,
+                                    style: textTheme.bodyMedium?.copyWith(
+                                        fontSize: 12,
+                                        fontWeight: FontWeight.bold,
+                                        color: colors.textColor),
+                                  )),
+                            ),
+                          );
+                        }),
                       ),
                     )
                 ],

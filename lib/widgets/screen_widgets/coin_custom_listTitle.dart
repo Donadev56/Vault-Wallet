@@ -44,11 +44,15 @@ class CoinCustomListTitle extends StatelessWidget {
   Widget build(BuildContext context) {
     final textTheme = TextTheme.of(context);
 
-    String formatUsd(String value) {
+    String formatUsd(double value) {
       return NumberFormatter().formatUsd(value: value);
     }
 
-    String formatCrypto(String value) {
+    String formatDecimals(String value) {
+      return NumberFormatter().formatDecimal(value);
+    }
+
+    String formatCrypto(double value) {
       return NumberFormatter().formatCrypto(value: value);
     }
 
@@ -84,41 +88,45 @@ class CoinCustomListTitle extends StatelessWidget {
           leading: CryptoPicture(
               crypto: crypto, size: imageSizeOf(38), colors: colors),
           title: LayoutBuilder(builder: (ctx, c) {
+            final children = [
+              Text(crypto.symbol.toUpperCase(),
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                  style: textTheme.bodyMedium?.copyWith(
+                      fontSize: fontSizeOf(12.88),
+                      fontWeight: FontWeight.w600,
+                      color: colors.textColor)),
+              Container(
+                padding:
+                    const EdgeInsets.symmetric(horizontal: 10, vertical: 2),
+                decoration: BoxDecoration(
+                    color: colors.secondaryColor,
+                    borderRadius: BorderRadius.circular(20)),
+                child: Text(
+                    !crypto.isNative ? "${crypto.network?.name}" : crypto.name,
+                    style: textTheme.bodySmall?.copyWith(
+                        fontSize: fontSizeOf(10),
+                        color: colors.textColor,
+                        fontWeight: FontWeight.w500)),
+              )
+            ];
+            if (c.maxWidth < 140) {
+              return Column(
+                mainAxisAlignment: MainAxisAlignment.center,
+                crossAxisAlignment: CrossAxisAlignment.start,
+                spacing: 5,
+                children: children,
+              );
+            }
             return Row(
               spacing: 10,
-              children: [
-                ConstrainedBox(
-                  constraints: BoxConstraints(maxWidth: c.maxWidth * 0.4),
-                  child: Text(crypto.symbol.toUpperCase(),
-                      maxLines: 1,
-                      overflow: TextOverflow.ellipsis,
-                      style: textTheme.bodyMedium?.copyWith(
-                          fontSize: fontSizeOf(12.88),
-                          fontWeight: FontWeight.w600,
-                          color: colors.textColor)),
-                ),
-                Container(
-                  padding:
-                      const EdgeInsets.symmetric(horizontal: 10, vertical: 2),
-                  decoration: BoxDecoration(
-                      color: colors.grayColor.withOpacity(0.9).withOpacity(0.2),
-                      borderRadius: BorderRadius.circular(20)),
-                  child: Text(
-                      !crypto.isNative
-                          ? "${crypto.network?.name}"
-                          : crypto.name,
-                      style: textTheme.bodySmall?.copyWith(
-                          fontSize: fontSizeOf(10),
-                          color: colors.textColor,
-                          fontWeight: FontWeight.w500)),
-                )
-              ],
+              children: children,
             );
           }),
           subtitle: Row(
             spacing: 2,
             children: [
-              Text(formatUsd(cryptoPrice.toString()),
+              Text(formatDecimals(cryptoPrice.toString()),
                   style: textTheme.bodySmall?.copyWith(
                     color: colors.textColor.withOpacity(0.6),
                     fontSize: fontSizeOf(12.88),
@@ -139,10 +147,7 @@ class CoinCustomListTitle extends StatelessWidget {
               mainAxisAlignment: MainAxisAlignment.spaceAround,
               crossAxisAlignment: CrossAxisAlignment.end,
               children: [
-                Text(
-                    isCryptoHidden
-                        ? "***"
-                        : formatCrypto(tokenBalance.toString()).trim(),
+                Text(isCryptoHidden ? "***" : formatCrypto(tokenBalance).trim(),
                     overflow: TextOverflow.ellipsis,
                     maxLines: 1,
                     style: textTheme.bodyMedium?.copyWith(
@@ -152,7 +157,7 @@ class CoinCustomListTitle extends StatelessWidget {
                 Text(
                     isCryptoHidden
                         ? "***"
-                        : "\$${formatUsd(usdBalance.toString()).trim()}",
+                        : "\$${formatUsd(usdBalance).trim()}",
                     overflow: TextOverflow.ellipsis,
                     maxLines: 1,
                     style: textTheme.bodySmall?.copyWith(

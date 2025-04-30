@@ -136,11 +136,11 @@ class _WalletViewScreenState extends ConsumerState<WalletViewScreen>
     }
   }
 
-  String formatUsd(String value) {
+  String formatUsd(double value) {
     return NumberFormatter().formatUsd(value: value);
   }
 
-  String formatCryptoValue(String value) {
+  String formatCryptoValue(double value) {
     return NumberFormatter().formatCrypto(value: value);
   }
 
@@ -462,7 +462,7 @@ class _WalletViewScreenState extends ConsumerState<WalletViewScreen>
                                 child: SizedBox(
                                     child: Center(
                                         child: Text(
-                                  (formatCryptoValue(tokenBalance.toString())),
+                                  (formatCryptoValue(tokenBalance)),
                                   overflow: TextOverflow.clip,
                                   maxLines: 1,
                                   style: textTheme.bodyMedium?.copyWith(
@@ -476,7 +476,7 @@ class _WalletViewScreenState extends ConsumerState<WalletViewScreen>
                             Skeletonizer(
                                 enabled: isBalanceLoading,
                                 child: Text(
-                                  "= \$ ${formatUsd((totalBalanceUsd).toString())}",
+                                  "= \$ ${formatUsd((totalBalanceUsd))}",
                                   style: textTheme.bodySmall?.copyWith(
                                       color: colors.textColor.withOpacity(0.5),
                                       fontSize: fontSizeOf(14)),

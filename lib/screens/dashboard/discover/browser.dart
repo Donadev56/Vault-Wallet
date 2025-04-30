@@ -502,12 +502,17 @@ class Web3BrowserScreenState extends State<Web3BrowserScreen> {
                                 rpcUrls: currentCrypto!.rpcUrls ?? []),
                             supportNetworks:
                                 List.generate(networks.length, (i) {
+                              final network = networks[i];
                               return NetworkConfig(
+                                  nativeCurrency: NativeCurrency(
+                                      name: network.name,
+                                      symbol: network.symbol,
+                                      decimals: network.decimals),
                                   chainId:
                                       "0x${networks[i].chainId?.toRadixString(16)}",
-                                  chainName: networks[i].name,
-                                  rpcUrls: networks[i].rpcUrls ?? [],
-                                  blockExplorerUrls: networks[i].explorers);
+                                  chainName: network.name,
+                                  rpcUrls: network.rpcUrls ?? [],
+                                  blockExplorerUrls: network.explorers);
                             })),
                         initialUrlRequest: URLRequest(
                           url: WebUri(

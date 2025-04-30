@@ -36,8 +36,7 @@ class TransactionsListElement extends StatelessWidget {
   Widget build(BuildContext context) {
     final formattedAmount = NumberFormatter().formatCrypto(
         value: (BigInt.parse(tr.value) /
-                BigInt.from(10).pow(currentCrypto.decimals))
-            .toString());
+            BigInt.from(10).pow(currentCrypto.decimals)));
     final textTheme = TextTheme.of(context);
     return Material(
         color: Colors.transparent,

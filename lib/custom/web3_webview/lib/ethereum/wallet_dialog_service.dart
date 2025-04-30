@@ -364,7 +364,9 @@ class WalletDialogService {
                           fontSize: 21,
                           fontWeight: FontWeight.bold),
                     ),
-                    Text(network.chainName.toUpperCase(),
+                    Text(
+                        network.nativeCurrency?.symbol ??
+                            network.chainName.toUpperCase().split(" ").first,
                         style: GoogleFonts.roboto(
                             color: colors.textColor.withOpacity(0.3),
                             fontSize: 21,

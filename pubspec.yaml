@@ -115,6 +115,8 @@ dependencies:
   flutter_hooks: ^0.21.2
   syncfusion_flutter_sliders: ^29.1.39
   bip39_mnemonic: ^3.0.9
+  numeral: ^3.0.0
+  decimal: ^3.2.1
 
 
 

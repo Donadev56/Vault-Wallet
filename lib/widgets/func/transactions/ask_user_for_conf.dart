@@ -115,8 +115,8 @@ Future<UserRequestResponse> askUserForConfirmation({
                             spacing: 5,
                             children: [
                               Text(
-                                NumberFormatter().formatCrypto(
-                                    value: txData.valueEth.toString()),
+                                NumberFormatter()
+                                    .formatCrypto(value: txData.valueEth),
                                 overflow: TextOverflow.clip,
                                 maxLines: 1,
                                 style: textTheme.bodyMedium?.copyWith(

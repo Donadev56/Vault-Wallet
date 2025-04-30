@@ -13,6 +13,7 @@ import 'package:moonwallet/widgets/screen_widgets/chips.dart';
 import 'package:moonwallet/widgets/screen_widgets/crypto_picture.dart';
 import 'package:moonwallet/widgets/custom_filled_text_field.dart';
 import 'package:moonwallet/widgets/screen_widgets/trending_list_view.dart';
+import 'package:numeral/numeral.dart';
 import 'package:page_transition/page_transition.dart';
 
 class TrendingScreen extends StatefulHookConsumerWidget {
@@ -26,6 +27,7 @@ class TrendingScreen extends StatefulHookConsumerWidget {
 class _TrendingScreenState extends ConsumerState<TrendingScreen> {
   AppColors colors = AppColors.defaultTheme;
   List<CryptoMarketData> listMarketData = [];
+  final formatter = NumberFormatter();
 
   @override
   void initState() {
@@ -263,9 +265,9 @@ class _TrendingScreenState extends ConsumerState<TrendingScreen> {
                           crypto: crypto, size: 30, colors: colors),
                       name: crypto.symbol,
                       percent: marketData?.priceChangePercentage24h ?? 0,
-                      price: "\$${marketData?.currentPrice ?? 0}",
-                      volume:
-                          "\$${NumberFormatter().formatUsd(value: (marketData?.totalVolume ?? 0).toString())}",
+                      price:
+                          "\$${(formatter.formatDecimal((marketData?.currentPrice ?? 0).toString()))}",
+                      volume: "\$${(marketData?.totalVolume ?? 0).numeral()}",
                       colors: colors,
                     ),
                   );

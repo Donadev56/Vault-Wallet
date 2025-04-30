@@ -450,14 +450,14 @@ class _AccountDataViewState extends ConsumerState<AccountDataView>
                                   colors: colors,
                                   title: "Total Received".toUpperCase(),
                                   amount:
-                                      ("+${NumberFormatter().formatCrypto(value: calculateTotal(allTransactions[i], 0).toString())}"),
+                                      ("+${NumberFormatter().formatCrypto(value: calculateTotal(allTransactions[i], 0))}"),
                                   symbol: crypto.symbol),
                               TotalText(
                                   fontSizeOf: fontSizeOf,
                                   colors: colors,
                                   title: "Total Sent".toUpperCase(),
                                   amount:
-                                      ("-${NumberFormatter().formatCrypto(value: calculateTotal(allTransactions[i], 1).toString())}"),
+                                      ("-${NumberFormatter().formatCrypto(value: calculateTotal(allTransactions[i], 1))}"),
                                   symbol: crypto.symbol)
                             ],
                           ),

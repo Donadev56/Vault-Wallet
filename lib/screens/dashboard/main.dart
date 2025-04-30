@@ -81,11 +81,11 @@ class _MainDashboardScreenState extends ConsumerState<MainDashboardScreen>
     });
   }
 
-  String formatUsd(String value) {
+  String formatUsd(double value) {
     return NumberFormatter().formatUsd(value: value);
   }
 
-  String formatCryptoValue(String value) {
+  String formatCryptoValue(double value) {
     return NumberFormatter().formatCrypto(value: value);
   }
 
@@ -678,7 +678,7 @@ class _MainDashboardScreenState extends ConsumerState<MainDashboardScreen>
                                           //   Icon(FeatherIcons.dollarSign, color: colors.textColor, size: textTheme.headlineLarge?.fontSize,),
                                           Text(
                                             !uiConfig.value.isCryptoHidden
-                                                ? "\$${formatUsd(totalBalance.value.toString())}"
+                                                ? "\$${formatUsd(totalBalance.value)}"
                                                 : "***",
                                             overflow: TextOverflow.clip,
                                             maxLines: 1,
