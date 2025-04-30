@@ -142,12 +142,16 @@ class _CreatePrivateKeyState extends ConsumerState<CreatePrivateKeyMain> {
 
         if (result != null) {
           await lastAccountNotifier.updateKeyId(result.keyId);
+          await Future.delayed(Duration(seconds: 3))
+              .withLoading(context, colors)
+              .then((_) {
+            Navigator.of(context).push(PageTransition(
+                type: PageTransitionType.leftToRight,
+                child: PagesManagerView(
+                  colors: colors,
+                )));
+          });
 
-          Navigator.of(context).push(PageTransition(
-              type: PageTransitionType.leftToRight,
-              child: PagesManagerView(
-                colors: colors,
-              )));
           if (!mounted) return;
           notifySuccess("Wallet created successfully");
         } else {

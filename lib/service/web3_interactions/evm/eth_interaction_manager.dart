@@ -1,7 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:moonwallet/custom/web3_webview/lib/utils/loading.dart';
 import 'package:moonwallet/logger/logger.dart';
+import 'package:moonwallet/service/db/balance_database.dart';
 import 'package:moonwallet/service/external_data/price_manager.dart';
+import 'package:moonwallet/service/internet_manager.dart';
 import 'package:moonwallet/service/web3_interactions/evm/token_manager.dart';
 import 'package:moonwallet/service/db/wallet_db.dart';
 import 'package:moonwallet/types/types.dart';
@@ -18,8 +20,8 @@ class EthInteractionManager {
   final walletStorage = WalletDatabase();
   final priceManager = PriceManager();
   final tokenManager = TokenManager();
-
-  Future<double> getBalance(PublicData account, Crypto crypto) async {
+  Future<double?> fetchBalanceUsingRpc(
+      PublicData account, Crypto crypto) async {
     try {
       final address = account.address;
       final rpc = crypto.isNative
@@ -27,7 +29,8 @@ class EthInteractionManager {
           : crypto.network?.rpcUrls?.firstOrNull;
 
       if (!crypto.isNative) {
-        return await tokenManager.getTokenBalance(crypto, address);
+        final balance = await tokenManager.getTokenBalance(crypto, address);
+        return balance;
       }
 
       if (address.isEmpty || rpc == null || rpc.isEmpty) {
@@ -37,7 +40,42 @@ class EthInteractionManager {
       var ethClient = Web3Client(rpc, httpClient);
       final balance =
           await ethClient.getBalance(EthereumAddress.fromHex(address));
-      return balance.getValueInUnit(EtherUnit.ether);
+      final balanceEther = balance.getValueInUnit(EtherUnit.ether);
+      return balanceEther;
+    } catch (e) {
+      logError(e.toString());
+      return null;
+    }
+  }
+
+  Future<double> getBalance(PublicData account, Crypto crypto) async {
+    try {
+      final db = BalanceDatabase(account: account, crypto: crypto);
+      final savedBalanceFunc = db.getBalance();
+
+      final internet = InternetManager();
+
+      if (!await internet.isConnected()) {
+        final savedBalance = await savedBalanceFunc;
+        log("Saved balance : $savedBalance");
+        return savedBalance;
+      }
+
+      double balance = 0;
+
+      try {
+        final currentBalance = await fetchBalanceUsingRpc(account, crypto);
+        if (currentBalance == null) {
+          throw "Balance is Null";
+        }
+        balance = currentBalance;
+        await db.saveData(balance);
+      } catch (e) {
+        logError(e.toString());
+        balance = await savedBalanceFunc;
+      }
+
+      return balance;
     } catch (e) {
       logError(e.toString());
       return 0;

@@ -23,6 +23,9 @@ class CryptoPicture extends StatelessWidget {
           child: crypto.icon != null &&
                   crypto.icon!.toLowerCase().startsWith("http")
               ? Image.network(
+                  errorBuilder: (ctx, obj, e) {
+                    return CircularProgressIndicator();
+                  },
                   crypto.icon ?? "",
                   width: size,
                   height: size,

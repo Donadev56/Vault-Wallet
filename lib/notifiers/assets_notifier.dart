@@ -2,7 +2,6 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:internet_connection_checker_plus/internet_connection_checker_plus.dart';
 import 'package:moonwallet/logger/logger.dart';
 import 'package:moonwallet/notifiers/providers.dart';
-import 'package:moonwallet/service/external_data/crypto_request_manager.dart';
 import 'package:moonwallet/service/web3_interactions/evm/eth_interaction_manager.dart';
 import 'package:moonwallet/types/types.dart';
 
@@ -135,11 +134,6 @@ class AssetsNotifier extends AsyncNotifier<List<Asset>> {
 
         cryptoBalance.addAll(results.map((r) => r["cryptoBalance"] as Asset));
 
-        if ((await internetChecker.internetStatus
-            .then((st) => st == InternetStatus.disconnected))) {
-          throw ("Not connected to the internet");
-        }
-
         cryptoBalance.sort((a, b) => (b.balanceUsd).compareTo(a.balanceUsd));
 
         final userAssets = cryptoBalance;
@@ -152,38 +146,6 @@ class AssetsNotifier extends AsyncNotifier<List<Asset>> {
     } catch (e) {
       logError(e.toString());
       return [];
-    }
-  }
-
-  Future<void> checkCryptoUpdate({required PublicData account}) async {
-    try {
-      final List<Crypto> standardCrypto =
-          await CryptoRequestManager().getAllCryptos();
-      final savedCrypto = await cryptoStorage.getSavedCryptos(wallet: account);
-      List<Crypto> cryptosList = [];
-
-      if (savedCrypto != null && savedCrypto.isNotEmpty) {
-        cryptosList = savedCrypto;
-
-        Set<String> savedCryptoIds =
-            savedCrypto.map((crypto) => crypto.cryptoId).toSet();
-
-        for (final stCrypto in standardCrypto) {
-          if (!savedCryptoIds.contains(stCrypto.cryptoId)) {
-            cryptosList.add(stCrypto);
-          }
-        }
-
-        if (cryptosList.length > savedCrypto.length) {
-          log("${cryptosList.length - savedCrypto.length} new Crypto(s) found");
-          await cryptoStorage.saveListCrypto(
-              wallet: account, cryptos: cryptosList);
-        } else {
-          log("No new Crypto founded");
-        }
-      }
-    } catch (e) {
-      logError(e.toString());
     }
   }
 }

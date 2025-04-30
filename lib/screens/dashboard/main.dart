@@ -149,7 +149,7 @@ class _MainDashboardScreenState extends ConsumerState<MainDashboardScreen>
     useEffect(() {
       savedAssetsProvider.when(
         data: (data) {
-          if (data != null) {
+          if (data != null && data.isNotEmpty) {
             initialAssets.value = [...data];
             assets.value = [...data];
             isLoading = false;
@@ -175,6 +175,10 @@ class _MainDashboardScreenState extends ConsumerState<MainDashboardScreen>
     useEffect(() {
       assetsNotifier.when(
         data: (data) {
+          if (data.isEmpty) {
+            return;
+          }
+
           initialAssets.value = [...data];
           assets.value = [...data];
           isLoading = false;

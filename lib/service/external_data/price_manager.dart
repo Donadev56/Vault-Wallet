@@ -2,22 +2,39 @@ import 'dart:convert';
 import 'package:moonwallet/logger/logger.dart';
 import 'package:http/http.dart' as http;
 import 'package:moonwallet/service/db/crypto_storage_manager.dart';
+import 'package:moonwallet/service/db/global_database.dart';
+import 'package:moonwallet/service/internet_manager.dart';
 import 'package:moonwallet/types/types.dart';
 import 'package:moonwallet/utils/prefs.dart';
 
 class PriceManager {
+  final _dataName = "user/crypto/market-data";
+  final _db = GlobalDatabase();
+
   Future<List<CryptoMarketData>> getListTokensMarketData() async {
     try {
+      final internet = InternetManager();
+
+      if (!await internet.isConnected()) {
+        return await getSavedListMarketData();
+      }
+
       final response = await http.get(
           Uri.parse("https://api.moonbnb.app/prices/all-cryptos/market-data"));
       if (response.statusCode == 200) {
         final jsonResponse = jsonDecode(response.body);
-        return (jsonResponse as List<dynamic>)
+        final data = (jsonResponse as List<dynamic>)
             .map((e) => CryptoMarketData.fromJson(e))
             .toList();
+        await saveListTokenMarketData(data);
+        final saved = await getSavedListMarketData();
+        log("Saved ${saved.length}");
+        return data;
       }
       log("Response ${response.body}");
-      return [];
+      final savedData = await getSavedListMarketData();
+
+      return savedData;
     } catch (e) {
       logError(e.toString());
       return [];
@@ -109,6 +126,35 @@ class PriceManager {
     } catch (e) {
       logError(e.toString());
       return null;
+    }
+  }
+
+  Future<bool> saveListTokenMarketData(List<CryptoMarketData> data) async {
+    try {
+      await _db.saveDynamicData(
+          data: json.encode(data.map((e) => e.toJson()).toList()),
+          key: _dataName);
+
+      return true;
+    } catch (e) {
+      logError(e.toString());
+      return false;
+    }
+  }
+
+  Future<List<CryptoMarketData>> getSavedListMarketData() async {
+    try {
+      final savedData = await _db.getDynamicData(key: _dataName);
+      if (savedData == null) {
+        return [];
+      }
+      List<dynamic> jsonData = [];
+      jsonData = json.decode(savedData);
+
+      return jsonData.map((e) => CryptoMarketData.fromJson(e)).toList();
+    } catch (e) {
+      logError(e.toString());
+      return [];
     }
   }
 }

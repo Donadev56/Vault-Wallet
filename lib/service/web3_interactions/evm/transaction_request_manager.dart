@@ -8,18 +8,24 @@ class TransactionRequestManager {
   Future<List<EsTransaction>> getAllTransactions(
       {required Crypto crypto, required String address}) async {
     try {
-      final cryptoId =
-          crypto.isNative ? crypto.cryptoId : crypto.network?.cryptoId;
       final contractAddress = crypto.contractAddress;
       Map<String, dynamic> body = {};
       if (crypto.isNative) {
+        final chainId = crypto.chainId;
+        if (chainId == null) {
+          throw "No chain Id provided";
+        }
         body = {
-          "cryptoId": cryptoId,
+          "chainId": chainId,
           "address": address,
         };
       } else {
+        final chainId = crypto.network?.chainId;
+        if (chainId == null) {
+          throw "No chain Id provided";
+        }
         body = {
-          "cryptoId": cryptoId,
+          "chainId": chainId,
           "address": address,
           "contractAddress": contractAddress,
         };

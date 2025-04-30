@@ -346,7 +346,20 @@ class Crypto {
       required this.cryptoId,
       required this.canDisplay,
       required this.symbol,
-      this.cgSymbol});
+      this.cgSymbol}) {
+    if (type == CryptoType.token) {
+      if (contractAddress == null || network == null) {
+        throw ArgumentError(
+            "A token should have a contract address and a valid network");
+      }
+    }
+    if (type == CryptoType.native) {
+      if (chainId == null || rpcUrls == null) {
+        throw ArgumentError(
+            "A network should have Chain ID and a valid rpcUrl");
+      }
+    }
+  }
   factory Crypto.fromJsonRequest(Map<String, dynamic> cryptoJson) {
     return Crypto(
         canDisplay: cryptoJson["canDisplay"],

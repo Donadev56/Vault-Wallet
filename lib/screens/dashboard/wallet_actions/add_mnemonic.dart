@@ -148,12 +148,15 @@ class _AddPrivateKeyState extends ConsumerState<AddMnemonicScreen> {
         if (result != null) {
           await lastAccountNotifier.updateKeyId(result.keyId);
           notifySuccess("Wallet created successfully");
-
-          Navigator.of(context).push(PageTransition(
-              type: PageTransitionType.leftToRight,
-              child: PagesManagerView(
-                colors: colors,
-              )));
+          await Future.delayed(Duration(seconds: 3))
+              .withLoading(context, colors)
+              .then((_) {
+            Navigator.of(context).push(PageTransition(
+                type: PageTransitionType.leftToRight,
+                child: PagesManagerView(
+                  colors: colors,
+                )));
+          });
         }
       } catch (e) {
         logError(e.toString());
