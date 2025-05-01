@@ -159,16 +159,11 @@ class _EditWalletsViewState extends ConsumerState<EditWalletsView> {
       }
     }
 
-    Future<void> changeWallet(int index) async {
+    Future<void> changeWallet(String keyId) async {
       try {
-        if (accounts.isEmpty) {
-          throw ("No account found");
-        }
-
-        final wallet = accounts[index];
         await ref
             .read(lastConnectedKeyIdNotifierProvider.notifier)
-            .updateKeyId(wallet.keyId);
+            .updateKeyId(keyId);
         close();
       } catch (e) {
         logError(e.toString());
@@ -394,7 +389,7 @@ class _EditWalletsViewState extends ConsumerState<EditWalletsView> {
                                                 wallet: wallet,
                                                 onTap: () async {
                                                   await vibrate();
-                                                  changeWallet(index);
+                                                  changeWallet(wallet.keyId);
 
                                                   // edit the account self
                                                 },

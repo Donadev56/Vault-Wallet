@@ -650,6 +650,8 @@ class _MainDashboardScreenState extends ConsumerState<MainDashboardScreen>
                                       Row(
                                         mainAxisAlignment:
                                             MainAxisAlignment.center,
+                                        crossAxisAlignment:
+                                            CrossAxisAlignment.center,
                                         children: [
                                           Text(
                                             "Balance",
@@ -672,6 +674,8 @@ class _MainDashboardScreenState extends ConsumerState<MainDashboardScreen>
                                       Row(
                                         mainAxisAlignment:
                                             MainAxisAlignment.center,
+                                        crossAxisAlignment:
+                                            CrossAxisAlignment.center,
                                         children: [
                                           //   Icon(FeatherIcons.dollarSign, color: colors.textColor, size: textTheme.headlineLarge?.fontSize,),
                                           Text(

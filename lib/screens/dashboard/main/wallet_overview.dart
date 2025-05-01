@@ -229,7 +229,7 @@ class _WalletViewScreenState extends ConsumerState<WalletViewScreen>
       }
     });
 
-    refresh();
+    await refresh();
   }
 
   Future<void> refresh() async {
