@@ -202,7 +202,7 @@ class PublicData {
         isBackup: json["isBackup"] ?? false,
         createdLocally: json["createdLocally"] ?? false);
   }
-
+  bool get isSaved => createdLocally && isBackup;
   Map<String, dynamic> toJson() {
     return {
       'keyId': keyId,

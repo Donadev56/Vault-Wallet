@@ -1,5 +1,8 @@
 import 'package:flutter/material.dart';
+import 'package:hooks_riverpod/hooks_riverpod.dart';
+import 'package:moonwallet/custom/web3_webview/lib/utils/loading.dart';
 import 'package:moonwallet/logger/logger.dart';
+import 'package:moonwallet/notifiers/providers.dart';
 import 'package:moonwallet/screens/dashboard/page_manager.dart';
 import 'package:moonwallet/service/db/wallet_db.dart';
 import 'package:moonwallet/types/types.dart';
@@ -9,7 +12,7 @@ import 'package:moonwallet/widgets/backup/backup_related.dart';
 import 'package:moonwallet/widgets/func/snackbar.dart';
 import 'package:page_transition/page_transition.dart';
 
-class BackupTestScreen extends StatefulWidget {
+class BackupTestScreen extends ConsumerStatefulWidget {
   final String password;
   final SecureData wallet;
   final AppColors colors;
@@ -23,10 +26,10 @@ class BackupTestScreen extends StatefulWidget {
       required this.publicAccount});
 
   @override
-  State<BackupTestScreen> createState() => _BackupTestScreenState();
+  ConsumerState<BackupTestScreen> createState() => _BackupTestScreenState();
 }
 
-class _BackupTestScreenState extends State<BackupTestScreen> {
+class _BackupTestScreenState extends ConsumerState<BackupTestScreen> {
   late String password;
   late SecureData wallet;
   AppColors colors = AppColors.defaultTheme;
@@ -68,50 +71,55 @@ class _BackupTestScreenState extends State<BackupTestScreen> {
     });
   }
 
-  Future<void> handleSave() async {
-    try {
-      final walletDb = WalletDatabase();
-      final pos1 = randomNumbers[0];
-      final pos2 = randomNumbers[1];
-      final pos3 = randomNumbers[2];
-
-      final word1 = selectedWords[0];
-      final word2 = selectedWords[1];
-      final word3 = selectedWords[2];
-      final originals = originalWorlds.split(" ");
-
-      final respectiveWord1 = originals[pos1 - 1];
-      final respectiveWord2 = originals[pos2 - 1];
-      final respectiveWord3 = originals[pos3 - 1];
-
-      if (word1 != respectiveWord1) {
-        throw "$word1 doesn't match";
-      }
-      if (word2 != respectiveWord2) {
-        throw "$word2 doesn't match ";
-      }
-      if (word3 != respectiveWord3) {
-        throw "$word3 doesn't match ";
-      }
-
-      await walletDb.editPrivateWalletData(
-          account: wallet, password: password, isBackup: true);
-      await walletDb.editWallet(account: publicAccount, isBackup: true);
-      Navigator.push(
-        context,
-        PageTransition(
-            type: PageTransitionType.theme,
-            child: PagesManagerView(colors: colors)),
-      );
-    } catch (e) {
-      logError(e.toString());
-      notify(e.toString());
-    }
-  }
-
   @override
   Widget build(BuildContext context) {
     final textTheme = TextTheme.of(context);
+
+    Future<void> handleSave() async {
+      try {
+        final walletDb = WalletDatabase();
+        final pos1 = randomNumbers[0];
+        final pos2 = randomNumbers[1];
+        final pos3 = randomNumbers[2];
+
+        final word1 = selectedWords[0];
+        final word2 = selectedWords[1];
+        final word3 = selectedWords[2];
+        final originals = originalWorlds.split(" ");
+
+        final respectiveWord1 = originals[pos1 - 1];
+        final respectiveWord2 = originals[pos2 - 1];
+        final respectiveWord3 = originals[pos3 - 1];
+
+        if (word1 != respectiveWord1) {
+          throw "$word1 doesn't match";
+        }
+        if (word2 != respectiveWord2) {
+          throw "$word2 doesn't match ";
+        }
+        if (word3 != respectiveWord3) {
+          throw "$word3 doesn't match ";
+        }
+
+        await walletDb.editPrivateWalletData(
+            account: wallet, password: password, isBackup: true);
+        await walletDb.editWallet(account: publicAccount, isBackup: true);
+
+        Future.delayed((Duration(seconds: 2))).withLoading(context, colors);
+        ref.invalidate(accountsNotifierProvider);
+        Future.delayed((Duration(seconds: 1))).withLoading(context, colors);
+
+        Navigator.push(
+          context,
+          PageTransition(
+              type: PageTransitionType.theme,
+              child: PagesManagerView(colors: colors)),
+        );
+      } catch (e) {
+        logError(e.toString());
+        notify(e.toString());
+      }
+    }
 
     return Scaffold(
       backgroundColor: colors.primaryColor,

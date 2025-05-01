@@ -5,6 +5,7 @@ import 'dart:io';
 import 'package:decimal/decimal.dart';
 import 'package:loading_animation_widget/loading_animation_widget.dart';
 import 'package:moonwallet/custom/refresh/check_mark.dart';
+import 'package:moonwallet/custom/web3_webview/lib/widgets/alert.dart';
 import 'package:moonwallet/notifiers/providers.dart';
 import 'package:moonwallet/screens/auth/home.dart';
 import 'package:moonwallet/screens/dashboard/main/wallet_overview/receive.dart';
@@ -12,7 +13,9 @@ import 'package:moonwallet/screens/dashboard/main/wallet_overview/send.dart';
 import 'package:moonwallet/screens/dashboard/wallet_actions/private/private_key_screen.dart';
 import 'package:moonwallet/utils/number_formatter.dart';
 import 'package:moonwallet/utils/colors.dart';
+import 'package:moonwallet/widgets/backup/show_backup_alert.dart';
 import 'package:moonwallet/widgets/appBar/show_custom_drawer.dart';
+import 'package:moonwallet/widgets/backup/backup_warning_widget.dart';
 import 'package:moonwallet/widgets/screen_widgets/coin_custom_listTitle.dart';
 import 'package:moonwallet/widgets/pop_menu_divider.dart';
 import 'package:moonwallet/widgets/func/security/ask_password.dart';
@@ -635,6 +638,15 @@ class _MainDashboardScreenState extends ConsumerState<MainDashboardScreen>
                     color: colors.themeColor,
                     child: CustomScrollView(
                       slivers: <Widget>[
+                        if (!currentAccount!.isBackup &&
+                            currentAccount.createdLocally)
+                          BackupWarningWidget(
+                            colors: colors,
+                            onTap: () => showPrivateData(accounts.value
+                                .indexWhere((e) =>
+                                    e.keyId.trim().toLowerCase() ==
+                                    currentAccount.keyId.trim().toLowerCase())),
+                          ),
                         SliverToBoxAdapter(
                             key: ValueKey(colors.textColor.value),
                             child: Column(
