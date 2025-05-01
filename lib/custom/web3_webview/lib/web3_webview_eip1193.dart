@@ -815,7 +815,7 @@ class InAppWebViewEIP1193State extends State<Web3WebView> {
               keyId: "",
               creationDate: 0,
               walletName: "",
-              address: "",
+              addresses: [],
               isWatchOnly: true),
       address: widget.web3WalletConfig?.address ?? "",
       defaultNetwork: widget.web3WalletConfig?.currentNetwork ?? _ethNetwork,

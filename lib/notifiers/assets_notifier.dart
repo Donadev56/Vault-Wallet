@@ -38,7 +38,7 @@ class AssetsNotifier extends AsyncNotifier<List<Asset>> {
           await ref.read(accountsNotifierProvider.notifier).getPublicData();
       if (accounts.isNotEmpty) {
         account = accounts[0];
-        log("Account found ${account.address}");
+        log("Account found ${account.keyId}");
         await ref
             .read(accountsNotifierProvider.notifier)
             .saveLastConnectedAccount(account.keyId);

@@ -88,7 +88,6 @@ class Web3Manager {
       final SecureData wallet = SecureData(
           createdLocally: false,
           isBackup: false,
-          address: addr,
           keyId: keyId,
           privateKey: privatekey,
           walletName: walletName,
@@ -99,7 +98,7 @@ class Web3Manager {
           createdLocally: false,
           isBackup: false,
           isWatchOnly: false,
-          address: addr,
+          addresses: [],
           keyId: keyId,
           walletName: walletName,
           creationDate: date);
@@ -134,7 +133,7 @@ class Web3Manager {
             "The result is $result and the public result is $publicResult, So error occurred");
         return false;
       } else {
-        saveLastAccount(wallet.address);
+        saveLastAccount(wallet.keyId);
         log("Saved successfully");
         return true;
       }
@@ -246,7 +245,7 @@ class Web3Manager {
       final PublicData publicWallet = PublicData(
           createdLocally: false,
           isBackup: false,
-          address: addr,
+          addresses: [],
           keyId: keyId,
           isWatchOnly: true,
           walletName: walletName,

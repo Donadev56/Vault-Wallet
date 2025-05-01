@@ -100,7 +100,7 @@ class _PagesManagerViewState extends ConsumerState<PagesManagerView> {
               isFrom: true,
               context: context,
               colors: colors,
-              address: currentAccount?.address ?? "",
+              address: currentAccount?.addressByToken(crypto!) ?? "",
               tr: transaction!,
               currentNetwork: crypto!);
         } else {

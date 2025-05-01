@@ -11,7 +11,7 @@ class BalanceDatabase {
       (crypto.isNative ? crypto.chainId.toString() : crypto.contractAddress) ??
       crypto.cryptoId;
   String get dataKey =>
-      "user/${account.address.trim().toLowerCase()}/crypto/$cryptoId/balance-database";
+      "user/${account.addressByToken(crypto).trim().toLowerCase()}/crypto/$cryptoId/balance-database";
 
   Future<bool> saveData(String balance) async {
     try {

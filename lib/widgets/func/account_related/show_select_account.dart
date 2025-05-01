@@ -9,6 +9,7 @@ import 'package:moonwallet/widgets/barre.dart';
 
 selectAnAccount(
     {required AppColors colors,
+    required Crypto crypto,
     required BuildContext context,
     required List<PublicData> accounts,
     required PublicData currentAccount,
@@ -76,7 +77,7 @@ selectAnAccount(
                                           style: textTheme.bodyMedium,
                                         ),
                                         subtitle: Text(
-                                          w.address,
+                                          w.addressByToken(crypto),
                                           overflow: TextOverflow.ellipsis,
                                           maxLines: 1,
                                           style: textTheme.bodySmall?.copyWith(

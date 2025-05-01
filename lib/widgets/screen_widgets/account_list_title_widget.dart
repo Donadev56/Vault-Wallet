@@ -50,7 +50,7 @@ class AccountListTitleWidget extends StatelessWidget {
         contentPadding: const EdgeInsets.symmetric(vertical: 0, horizontal: 10),
         onTap: onTap,
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(6)),
-        leading: Jazzicon.getIconWidget(getJazzImage(wallet.address),
+        leading: Jazzicon.getIconWidget(getJazzImage(wallet.evmAddress),
             size: imageSizeOf(35)),
         title: Row(
           spacing: 5,
@@ -102,7 +102,7 @@ class AccountListTitleWidget extends StatelessWidget {
           ],
         ),
         subtitle: Text(
-          "${wallet.address.substring(0, 9)}...${wallet.address.substring(wallet.address.length - 6, wallet.address.length)}",
+          "${wallet.evmAddress.substring(0, 9)}...${wallet.evmAddress.substring(wallet.evmAddress.length - 6, wallet.evmAddress.length)}",
           maxLines: 1,
           overflow: TextOverflow.ellipsis,
           style: textTheme.bodySmall?.copyWith(

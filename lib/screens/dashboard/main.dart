@@ -574,14 +574,7 @@ class _MainDashboardScreenState extends ConsumerState<MainDashboardScreen>
             listTitleHorizontalOf: listTitleHorizontalOf,
             listTitleVerticalOf: listTitleVerticalOf,
             changeProfileImage: changeProfileImage,
-            currentAccount: currentAccount ??
-                PublicData(
-                    createdLocally: false,
-                    keyId: "",
-                    creationDate: 0,
-                    walletName: "",
-                    address: "",
-                    isWatchOnly: true),
+            currentAccount: currentAccount!,
             editWallet: editWallet,
             deleteWallet: deleteWallet,
             accounts: accounts.value,

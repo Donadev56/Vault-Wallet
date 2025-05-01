@@ -52,7 +52,7 @@ class _AddCryptoViewState extends ConsumerState<AddCryptoView> {
       keyId: "",
       creationDate: 0,
       walletName: "",
-      address: "",
+      addresses: [],
       isWatchOnly: false);
   final TextEditingController _searchController = TextEditingController();
 

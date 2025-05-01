@@ -11,8 +11,8 @@ class CryptoStorageManager {
 
   Future<List<Crypto>?> getSavedCryptos({required PublicData wallet}) async {
     try {
-      final name = "savedCrypto/test17/${wallet.address}";
-      log("Getting crypto for address ${wallet.address}");
+      final name = "savedCrypto/test21/${wallet.keyId}";
+      log("Getting crypto for address ${wallet.keyId}");
 
       final String? cryptoDataString = await saver.getDynamicData(name: name);
       if (cryptoDataString == null || cryptoDataString.isEmpty) {
@@ -44,8 +44,8 @@ class CryptoStorageManager {
   Future<bool> saveListCrypto(
       {required List<Crypto> cryptos, required PublicData wallet}) async {
     try {
-      final name = "savedCrypto/test17/${wallet.address}";
-      log("Saving crypto for address ${wallet.address}");
+      final name = "savedCrypto/test21/${wallet.keyId}";
+      log("Saving crypto for address ${wallet.keyId}");
 
       List<dynamic> cryptoJson = cryptos.map((c) => c.toJson()).toList();
 
@@ -65,8 +65,8 @@ class CryptoStorageManager {
 
   Future<List<Asset>?> getSavedAssets({required PublicData wallet}) async {
     try {
-      final name = "assetsOf/test4/${wallet.address}";
-      log("getting assets for address ${wallet.address}");
+      final name = "assetsOf/test4/${wallet.keyId}";
+      log("getting assets for address ${wallet.keyId}");
 
       final String? cryptoDataString = await saver.getDynamicData(name: name);
       if (cryptoDataString == null || cryptoDataString.isEmpty) {
@@ -129,8 +129,8 @@ class CryptoStorageManager {
       {required List<Asset> assets, required PublicData account}) async {
     try {
       final cryptoListString = assets.map((c) => c.toJson()).toList();
-      final name = "assetsOf/test4/${account.address}";
-      log("Saving assets for address ${account.address}");
+      final name = "assetsOf/test4/${account.keyId}";
+      log("Saving assets for address ${account.keyId}");
       await saver.saveDynamicData(
           boxName: name, data: json.encode(cryptoListString));
       return true;
@@ -149,6 +149,10 @@ class CryptoStorageManager {
       final cryptoToEdit = crypto;
       if (savedCryptos == null) {
         throw 'Saved data is null';
+      }
+      log("Crypto ${cryptoToEdit.toJson()}");
+      if (cryptoToEdit.isNative && cryptoToEdit.networkType == null) {
+        throw 'A native crypto must have a network type';
       }
       final index =
           savedCryptos.indexWhere((c) => c.cryptoId == cryptoToEdit.cryptoId);

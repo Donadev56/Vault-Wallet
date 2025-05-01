@@ -7,6 +7,8 @@ import 'package:web3dart/credentials.dart';
 
 enum CryptoType { native, token }
 
+enum NetworkType { evm, svm }
+
 enum ColorType { dark, light, other }
 
 enum MessageType { success, error, warning, info }
@@ -37,7 +39,6 @@ class SecureData {
   final int creationDate;
   final String walletName;
   final String? mnemonic;
-  final String address;
   final bool createdLocally;
   final bool isBackup;
 
@@ -48,7 +49,6 @@ class SecureData {
       required this.creationDate,
       required this.walletName,
       this.mnemonic,
-      required this.address,
       required this.isBackup});
 
   factory SecureData.fromJson(Map<dynamic, dynamic> json) {
@@ -58,7 +58,6 @@ class SecureData {
         creationDate: json['creationDate'] ?? 0,
         walletName: json['walletName'] ?? "",
         mnemonic: json['mnemonic'],
-        address: json['address'] ?? "",
         createdLocally: json["createdLocally"] ?? false,
         isBackup: json["isBackup"] ?? false);
   }
@@ -70,7 +69,6 @@ class SecureData {
       'creationDate': creationDate,
       'walletName': walletName,
       'mnemonic': mnemonic,
-      'address': address,
       "createdLocally": createdLocally,
       "isBackup": isBackup
     };
@@ -92,7 +90,6 @@ class SecureData {
         creationDate: creationDate ?? this.creationDate,
         walletName: walletName ?? this.walletName,
         mnemonic: mnemonic ?? this.mnemonic,
-        address: address ?? this.address,
         createdLocally: createdLocally ?? this.createdLocally,
         isBackup: isBackup ?? this.isBackup);
   }
@@ -163,7 +160,7 @@ class PublicData {
   final String keyId;
   final int creationDate;
   final String walletName;
-  final String address;
+  final List<PublicAddress> addresses;
   final bool isWatchOnly;
   final IconData? walletIcon;
   final Color? walletColor;
@@ -174,7 +171,7 @@ class PublicData {
       {required this.keyId,
       required this.creationDate,
       required this.walletName,
-      required this.address,
+      required this.addresses,
       required this.isWatchOnly,
       this.walletIcon = LucideIcons.wallet,
       this.walletColor = Colors.transparent,
@@ -182,12 +179,40 @@ class PublicData {
       required this.createdLocally,
       this.id = 0});
 
+  String addressByToken(Crypto crypto) {
+    final type =
+        crypto.isNative ? crypto.networkType : crypto.network?.networkType;
+    if (type == null) {
+      throw ArgumentError("Network type is null");
+    }
+    return addresses.firstWhere((address) => address.type == type).address;
+  }
+
+  String get evmAddress => addresses
+      .firstWhere((address) => address.type == NetworkType.evm)
+      .address;
+  String get svmAddress => addresses
+      .firstWhere((address) => address.type == NetworkType.svm)
+      .address;
+
   factory PublicData.fromJson(Map<dynamic, dynamic> json) {
+    List<PublicAddress> addresses() {
+      if (json["address"] != null && json["addresses"] == null) {
+        return [PublicAddress(address: json["address"], type: NetworkType.evm)];
+      } else if (json["addresses"] != null) {
+        return (json["addresses"] as List<dynamic>)
+            .map((e) => PublicAddress.fromJson(e))
+            .toList();
+      } else {
+        return [];
+      }
+    }
+
     return PublicData(
         keyId: json['keyId'] as String,
         creationDate: json['creationDate'] as int,
         walletName: json['walletName'] as String,
-        address: json['address'] as String,
+        addresses: addresses(),
         isWatchOnly: json['isWatchOnly'] as bool,
         walletIcon: json["walletIcon"] != null
             ? IconData(json['walletIcon']["codePoint"],
@@ -208,7 +233,7 @@ class PublicData {
       'keyId': keyId,
       'creationDate': creationDate,
       'walletName': walletName,
-      'address': address,
+      'addresses': addresses,
       'isWatchOnly': isWatchOnly,
       'walletIcon': walletIcon?.toJson() ?? Icons.wallet.toJson(),
       'walletColor': walletColor?.value ?? Colors.transparent.value,
@@ -223,7 +248,7 @@ class PublicData {
     String? keyId,
     int? creationDate,
     String? walletName,
-    String? address,
+    List<PublicAddress>? addresses,
     bool? isWatchOnly,
     IconData? walletIcon,
     Color? walletColor,
@@ -235,7 +260,7 @@ class PublicData {
         keyId: keyId ?? this.keyId,
         creationDate: creationDate ?? this.creationDate,
         walletName: walletName ?? this.walletName,
-        address: address ?? this.address,
+        addresses: addresses ?? this.addresses,
         isWatchOnly: isWatchOnly ?? this.isWatchOnly,
         walletIcon: walletIcon ?? this.walletIcon,
         walletColor: walletColor ?? this.walletColor,
@@ -340,6 +365,7 @@ class Crypto {
   final bool canDisplay;
   final String symbol;
   final String? cgSymbol;
+  final NetworkType? networkType;
 
   Crypto(
       {required this.name,
@@ -356,6 +382,7 @@ class Crypto {
       required this.cryptoId,
       required this.canDisplay,
       required this.symbol,
+      this.networkType,
       this.cgSymbol}) {
     if (type == CryptoType.token) {
       if (contractAddress == null || network == null) {
@@ -368,6 +395,9 @@ class Crypto {
         throw ArgumentError(
             "A network should have Chain ID and a valid rpcUrl");
       }
+      if (networkType == null) {
+        throw ArgumentError("A network should have a valid network type");
+      }
     }
   }
   factory Crypto.fromJsonRequest(Map<String, dynamic> cryptoJson) {
@@ -378,6 +408,9 @@ class Crypto {
         color: Color(cryptoJson["color"] ?? 0x00000000),
         type: CryptoType.values[cryptoJson["type"]],
         icon: cryptoJson["icon"],
+        networkType: cryptoJson["networkType"] != null
+            ? NetworkType.values[cryptoJson["networkType"]]
+            : null,
         rpcUrls: cryptoJson["rpcUrls"] != null
             ? (cryptoJson["rpcUrls"] as List<dynamic>)
                 .map((e) => e.toString())
@@ -427,6 +460,9 @@ class Crypto {
             : null,
         valueUsd: cryptoJson["valueUsd"] ?? 0,
         symbol: cryptoJson["symbol"],
+        networkType: cryptoJson["networkType"] != null
+            ? NetworkType.values[cryptoJson["networkType"]]
+            : null,
         cgSymbol: cryptoJson["cgSymbol"] ?? "");
   }
 
@@ -447,10 +483,14 @@ class Crypto {
       "valueUsd": valueUsd,
       "symbol": symbol,
       "cgSymbol": cgSymbol,
+      "networkType": networkType?.index,
     };
   }
 
   bool get isNative => type == CryptoType.native;
+  String get getRpcUrl => this.isNative
+      ? (this.rpcUrls?.firstOrNull ?? "")
+      : (this.network?.rpcUrls?.firstOrNull ?? "");
 
   Crypto copyWith({
     String? name,
@@ -468,6 +508,7 @@ class Crypto {
     bool? canDisplay,
     String? symbol,
     String? cgSymbol,
+    NetworkType? networkType,
   }) {
     return Crypto(
       name: name ?? this.name,
@@ -485,6 +526,7 @@ class Crypto {
       canDisplay: canDisplay ?? this.canDisplay,
       symbol: symbol ?? this.symbol,
       cgSymbol: cgSymbol ?? this.cgSymbol,
+      networkType: networkType ?? this.networkType,
     );
   }
 }
@@ -1424,4 +1466,29 @@ class AccountAccess {
   final String address;
 
   AccountAccess({required this.address, required this.cred, required this.key});
+}
+
+class PublicAddress {
+  final String address;
+  final NetworkType type;
+
+  PublicAddress({required this.address, required this.type});
+  Map<String, dynamic> toJson() {
+    return {
+      'address': address,
+      'type': type.index,
+    };
+  }
+
+  factory PublicAddress.fromJson(Map<String, dynamic> json) {
+    return PublicAddress(
+      address: json['address'],
+      type: NetworkType.values[json['type'] as int],
+    );
+  }
+
+  @override
+  String toString() {
+    return 'PublicAddress{address: $address, type: $type}';
+  }
 }

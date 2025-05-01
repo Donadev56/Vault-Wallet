@@ -43,7 +43,7 @@ class _EditWalletsViewState extends ConsumerState<EditWalletsView> {
     return accts
         .where((account) =>
             account.walletName.toLowerCase().contains(query.toLowerCase()) ||
-            account.address.toLowerCase().contains(query.toLowerCase()))
+            account.evmAddress.toLowerCase().contains(query.toLowerCase()))
         .toList();
   }
 
@@ -396,6 +396,9 @@ class _EditWalletsViewState extends ConsumerState<EditWalletsView> {
                                                 onMoreTap: () async {
                                                   try {
                                                     showAccountOptions(
+                                                      roundedOf: roundedOf,
+                                                      fontSizeOf: fontSizeOf,
+                                                      iconSizeOf: iconSizeOf,
                                                       originalList: accounts,
                                                       context: context,
                                                       colors: colors,

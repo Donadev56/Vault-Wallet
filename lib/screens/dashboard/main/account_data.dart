@@ -64,7 +64,7 @@ class _AccountDataViewState extends ConsumerState<AccountDataView>
           final transactionsReceived = transactions
               .where((trx) =>
                   trx.from.trim().toLowerCase() !=
-                  account?.address.trim().toLowerCase())
+                  account?.evmAddress.trim().toLowerCase())
               .toList();
           log("Transactions received ${transactionsReceived.length}");
           final result = transactionsReceived.fold(
@@ -76,7 +76,7 @@ class _AccountDataViewState extends ConsumerState<AccountDataView>
           final transactionsReceived = transactions
               .where((trx) =>
                   trx.from.trim().toLowerCase() ==
-                  account?.address.trim().toLowerCase())
+                  account?.evmAddress.trim().toLowerCase())
               .toList();
           log("Transactions received ${transactionsReceived.length}");
           final result = transactionsReceived.fold(
@@ -140,7 +140,7 @@ class _AccountDataViewState extends ConsumerState<AccountDataView>
       }
 
       final userTransactions = await TransactionRequestManager()
-          .getAllTransactions(crypto: crypto, address: account!.address);
+          .getAllTransactions(crypto: crypto, address: account!.evmAddress);
 
       if (userTransactions.isNotEmpty) {
         userTransactions.sort((a, b) => b.timeStamp.compareTo(a.timeStamp));
@@ -185,10 +185,10 @@ class _AccountDataViewState extends ConsumerState<AccountDataView>
       final transactionsToReturn = action == 0
           ? transactions.where((trx) =>
               trx.from.trim().toLowerCase() !=
-              account?.address.trim().toLowerCase())
+              account?.evmAddress.trim().toLowerCase())
           : transactions.where((trx) =>
               trx.from.trim().toLowerCase() ==
-              account?.address.trim().toLowerCase());
+              account?.evmAddress.trim().toLowerCase());
       return transactionsToReturn.map((item) {
         return (
           DateTime.fromMillisecondsSinceEpoch(
@@ -489,7 +489,9 @@ class _AccountDataViewState extends ConsumerState<AccountDataView>
                                       final isFrom = transaction.from
                                               .trim()
                                               .toLowerCase() ==
-                                          account?.address.trim().toLowerCase();
+                                          account?.evmAddress
+                                              .trim()
+                                              .toLowerCase();
                                       return TransactionsListElement(
                                         roundedOf: roundedOf,
                                         fontSizeOf: fontSizeOf,

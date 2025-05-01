@@ -40,11 +40,9 @@ class WalletDatabase {
       final keyId = encryptService.generateUniqueId();
       final Credentials fromHex = EthPrivateKey.fromHex(privatekey);
       final addr = fromHex.address.hex;
-      log("Address found : $addr");
       // generate a new wallet
       final SecureData privateWallet = SecureData(
           isBackup: false,
-          address: addr,
           keyId: keyId,
           privateKey: privatekey,
           walletName: walletName,
@@ -54,7 +52,7 @@ class WalletDatabase {
 
       final PublicData publicWallet = PublicData(
           isWatchOnly: false,
-          address: addr,
+          addresses: [PublicAddress(address: addr, type: NetworkType.evm)],
           keyId: keyId,
           createdLocally: createdLocally,
           walletName: walletName,
@@ -239,7 +237,7 @@ class WalletDatabase {
   }
 
   Future<PublicData?> saveObservationWalletInStorage(
-      String walletName, String address) async {
+      String walletName, String address, NetworkType type) async {
     try {
       final date = (DateTime.now().microsecondsSinceEpoch);
       final keyId = encryptService.generateUniqueId();
@@ -250,7 +248,7 @@ class WalletDatabase {
       final PublicData publicWallet = PublicData(
           isBackup: true,
           createdLocally: false,
-          address: addr,
+          addresses: [PublicAddress(address: address, type: type)],
           keyId: keyId,
           isWatchOnly: true,
           walletName: walletName,

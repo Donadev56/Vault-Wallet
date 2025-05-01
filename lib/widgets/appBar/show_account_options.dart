@@ -1,11 +1,13 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:moonwallet/service/db/crypto_storage_manager.dart';
 import 'package:moonwallet/service/vibration.dart';
 import 'package:moonwallet/types/types.dart';
 import 'package:moonwallet/widgets/flowting_modat.dart';
 import 'package:moonwallet/widgets/func/appearance/show_change_text_dialog.dart';
 import 'package:moonwallet/widgets/func/appearance/show_color.dart';
 import 'package:moonwallet/utils/constant.dart';
+import 'package:moonwallet/widgets/func/tokens_config/show_select_network_modal.dart';
 import '../../logger/logger.dart';
 
 typedef EditWalletNameType = Future<bool> Function(
@@ -21,6 +23,9 @@ void showAccountOptions({
   required void Function(List<PublicData> accounts) updateListAccount,
   required void Function(int index) showPrivateData,
   required int index,
+  required DoubleFactor roundedOf,
+  required DoubleFactor fontSizeOf,
+  required DoubleFactor iconSizeOf,
 }) {
   TextEditingController textController = TextEditingController();
 
@@ -48,6 +53,7 @@ void showAccountOptions({
                           ? colors.redColor.withOpacity(0.1)
                           : Colors.transparent,
                       leading: Icon(
+                        size: iconSizeOf(20),
                         opt["icon"] ?? Icons.integration_instructions,
                         color: isLast
                             ? colors.redColor
@@ -56,6 +62,7 @@ void showAccountOptions({
                       title: Text(
                         opt["name"] ?? "",
                         style: textTheme.bodyMedium?.copyWith(
+                          fontSize: fontSizeOf(16),
                           color: isLast
                               ? colors.redColor
                               : colors.textColor.withOpacity(0.8),
@@ -91,8 +98,28 @@ void showAccountOptions({
                             Navigator.pop(context);
                           }
                         } else if (i == 2) {
-                          Clipboard.setData(
-                              ClipboardData(text: wallet.address));
+                          final networks = (await CryptoStorageManager()
+                                  .getSavedCryptos(wallet: wallet))
+                              ?.where((e) => e.isNative)
+                              .where((e) => e.canDisplay == true)
+                              .toList();
+                          if (networks == null) {
+                            return;
+                          }
+
+                          final selectedNetwork = await showSelectNetworkModal(
+                              context: context,
+                              colors: colors,
+                              roundedOf: roundedOf,
+                              fontSizeOf: fontSizeOf,
+                              iconSizeOf: iconSizeOf,
+                              networks: networks);
+                          if (selectedNetwork == null) {
+                            return;
+                          }
+
+                          Clipboard.setData(ClipboardData(
+                              text: wallet.addressByToken(selectedNetwork)));
                         } else if (i == 3) {
                           showPrivateData(
                               originalList.indexOf(originalAccount));

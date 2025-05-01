@@ -16,7 +16,7 @@ void showSelectLastAddr(
     required PublicData currentAccount,
     required AppColors colors,
     required TextEditingController addressController,
-    required Crypto currentNetwork}) {
+    required Crypto crypto}) {
   int currentIndex = 0;
   int tabNumber = 2;
 
@@ -30,9 +30,9 @@ void showSelectLastAddr(
             builder: (BuildContext stateFCtx, setModalState) {
           Future<List<dynamic>> getAddress() async {
             try {
-              final lastUsedAddresses =
-                  await publicDataManager.getDataFromPrefs(
-                      key: "${currentAccount.address}/lastUsedAddresses");
+              final lastUsedAddresses = await publicDataManager.getDataFromPrefs(
+                  key:
+                      "${currentAccount.addressByToken(crypto)}/lastUsedAddresses");
               log("last address $lastUsedAddresses");
               if (lastUsedAddresses != null) {
                 return (json.decode(lastUsedAddresses) as List<dynamic>)
@@ -53,7 +53,7 @@ void showSelectLastAddr(
               addresses,
               accounts
                   .where((acc) => !acc.isWatchOnly)
-                  .map((acc) => acc.address)
+                  .map((acc) => acc.addressByToken(crypto))
                   .toList()
                   .toSet()
                   .toList()
@@ -130,7 +130,7 @@ void showSelectLastAddr(
                                             Navigator.pop(context);
                                           },
                                           leading: CryptoPicture(
-                                              crypto: currentNetwork,
+                                              crypto: crypto,
                                               size: 30,
                                               colors: colors),
                                           title: Text(

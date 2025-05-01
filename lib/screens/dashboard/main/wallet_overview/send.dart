@@ -31,7 +31,6 @@ import 'package:moonwallet/utils/themes.dart';
 import 'package:moonwallet/widgets/app_bar_title.dart';
 import 'package:moonwallet/widgets/custom_outlined_filled_textField.dart';
 import 'package:moonwallet/widgets/screen_widgets/crypto_picture.dart';
-import 'package:moonwallet/widgets/func/account_related/show_select_account.dart';
 import 'package:moonwallet/widgets/func/account_related/show_select_last_addr.dart';
 import 'package:moonwallet/widgets/func/snackbar.dart';
 import 'package:moonwallet/widgets/scanner/show_scanner.dart';
@@ -74,7 +73,7 @@ class _SendTransactionScreenState extends ConsumerState<SendTransactionScreen> {
       keyId: "",
       creationDate: 0,
       walletName: "",
-      address: "",
+      addresses: [],
       isWatchOnly: false);
   final web3Manager = WalletDatabase();
   final encryptService = EncryptService();
@@ -156,6 +155,13 @@ class _SendTransactionScreenState extends ConsumerState<SendTransactionScreen> {
     super.dispose();
   }
 
+  String address() {
+    if (crypto == null) {
+      throw "No Coin founded";
+    }
+    return currentAccount.addressByToken(crypto!);
+  }
+
   Future<void> askCamera() async {
     try {
       final status = await Permission.camera.status;
@@ -203,7 +209,7 @@ class _SendTransactionScreenState extends ConsumerState<SendTransactionScreen> {
         throw "The current coin cannot be null";
       }
       final to = _addressController.text;
-      final from = currentAccount.address;
+      final from = currentAccount.addressByToken(crypto!);
       final amount = _amountController.text;
       final tx = await ethInteractionManager.buildAndSendNativeTransaction(
           BasicTransactionData(
@@ -287,7 +293,7 @@ class _SendTransactionScreenState extends ConsumerState<SendTransactionScreen> {
                                 : receipt?.status == true
                                     ? "Success"
                                     : "Failed",
-                            from: currentAccount.address,
+                            from: address(),
                             to: to,
                             value: amount.toString(),
                             timeStamp:
@@ -309,14 +315,14 @@ class _SendTransactionScreenState extends ConsumerState<SendTransactionScreen> {
 
   Future<void> saveLastUsedAddresses({required String address}) async {
     try {
+      final address = currentAccount.addressByToken(crypto!);
       final lastUsedAddresses = await publicDataManager.getDataFromPrefs(
-          key: "${currentAccount.address}/lastUsedAddresses");
+          key: "${address}/lastUsedAddresses");
       log("last address $lastUsedAddresses");
       if (lastUsedAddresses == null) {
         List<String> lastAddr = [address];
         await publicDataManager.saveDataInPrefs(
-            data: json.encode(lastAddr),
-            key: "${currentAccount.address}/lastUsedAddresses");
+            data: json.encode(lastAddr), key: "$address/lastUsedAddresses");
       } else {
         int index = 0;
         List<dynamic> addresses = json.decode(lastUsedAddresses);
@@ -326,7 +332,8 @@ class _SendTransactionScreenState extends ConsumerState<SendTransactionScreen> {
             addresses.insert(0, element);
             await publicDataManager.saveDataInPrefs(
                 data: json.encode(addresses),
-                key: "${currentAccount.address}/lastUsedAddresses");
+                key:
+                    "${currentAccount.addressByToken(crypto!)}/lastUsedAddresses");
           }
           index++;
         }
@@ -335,7 +342,7 @@ class _SendTransactionScreenState extends ConsumerState<SendTransactionScreen> {
         newList.insert(0, address);
         await publicDataManager.saveDataInPrefs(
             data: json.encode(newList),
-            key: "${currentAccount.address}/lastUsedAddresses");
+            key: "${currentAccount.addressByToken(crypto!)}/lastUsedAddresses");
       }
     } catch (e) {
       logError(e.toString());
@@ -345,78 +352,63 @@ class _SendTransactionScreenState extends ConsumerState<SendTransactionScreen> {
   Future<void> getInitialData() async {
     try {
       if (crypto == null) {
-        throw "No Coin founded";
+        throw Exception("No Coin found");
       }
+
+      final addressKey =
+          "${currentAccount.addressByToken(crypto!)}/lastUsedAddresses";
+
       final results = await Future.wait([
-        //1
-        ethInteractionManager.simulateTransaction(crypto!, currentAccount),
-        //2
-        priceManager.getTokenMarketData(crypto!.cgSymbol ?? ""),
-        // 3
-        rpcService.getBalance(crypto!, currentAccount),
-        // 4
-        !crypto!.isNative
-            ? ethInteractionManager.getGasPrice(
-                crypto!.network?.rpcUrls?.first ??
-                    "https://opbnb-mainnet-rpc.bnbchain.org")
-            : ethInteractionManager.getGasPrice(crypto?.rpcUrls!.first ??
-                "https://opbnb-mainnet-rpc.bnbchain.org"),
-        // 5
-        publicDataManager.getDataFromPrefs(
-            key: "${currentAccount.address}/lastUsedAddresses")
+        ethInteractionManager.simulateTransaction(crypto!, currentAccount), // 0
+        priceManager.getTokenMarketData(crypto!.cgSymbol ?? ""), // 1
+        rpcService.getBalance(crypto!, currentAccount), // 2
+        rpcService.getGasPrice(crypto!), // 3
+        publicDataManager.getDataFromPrefs(key: addressKey), // 4
       ]);
 
-      final estimatedGas = (results[0] as BigInt?);
-
-      log("estimated gas $estimatedGas");
+      final estimatedGas = results[0] as BigInt?;
       final price = (results[1] as CryptoMarketData).currentPrice;
       final targetTokenBalance = results[2] as String;
+      final gasPrice = (results[3] as BigInt?) ?? BigInt.from(1000000);
+      final lastUsedAddressesRaw = results[4] as String?;
+
       String nativeTargetTokenBalance = "0";
 
       if (!crypto!.isNative) {
         nativeTargetTokenBalance =
-            (await rpcService.getBalance(crypto!.network!, currentAccount));
+            await rpcService.getBalance(crypto!.network!, currentAccount);
       }
 
-      BigInt gasPrice = (results[3] as BigInt?) ?? BigInt.from(1000000);
+      final BigInt gas = estimatedGas != null
+          ? estimatedGas * BigInt.from(2)
+          : BigInt.from(21000);
 
-      log("gas $gasPrice");
+      final gasDecimal = Decimal.fromBigInt(gas);
+      final gasPriceDecimal = Decimal.fromBigInt(gasPrice);
+      final divisor = Decimal.fromInt(10).pow(crypto!.decimals);
 
-      final lastUsedAddresses = results[4];
-      log("last address $lastUsedAddresses");
-      if (lastUsedAddresses != null) {
-        setState(() {
-          lastEthUsedAddresses = json.decode((lastUsedAddresses as String));
-        });
-      }
+      final gasWei = gasDecimal * gasPriceDecimal;
+      final calculatedFee = (gasWei / divisor.toDecimal()).toDecimal();
 
       setState(() {
         cryptoPrice = price;
+        nativeBalance =
+            crypto!.isNative ? targetTokenBalance : nativeTargetTokenBalance;
         if (!crypto!.isNative) {
-          setState(() {
-            nativeBalance = nativeTargetTokenBalance;
-            tokenBalance = targetTokenBalance;
-          });
-        } else {
-          nativeBalance = (targetTokenBalance);
+          tokenBalance = targetTokenBalance;
         }
-
-        final BigInt gas = estimatedGas != null
-            ? (estimatedGas * BigInt.from(2))
-            : BigInt.from(21000);
-
-        final gasDecimal = Decimal.fromBigInt(gas);
-        final gasPriceDecimal = Decimal.fromBigInt(gasPrice);
-        final Decimal divisor =
-            Decimal.fromInt(10).pow(crypto!.decimals).toDecimal();
-        transactionFee = ((gasDecimal * gasPriceDecimal) / divisor).toString();
-
-        log("Fees $transactionFee");
+        transactionFee = calculatedFee.toStringAsFixed(8);
+        if (lastUsedAddressesRaw != null) {
+          lastEthUsedAddresses = json.decode(lastUsedAddressesRaw);
+        }
       });
 
-      log("Crypto price is $price");
-    } catch (e) {
-      logError(e.toString());
+      log("Gas price: $gasPrice");
+      log("Estimated gas: $estimatedGas");
+      log("Transaction fee: $transactionFee");
+      log("Crypto price: $cryptoPrice");
+    } catch (e, st) {
+      logError("getInitialData error: $e\n$st");
     }
   }
 
@@ -502,8 +494,7 @@ class _SendTransactionScreenState extends ConsumerState<SendTransactionScreen> {
                     borderRadius: BorderRadius.circular(roundedOf(15)),
                     onTap: () {
                       vibrate();
-                      Clipboard.setData(
-                          ClipboardData(text: currentAccount.address));
+                      Clipboard.setData(ClipboardData(text: address()));
                     },
                     child: Container(
                       width: width * 0.53,
@@ -523,8 +514,8 @@ class _SendTransactionScreenState extends ConsumerState<SendTransactionScreen> {
                             primaryColor: colors.secondaryColor,
                           ),
                           Text(
-                            currentAccount.address.isNotEmpty
-                                ? "${currentAccount.address.substring(0, 6)}...${currentAccount.address.substring(currentAccount.address.length - 6, currentAccount.address.length)}"
+                            address().isNotEmpty
+                                ? "${address().substring(0, 6)}...${address().substring(address().length - 6, address().length)}"
                                 : "No Account",
                             style: textTheme.bodyMedium?.copyWith(
                                 color: colors.textColor,
@@ -535,19 +526,6 @@ class _SendTransactionScreenState extends ConsumerState<SendTransactionScreen> {
                     ),
                   ),
                   InkWell(
-                    onTap: () async {
-                      selectAnAccount(
-                          currentAccount: currentAccount,
-                          colors: colors,
-                          context: context,
-                          accounts: accounts.toSet().toList(),
-                          onTap: (wl) async {
-                            setState(() {
-                              currentAccount = wl;
-                            });
-                            await getInitialData();
-                          });
-                    },
                     child: Container(
                         width: width * 0.35,
                         padding: const EdgeInsets.all(5),
@@ -617,7 +595,7 @@ class _SendTransactionScreenState extends ConsumerState<SendTransactionScreen> {
                                 currentAccount: currentAccount,
                                 colors: colors,
                                 addressController: _addressController,
-                                currentNetwork: crypto!);
+                                crypto: crypto!);
                           },
                           icon: Icon(Icons.contact_page_outlined)),
                       IconButton(
@@ -673,7 +651,8 @@ class _SendTransactionScreenState extends ConsumerState<SendTransactionScreen> {
                   onChanged: (value) {
                     setState(() {
                       filteredAccounts = accounts
-                          .where((account) => account.address
+                          .where((account) => account
+                              .addressByToken(crypto!)
                               .toLowerCase()
                               .contains(value.toLowerCase()))
                           .toList();
@@ -726,29 +705,42 @@ class _SendTransactionScreenState extends ConsumerState<SendTransactionScreen> {
                   child: InkWell(
                     borderRadius: BorderRadius.circular(roundedOf(10)),
                     onTap: () {
-                      setState(() {
-                        if (crypto!.isNative) {
-                          final value = Decimal.parse(nativeBalance) -
-                              Decimal.parse(transactionFee);
-                          log("value $value , balance $nativeBalance");
-                          _amountController.text = formatter.formatDecimal(
-                              value.toStringAsFixed(8),
-                              maxDecimals: 8);
-                          _amountUsdController.text =
-                              (Decimal.parse(nativeBalance) *
-                                      Decimal.parse(formatter.formatDecimal(
-                                          cryptoPrice.toString())))
-                                  .toString();
-                        } else {
-                          _amountController.text = formatter
-                              .formatDecimal(tokenBalance, maxDecimals: 8);
-                          _amountUsdController.text =
-                              (Decimal.parse(tokenBalance) *
-                                      Decimal.parse(formatter.formatDecimal(
-                                          cryptoPrice.toString())))
-                                  .toString();
-                        }
-                      });
+                      try {
+                        setState(() {
+                          if (crypto!.isNative) {
+                            log("Native balance $nativeBalance");
+                            log("Transaction fee $transactionFee");
+                            log("Crypto price $cryptoPrice");
+                            log("Amount ${_amountController.text}");
+
+                            final value = Decimal.parse(nativeBalance) -
+                                Decimal.parse(transactionFee);
+                            log("Value $value");
+
+                            _amountController.text = formatter.formatDecimal(
+                                value.toString(),
+                                maxDecimals: 8);
+                            log("Amount ${_amountController.text}");
+
+                            _amountUsdController.text =
+                                (Decimal.parse(nativeBalance) *
+                                        Decimal.parse(formatter.formatDecimal(
+                                            cryptoPrice.toString())))
+                                    .toString();
+                            log("Amount ${_amountUsdController.text}");
+                          } else {
+                            _amountController.text = formatter
+                                .formatDecimal(tokenBalance, maxDecimals: 8);
+                            _amountUsdController.text =
+                                (Decimal.parse(tokenBalance) *
+                                        Decimal.parse(formatter.formatDecimal(
+                                            cryptoPrice.toString())))
+                                    .toString();
+                          }
+                        });
+                      } catch (e) {
+                        logError(e.toString());
+                      }
                     },
                     child: Container(
                       width: 50,
@@ -788,16 +780,24 @@ class _SendTransactionScreenState extends ConsumerState<SendTransactionScreen> {
                 colors: colors,
                 keyboardType: TextInputType.number,
                 onChanged: (value) {
-                  if (value.isEmpty) {
+                  try {
+                    if (value.isEmpty) {
+                      setState(() {
+                        _amountController.text = "";
+                      });
+                    }
+                    final usdAmount = Decimal.parse(value);
+                    final cryptoPriceDecimal =
+                        Decimal.parse(cryptoPrice.toString());
+                    final newCryptoValue =
+                        (usdAmount / cryptoPriceDecimal).toString();
                     setState(() {
-                      _amountController.text = "";
+                      _amountController.text =
+                          NumberFormatter().formatDecimal(newCryptoValue);
                     });
+                  } catch (e) {
+                    logError(e.toString());
                   }
-                  final double usdAmount = double.parse(value);
-                  setState(() {
-                    _amountController.text = NumberFormatter()
-                        .formatDecimal((usdAmount / cryptoPrice).toString());
-                  });
                 },
                 controller: _amountUsdController,
               ),

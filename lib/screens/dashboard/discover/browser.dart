@@ -493,7 +493,7 @@ class Web3BrowserScreenState extends State<Web3BrowserScreen> {
                             currentAccount: currentAccount!,
                             name: "Moon Wallet",
                             icon: "https://moonbnb.pro/moon.png",
-                            address: currentAccount?.address,
+                            address: currentAccount?.evmAddress,
                             currentNetwork: NetworkConfig(
                                 blockExplorerUrls: currentCrypto?.explorers,
                                 chainId:

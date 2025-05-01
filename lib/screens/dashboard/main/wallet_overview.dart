@@ -57,7 +57,7 @@ class _WalletViewScreenState extends ConsumerState<WalletViewScreen>
       keyId: "",
       creationDate: 0,
       walletName: "",
-      address: "",
+      addresses: [],
       isWatchOnly: false);
 
   List<PublicData> accounts = [];
@@ -171,7 +171,8 @@ class _WalletViewScreenState extends ConsumerState<WalletViewScreen>
 
       final userTransactions = await TransactionRequestManager()
           .getAllTransactions(
-              crypto: currentCrypto!, address: currentAccount.address);
+              crypto: currentCrypto!,
+              address: currentAccount.addressByToken(currentCrypto!));
 
       if (userTransactions.isNotEmpty) {
         userTransactions.sort((a, b) => b.timeStamp.compareTo(a.timeStamp));
@@ -299,13 +300,19 @@ class _WalletViewScreenState extends ConsumerState<WalletViewScreen>
       return getFilteredTransactions()
           .where((tr) =>
               tr.from.toLowerCase().trim() !=
-              currentAccount.address.toLowerCase().trim())
+              currentAccount
+                  .addressByToken(currentCrypto!)
+                  .toLowerCase()
+                  .trim())
           .toList();
     } else if (i == 2) {
       return getFilteredTransactions()
           .where((tr) =>
               tr.from.toLowerCase().trim() ==
-              currentAccount.address.toLowerCase().trim())
+              currentAccount
+                  .addressByToken(currentCrypto!)
+                  .toLowerCase()
+                  .trim())
           .toList();
     }
 
@@ -571,10 +578,10 @@ class _WalletViewScreenState extends ConsumerState<WalletViewScreen>
                                   onTap: () async {
                                     if (currentCrypto!.isNative) {
                                       await launchUrl(Uri.parse(
-                                          "${currentCrypto!.explorers![0]}/address/${currentAccount.address}"));
+                                          "${currentCrypto!.explorers![0]}/address/${currentAccount.addressByToken(currentCrypto!)}"));
                                     } else {
                                       await launchUrl(Uri.parse(
-                                          "${currentCrypto!.network?.explorers![0]}/address/${currentAccount.address}"));
+                                          "${currentCrypto!.network?.explorers![0]}/address/${currentAccount.addressByToken(currentCrypto!)}"));
                                     }
                                   },
                                   child: Text(
@@ -610,7 +617,10 @@ class _WalletViewScreenState extends ConsumerState<WalletViewScreen>
 
                             final isFrom =
                                 transaction.from.trim().toLowerCase() ==
-                                    currentAccount.address.trim().toLowerCase();
+                                    currentAccount
+                                        .addressByToken(currentCrypto!)
+                                        .trim()
+                                        .toLowerCase();
                             return TransactionsListElement(
                               roundedOf: roundedOf,
                               fontSizeOf: fontSizeOf,

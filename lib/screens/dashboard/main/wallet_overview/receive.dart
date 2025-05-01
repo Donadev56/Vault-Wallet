@@ -39,7 +39,7 @@ class _ReceiveScreenState extends ConsumerState<ReceiveScreen> {
       keyId: "",
       creationDate: 0,
       walletName: "",
-      address: "",
+      addresses: [],
       isWatchOnly: false);
   final web3Manager = WalletDatabase();
   final encryptService = EncryptService();
@@ -231,7 +231,8 @@ class _ReceiveScreenState extends ConsumerState<ReceiveScreen> {
                                   constraints: BoxConstraints(
                                       maxWidth: 300, maxHeight: 270),
                                   child: QrImageView(
-                                    data: currentAccount.address,
+                                    data:
+                                        currentAccount.addressByToken(crypto!),
                                     version: 3,
                                     size: width * 0.8,
                                     gapless: false,
@@ -269,7 +270,7 @@ class _ReceiveScreenState extends ConsumerState<ReceiveScreen> {
                           color: colors.secondaryColor),
                       child: Center(
                         child: Text(
-                          currentAccount.address,
+                          currentAccount.addressByToken(crypto!),
                           overflow: TextOverflow.ellipsis,
                           style: textTheme.bodyMedium?.copyWith(
                               color: colors.textColor,
@@ -290,8 +291,8 @@ class _ReceiveScreenState extends ConsumerState<ReceiveScreen> {
                     style: ElevatedButton.styleFrom(
                         elevation: 0, backgroundColor: colors.themeColor),
                     onPressed: () {
-                      Clipboard.setData(
-                          ClipboardData(text: currentAccount.address.trim()));
+                      Clipboard.setData(ClipboardData(
+                          text: currentAccount.addressByToken(crypto!)));
                     },
                     icon: Icon(
                       Icons.copy,

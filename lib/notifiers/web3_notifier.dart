@@ -61,10 +61,10 @@ class Web3Notifier {
     }
   }
 
-  Future<PublicData?> saveWO(String address) async {
+  Future<PublicData?> saveWO(String address, NetworkType type) async {
     try {
       final result = await web3Manager.saveObservationWalletInStorage(
-          "New view Wallet", address);
+          "New view Wallet", address, type);
       if (result != null) {
         ref.invalidate(accountsNotifierProvider);
         return result;

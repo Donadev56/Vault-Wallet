@@ -221,7 +221,7 @@ class _InterfaceSizeViewState extends ConsumerState<InterfaceSizeView> {
                           keyId: "",
                           creationDate: 0,
                           walletName: "",
-                          address: "",
+                          addresses: [],
                           isWatchOnly: true),
                   onTap: () => log("taped"),
                   onMoreTap: () => log("more"),

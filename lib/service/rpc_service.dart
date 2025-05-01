@@ -13,4 +13,14 @@ class RpcService {
       return "0";
     }
   }
+
+  Future<BigInt> getGasPrice(Crypto crypto) async {
+    try {
+      final gasPrice = await _ethClient.getGasPrice(crypto.getRpcUrl);
+      return gasPrice;
+    } catch (e) {
+      logError(e.toString());
+      return BigInt.from(0);
+    }
+  }
 }

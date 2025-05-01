@@ -155,7 +155,7 @@ Future<UserCustomGasRequestResponse?> askUserForConfirmation({
                                   color: colors.textColor, fontSize: 14),
                             ),
                             Text(
-                              "${txData.account.address.substring(0, 6)}...${txData.account.address.substring(txData.account.address.length - 6)}",
+                              "${txData.account.addressByToken(crypto).substring(0, 6)}...${txData.account.addressByToken(crypto).substring(txData.account.addressByToken(crypto).length - 6)}",
                               style: textTheme.bodyMedium?.copyWith(
                                   color: colors.textColor, fontSize: 14),
                             ),

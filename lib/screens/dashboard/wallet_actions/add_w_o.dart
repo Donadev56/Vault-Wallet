@@ -125,7 +125,7 @@ class _AddPrivateKeyState extends ConsumerState<AddObservationWallet> {
           throw Exception("No Seed generated yet.");
         }
         final result = await web3Provider
-            .saveWO(_textController.text.trim())
+            .saveWO(_textController.text.trim(), NetworkType.evm)
             .withLoading(context, colors);
         if (result != null) {
           lastAccountNotifier.updateKeyId(result.keyId);

@@ -41,13 +41,6 @@ class EthereumProvider {
   // Core components
   late Web3Client _web3client;
   PublicData? currentAccount;
-  final nullAccount = PublicData(
-      createdLocally: false,
-      keyId: "",
-      creationDate: 0,
-      walletName: "",
-      address: "",
-      isWatchOnly: true);
 
   // State
   WalletState? _state;
@@ -106,8 +99,8 @@ class EthereumProvider {
     } else {
       _state = WalletState(
         chainId: defaultNetwork.chainId,
-        address: account.address,
-        isConnected: account.address.isNotEmpty,
+        address: account.evmAddress,
+        isConnected: account.evmAddress.isNotEmpty,
       );
       log("The current state with address only is ${_state?.toJson()}");
     }
@@ -530,10 +523,13 @@ class EthereumProvider {
   // Methods helpers
   Future<void> _addNetwork(NetworkConfig network) async {
     try {
+      if (currentAccount == null) {
+        throw WalletException('No current account');
+      }
       if (currentAccount != null) {
         final manager = CryptoStorageManager();
-        final savedCrypto = await manager.getSavedCryptos(
-            wallet: currentAccount ?? nullAccount);
+        final savedCrypto =
+            await manager.getSavedCryptos(wallet: currentAccount!);
         if (savedCrypto != null) {
           final networks =
               savedCrypto.where((c) => c.type == CryptoType.native).toList();
@@ -559,8 +555,7 @@ class EthereumProvider {
               chainId: int.parse(network.chainId),
               icon: network.iconUrls?[0],
             );
-            await manager.addCrypto(
-                crypto: newCrypto, wallet: currentAccount ?? nullAccount);
+            await manager.addCrypto(crypto: newCrypto, wallet: currentAccount!);
             log("Added wallet");
           }
         }

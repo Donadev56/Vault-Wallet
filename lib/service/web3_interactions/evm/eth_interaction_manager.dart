@@ -23,7 +23,7 @@ class EthInteractionManager {
   Future<String?> fetchBalanceUsingRpc(
       PublicData account, Crypto crypto) async {
     try {
-      final address = account.address;
+      final address = account.evmAddress;
       final rpc = crypto.isNative
           ? crypto.rpcUrls?.firstOrNull
           : crypto.network?.rpcUrls?.firstOrNull;
@@ -232,7 +232,7 @@ class EthInteractionManager {
 
       final estimatedGas = ((await estimateGas(
                   rpcUrl: data.crypto.rpcUrls?.firstOrNull ?? "",
-                  sender: data.account.address,
+                  sender: data.account.evmAddress,
                   to: to,
                   value: valueHex,
                   data: "") ??
@@ -275,8 +275,8 @@ class EthInteractionManager {
         rpcUrl: !crypto.isNative
             ? crypto.network?.rpcUrls?.firstOrNull ?? ""
             : crypto.rpcUrls?.firstOrNull ?? "",
-        sender: account.address,
-        to: account.address,
+        sender: account.evmAddress,
+        to: account.evmAddress,
         value: "0x0",
         data: "");
   }
@@ -362,7 +362,7 @@ class EthInteractionManager {
       }
 
       final transaction = Transaction(
-        from: EthereumAddress.fromHex(data.account.address),
+        from: EthereumAddress.fromHex(data.account.evmAddress),
         to: EthereumAddress.fromHex(data.addressTo),
         value: EtherAmount.inWei(data.valueBigInt),
         maxGas: confirmedResponse.gasLimit?.toInt() ?? data.gasBigint?.toInt(),
@@ -381,7 +381,7 @@ class EthInteractionManager {
                 chainId: crypto.chainId ?? 1,
                 rpcUrl: crypto.rpcUrls?.firstOrNull ?? "",
                 password: userPassword,
-                address: data.account.address)
+                address: data.account.evmAddress)
             .withLoading(context, colors);
 
         return result;

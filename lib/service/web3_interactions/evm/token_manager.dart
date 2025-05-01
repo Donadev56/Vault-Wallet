@@ -228,7 +228,7 @@ class TokenManager {
       required int operationType}) async {
     try {
       final web3InteractionManager = EthInteractionManager();
-      final from = data.account.address;
+      final from = data.account.evmAddress;
       final to = data.addressTo;
       final token = data.crypto;
       final account = data.account;
