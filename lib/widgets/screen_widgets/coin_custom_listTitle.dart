@@ -44,16 +44,8 @@ class CoinCustomListTitle extends StatelessWidget {
   Widget build(BuildContext context) {
     final textTheme = TextTheme.of(context);
 
-    String formatUsd(double value) {
-      return NumberFormatter().formatUsd(value: value);
-    }
-
     String formatDecimals(String value) {
       return NumberFormatter().formatDecimal(value);
-    }
-
-    String formatCrypto(double value) {
-      return NumberFormatter().formatCrypto(value: value);
     }
 
     final width = MediaQuery.of(context).size.width;
@@ -162,7 +154,10 @@ class CoinCustomListTitle extends StatelessWidget {
                 Text(
                     isCryptoHidden
                         ? "***"
-                        : "\$${NumberFormatter().formatDecimal(usdBalance, maxDecimals: 2,).trim()}",
+                        : "\$${NumberFormatter().formatDecimal(
+                              usdBalance,
+                              maxDecimals: 2,
+                            ).trim()}",
                     overflow: TextOverflow.ellipsis,
                     maxLines: 1,
                     style: textTheme.bodySmall?.copyWith(

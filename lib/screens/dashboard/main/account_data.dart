@@ -209,7 +209,6 @@ class _AccountDataViewState extends ConsumerState<AccountDataView>
     final savedCryptoAsync = ref.watch(savedCryptosProviderNotifier);
     final assetsAsync = ref.watch(assetsNotifierProvider);
     final textTheme = TextTheme.of(context);
-    final asyncAccounts = ref.watch(accountsNotifierProvider);
     final appUIConfigAsync = ref.watch(appUIConfigProvider);
 
     final uiConfig = useState<AppUIConfig>(AppUIConfig.defaultConfig);
@@ -223,14 +222,6 @@ class _AccountDataViewState extends ConsumerState<AccountDataView>
 
     double fontSizeOf(double size) {
       return size * uiConfig.value.styles.fontSizeScaleFactor;
-    }
-
-    double iconSizeOf(double size) {
-      return size * uiConfig.value.styles.iconSizeScaleFactor;
-    }
-
-    double imageSizeOf(double size) {
-      return size * uiConfig.value.styles.imageSizeScaleFactor;
     }
 
     double roundedOf(double size) {

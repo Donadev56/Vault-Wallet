@@ -1,4 +1,3 @@
-import 'package:decimal/decimal.dart';
 import 'package:flutter/material.dart';
 import 'package:moonwallet/custom/web3_webview/lib/utils/loading.dart';
 import 'package:moonwallet/logger/logger.dart';
@@ -214,8 +213,8 @@ class EthInteractionManager {
     try {
       final nativeBalance = await getUserBalance(data.account, data.crypto)
           .withLoading(context, colors);
-      final nativeBalanceDecimal = Decimal.parse(nativeBalance);
-      final amountDecimal = Decimal.parse(data.amount);
+      final nativeBalanceDecimal = (nativeBalance).toDecimal();
+      final amountDecimal = (data.amount).toDecimal();
 
       if (nativeBalanceDecimal <= amountDecimal) {
         throw Exception("Insufficient balance");
@@ -299,11 +298,10 @@ class EthInteractionManager {
         getGasPrice(token.network?.rpcUrls?.first ?? ""),
       ]).withLoading(context, colors);
 
-      final tokenBalance = requests[0] as String ;
+      final tokenBalance = requests[0] as String;
       final gasPrice = requests[1] as BigInt;
-      final tokenBalanceDecimal =
-          Decimal.parse(tokenBalance);
-      final amountDecimal = Decimal.parse(amount);
+      final tokenBalanceDecimal = tokenBalance.toDecimal();
+      final amountDecimal = amount.toDecimal();
 
       if (amountDecimal > tokenBalanceDecimal) {
         throw Exception("Insufficient balance");

@@ -92,7 +92,7 @@ class TokenManager {
       if (result == null) {
         throw "No result found";
       }
-      Decimal resultDecimal = (Decimal.fromBigInt(result) /
+      Decimal resultDecimal = (result.toDecimal() /
               Decimal.fromInt(10).pow(token.decimals).toDecimal())
           .toDecimal();
       return resultDecimal.toString();
@@ -208,7 +208,7 @@ class TokenManager {
   _validateNativeBalance(BigInt estimatedGas, TransactionToConfirm data) async {
     final nativeTokenBalance = await EthInteractionManager()
         .getUserBalance(data.account, data.crypto.network!);
-    final nativeBalanceDecimal = Decimal.parse(nativeTokenBalance);
+    final nativeBalanceDecimal = nativeTokenBalance.toDecimal();
 
     final transactionFee =
         (estimatedGas * data.gasPrice) / BigInt.from(10).pow(18);

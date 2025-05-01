@@ -438,7 +438,10 @@ class _WalletViewScreenState extends ConsumerState<WalletViewScreen>
                             Skeletonizer(
                                 enabled: isBalanceLoading,
                                 child: Text(
-                                  "= \$ ${formatter.formatDecimal((totalBalanceUsd), maxDecimals: 2,)}",
+                                  "= \$ ${formatter.formatDecimal(
+                                    (totalBalanceUsd),
+                                    maxDecimals: 2,
+                                  )}",
                                   style: textTheme.bodySmall?.copyWith(
                                       color: colors.textColor.withOpacity(0.5),
                                       fontSize: fontSizeOf(14)),

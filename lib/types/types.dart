@@ -1,5 +1,6 @@
 // ignore_for_file: deprecated_member_use
 
+import 'package:decimal/decimal.dart';
 import 'package:flutter/material.dart';
 import 'package:lucide_icons_flutter/lucide_icons.dart';
 import 'package:web3dart/credentials.dart';
@@ -19,6 +20,15 @@ extension IconJson on IconData {
         'fontPackage': fontPackage,
         'matchTextDirection': matchTextDirection,
       };
+}
+
+extension StringDecimal on String {
+  Decimal toDecimal() {
+    if (isEmpty) {
+      return Decimal.zero;
+    }
+    return Decimal.parse(this);
+  }
 }
 
 class SecureData {

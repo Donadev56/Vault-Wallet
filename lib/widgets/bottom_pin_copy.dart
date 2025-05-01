@@ -21,7 +21,6 @@ Future<bool> showPinModalBottomSheet(
       backgroundColor: Colors.transparent,
       builder: (BuildContext context) {
         final width = MediaQuery.of(context).size.width;
-        final height = MediaQuery.of(context).size.height;
         final textTheme = Theme.of(context).textTheme;
 
         String error = "";

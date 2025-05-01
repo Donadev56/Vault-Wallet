@@ -148,9 +148,9 @@ class _MainDashboardScreenState extends ConsumerState<MainDashboardScreen>
     }, [profileImageAsync]);
 
     void updateTotalBalance(List<Asset> assets) {
-      Decimal balance = Decimal.fromInt(0);
+      Decimal balance = Decimal.zero;
       for (final asset in assets) {
-        balance += Decimal.parse(asset.balanceUsd);
+        balance += asset.balanceUsd.toDecimal();
       }
       totalBalance.value = balance.toString();
     }
@@ -676,7 +676,7 @@ class _MainDashboardScreenState extends ConsumerState<MainDashboardScreen>
                                           //   Icon(FeatherIcons.dollarSign, color: colors.textColor, size: textTheme.headlineLarge?.fontSize,),
                                           Text(
                                             !uiConfig.value.isCryptoHidden
-                                                ? "\$${NumberFormatter().formatDecimal(maxDecimals: 2,  totalBalance.value)}"
+                                                ? "\$${NumberFormatter().formatDecimal(maxDecimals: 2, totalBalance.value)}"
                                                 : "***",
                                             overflow: TextOverflow.clip,
                                             maxLines: 1,
