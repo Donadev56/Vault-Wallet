@@ -6,19 +6,22 @@ import 'package:modal_bottom_sheet/modal_bottom_sheet.dart';
 import 'package:moonwallet/logger/logger.dart';
 import 'package:moonwallet/types/types.dart';
 import 'package:moonwallet/utils/number_formatter.dart';
+import 'package:moonwallet/widgets/func/transactions/show_custom_gas_modal.dart';
 import 'package:moonwallet/widgets/func/transactions/transaction_container.dart';
+import 'package:moonwallet/widgets/screen_widgets/crypto_picture.dart';
 
-Future<UserRequestResponse> askUserForConfirmation({
-  Crypto? crypto,
+Future<UserCustomGasRequestResponse?> askUserForConfirmation({
+ required Crypto crypto,
   required TransactionToConfirm txData,
   required BuildContext context,
   required AppColors colors,
 }) async {
   try {
     int currentIndex = 1;
-    BigInt customGasPrice = BigInt.zero;
-    BigInt customGasLimit = BigInt.zero;
     bool canUseCustomGas = false;
+    UserCustomGasRequestResponse gasConfig = UserCustomGasRequestResponse(ok: false );
+
+    final formatter = NumberFormatter();
 
     final BigInt baseCost =
         ((txData.gasBigint ?? BigInt.from(21000)) * txData.gasPrice);
@@ -48,7 +51,7 @@ Future<UserRequestResponse> askUserForConfirmation({
       },
     ];
 
-    final result = await showBarModalBottomSheet<UserRequestResponse>(
+    final result = await showBarModalBottomSheet<UserCustomGasRequestResponse>(
       backgroundColor: Colors.transparent,
       context: context,
       shape: RoundedRectangleBorder(
@@ -93,9 +96,7 @@ Future<UserRequestResponse> askUserForConfirmation({
                           onPressed: () {
                             Navigator.pop(
                               confirmationCtx,
-                              UserRequestResponse(
-                                ok: false,
-                              ),
+                             
                             );
                           },
                           icon: Icon(FeatherIcons.xCircle,
@@ -104,41 +105,38 @@ Future<UserRequestResponse> askUserForConfirmation({
                       ],
                     ),
                   ),
-                  Align(
-                    alignment: Alignment.topLeft,
-                    child: TransactionContainer(
-                      colors: colors,
-                      child: Align(
-                          alignment: Alignment.center,
-                          child: Row(
-                            mainAxisAlignment: MainAxisAlignment.center,
-                            spacing: 5,
-                            children: [
-                              Text(
-                                NumberFormatter()
-                                    .formatCrypto(value: txData.valueEth),
-                                overflow: TextOverflow.clip,
+                 Align(
+                  alignment: Alignment.center,
+                  child: Material(
+                    color: Colors.transparent,
+                    child: Padding(padding: const EdgeInsets.all(10),
+                    child:  ListTile(
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(10)
+                      ),
+                      tileColor: colors.secondaryColor,
+                    leading: CryptoPicture(crypto: crypto, size: 40, colors: colors, primaryColor: colors.secondaryColor,),
+
+                    title: Text(
+                           "${formatter.formatValue(str:    ( formatter.formatDecimal( txData.valueEth)))} ${crypto.symbol}",
+                                overflow: TextOverflow.ellipsis,
                                 maxLines: 1,
                                 style: textTheme.bodyMedium?.copyWith(
                                     color: colors.textColor,
-                                    fontWeight: FontWeight.bold,
-                                    fontSize: 25),
+                                    fontWeight: FontWeight.w900,
+                                    overflow: TextOverflow.ellipsis,
+                                    fontSize: 17),
                               ),
-                              Text(
-                                crypto != null
-                                    ? crypto.symbol.toUpperCase()
-                                    : "",
-                                overflow: TextOverflow.clip,
-                                maxLines: 1,
-                                style: textTheme.bodyMedium?.copyWith(
+                      subtitle: Text("${crypto.isNative ? crypto.name : crypto.network?.name}",
+                       style: textTheme.bodyMedium?.copyWith(
                                     color: colors.textColor.withOpacity(0.5),
-                                    fontWeight: FontWeight.bold,
-                                    fontSize: 25),
-                              ),
-                            ],
-                          )),
-                    ),
+                                    fontWeight: FontWeight.w900,
+                                    fontSize: 15)
+                      ),
+                  ),),
                   ),
+                 ) 
+                 ,
                   SizedBox(height: 10),
                   TransactionContainer(
                     colors: colors,
@@ -159,7 +157,7 @@ Future<UserRequestResponse> askUserForConfirmation({
                             ),
                           ],
                         ),
-                        SizedBox(height: 13),
+                        SizedBox(height: 3,),
                         Row(
                           mainAxisAlignment: MainAxisAlignment.spaceBetween,
                           children: [
@@ -178,31 +176,7 @@ Future<UserRequestResponse> askUserForConfirmation({
                       ],
                     ),
                   ),
-                  TransactionContainer(
-                    colors: colors,
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Text(
-                          "Data :",
-                          style: textTheme.bodyMedium
-                              ?.copyWith(color: colors.textColor, fontSize: 14),
-                        ),
-                        SizedBox(height: 5),
-                        SizedBox(
-                          height: 55,
-                          width: width,
-                          child: SingleChildScrollView(
-                            child: Text(
-                              txData.data ?? "",
-                              style: textTheme.bodyMedium?.copyWith(
-                                  color: colors.textColor, fontSize: 14),
-                            ),
-                          ),
-                        ),
-                      ],
-                    ),
-                  ),
+                SizedBox(height: 15,),
                   Container(
                     margin: const EdgeInsets.all(10),
                     child: Row(
@@ -213,183 +187,16 @@ Future<UserRequestResponse> askUserForConfirmation({
                         final gas = gasData[index];
                         if (index == 3) {
                           return InkWell(
-                            onTap: () {
-                              showCupertinoModalBottomSheet(
-                                context: context,
-                                builder: (BuildContext editCtx) {
-                                  return SafeArea(
-                                    child: Material(
-                                        color: Colors.transparent,
-                                        child: Container(
-                                            padding: const EdgeInsets.all(20),
-                                            decoration: BoxDecoration(
-                                              color: colors.primaryColor,
-                                            ),
-                                            child: ListView(
-                                              children: [
-                                                Container(
-                                                  padding:
-                                                      const EdgeInsets.all(10),
-                                                  child: Row(
-                                                    mainAxisAlignment:
-                                                        MainAxisAlignment
-                                                            .spaceBetween,
-                                                    children: [
-                                                      Text(
-                                                        "Customize gas",
-                                                        style: textTheme
-                                                            .headlineMedium
-                                                            ?.copyWith(
-                                                                color: colors
-                                                                    .textColor,
-                                                                fontWeight:
-                                                                    FontWeight
-                                                                        .bold,
-                                                                fontSize: 22),
-                                                      ),
-                                                      IconButton(
-                                                        icon: Icon(
-                                                          FeatherIcons.xCircle,
-                                                          color:
-                                                              Colors.pinkAccent,
-                                                        ),
-                                                        onPressed: () {
-                                                          Navigator.pop(
-                                                              editCtx);
-                                                        },
-                                                      )
-                                                    ],
-                                                  ),
-                                                ),
-                                                TextField(
-                                                  onChanged: (value) {
-                                                    setModalState(() {
-                                                      customGasLimit =
-                                                          BigInt.from(
-                                                              int.parse(value));
-                                                      log("New custom gas limit $customGasLimit ");
-                                                    });
-                                                  },
-                                                  keyboardType:
-                                                      TextInputType.number,
-                                                  style: textTheme.bodyMedium
-                                                      ?.copyWith(
-                                                          color:
-                                                              colors.textColor),
-                                                  decoration: InputDecoration(
-                                                    enabledBorder:
-                                                        OutlineInputBorder(
-                                                      borderSide: BorderSide(
-                                                          width: 1,
-                                                          color: colors
-                                                              .textColor
-                                                              .withOpacity(
-                                                                  0.1)),
-                                                    ),
-                                                    focusedBorder:
-                                                        OutlineInputBorder(
-                                                      borderSide: BorderSide(
-                                                          width: 1,
-                                                          color: colors
-                                                              .primaryColor
-                                                              .withOpacity(
-                                                                  0.1)),
-                                                    ),
-                                                    labelText: "Gas Limit",
-                                                    border: InputBorder.none,
-                                                    suffixText: "Gwei",
-                                                  ),
-                                                ),
-                                                SizedBox(height: 20),
-                                                TextField(
-                                                  style: textTheme.bodyMedium
-                                                      ?.copyWith(
-                                                          color:
-                                                              colors.textColor),
-                                                  keyboardType:
-                                                      TextInputType.number,
-                                                  onChanged: (value) {
-                                                    setModalState(() {
-                                                      customGasPrice =
-                                                          BigInt.from(
-                                                              int.parse(value));
-                                                      log("New custom gas price $customGasPrice ");
-                                                    });
-                                                  },
-                                                  decoration: InputDecoration(
-                                                    enabledBorder:
-                                                        OutlineInputBorder(
-                                                      borderSide: BorderSide(
-                                                          width: 1,
-                                                          color: colors
-                                                              .textColor
-                                                              .withOpacity(
-                                                                  0.1)),
-                                                    ),
-                                                    focusedBorder:
-                                                        OutlineInputBorder(
-                                                      borderSide: BorderSide(
-                                                          width: 1,
-                                                          color: colors
-                                                              .secondaryColor),
-                                                    ),
-                                                    labelText: "Gas Price",
-                                                    border: InputBorder.none,
-                                                    suffixText: "Gwei",
-                                                  ),
-                                                ),
-                                                SizedBox(
-                                                    height: 20,
-                                                    width: width * 0.8),
-                                                Container(
-                                                  width: width,
-                                                  decoration: BoxDecoration(
-                                                    borderRadius:
-                                                        BorderRadius.circular(
-                                                            10),
-                                                    color: colors.themeColor,
-                                                  ),
-                                                  child: Material(
-                                                    color: Colors.transparent,
-                                                    child: InkWell(
-                                                      borderRadius:
-                                                          BorderRadius.circular(
-                                                              10),
-                                                      onTap: () {
-                                                        setModalState(() {
-                                                          canUseCustomGas =
-                                                              true;
-                                                        });
-                                                        Navigator.pop(editCtx);
-                                                      },
-                                                      child: Container(
-                                                        padding:
-                                                            const EdgeInsets
-                                                                .all(10),
-                                                        child: Center(
-                                                          child: Text(
-                                                            "Confirm",
-                                                            style: textTheme
-                                                                .bodyMedium
-                                                                ?.copyWith(
-                                                              color: colors
-                                                                  .primaryColor,
-                                                              fontWeight:
-                                                                  FontWeight
-                                                                      .bold,
-                                                              fontSize: 16,
-                                                            ),
-                                                          ),
-                                                        ),
-                                                      ),
-                                                    ),
-                                                  ),
-                                                ),
-                                              ],
-                                            ))),
-                                  );
-                                },
-                              );
+                            onTap: () async{
+
+                              final customGas = await showCustomGasModal(context: context, colors: colors) ;
+                              if (customGas != null) {
+                                gasConfig = customGas;
+                                setModalState(() {
+                                  canUseCustomGas = true ;
+                                });
+                              }
+
                             },
                             child: Container(
                               decoration: BoxDecoration(
@@ -467,6 +274,8 @@ Future<UserRequestResponse> askUserForConfirmation({
                       }),
                     ),
                   ),
+                            SizedBox(height: 40,),
+
                   Container(
                     width: width,
                     margin:
@@ -482,18 +291,12 @@ Future<UserRequestResponse> askUserForConfirmation({
                         onTap: () {
                           if (canUseCustomGas) {
                             Navigator.pop(
-                                confirmationCtx,
-                                UserRequestResponse(
-                                  ok: true,
-                                  gasPrice: customGasPrice,
-                                  gasLimit:
-                                      (customGasLimit * BigInt.from(130)) ~/
-                                          BigInt.from(100),
-                                ));
+                                context,
+                                gasConfig);
                           } else {
                             Navigator.pop(
-                                confirmationCtx,
-                                UserRequestResponse(
+                                context,
+                                UserCustomGasRequestResponse(
                                   ok: true,
                                 ));
                           }
@@ -522,9 +325,9 @@ Future<UserRequestResponse> askUserForConfirmation({
       },
     );
 
-    return result ?? UserRequestResponse(ok: false);
+    return result ;
   } catch (e) {
     logError(e.toString());
-    return UserRequestResponse(ok: false);
+    return null ;
   }
 }

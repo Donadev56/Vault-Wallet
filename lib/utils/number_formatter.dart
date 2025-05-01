@@ -18,6 +18,19 @@ class NumberFormatter {
     symbolSeparator: ' ',
   );
 
+
+  String formatValue({required String str, int maxDecimals = 8}) {
+
+    String formatted =
+        CurrencyFormatter.format(str, formatterSettings, decimal: maxDecimals);
+    if (formatted.contains('.')) {
+      formatted = formatted.replaceAll(RegExp(r'0+$'), '');
+      formatted = formatted.replaceAll(RegExp(r'\.$'), '');
+    }
+    return formatted.trim();
+  }
+
+
   String formatCrypto({required double value, int maxDecimals = 8}) {
     String str = value.toStringAsFixed(maxDecimals);
 

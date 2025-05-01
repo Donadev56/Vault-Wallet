@@ -7,7 +7,6 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_feather_icons/flutter_feather_icons.dart';
 import 'package:flutter_hooks/flutter_hooks.dart';
-import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:intl/intl.dart';
 import 'package:lucide_icons_flutter/lucide_icons.dart';
@@ -29,6 +28,7 @@ import 'package:moonwallet/utils/crypto.dart';
 import 'package:moonwallet/utils/prefs.dart';
 import 'package:moonwallet/utils/themes.dart';
 import 'package:moonwallet/widgets/app_bar_title.dart';
+import 'package:moonwallet/widgets/custom_outlined_filled_textField.dart';
 import 'package:moonwallet/widgets/screen_widgets/crypto_picture.dart';
 import 'package:moonwallet/widgets/func/account_related/show_select_account.dart';
 import 'package:moonwallet/widgets/func/account_related/show_select_last_addr.dart';
@@ -201,7 +201,7 @@ class _SendTransactionScreenState extends ConsumerState<SendTransactionScreen> {
       }
       final to = _addressController.text;
       final from = currentAccount.address;
-      final amount = double.parse(_amountController.text);
+      final amount = _amountController.text;
       final tx = await ethInteractionManager.buildAndSendNativeTransaction(
           BasicTransactionData(
               addressTo: to,
@@ -252,7 +252,7 @@ class _SendTransactionScreenState extends ConsumerState<SendTransactionScreen> {
 
   Future<void> sendTokenTransaction() async {
     try {
-      double amount = double.parse(_amountController.text);
+      final  amount = _amountController.text;
       final to = _addressController.text;
 
       final tx = await ethInteractionManager.buildAndSendStandardToken(
@@ -445,7 +445,9 @@ class _SendTransactionScreenState extends ConsumerState<SendTransactionScreen> {
     double imageSizeOf(double size) {
       return size * uiConfig.value.styles.imageSizeScaleFactor;
     }
-
+ double iconSizeOf(double size) {
+      return size * uiConfig.value.styles.iconSizeScaleFactor;
+    }
     double roundedOf(double size) {
       return size * uiConfig.value.styles.radiusScaleFactor;
     }
@@ -629,11 +631,28 @@ class _SendTransactionScreenState extends ConsumerState<SendTransactionScreen> {
               ),
               Form(
                 key: _formKey,
-                child: TextFormField(
-                  style: textTheme.bodyMedium?.copyWith(
-                      fontSize: fontSizeOf(14),
-                      color: colors.textColor.withOpacity(0.8),
-                      fontWeight: FontWeight.w500),
+
+                child: CustomOutlinedFilledTextFormField(
+                    labelText: "Enter Address",
+                        suffixIcon: IconButton(
+                      onPressed: () async {
+                        final data = await Clipboard.getData("text/plain");
+                        final address = data?.text ?? "";
+                        setState(() {
+                          _addressController.text = address;
+                        });
+                      },
+                      icon: Icon(
+                        FeatherIcons.clipboard,
+                        color: colors.textColor,
+                      ),
+                    ),
+
+                     fontSizeOf: fontSizeOf,
+                iconSizeOf: iconSizeOf,
+                roundedOf: roundedOf,
+                colors: colors,
+             
                   validator: (value) {
                     if (value != null) {
                       if (value.length == 42 &&
@@ -656,37 +675,7 @@ class _SendTransactionScreenState extends ConsumerState<SendTransactionScreen> {
                     });
                   },
                   controller: _addressController,
-                  decoration: InputDecoration(
-                    border: OutlineInputBorder(
-                      borderRadius: BorderRadius.circular(roundedOf(15)),
-                    ),
-                    filled: true,
-                    fillColor: colors.grayColor.withOpacity(0.4),
-                    labelText: "Enter Address",
-                    suffixIcon: IconButton(
-                      onPressed: () async {
-                        final data = await Clipboard.getData("text/plain");
-                        final address = data?.text ?? "";
-                        setState(() {
-                          _addressController.text = address;
-                        });
-                      },
-                      icon: Icon(
-                        FeatherIcons.clipboard,
-                        color: colors.textColor,
-                      ),
-                    ),
-                    labelStyle:
-                        textTheme.bodyMedium?.copyWith(color: colors.textColor),
-                    focusedBorder: OutlineInputBorder(
-                      borderRadius: BorderRadius.circular(roundedOf(5)),
-                      borderSide: BorderSide(color: colors.themeColor),
-                    ),
-                    enabledBorder: OutlineInputBorder(
-                      borderRadius: BorderRadius.circular(roundedOf(5)),
-                      borderSide: BorderSide(color: Colors.transparent),
-                    ),
-                  ),
+                
                 ),
               ),
               Align(
@@ -699,11 +688,13 @@ class _SendTransactionScreenState extends ConsumerState<SendTransactionScreen> {
                       fontWeight: FontWeight.bold),
                 ),
               ),
-              TextFormField(
-                style: textTheme.bodyMedium?.copyWith(
-                    color: colors.textColor.withOpacity(0.8),
-                    fontSize: fontSizeOf(14),
-                    fontWeight: FontWeight.w600),
+              CustomOutlinedFilledTextFormField(
+                          labelText: "Amount ${crypto!.symbol}",
+
+
+                fontSizeOf: fontSizeOf,
+                iconSizeOf: iconSizeOf,
+                roundedOf: roundedOf,
                 validator: (v) {
                   log("Value $v");
                   if (double.parse(v ?? "0") >= nativeBalance) {
@@ -728,14 +719,7 @@ class _SendTransactionScreenState extends ConsumerState<SendTransactionScreen> {
                         .formatDecimal((cryptoAmount * cryptoPrice).toString());
                   });
                 },
-                controller: _amountController,
-                decoration: InputDecoration(
-                  border: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(roundedOf(15)),
-                  ),
-                  filled: true,
-                  fillColor: colors.grayColor.withOpacity(0.4),
-                  labelText: "Amount ${crypto!.symbol}",
+
                   suffixIcon: Container(
                     margin: const EdgeInsets.all(5),
                     child: InkWell(
@@ -776,22 +760,26 @@ class _SendTransactionScreenState extends ConsumerState<SendTransactionScreen> {
                       ),
                     ),
                   ),
-                  labelStyle: textTheme.bodyMedium
-                      ?.copyWith(color: colors.textColor.withOpacity(0.3)),
-                  focusedBorder: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(roundedOf(5)),
-                    borderSide: BorderSide(color: colors.themeColor),
-                  ),
-                  enabledBorder: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(roundedOf(5)),
-                    borderSide: BorderSide(color: Colors.transparent),
-                  ),
-                ),
+                controller: _amountController,
+               
+               colors: colors,
               ),
-              TextField(
-                style: textTheme.bodyMedium?.copyWith(
-                    color: colors.textColor.withOpacity(0.8),
-                    fontWeight: FontWeight.w600),
+              CustomOutlinedFilledTextFormField(
+                                  labelText: "Amount USD",
+  suffixIcon: SizedBox(
+                    width: 35,
+                    child: Center(
+                      child: Text(
+                        "USD",
+                        style: textTheme.bodyMedium?.copyWith(
+                            color: colors.textColor, fontSize: fontSizeOf(15)),
+                      ),
+                    ),
+                  ),
+                  fontSizeOf: fontSizeOf,
+                iconSizeOf: iconSizeOf,
+                roundedOf: roundedOf,
+                colors: colors,
                 keyboardType: TextInputType.number,
                 onChanged: (value) {
                   if (value.isEmpty) {
@@ -806,35 +794,7 @@ class _SendTransactionScreenState extends ConsumerState<SendTransactionScreen> {
                   });
                 },
                 controller: _amountUsdController,
-                decoration: InputDecoration(
-                  border: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(roundedOf(15)),
-                  ),
-                  filled: true,
-                  fillColor: colors.grayColor.withOpacity(0.4),
-                  labelText: "Amount USD",
-                  suffixIcon: SizedBox(
-                    width: 35,
-                    child: Center(
-                      child: Text(
-                        "USD",
-                        style: textTheme.bodyMedium?.copyWith(
-                            color: colors.textColor, fontSize: fontSizeOf(15)),
-                      ),
-                    ),
-                  ),
-                  alignLabelWithHint: false,
-                  labelStyle: textTheme.bodyMedium
-                      ?.copyWith(color: colors.textColor.withOpacity(0.3)),
-                  focusedBorder: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(roundedOf(5)),
-                    borderSide: BorderSide(color: colors.themeColor),
-                  ),
-                  enabledBorder: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(roundedOf(5)),
-                    borderSide: BorderSide(color: Colors.transparent),
-                  ),
-                ),
+           
               ),
               Align(
                 alignment: Alignment.topLeft,

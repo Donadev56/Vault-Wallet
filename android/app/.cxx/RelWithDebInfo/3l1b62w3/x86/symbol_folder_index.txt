@@ -1,0 +1,1 @@
+/Users/macbook/Documents/moon_wallet/vault/build/app/intermediates/cxx/RelWithDebInfo/3l1b62w3/obj/x86

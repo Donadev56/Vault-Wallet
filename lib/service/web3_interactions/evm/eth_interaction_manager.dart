@@ -1,3 +1,4 @@
+import 'package:decimal/decimal.dart';
 import 'package:flutter/material.dart';
 import 'package:moonwallet/custom/web3_webview/lib/utils/loading.dart';
 import 'package:moonwallet/logger/logger.dart';
@@ -213,8 +214,10 @@ class EthInteractionManager {
     try {
       final nativeBalance = await getBalance(data.account, data.crypto)
           .withLoading(context, colors);
+      final nativeBalanceDecimal = Decimal.parse(nativeBalance.toStringAsFixed(18));
+      final amountDecimal = Decimal.parse(data.amount);
 
-      if (nativeBalance <= data.amount) {
+      if (nativeBalanceDecimal <= amountDecimal) {
         throw Exception("Insufficient balance");
       }
 
@@ -298,9 +301,10 @@ class EthInteractionManager {
 
       final tokenBalance = requests[0] as double;
       final gasPrice = requests[1] as BigInt;
-      double roundedAmount = double.parse(amount.toStringAsFixed(8));
-
-      if (roundedAmount > tokenBalance) {
+      final tokenBalanceDecimal = Decimal.parse(tokenBalance.toStringAsFixed(18));
+      final amountDecimal = Decimal.parse(amount);
+      
+      if (amountDecimal > tokenBalanceDecimal) {
         throw Exception("Insufficient balance");
       }
 
@@ -309,7 +313,7 @@ class EthInteractionManager {
           ?.currentPrice;
 
       final valueWei =
-          EthUtils().ethToBigInt(roundedAmount, data.crypto.decimals);
+          EthUtils().ethToBigInt(amount, data.crypto.decimals);
 
       log("valueWei $valueWei");
 
@@ -320,7 +324,7 @@ class EthInteractionManager {
           cryptoPrice: cryptoPrice ?? 0,
           gasHex: EthUtils().bigIntToHex(BigInt.from(0)),
           valueHex: valueHex,
-          valueEth: roundedAmount,
+          valueEth: amount,
           valueBigInt: valueWei,
           account: data.account,
           addressTo: to,
@@ -355,13 +359,11 @@ class EthInteractionManager {
         colors: colors,
         context: context,
       );
-
-      final confirmed = confirmedResponse.ok;
-
-      if (!confirmed) {
+      if (confirmedResponse == null || !confirmedResponse.ok) {
         throw Exception("Transaction rejected by user");
-      }
 
+      }
+   
       final transaction = Transaction(
         from: EthereumAddress.fromHex(data.account.address),
         to: EthereumAddress.fromHex(data.addressTo),

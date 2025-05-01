@@ -545,20 +545,20 @@ class History {
   }
 }
 
-class UserRequestResponse {
+class UserCustomGasRequestResponse {
   final bool ok;
   final BigInt? gasPrice;
   final BigInt? gasLimit;
 
-  UserRequestResponse({
+  UserCustomGasRequestResponse({
     required this.ok,
     this.gasPrice,
     this.gasLimit,
   });
 
   // Convert a JSON Map to a HistoryItem instance
-  factory UserRequestResponse.fromJson(Map<String, dynamic> json) {
-    return UserRequestResponse(
+  factory UserCustomGasRequestResponse.fromJson(Map<String, dynamic> json) {
+    return UserCustomGasRequestResponse(
       ok: json['ok'],
       gasPrice: BigInt.parse(json['gasPrice']),
       gasLimit: BigInt.parse(json['gasLimit']),
@@ -785,6 +785,7 @@ class AppColors {
 }
 
 class Option {
+  final ShapeBorder? shape ;
   final String title;
   final Widget icon;
   final double iconSize;
@@ -806,6 +807,7 @@ class Option {
       this.subtitle,
       this.splashColor,
       this.onPressed,
+      this.shape ,
       this.iconSize = 30});
 
   Map<String, dynamic> toJson() {
@@ -1162,7 +1164,7 @@ class Roi {
 
 class BasicTransactionData {
   final String addressTo;
-  final double amount;
+  final String amount;
   final Crypto crypto;
   final PublicData account;
 
@@ -1182,7 +1184,7 @@ class TransactionToConfirm {
   final String? gasHex;
   final BigInt? gasBigint;
   final String? data;
-  final double valueEth;
+  final String valueEth;
   final double cryptoPrice;
   final BigInt gasPrice;
 
@@ -1390,7 +1392,7 @@ class FiatCurrency {
 }
 
 class TransferData {
-  final double amountInEth;
+  final String amountInEth;
   final PublicData account;
   final Crypto crypto;
   final BigInt gas;

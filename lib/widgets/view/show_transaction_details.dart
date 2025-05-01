@@ -72,7 +72,7 @@ void showTransactionDetails(
                           style: textTheme.bodyMedium?.copyWith(
                               color: colors.textColor,
                               fontWeight: FontWeight.bold,
-                              fontSize: 21),
+                              fontSize: 17),
                         ),
                         subtitle: Text(
                           currentNetwork.symbol,

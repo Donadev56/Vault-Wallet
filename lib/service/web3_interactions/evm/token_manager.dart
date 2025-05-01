@@ -271,12 +271,10 @@ class TokenManager {
         colors: colors,
       );
 
-      final confirmed = confirmedResponse.ok;
-
-      if (!confirmed) {
+     if (confirmedResponse == null || !confirmedResponse.ok) {
         throw Exception("Transaction rejected by user");
-      }
 
+      }
       final Transaction transaction = Transaction.callContract(
         contract: contract,
         function: transferFunction,

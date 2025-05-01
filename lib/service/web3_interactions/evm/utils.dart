@@ -1,5 +1,6 @@
 import 'dart:typed_data';
 
+import 'package:decimal/decimal.dart';
 import 'package:moonwallet/logger/logger.dart';
 
 class EthUtils {
@@ -22,6 +23,9 @@ class EthUtils {
     return result;
   }
 
+
+
+
   BigInt parseHex(String hex) {
     log("Parsing hex $hex");
     if (hex.startsWith("0x")) {
@@ -34,9 +38,12 @@ class EthUtils {
     return BigInt.parse(hex, radix: 16);
   }
 
-  BigInt ethToBigInt(double valueEth, int decimals) {
-    return (BigInt.from(valueEth * 1e8) * BigInt.from(10).pow(decimals)) ~/
-        BigInt.from(100000000);
+  BigInt ethToBigInt(String str, int decimals) {
+    final value = Decimal.parse(str);
+    final factor = Decimal.fromInt(10).pow(decimals);
+    final result = value * factor.toDecimal();
+    log("Multiplication result $result");
+    return BigInt.parse((result).toStringAsFixed(0));
   }
 
   String bigIntToHex(BigInt value) {

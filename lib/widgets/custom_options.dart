@@ -99,7 +99,7 @@ class CustomOptionWidget extends StatelessWidget {
                             contentPadding: listTitlePadding,
                             tileColor: option.tileColor ?? tileColor,
                             splashColor: splashColor ?? option.splashColor,
-                            shape: shapeBorder,
+                            shape:option.shape ?? shapeBorder,
                             onTap: () {
                               vibrate();
                               if (onTap != null) {
