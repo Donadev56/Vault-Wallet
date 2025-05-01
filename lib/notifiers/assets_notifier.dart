@@ -1,8 +1,8 @@
+import 'package:decimal/decimal.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:internet_connection_checker_plus/internet_connection_checker_plus.dart';
 import 'package:moonwallet/logger/logger.dart';
 import 'package:moonwallet/notifiers/providers.dart';
-import 'package:moonwallet/service/web3_interactions/evm/eth_interaction_manager.dart';
+import 'package:moonwallet/service/rpc_service.dart';
 import 'package:moonwallet/types/types.dart';
 
 class AssetsNotifier extends AsyncNotifier<List<Asset>> {
@@ -78,8 +78,11 @@ class AssetsNotifier extends AsyncNotifier<List<Asset>> {
   Future<Map<String, dynamic>> getAssetData(Crypto crypto, PublicData account,
       List<CryptoMarketData> listTokenData) async {
     try {
-      final cryptoBalance =
-          await EthInteractionManager().getBalance(account, crypto);
+      final cryptoBalance = await RpcService().getBalance(
+        crypto,
+        account,
+      );
+
       final tokenData = listTokenData
           .where((d) =>
               d.id.toLowerCase().trim() ==
@@ -93,12 +96,13 @@ class AssetsNotifier extends AsyncNotifier<List<Asset>> {
 
       final cryptoPrice = tokenData?.currentPrice ?? 0;
 
-      final balanceUsd = cryptoPrice * balance;
+      final balanceUsd =
+          Decimal.parse(balance) * Decimal.parse(cryptoPrice.toString());
 
       return {
         "cryptoBalance": Asset(
             crypto: crypto,
-            balanceUsd: balanceUsd,
+            balanceUsd: balanceUsd.toString(),
             balanceCrypto: balance,
             cryptoTrendPercent: trend,
             cryptoPrice: cryptoPrice,

@@ -23,9 +23,6 @@ class EthUtils {
     return result;
   }
 
-
-
-
   BigInt parseHex(String hex) {
     log("Parsing hex $hex");
     if (hex.startsWith("0x")) {

@@ -684,8 +684,8 @@ class TransactionListResponseType {
 
 class Asset {
   final Crypto crypto;
-  final double balanceUsd;
-  final double balanceCrypto;
+  final String balanceUsd;
+  final String balanceCrypto;
   final double cryptoTrendPercent;
   final double cryptoPrice;
   final CryptoMarketData? marketData;
@@ -702,8 +702,8 @@ class Asset {
   factory Asset.fromJson(Map<String, dynamic> json) {
     return Asset(
         crypto: Crypto.fromJson(json['crypto']),
-        balanceUsd: json['balanceUsd'] ?? 0,
-        balanceCrypto: json['balanceCrypto'] ?? 0,
+        balanceUsd: json['balanceUsd'] ?? "0",
+        balanceCrypto: json['balanceCrypto'] ?? "0",
         cryptoTrendPercent: json['cryptoTrendPercent'] ?? 0,
         cryptoPrice: json['cryptoPrice'] ?? 0,
         marketData: json["marketData"] != null
@@ -785,7 +785,7 @@ class AppColors {
 }
 
 class Option {
-  final ShapeBorder? shape ;
+  final ShapeBorder? shape;
   final String title;
   final Widget icon;
   final double iconSize;
@@ -807,7 +807,7 @@ class Option {
       this.subtitle,
       this.splashColor,
       this.onPressed,
-      this.shape ,
+      this.shape,
       this.iconSize = 30});
 
   Map<String, dynamic> toJson() {
@@ -883,8 +883,8 @@ class TransactionDetails {
 class WidgetInitialData {
   final Crypto crypto;
   final AppColors colors;
-  final double? initialBalanceUsd;
-  final double? initialBalanceCrypto;
+  final String? initialBalanceUsd;
+  final String? initialBalanceCrypto;
   final PublicData account;
   final double? cryptoPrice;
 

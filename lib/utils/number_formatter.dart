@@ -18,9 +18,7 @@ class NumberFormatter {
     symbolSeparator: ' ',
   );
 
-
   String formatValue({required String str, int maxDecimals = 8}) {
-
     String formatted =
         CurrencyFormatter.format(str, formatterSettings, decimal: maxDecimals);
     if (formatted.contains('.')) {
@@ -29,7 +27,6 @@ class NumberFormatter {
     }
     return formatted.trim();
   }
-
 
   String formatCrypto({required double value, int maxDecimals = 8}) {
     String str = value.toStringAsFixed(maxDecimals);

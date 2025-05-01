@@ -4,7 +4,7 @@ import 'package:moonwallet/types/types.dart';
 class CustomOutlinedFilledTextFormField extends StatelessWidget {
   final TextEditingController? controller;
   final AppColors colors;
-  final Color? filledColor ;
+  final Color? filledColor;
   final String? hintText;
   final String? labelText;
   final double rounded;
@@ -62,14 +62,14 @@ class CustomOutlinedFilledTextFormField extends StatelessWidget {
           contentPadding: contentPadding,
           prefixIcon: prefixIcon,
           suffixIcon: suffixIcon,
-                    focusedBorder: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(roundedOf(5)),
-                    borderSide: BorderSide(color: colors.themeColor),
-                  ),
-                  enabledBorder: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(roundedOf(5)),
-                    borderSide: BorderSide(color: Colors.transparent),
-                  ),
+          focusedBorder: OutlineInputBorder(
+            borderRadius: BorderRadius.circular(roundedOf(5)),
+            borderSide: BorderSide(color: colors.themeColor),
+          ),
+          enabledBorder: OutlineInputBorder(
+            borderRadius: BorderRadius.circular(roundedOf(5)),
+            borderSide: BorderSide(color: Colors.transparent),
+          ),
           fillColor: filledColor ?? colors.secondaryColor,
           filled: true,
           hintText: hintText,

@@ -1,3 +1,4 @@
+import 'package:decimal/decimal.dart';
 import 'package:flutter/material.dart';
 import 'package:moonwallet/custom/web3_webview/lib/utils/loading.dart';
 import 'package:moonwallet/logger/logger.dart';
@@ -70,7 +71,7 @@ class TokenManager {
     }
   }
 
-  Future<double> getTokenBalance(Crypto token, String address) async {
+  Future<String> getTokenBalance(Crypto token, String address) async {
     try {
       if (token.network?.rpcUrls == null || token.rpcUrls?.isEmpty == true) {
         throw Exception('RPC URL  is not provided');
@@ -79,7 +80,7 @@ class TokenManager {
       if (token.contractAddress == null ||
           (token.contractAddress as String).isEmpty) {
         logError('Contract address is not provided');
-        return 0;
+        return "0";
       }
       final client =
           Web3Client(token.network?.rpcUrls?.first ?? "", httpClient);
@@ -91,10 +92,13 @@ class TokenManager {
       if (result == null) {
         throw "No result found";
       }
-      return ((result) / BigInt.from(10).pow(token.decimals));
+      Decimal resultDecimal = (Decimal.fromBigInt(result) /
+              Decimal.fromInt(10).pow(token.decimals).toDecimal())
+          .toDecimal();
+      return resultDecimal.toString();
     } catch (e) {
       logError(e.toString());
-      return 0;
+      return "0";
     }
   }
 
@@ -203,16 +207,17 @@ class TokenManager {
 
   _validateNativeBalance(BigInt estimatedGas, TransactionToConfirm data) async {
     final nativeTokenBalance = await EthInteractionManager()
-        .getBalance(data.account, data.crypto.network!);
+        .getUserBalance(data.account, data.crypto.network!);
+    final nativeBalanceDecimal = Decimal.parse(nativeTokenBalance);
 
     final transactionFee =
         (estimatedGas * data.gasPrice) / BigInt.from(10).pow(18);
 
     log("Fees ${transactionFee.toStringAsFixed(8)}");
 
-    if (nativeTokenBalance < transactionFee) {
+    if (nativeBalanceDecimal.toDouble() < transactionFee) {
       throw Exception(
-          "Insufficient ${data.crypto.network?.symbol} balance , add ${(transactionFee - nativeTokenBalance).toStringAsFixed(8)}");
+          "Insufficient ${data.crypto.network?.symbol} balance , add ${(transactionFee - nativeBalanceDecimal.toDouble()).toStringAsFixed(8)}");
     }
   }
 
@@ -271,9 +276,8 @@ class TokenManager {
         colors: colors,
       );
 
-     if (confirmedResponse == null || !confirmedResponse.ok) {
+      if (confirmedResponse == null || !confirmedResponse.ok) {
         throw Exception("Transaction rejected by user");
-
       }
       final Transaction transaction = Transaction.callContract(
         contract: contract,

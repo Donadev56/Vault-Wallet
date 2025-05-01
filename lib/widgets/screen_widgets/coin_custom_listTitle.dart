@@ -20,8 +20,8 @@ class CoinCustomListTitle extends StatelessWidget {
   final double cryptoPrice;
   final double trend;
   final bool isCryptoHidden;
-  final double tokenBalance;
-  final double usdBalance;
+  final String tokenBalance;
+  final String usdBalance;
 
   const CoinCustomListTitle(
       {super.key,
@@ -147,7 +147,12 @@ class CoinCustomListTitle extends StatelessWidget {
               mainAxisAlignment: MainAxisAlignment.spaceAround,
               crossAxisAlignment: CrossAxisAlignment.end,
               children: [
-                Text(isCryptoHidden ? "***" : formatCrypto(tokenBalance).trim(),
+                Text(
+                    isCryptoHidden
+                        ? "***"
+                        : NumberFormatter()
+                            .formatValue(str: tokenBalance)
+                            .trim(),
                     overflow: TextOverflow.ellipsis,
                     maxLines: 1,
                     style: textTheme.bodyMedium?.copyWith(
@@ -157,7 +162,7 @@ class CoinCustomListTitle extends StatelessWidget {
                 Text(
                     isCryptoHidden
                         ? "***"
-                        : "\$${formatUsd(usdBalance).trim()}",
+                        : "\$${NumberFormatter().formatDecimal(usdBalance, maxDecimals: 2,).trim()}",
                     overflow: TextOverflow.ellipsis,
                     maxLines: 1,
                     style: textTheme.bodySmall?.copyWith(

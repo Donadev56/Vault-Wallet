@@ -13,7 +13,7 @@ class BalanceDatabase {
   String get dataKey =>
       "user/${account.address.trim().toLowerCase()}/crypto/$cryptoId/balance-database";
 
-  Future<bool> saveData(double balance) async {
+  Future<bool> saveData(String balance) async {
     try {
       await _db.saveDynamicData(data: balance, key: dataKey);
       return true;
@@ -23,13 +23,13 @@ class BalanceDatabase {
     }
   }
 
-  Future<double> getBalance() async {
+  Future<String> getBalance() async {
     try {
       final savedData = await _db.getDynamicData(key: dataKey);
-      return savedData ?? 0.0;
+      return savedData is double ? savedData.toString() : savedData ?? "0";
     } catch (e) {
       logError(e.toString());
-      return 0.0;
+      return "0";
     }
   }
 }

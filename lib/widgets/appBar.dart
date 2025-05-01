@@ -28,7 +28,7 @@ class CustomAppBar extends ConsumerWidget implements PreferredSizeWidget {
   final Color surfaceTintColor;
   final List<Crypto> availableCryptos;
   final List<PublicData> accounts;
-  final double totalBalanceUsd;
+  final String totalBalanceUsd;
   final Future<bool> Function(String keyId) deleteWallet;
   final PublicData currentAccount;
   final ActionWithIndexType changeAccount;

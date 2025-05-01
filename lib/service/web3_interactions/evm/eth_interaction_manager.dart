@@ -21,7 +21,7 @@ class EthInteractionManager {
   final walletStorage = WalletDatabase();
   final priceManager = PriceManager();
   final tokenManager = TokenManager();
-  Future<double?> fetchBalanceUsingRpc(
+  Future<String?> fetchBalanceUsingRpc(
       PublicData account, Crypto crypto) async {
     try {
       final address = account.address;
@@ -36,20 +36,20 @@ class EthInteractionManager {
 
       if (address.isEmpty || rpc == null || rpc.isEmpty) {
         log("address or rpc is empty");
-        return 0;
+        return "0";
       }
       var ethClient = Web3Client(rpc, httpClient);
       final balance =
           await ethClient.getBalance(EthereumAddress.fromHex(address));
       final balanceEther = balance.getValueInUnit(EtherUnit.ether);
-      return balanceEther;
+      return balanceEther.toString();
     } catch (e) {
       logError(e.toString());
       return null;
     }
   }
 
-  Future<double> getBalance(PublicData account, Crypto crypto) async {
+  Future<String> getUserBalance(PublicData account, Crypto crypto) async {
     try {
       final db = BalanceDatabase(account: account, crypto: crypto);
       final savedBalanceFunc = db.getBalance();
@@ -62,7 +62,7 @@ class EthInteractionManager {
         return savedBalance;
       }
 
-      double balance = 0;
+      String balance = "0";
 
       try {
         final currentBalance = await fetchBalanceUsingRpc(account, crypto);
@@ -79,7 +79,7 @@ class EthInteractionManager {
       return balance;
     } catch (e) {
       logError(e.toString());
-      return 0;
+      return "0";
     }
   }
 
@@ -212,9 +212,9 @@ class EthInteractionManager {
   Future<String?> buildAndSendNativeTransaction(
       BasicTransactionData data, AppColors colors, BuildContext context) async {
     try {
-      final nativeBalance = await getBalance(data.account, data.crypto)
+      final nativeBalance = await getUserBalance(data.account, data.crypto)
           .withLoading(context, colors);
-      final nativeBalanceDecimal = Decimal.parse(nativeBalance.toStringAsFixed(18));
+      final nativeBalanceDecimal = Decimal.parse(nativeBalance);
       final amountDecimal = Decimal.parse(data.amount);
 
       if (nativeBalanceDecimal <= amountDecimal) {
@@ -295,15 +295,16 @@ class EthInteractionManager {
       }
 
       final requests = await Future.wait([
-        getBalance(data.account, data.crypto),
+        getUserBalance(data.account, data.crypto),
         getGasPrice(token.network?.rpcUrls?.first ?? ""),
       ]).withLoading(context, colors);
 
-      final tokenBalance = requests[0] as double;
+      final tokenBalance = requests[0] as String ;
       final gasPrice = requests[1] as BigInt;
-      final tokenBalanceDecimal = Decimal.parse(tokenBalance.toStringAsFixed(18));
+      final tokenBalanceDecimal =
+          Decimal.parse(tokenBalance);
       final amountDecimal = Decimal.parse(amount);
-      
+
       if (amountDecimal > tokenBalanceDecimal) {
         throw Exception("Insufficient balance");
       }
@@ -312,8 +313,7 @@ class EthInteractionManager {
               .getTokenMarketData(data.crypto.network?.cgSymbol ?? ""))
           ?.currentPrice;
 
-      final valueWei =
-          EthUtils().ethToBigInt(amount, data.crypto.decimals);
+      final valueWei = EthUtils().ethToBigInt(amount, data.crypto.decimals);
 
       log("valueWei $valueWei");
 
@@ -361,9 +361,8 @@ class EthInteractionManager {
       );
       if (confirmedResponse == null || !confirmedResponse.ok) {
         throw Exception("Transaction rejected by user");
-
       }
-   
+
       final transaction = Transaction(
         from: EthereumAddress.fromHex(data.account.address),
         to: EthereumAddress.fromHex(data.addressTo),

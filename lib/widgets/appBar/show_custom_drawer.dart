@@ -27,7 +27,7 @@ void showCustomDrawer({
   required Future<bool> Function(File) changeProfileImage,
   required AppColors colors,
   required List<Crypto> availableCryptos,
-  required double totalBalanceUsd,
+  required String totalBalanceUsd,
   required PublicData account,
   required Future<void> Function(PublicData account) deleteWallet,
   required bool canUseBio,
@@ -53,14 +53,20 @@ void showCustomDrawer({
   bool useBio = canUseBio;
   double bigRadius = 20;
   double smallRadius = 5;
-  final BorderRadius borderRadiusTop =  BorderRadius.only(topLeft: Radius.circular(roundedOf(bigRadius)), topRight: Radius.circular(roundedOf(bigRadius)), bottomLeft: Radius.circular(roundedOf(smallRadius), ), bottomRight: Radius.circular(roundedOf(smallRadius)));
-    final BorderRadius borderRadiusBottom =  BorderRadius.only(topLeft: Radius.circular(roundedOf(smallRadius)), topRight: Radius.circular(roundedOf(smallRadius)), bottomLeft: Radius.circular(roundedOf(bigRadius), ), bottomRight: Radius.circular(roundedOf(bigRadius)));
-
-
-
-  String formatUsd(double value) {
-    return NumberFormatter().formatUsd(value: value);
-  }
+  final BorderRadius borderRadiusTop = BorderRadius.only(
+      topLeft: Radius.circular(roundedOf(bigRadius)),
+      topRight: Radius.circular(roundedOf(bigRadius)),
+      bottomLeft: Radius.circular(
+        roundedOf(smallRadius),
+      ),
+      bottomRight: Radius.circular(roundedOf(smallRadius)));
+  final BorderRadius borderRadiusBottom = BorderRadius.only(
+      topLeft: Radius.circular(roundedOf(smallRadius)),
+      topRight: Radius.circular(roundedOf(smallRadius)),
+      bottomLeft: Radius.circular(
+        roundedOf(bigRadius),
+      ),
+      bottomRight: Radius.circular(roundedOf(bigRadius)));
 
   showAvatarModalBottomSheet(
       avatarChild: currentImage != null
@@ -205,7 +211,7 @@ void showCustomDrawer({
                               children: [
                                 Text(
                                   !isHidden
-                                      ? "\$${(formatUsd(totalBalanceUsd))}"
+                                      ? "\$${(NumberFormatter().formatDecimal(totalBalanceUsd, maxDecimals: 2))}"
                                       : "***",
                                   style: textTheme.bodySmall?.copyWith(
                                       color: colors.textColor,
@@ -300,8 +306,7 @@ void showCustomDrawer({
                             options: [
                               Option(
                                   shape: RoundedRectangleBorder(
-                                    borderRadius: borderRadiusTop
-                                  ),
+                                      borderRadius: borderRadiusTop),
                                   tileColor: colors.secondaryColor,
                                   title: "Edit profile picture",
                                   icon: Icon(
@@ -318,10 +323,8 @@ void showCustomDrawer({
                                       color: colors.textColor,
                                       fontSize: fontSizeOf(14))),
                               Option(
-                              shape: RoundedRectangleBorder(
-                                                                    borderRadius: borderRadiusBottom
-
-                              ),
+                                  shape: RoundedRectangleBorder(
+                                      borderRadius: borderRadiusBottom),
                                   tileColor: colors.secondaryColor,
                                   title: "More Settings",
                                   icon: Icon(
@@ -370,9 +373,7 @@ void showCustomDrawer({
                             internalElementSpacing: 10,
                             shapeBorder: RoundedRectangleBorder(
                                 borderRadius:
-                                    BorderRadius.circular(roundedOf(10))
-                                    
-                                  ),
+                                    BorderRadius.circular(roundedOf(10))),
                             backgroundColor: Colors.transparent,
                             spaceNameStyle: textTheme.bodySmall?.copyWith(
                                   color: colors.textColor,
@@ -380,10 +381,8 @@ void showCustomDrawer({
                                 GoogleFonts.roboto(color: colors.textColor),
                             options: [
                               Option(
-                                shape: RoundedRectangleBorder(
-                                                                      borderRadius: borderRadiusTop
-
-                                ),
+                                  shape: RoundedRectangleBorder(
+                                      borderRadius: borderRadiusTop),
                                   tileColor: colors.secondaryColor,
                                   title: "Backup",
                                   icon: Icon(
@@ -398,10 +397,8 @@ void showCustomDrawer({
                                       color: colors.textColor,
                                       fontSize: fontSizeOf(14))),
                               Option(
-                                shape: RoundedRectangleBorder(
-                                                                      borderRadius: borderRadiusBottom
-
-                                ),
+                                  shape: RoundedRectangleBorder(
+                                      borderRadius: borderRadiusBottom),
                                   tileColor: colors.secondaryColor,
                                   title: "Change password",
                                   icon: Icon(

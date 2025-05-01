@@ -11,7 +11,7 @@ import 'package:moonwallet/widgets/func/transactions/transaction_container.dart'
 import 'package:moonwallet/widgets/screen_widgets/crypto_picture.dart';
 
 Future<UserCustomGasRequestResponse?> askUserForConfirmation({
- required Crypto crypto,
+  required Crypto crypto,
   required TransactionToConfirm txData,
   required BuildContext context,
   required AppColors colors,
@@ -19,7 +19,8 @@ Future<UserCustomGasRequestResponse?> askUserForConfirmation({
   try {
     int currentIndex = 1;
     bool canUseCustomGas = false;
-    UserCustomGasRequestResponse gasConfig = UserCustomGasRequestResponse(ok: false );
+    UserCustomGasRequestResponse gasConfig =
+        UserCustomGasRequestResponse(ok: false);
 
     final formatter = NumberFormatter();
 
@@ -96,7 +97,6 @@ Future<UserCustomGasRequestResponse?> askUserForConfirmation({
                           onPressed: () {
                             Navigator.pop(
                               confirmationCtx,
-                             
                             );
                           },
                           icon: Icon(FeatherIcons.xCircle,
@@ -105,38 +105,42 @@ Future<UserCustomGasRequestResponse?> askUserForConfirmation({
                       ],
                     ),
                   ),
-                 Align(
-                  alignment: Alignment.center,
-                  child: Material(
-                    color: Colors.transparent,
-                    child: Padding(padding: const EdgeInsets.all(10),
-                    child:  ListTile(
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(10)
-                      ),
-                      tileColor: colors.secondaryColor,
-                    leading: CryptoPicture(crypto: crypto, size: 40, colors: colors, primaryColor: colors.secondaryColor,),
-
-                    title: Text(
-                           "${formatter.formatValue(str:    ( formatter.formatDecimal( txData.valueEth)))} ${crypto.symbol}",
+                  Align(
+                    alignment: Alignment.center,
+                    child: Material(
+                      color: Colors.transparent,
+                      child: Padding(
+                        padding: const EdgeInsets.all(10),
+                        child: ListTile(
+                          shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(10)),
+                          tileColor: colors.secondaryColor,
+                          leading: CryptoPicture(
+                            crypto: crypto,
+                            size: 40,
+                            colors: colors,
+                            primaryColor: colors.secondaryColor,
+                          ),
+                          title: Text(
+                            "${formatter.formatValue(str: (formatter.formatDecimal(txData.valueEth)))} ${crypto.symbol}",
+                            overflow: TextOverflow.ellipsis,
+                            maxLines: 1,
+                            style: textTheme.bodyMedium?.copyWith(
+                                color: colors.textColor,
+                                fontWeight: FontWeight.w900,
                                 overflow: TextOverflow.ellipsis,
-                                maxLines: 1,
-                                style: textTheme.bodyMedium?.copyWith(
-                                    color: colors.textColor,
-                                    fontWeight: FontWeight.w900,
-                                    overflow: TextOverflow.ellipsis,
-                                    fontSize: 17),
-                              ),
-                      subtitle: Text("${crypto.isNative ? crypto.name : crypto.network?.name}",
-                       style: textTheme.bodyMedium?.copyWith(
-                                    color: colors.textColor.withOpacity(0.5),
-                                    fontWeight: FontWeight.w900,
-                                    fontSize: 15)
+                                fontSize: 17),
+                          ),
+                          subtitle: Text(
+                              "${crypto.isNative ? crypto.name : crypto.network?.name}",
+                              style: textTheme.bodyMedium?.copyWith(
+                                  color: colors.textColor.withOpacity(0.5),
+                                  fontWeight: FontWeight.w900,
+                                  fontSize: 15)),
+                        ),
                       ),
-                  ),),
+                    ),
                   ),
-                 ) 
-                 ,
                   SizedBox(height: 10),
                   TransactionContainer(
                     colors: colors,
@@ -157,7 +161,9 @@ Future<UserCustomGasRequestResponse?> askUserForConfirmation({
                             ),
                           ],
                         ),
-                        SizedBox(height: 3,),
+                        SizedBox(
+                          height: 3,
+                        ),
                         Row(
                           mainAxisAlignment: MainAxisAlignment.spaceBetween,
                           children: [
@@ -176,7 +182,9 @@ Future<UserCustomGasRequestResponse?> askUserForConfirmation({
                       ],
                     ),
                   ),
-                SizedBox(height: 15,),
+                  SizedBox(
+                    height: 15,
+                  ),
                   Container(
                     margin: const EdgeInsets.all(10),
                     child: Row(
@@ -187,16 +195,15 @@ Future<UserCustomGasRequestResponse?> askUserForConfirmation({
                         final gas = gasData[index];
                         if (index == 3) {
                           return InkWell(
-                            onTap: () async{
-
-                              final customGas = await showCustomGasModal(context: context, colors: colors) ;
+                            onTap: () async {
+                              final customGas = await showCustomGasModal(
+                                  context: context, colors: colors);
                               if (customGas != null) {
                                 gasConfig = customGas;
                                 setModalState(() {
-                                  canUseCustomGas = true ;
+                                  canUseCustomGas = true;
                                 });
                               }
-
                             },
                             child: Container(
                               decoration: BoxDecoration(
@@ -274,8 +281,9 @@ Future<UserCustomGasRequestResponse?> askUserForConfirmation({
                       }),
                     ),
                   ),
-                            SizedBox(height: 40,),
-
+                  SizedBox(
+                    height: 40,
+                  ),
                   Container(
                     width: width,
                     margin:
@@ -290,9 +298,7 @@ Future<UserCustomGasRequestResponse?> askUserForConfirmation({
                         borderRadius: BorderRadius.circular(30),
                         onTap: () {
                           if (canUseCustomGas) {
-                            Navigator.pop(
-                                context,
-                                gasConfig);
+                            Navigator.pop(context, gasConfig);
                           } else {
                             Navigator.pop(
                                 context,
@@ -325,9 +331,9 @@ Future<UserCustomGasRequestResponse?> askUserForConfirmation({
       },
     );
 
-    return result ;
+    return result;
   } catch (e) {
     logError(e.toString());
-    return null ;
+    return null;
   }
 }

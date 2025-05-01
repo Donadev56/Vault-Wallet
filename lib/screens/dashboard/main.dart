@@ -2,6 +2,7 @@
 
 import 'dart:async';
 import 'dart:io';
+import 'package:decimal/decimal.dart';
 import 'package:loading_animation_widget/loading_animation_widget.dart';
 import 'package:moonwallet/custom/refresh/check_mark.dart';
 import 'package:moonwallet/notifiers/providers.dart';
@@ -120,7 +121,7 @@ class _MainDashboardScreenState extends ConsumerState<MainDashboardScreen>
     final assets = useState<List<Asset>>([]);
     final initialAssets = useState<List<Asset>>([]);
     final accounts = useState<List<PublicData>>([]);
-    final totalBalance = useState<double>(0);
+    final totalBalance = useState<String>("0");
     final profileImage = useState<File?>(null);
     final uiConfig = useState<AppUIConfig>(AppUIConfig.defaultConfig);
     final secureConfig = useState<AppSecureConfig>(AppSecureConfig());
@@ -146,6 +147,14 @@ class _MainDashboardScreenState extends ConsumerState<MainDashboardScreen>
       return null;
     }, [profileImageAsync]);
 
+    void updateTotalBalance(List<Asset> assets) {
+      Decimal balance = Decimal.fromInt(0);
+      for (final asset in assets) {
+        balance += Decimal.parse(asset.balanceUsd);
+      }
+      totalBalance.value = balance.toString();
+    }
+
     useEffect(() {
       savedAssetsProvider.when(
         data: (data) {
@@ -153,11 +162,7 @@ class _MainDashboardScreenState extends ConsumerState<MainDashboardScreen>
             initialAssets.value = [...data];
             assets.value = [...data];
             isLoading = false;
-            double balance = 0;
-            for (final asset in assets.value) {
-              balance += asset.balanceUsd;
-            }
-            totalBalance.value = balance;
+            updateTotalBalance(assets.value);
           } else {
             setState(() {
               isLoading = true;
@@ -181,12 +186,9 @@ class _MainDashboardScreenState extends ConsumerState<MainDashboardScreen>
 
           initialAssets.value = [...data];
           assets.value = [...data];
+
           isLoading = false;
-          double balance = 0;
-          for (final asset in assets.value) {
-            balance += asset.balanceUsd;
-          }
-          totalBalance.value = balance;
+          updateTotalBalance(assets.value);
         },
         loading: () {},
         error: (error, stackTrace) {
@@ -616,11 +618,7 @@ class _MainDashboardScreenState extends ConsumerState<MainDashboardScreen>
                 if (result.isNotEmpty) {
                   initialAssets.value = result;
                   assets.value = result;
-                  double balance = 0;
-                  for (final asset in assets.value) {
-                    balance += asset.balanceUsd;
-                  }
-                  totalBalance.value = balance;
+                  updateTotalBalance(assets.value);
                 }
               }
             },
@@ -678,7 +676,7 @@ class _MainDashboardScreenState extends ConsumerState<MainDashboardScreen>
                                           //   Icon(FeatherIcons.dollarSign, color: colors.textColor, size: textTheme.headlineLarge?.fontSize,),
                                           Text(
                                             !uiConfig.value.isCryptoHidden
-                                                ? "\$${formatUsd(totalBalance.value)}"
+                                                ? "\$${NumberFormatter().formatDecimal(maxDecimals: 2,  totalBalance.value)}"
                                                 : "***",
                                             overflow: TextOverflow.clip,
                                             maxLines: 1,

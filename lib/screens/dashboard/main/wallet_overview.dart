@@ -1,6 +1,7 @@
 // ignore_for_file: deprecated_member_use
 
 import 'dart:ui';
+import 'package:decimal/decimal.dart';
 import 'package:flutter/rendering.dart';
 import 'package:flutter/services.dart';
 // ignore: depend_on_referenced_packages
@@ -18,12 +19,11 @@ import 'package:moonwallet/screens/dashboard/main/wallet_overview/receive.dart';
 import 'package:moonwallet/screens/dashboard/main/wallet_overview/send.dart';
 import 'package:moonwallet/service/external_data/crypto_request_manager.dart';
 import 'package:moonwallet/service/db/crypto_storage_manager.dart';
+import 'package:moonwallet/service/rpc_service.dart';
 import 'package:moonwallet/utils/number_formatter.dart';
 import 'package:moonwallet/service/external_data/price_manager.dart';
 import 'package:moonwallet/service/web3_interactions/evm/transaction_request_manager.dart';
 import 'package:moonwallet/service/external_data/transactions.dart';
-import 'package:moonwallet/service/db/wallet_db.dart';
-import 'package:moonwallet/service/web3_interactions/evm/eth_interaction_manager.dart';
 import 'package:moonwallet/types/types.dart';
 import 'package:moonwallet/utils/colors.dart';
 import 'package:moonwallet/utils/crypto.dart';
@@ -51,6 +51,7 @@ class _WalletViewScreenState extends ConsumerState<WalletViewScreen>
   late TabController _tabController;
   List<EsTransaction> transactions = [];
   late InternetConnection internetChecker;
+  final formatter = NumberFormatter();
   PublicData currentAccount = PublicData(
       createdLocally: false,
       keyId: "",
@@ -63,11 +64,11 @@ class _WalletViewScreenState extends ConsumerState<WalletViewScreen>
   List<Crypto> reorganizedCrypto = [];
   String cryptoId = "";
 
-  final web3Manager = WalletDatabase();
   bool isScrollingToTheBottom = false;
   final encryptService = EncryptService();
   final priceManager = PriceManager();
-  final web3InteractManager = EthInteractionManager();
+  final rpcService = RpcService();
+
   final publicDataManager = PublicDataManager();
   final cryptoStorageManager = CryptoStorageManager();
   final ScrollController _scrollController = ScrollController();
@@ -76,10 +77,10 @@ class _WalletViewScreenState extends ConsumerState<WalletViewScreen>
 
   Crypto? currentCrypto;
 
-  double userLastBalance = 0;
+  String userLastBalance = "0";
 
-  double tokenBalance = 0;
-  double totalBalanceUsd = 0;
+  String tokenBalance = "0";
+  String totalBalanceUsd = "0";
 
   bool isBalanceLoading = true;
   bool isTransactionLoading = true;
@@ -119,14 +120,18 @@ class _WalletViewScreenState extends ConsumerState<WalletViewScreen>
   Future<void> getTokenBalance(
       {required PublicData account, required Crypto crypto}) async {
     try {
-      final userBalance = await web3InteractManager.getBalance(account, crypto);
+      final ethBalance = await rpcService.getBalance(crypto, account);
+      final price = await getPrice(crypto.cgSymbol ?? "");
       if (!mounted) return;
       if ((await internetChecker.internetStatus
           .then((st) => st == InternetStatus.disconnected))) {
         throw ("Not connected to the internet");
       }
       setState(() {
-        tokenBalance = userBalance;
+        tokenBalance = ethBalance;
+        totalBalanceUsd =
+            (Decimal.parse(ethBalance) * Decimal.parse(price.toString()))
+                .toString();
         isBalanceLoading = false;
         log("balance $tokenBalance");
       });
@@ -134,14 +139,6 @@ class _WalletViewScreenState extends ConsumerState<WalletViewScreen>
       logError(e.toString());
       isBalanceLoading = false;
     }
-  }
-
-  String formatUsd(double value) {
-    return NumberFormatter().formatUsd(value: value);
-  }
-
-  String formatCryptoValue(double value) {
-    return NumberFormatter().formatCrypto(value: value);
   }
 
   Future<void> fetchTransactions() async {
@@ -197,23 +194,6 @@ class _WalletViewScreenState extends ConsumerState<WalletViewScreen>
     }
   }
 
-  Future<double> getBalanceUsd(Crypto crypto) async {
-    try {
-      final price = await getPrice(crypto.cgSymbol ?? "");
-      final balanceEth =
-          await web3InteractManager.getBalance(currentAccount, crypto);
-      log("Balance eth $balanceEth");
-      final balanceUsd = balanceEth * price;
-      if (balanceUsd > 0) {
-        return price * balanceEth;
-      }
-      return 0;
-    } catch (e) {
-      logError(e.toString());
-      return 0;
-    }
-  }
-
   @override
   void initState() {
     super.initState();
@@ -241,11 +221,11 @@ class _WalletViewScreenState extends ConsumerState<WalletViewScreen>
       currentCrypto = widget.initData.crypto;
       colors = widget.initData.colors;
       if (widget.initData.initialBalanceUsd != null) {
-        totalBalanceUsd = widget.initData.initialBalanceUsd ?? 0;
+        totalBalanceUsd = widget.initData.initialBalanceUsd ?? "0";
         isBalanceLoading = false;
       }
       if (widget.initData.initialBalanceCrypto != null) {
-        tokenBalance = widget.initData.initialBalanceCrypto ?? 0;
+        tokenBalance = widget.initData.initialBalanceCrypto ?? "0";
       }
     });
 
@@ -262,25 +242,8 @@ class _WalletViewScreenState extends ConsumerState<WalletViewScreen>
 
       await Future.wait([
         fetchTransactions(),
-        getBalanceUsdOfAccount(widget.initData.crypto),
         getTokenBalance(account: currentAccount, crypto: currentCrypto!),
       ]);
-    } catch (e) {
-      logError(e.toString());
-    }
-  }
-
-  Future<void> getBalanceUsdOfAccount(Crypto currentCrypto) async {
-    try {
-      final balance = await getBalanceUsd(currentCrypto);
-      if ((await internetChecker.internetStatus
-          .then((st) => st == InternetStatus.disconnected))) {
-        throw ("Not connected to the internet");
-      }
-      if (!mounted) return;
-      setState(() {
-        totalBalanceUsd = balance;
-      });
     } catch (e) {
       logError(e.toString());
     }
@@ -352,7 +315,6 @@ class _WalletViewScreenState extends ConsumerState<WalletViewScreen>
   @override
   Widget build(BuildContext context) {
     final textTheme = Theme.of(context).textTheme;
-    final asyncAccounts = ref.watch(accountsNotifierProvider);
     final appUIConfigAsync = ref.watch(appUIConfigProvider);
 
     final uiConfig = useState<AppUIConfig>(AppUIConfig.defaultConfig);
@@ -462,7 +424,7 @@ class _WalletViewScreenState extends ConsumerState<WalletViewScreen>
                                 child: SizedBox(
                                     child: Center(
                                         child: Text(
-                                  (formatCryptoValue(tokenBalance)),
+                                  (formatter.formatValue(str: tokenBalance)),
                                   overflow: TextOverflow.clip,
                                   maxLines: 1,
                                   style: textTheme.bodyMedium?.copyWith(
@@ -476,7 +438,7 @@ class _WalletViewScreenState extends ConsumerState<WalletViewScreen>
                             Skeletonizer(
                                 enabled: isBalanceLoading,
                                 child: Text(
-                                  "= \$ ${formatUsd((totalBalanceUsd))}",
+                                  "= \$ ${formatter.formatDecimal((totalBalanceUsd), maxDecimals: 2,)}",
                                   style: textTheme.bodySmall?.copyWith(
                                       color: colors.textColor.withOpacity(0.5),
                                       fontSize: fontSizeOf(14)),

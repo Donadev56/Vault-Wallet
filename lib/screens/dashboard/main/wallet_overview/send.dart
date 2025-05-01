@@ -3,18 +3,21 @@
 import 'dart:convert';
 import 'dart:io';
 
+import 'package:decimal/decimal.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_feather_icons/flutter_feather_icons.dart';
 import 'package:flutter_hooks/flutter_hooks.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:intl/intl.dart';
+import 'package:k_chart_plus_deeping/components/popup_info_view.dart';
 import 'package:lucide_icons_flutter/lucide_icons.dart';
 import 'package:mobile_scanner/mobile_scanner.dart';
 import 'package:moonwallet/logger/logger.dart';
 import 'package:moonwallet/notifiers/providers.dart';
 import 'package:moonwallet/screens/dashboard/page_manager.dart';
 import 'package:moonwallet/service/db/crypto_storage_manager.dart';
+import 'package:moonwallet/service/rpc_service.dart';
 import 'package:moonwallet/service/web3_interactions/evm/web3_client.dart';
 import 'package:moonwallet/utils/number_formatter.dart';
 import 'package:moonwallet/service/external_data/price_manager.dart';
@@ -51,14 +54,15 @@ class _SendTransactionScreenState extends ConsumerState<SendTransactionScreen> {
   final _formKey = GlobalKey<FormState>();
   final GlobalKey qrKey = GlobalKey(debugLabel: 'QR');
   QRViewController? controller;
-  final formatter = NumberFormat("0.##############", "en_US");
   final MobileScannerController _mobileScannerController =
       MobileScannerController();
 
-  double nativeBalance = 0;
+  final formatter = NumberFormatter();
+
+  String nativeBalance = "0";
   double cryptoPrice = 0;
-  double transactionFee = 0;
-  double tokenBalance = 0;
+  String transactionFee = "0";
+  String tokenBalance = "0";
   bool isAndroid = false;
   double networkBalance = 0;
   bool isDarkMode = false;
@@ -82,6 +86,7 @@ class _SendTransactionScreenState extends ConsumerState<SendTransactionScreen> {
   Crypto? crypto;
 
   final ethInteractionManager = EthInteractionManager();
+  final rpcService = RpcService();
   final TextEditingController _addressController = TextEditingController();
   final TextEditingController _amountController = TextEditingController();
   final TextEditingController _amountUsdController = TextEditingController();
@@ -117,9 +122,9 @@ class _SendTransactionScreenState extends ConsumerState<SendTransactionScreen> {
           throw "No Token Found";
         }
         if (!crypto!.isNative) {
-          tokenBalance = widget.initData.initialBalanceCrypto ?? 0;
+          tokenBalance = widget.initData.initialBalanceCrypto ?? "0";
         } else {
-          nativeBalance = widget.initData.initialBalanceCrypto ?? 0;
+          nativeBalance = widget.initData.initialBalanceCrypto ?? "0";
         }
       }
     });
@@ -252,7 +257,7 @@ class _SendTransactionScreenState extends ConsumerState<SendTransactionScreen> {
 
   Future<void> sendTokenTransaction() async {
     try {
-      final  amount = _amountController.text;
+      final amount = _amountController.text;
       final to = _addressController.text;
 
       final tx = await ethInteractionManager.buildAndSendStandardToken(
@@ -350,7 +355,7 @@ class _SendTransactionScreenState extends ConsumerState<SendTransactionScreen> {
         //2
         priceManager.getTokenMarketData(crypto!.cgSymbol ?? ""),
         // 3
-        ethInteractionManager.getBalance(currentAccount, crypto!),
+        rpcService.getBalance(crypto!, currentAccount),
         // 4
         !crypto!.isNative
             ? ethInteractionManager.getGasPrice(
@@ -367,11 +372,12 @@ class _SendTransactionScreenState extends ConsumerState<SendTransactionScreen> {
 
       log("estimated gas $estimatedGas");
       final price = (results[1] as CryptoMarketData).currentPrice;
-      final targetTokenBalance = results[2];
-      double nativeTargetTokenBalance = 0;
+      final targetTokenBalance = results[2] as String;
+      String nativeTargetTokenBalance = "0";
+
       if (!crypto!.isNative) {
-        nativeTargetTokenBalance = await ethInteractionManager.getBalance(
-            currentAccount, crypto!.network!);
+        nativeTargetTokenBalance =
+            (await rpcService.getBalance(crypto!.network!, currentAccount));
       }
 
       BigInt gasPrice = (results[3] as BigInt?) ?? BigInt.from(1000000);
@@ -391,21 +397,23 @@ class _SendTransactionScreenState extends ConsumerState<SendTransactionScreen> {
         if (!crypto!.isNative) {
           setState(() {
             nativeBalance = nativeTargetTokenBalance;
-            tokenBalance = targetTokenBalance as double;
+            tokenBalance = targetTokenBalance;
           });
         } else {
-          nativeBalance = (targetTokenBalance as double);
+          nativeBalance = (targetTokenBalance);
         }
 
         final BigInt gas = estimatedGas != null
             ? (estimatedGas * BigInt.from(2))
             : BigInt.from(21000);
 
-        final double gasPriceDouble = gasPrice.toDouble();
+        final gasDecimal = Decimal.fromBigInt(gas);
+        final gasPriceDecimal = Decimal.fromBigInt(gasPrice);
+        final Decimal divisor =
+            Decimal.fromInt(10).pow(crypto!.decimals).toDecimal();
+        transactionFee = ((gasDecimal * gasPriceDecimal) / divisor).toString();
 
-        transactionFee = ((gas * BigInt.from(gasPriceDouble.toInt())) /
-            BigInt.from(10).pow(crypto!.decimals));
-        log("Fees ${transactionFee.toStringAsFixed(8)}");
+        log("Fees $transactionFee");
       });
 
       log("Crypto price is $price");
@@ -445,9 +453,11 @@ class _SendTransactionScreenState extends ConsumerState<SendTransactionScreen> {
     double imageSizeOf(double size) {
       return size * uiConfig.value.styles.imageSizeScaleFactor;
     }
- double iconSizeOf(double size) {
+
+    double iconSizeOf(double size) {
       return size * uiConfig.value.styles.iconSizeScaleFactor;
     }
+
     double roundedOf(double size) {
       return size * uiConfig.value.styles.radiusScaleFactor;
     }
@@ -631,28 +641,25 @@ class _SendTransactionScreenState extends ConsumerState<SendTransactionScreen> {
               ),
               Form(
                 key: _formKey,
-
                 child: CustomOutlinedFilledTextFormField(
-                    labelText: "Enter Address",
-                        suffixIcon: IconButton(
-                      onPressed: () async {
-                        final data = await Clipboard.getData("text/plain");
-                        final address = data?.text ?? "";
-                        setState(() {
-                          _addressController.text = address;
-                        });
-                      },
-                      icon: Icon(
-                        FeatherIcons.clipboard,
-                        color: colors.textColor,
-                      ),
+                  labelText: "Enter Address",
+                  suffixIcon: IconButton(
+                    onPressed: () async {
+                      final data = await Clipboard.getData("text/plain");
+                      final address = data?.text ?? "";
+                      setState(() {
+                        _addressController.text = address;
+                      });
+                    },
+                    icon: Icon(
+                      FeatherIcons.clipboard,
+                      color: colors.textColor,
                     ),
-
-                     fontSizeOf: fontSizeOf,
-                iconSizeOf: iconSizeOf,
-                roundedOf: roundedOf,
-                colors: colors,
-             
+                  ),
+                  fontSizeOf: fontSizeOf,
+                  iconSizeOf: iconSizeOf,
+                  roundedOf: roundedOf,
+                  colors: colors,
                   validator: (value) {
                     if (value != null) {
                       if (value.length == 42 &&
@@ -675,7 +682,6 @@ class _SendTransactionScreenState extends ConsumerState<SendTransactionScreen> {
                     });
                   },
                   controller: _addressController,
-                
                 ),
               ),
               Align(
@@ -689,18 +695,16 @@ class _SendTransactionScreenState extends ConsumerState<SendTransactionScreen> {
                 ),
               ),
               CustomOutlinedFilledTextFormField(
-                          labelText: "Amount ${crypto!.symbol}",
-
-
+                labelText: "Amount ${crypto!.symbol}",
                 fontSizeOf: fontSizeOf,
                 iconSizeOf: iconSizeOf,
                 roundedOf: roundedOf,
                 validator: (v) {
                   log("Value $v");
-                  if (double.parse(v ?? "0") >= nativeBalance) {
+                  if (Decimal.parse(v ?? "0") >= Decimal.parse(nativeBalance)) {
                     return "Amount exceeds balance";
-                  } else if (double.parse(v ?? "0") == nativeBalance &&
-                      nativeBalance > 0) {
+                  } else if (Decimal.parse(v ?? "0") == nativeBalance &&
+                      Decimal.parse(nativeBalance) > Decimal.fromInt(0)) {
                     return "Transaction fee must be deducted";
                   } else {
                     return null;
@@ -719,64 +723,68 @@ class _SendTransactionScreenState extends ConsumerState<SendTransactionScreen> {
                         .formatDecimal((cryptoAmount * cryptoPrice).toString());
                   });
                 },
-
-                  suffixIcon: Container(
-                    margin: const EdgeInsets.all(5),
-                    child: InkWell(
-                      borderRadius: BorderRadius.circular(roundedOf(10)),
-                      onTap: () {
-                        setState(() {
-                          if (crypto!.isNative) {
-                            final value = nativeBalance - transactionFee;
-                            log("value $value , balance $nativeBalance");
-                            _amountController.text = NumberFormatter()
-                                .formatDecimal(value.toStringAsFixed(8),
-                                    maxDecimals: 8);
-                            _amountUsdController.text =
-                                ((nativeBalance) * cryptoPrice).toString();
-                          } else {
-                            _amountController.text = NumberFormatter()
-                                .formatDecimal(tokenBalance.toStringAsFixed(8),
-                                    maxDecimals: 8);
-                            _amountUsdController.text =
-                                ((tokenBalance) * cryptoPrice).toString();
-                          }
-                        });
-                      },
-                      child: Container(
-                        width: 50,
-                        height: 5,
-                        decoration: BoxDecoration(
-                          borderRadius: BorderRadius.circular(roundedOf(10)),
-                        ),
-                        child: Center(
-                          child: Text(
-                            "Max",
-                            style: textTheme.bodyMedium?.copyWith(
-                                color: colors.textColor,
-                                fontSize: fontSizeOf(14)),
-                          ),
+                suffixIcon: Container(
+                  margin: const EdgeInsets.all(5),
+                  child: InkWell(
+                    borderRadius: BorderRadius.circular(roundedOf(10)),
+                    onTap: () {
+                      setState(() {
+                        if (crypto!.isNative) {
+                          final value = Decimal.parse(nativeBalance) -
+                              Decimal.parse(transactionFee);
+                          log("value $value , balance $nativeBalance");
+                          _amountController.text = formatter.formatDecimal(
+                              value.toStringAsFixed(8),
+                              maxDecimals: 8);
+                          _amountUsdController.text =
+                              (Decimal.parse(nativeBalance) *
+                                      Decimal.parse(formatter.formatDecimal(
+                                          cryptoPrice.toString())))
+                                  .toString();
+                        } else {
+                          _amountController.text = formatter
+                              .formatDecimal(tokenBalance, maxDecimals: 8);
+                          _amountUsdController.text =
+                              (Decimal.parse(tokenBalance) *
+                                      Decimal.parse(formatter.formatDecimal(
+                                          cryptoPrice.toString())))
+                                  .toString();
+                        }
+                      });
+                    },
+                    child: Container(
+                      width: 50,
+                      height: 5,
+                      decoration: BoxDecoration(
+                        borderRadius: BorderRadius.circular(roundedOf(10)),
+                      ),
+                      child: Center(
+                        child: Text(
+                          "Max",
+                          style: textTheme.bodyMedium?.copyWith(
+                              color: colors.textColor,
+                              fontSize: fontSizeOf(14)),
                         ),
                       ),
                     ),
                   ),
+                ),
                 controller: _amountController,
-               
-               colors: colors,
+                colors: colors,
               ),
               CustomOutlinedFilledTextFormField(
-                                  labelText: "Amount USD",
-  suffixIcon: SizedBox(
-                    width: 35,
-                    child: Center(
-                      child: Text(
-                        "USD",
-                        style: textTheme.bodyMedium?.copyWith(
-                            color: colors.textColor, fontSize: fontSizeOf(15)),
-                      ),
+                labelText: "Amount USD",
+                suffixIcon: SizedBox(
+                  width: 35,
+                  child: Center(
+                    child: Text(
+                      "USD",
+                      style: textTheme.bodyMedium?.copyWith(
+                          color: colors.textColor, fontSize: fontSizeOf(15)),
                     ),
                   ),
-                  fontSizeOf: fontSizeOf,
+                ),
+                fontSizeOf: fontSizeOf,
                 iconSizeOf: iconSizeOf,
                 roundedOf: roundedOf,
                 colors: colors,
@@ -794,12 +802,11 @@ class _SendTransactionScreenState extends ConsumerState<SendTransactionScreen> {
                   });
                 },
                 controller: _amountUsdController,
-           
               ),
               Align(
                 alignment: Alignment.topLeft,
                 child: Text(
-                  "Balance : ${formatCryptoValue(crypto!.isNative ? nativeBalance : tokenBalance)} ${crypto!.symbol}",
+                  "Balance : ${formatter.formatValue(str: crypto!.isNative ? nativeBalance : tokenBalance)} ${crypto!.symbol}",
                   style: textTheme.bodyMedium?.copyWith(
                       color: colors.textColor.withOpacity(0.7),
                       fontSize: fontSizeOf(14)),
