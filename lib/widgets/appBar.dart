@@ -183,14 +183,13 @@ class CustomAppBar extends ConsumerWidget implements PreferredSizeWidget {
       actions: <Widget>[
         IconButton(
             onPressed: () {
-              showAppBarWalletActions(
-                  child: WalletActions(
-                      iconSizeOf: iconSizeOf,
-                      fontSizeOf: fontSizeOf,
-                      roundedOf: roundedOf,
-                      colors: colors),
-                  context: context,
-                  colors: colors);
+              showAppBarWalletActions(children: [
+                WalletActions(
+                    iconSizeOf: iconSizeOf,
+                    fontSizeOf: fontSizeOf,
+                    roundedOf: roundedOf,
+                    colors: colors)
+              ], context: context, colors: colors);
             },
             icon: Icon(
               Icons.add,

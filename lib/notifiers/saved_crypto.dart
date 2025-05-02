@@ -1,11 +1,15 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:moonwallet/logger/logger.dart';
 import 'package:moonwallet/notifiers/providers.dart';
+import 'package:moonwallet/service/db/wallet_db.dart';
 import 'package:moonwallet/service/external_data/crypto_request_manager.dart';
+import 'package:moonwallet/service/rpc_service.dart';
 import 'package:moonwallet/types/types.dart';
 
 class SavedCryptoProvider extends AsyncNotifier<List<Crypto>> {
   late final cryptoStorage = ref.read(cryptoStorageProvider);
+  final walletStorage = WalletDatabase();
+  final rpcService = RpcService();
 
   @override
   Future<List<Crypto>> build() => getSavedCrypto();
@@ -196,6 +200,48 @@ class SavedCryptoProvider extends AsyncNotifier<List<Crypto>> {
         ref.invalidate(assetsNotifierProvider);
 
         return true;
+      }
+
+      return false;
+    } catch (e) {
+      logError(e.toString());
+      return false;
+    }
+  }
+
+  Future<bool> toggleAndEnableSolana(
+      Crypto crypto, bool value, String password) async {
+    try {
+      final account = await ref.watch(currentAccountProvider.future);
+      if (account == null) {
+        logError("No account found");
+        return false;
+      }
+
+      final secureData = await walletStorage.getSecureData(
+          password: password, account: account);
+      final mnemonic = secureData?.mnemonic;
+
+      if (mnemonic == null) {
+        throw ("Incompatible account");
+      }
+
+      final address = await rpcService.generateSolanaAddress(mnemonic);
+      final addresses = account.addresses;
+      final newAddresses = [
+        ...addresses,
+        PublicAddress(address: address, type: NetworkType.svm)
+      ];
+
+      final result = await walletStorage.editWallet(
+        account: account,
+        addresses: newAddresses,
+      );
+      if (result != null) {
+        ref.invalidate(accountsNotifierProvider);
+        final toggleResult = await toggleCanDisplay(crypto, value);
+
+        return toggleResult;
       }
 
       return false;

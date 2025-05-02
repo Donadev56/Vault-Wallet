@@ -64,20 +64,31 @@ class MnemonicChip extends StatelessWidget {
   }
 }
 
-class SpaceWithBottomButton extends StatelessWidget {
-  final List<Widget> children;
-  final double spacing;
+class SpaceWithFixedBottom extends StatelessWidget {
+  final Widget body;
+  final Widget bottom;
 
-  const SpaceWithBottomButton(
-      {super.key, required this.children, this.spacing = 0});
+  const SpaceWithFixedBottom(
+      {super.key, required this.body, required this.bottom});
 
   @override
   Widget build(BuildContext context) {
-    return Column(
-      spacing: spacing,
-      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-      crossAxisAlignment: CrossAxisAlignment.center,
-      children: children,
-    );
+    return LayoutBuilder(builder: (ctx, c) {
+      return SingleChildScrollView(
+          child: ConstrainedBox(
+              constraints: BoxConstraints(minHeight: c.maxHeight),
+              child: IntrinsicHeight(
+                  child: Column(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  body,
+                  const Spacer(),
+                  Padding(
+                    padding: const EdgeInsets.only(bottom: 10, top: 10),
+                    child: bottom,
+                  )
+                ],
+              ))));
+    });
   }
 }

@@ -102,7 +102,7 @@ dependencies:
   internet_connection_checker: ^3.0.1
   smooth_list_view: ^2.0.2
   flutter_riverpod: ^2.6.1
-  web_socket_channel: ^2.4.0
+  web_socket_channel: ^3.0.3
   flashy_tab_bar2: ^0.0.10
   flutter_skeleton_ui: ^0.0.6
   elegant_nav_bar: ^0.0.22
@@ -117,6 +117,9 @@ dependencies:
   bip39_mnemonic: ^3.0.9
   numeral: ^3.0.0
   decimal: ^3.2.1
+  solana: ^0.31.2+1
+  bs58: ^1.0.2
+
 
 
 

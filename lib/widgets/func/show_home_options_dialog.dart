@@ -25,38 +25,37 @@ void showHomeOptionsDialog({
     {'icon': LucideIcons.messageCircle, 'name': 'Join Whatsapp'},
   ];
 
-  showAppBarWalletActions(
-      context: context,
-      colors: colors,
-      child: Column(
-        spacing: 10,
-        children: List.generate(options.length, (i) {
-          final opt = options[i];
+  showAppBarWalletActions(context: context, colors: colors, children: [
+    Column(
+      spacing: 10,
+      children: List.generate(options.length, (i) {
+        final opt = options[i];
 
-          return CustomListTitleButton(
-            textColor: colors.textColor,
-            iconSizeOf: iconSizeOf,
-            fontSizeOf: fontSizeOf,
-            roundedOf: roundedOf,
-            text: opt["name"],
-            icon: opt["icon"],
-            onTap: () {
-              switch (i) {
-                case 0:
-                  Navigator.push(context,
-                      MaterialPageRoute(builder: (ctx) => AccountDataView()));
-                case 1:
-                  toggleHidden();
-                case 2:
-                  launchUrl(Uri.parse("https://t.me/eternalprotocol"));
-                case 3:
-                  launchUrl(Uri.parse(
-                      "https://www.whatsapp.com/channel/0029Vb2TpR9HrDZWVEkhWz21"));
-                  break;
-                default:
-              }
-            },
-          );
-        }),
-      ));
+        return CustomListTitleButton(
+          textColor: colors.textColor,
+          iconSizeOf: iconSizeOf,
+          fontSizeOf: fontSizeOf,
+          roundedOf: roundedOf,
+          text: opt["name"],
+          icon: opt["icon"],
+          onTap: () {
+            switch (i) {
+              case 0:
+                Navigator.push(context,
+                    MaterialPageRoute(builder: (ctx) => AccountDataView()));
+              case 1:
+                toggleHidden();
+              case 2:
+                launchUrl(Uri.parse("https://t.me/eternalprotocol"));
+              case 3:
+                launchUrl(Uri.parse(
+                    "https://www.whatsapp.com/channel/0029Vb2TpR9HrDZWVEkhWz21"));
+                break;
+              default:
+            }
+          },
+        );
+      }),
+    )
+  ]);
 }

@@ -148,6 +148,7 @@ class WalletDatabase {
 
   Future<PublicData?> editWallet(
       {required PublicData account,
+      List<PublicAddress>? addresses,
       String? newName,
       IconData? icon,
       bool? isBackup,
@@ -159,6 +160,7 @@ class WalletDatabase {
           walletColor: color,
           walletIcon: icon,
           walletName: newName,
+          addresses: addresses,
           isBackup: isBackup);
 
       for (final acc in savedAccounts) {

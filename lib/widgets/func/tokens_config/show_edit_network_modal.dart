@@ -129,27 +129,29 @@ Future<Crypto?> showEditNetwork(
                       },
                       controller: symbolController,
                     ),
-                    SizedBox(
-                      height: 10,
-                    ),
-                    CustomFilledTextFormField(
-                      roundedOf: roundedOf,
-                      fontSizeOf: fontSizeOf,
-                      iconSizeOf: iconSizeOf,
-                      labelText: "Chain Id",
-                      colors: colors,
-                      readOnly: true,
-                      hintText: "Chain Id",
-                      validator: (v) {
-                        if (int.tryParse(v ?? "") == null) {
-                          return "Invalid ChainId";
-                        }
+                    if (int.parse(chainIdController.text) != 0)
+                      SizedBox(
+                        height: 10,
+                      ),
+                    if (int.parse(chainIdController.text) != 0)
+                      CustomFilledTextFormField(
+                        roundedOf: roundedOf,
+                        fontSizeOf: fontSizeOf,
+                        iconSizeOf: iconSizeOf,
+                        labelText: "Chain Id",
+                        colors: colors,
+                        readOnly: true,
+                        hintText: "Chain Id",
+                        validator: (v) {
+                          if (int.tryParse(v ?? "") == null) {
+                            return "Invalid ChainId";
+                          }
 
-                        return null;
-                      },
-                      keyboardType: TextInputType.numberWithOptions(),
-                      controller: chainIdController,
-                    ),
+                          return null;
+                        },
+                        keyboardType: TextInputType.numberWithOptions(),
+                        controller: chainIdController,
+                      ),
                     SizedBox(
                       height: 10,
                     ),

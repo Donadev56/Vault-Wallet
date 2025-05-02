@@ -1,3 +1,4 @@
+import 'package:moonwallet/custom/web3_webview/lib/web3_webview.dart';
 import 'package:moonwallet/logger/logger.dart';
 
 import 'package:bip39/bip39.dart' as bip39;
@@ -57,5 +58,14 @@ class EthAddresses {
       return null;
     }
     return HEX.encode(privateKey);
+  }
+
+  bool isAddressValid(String address) {
+    try {
+      EthereumAddress.fromHex(address);
+      return true;
+    } catch (e) {
+      return false;
+    }
   }
 }

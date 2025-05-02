@@ -5,7 +5,7 @@ import 'package:moonwallet/logger/logger.dart';
 import 'package:moonwallet/service/external_data/price_manager.dart';
 import 'package:moonwallet/service/web3_interactions/evm/eth_interaction_manager.dart';
 import 'package:moonwallet/types/types.dart';
-import 'package:moonwallet/widgets/func/transactions/ask_user_for_conf.dart';
+import 'package:moonwallet/widgets/func/transactions/evm/ask_user_evm.dart';
 import 'package:moonwallet/widgets/func/security/ask_password.dart';
 import 'package:moonwallet/widgets/func/account_related/show_watch_only_warning.dart';
 import 'package:web3dart/web3dart.dart';
@@ -269,7 +269,7 @@ class TokenManager {
 
       log("value wei $valueInWei");
 
-      final confirmedResponse = await askUserForConfirmation(
+      final confirmedResponse = await askUserEvm(
         crypto: token,
         txData: data,
         context: context,

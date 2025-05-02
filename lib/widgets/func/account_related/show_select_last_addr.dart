@@ -1,8 +1,8 @@
-import 'dart:convert';
 import 'dart:ui';
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
+import 'package:lucide_icons_flutter/lucide_icons.dart';
 import 'package:modal_bottom_sheet/modal_bottom_sheet.dart';
+import 'package:moonwallet/service/db/list_address_dynamic_db.dart';
 import 'package:moonwallet/types/types.dart';
 import 'package:moonwallet/utils/prefs.dart';
 import 'package:moonwallet/widgets/screen_widgets/crypto_picture.dart';
@@ -30,17 +30,12 @@ void showSelectLastAddr(
             builder: (BuildContext stateFCtx, setModalState) {
           Future<List<dynamic>> getAddress() async {
             try {
-              final lastUsedAddresses = await publicDataManager.getDataFromPrefs(
-                  key:
-                      "${currentAccount.addressByToken(crypto)}/lastUsedAddresses");
+              final db =
+                  ListAddressDynamicDb(account: currentAccount, crypto: crypto);
+              final lastUsedAddresses = await db.getData();
+
               log("last address $lastUsedAddresses");
-              if (lastUsedAddresses != null) {
-                return (json.decode(lastUsedAddresses) as List<dynamic>)
-                    .toSet()
-                    .toList();
-              } else {
-                return [];
-              }
+              return (lastUsedAddresses).toSet().toList();
             } catch (e) {
               logError(e.toString());
               return [];
@@ -52,7 +47,8 @@ void showSelectLastAddr(
             return ([
               addresses,
               accounts
-                  .where((acc) => !acc.isWatchOnly)
+                  .where((acc) =>
+                      !acc.isWatchOnly && acc.hasAddress(crypto.getNetworkType))
                   .map((acc) => acc.addressByToken(crypto))
                   .toList()
                   .toSet()
@@ -108,41 +104,66 @@ void showSelectLastAddr(
                             if (result.hasData) {
                               return Padding(
                                 padding: const EdgeInsets.only(top: 15),
-                                child: ListView.builder(
-                                    shrinkWrap: true,
-                                    itemCount: result.data?[i].length,
-                                    itemBuilder: (ctx, index) {
-                                      final addr = result.data?[i][index];
-
-                                      return Padding(
-                                        padding: const EdgeInsets.symmetric(
-                                            horizontal: 15, vertical: 5),
-                                        child: ListTile(
-                                          visualDensity: VisualDensity(
-                                              vertical: -2, horizontal: -2),
-                                          tileColor: colors.secondaryColor
-                                              .withValues(alpha: 0.5),
-                                          shape: RoundedRectangleBorder(
-                                              borderRadius:
-                                                  BorderRadius.circular(10)),
-                                          onTap: () {
-                                            addressController.text = addr;
-                                            Navigator.pop(context);
-                                          },
-                                          leading: CryptoPicture(
-                                              crypto: crypto,
-                                              size: 30,
-                                              colors: colors),
-                                          title: Text(
-                                            "${(addr as String).substring(0, 10)}...${(addr).substring(addr.length - 10, addr.length)}",
-                                            style: textTheme.bodyMedium
-                                                ?.copyWith(
-                                                    color: colors.textColor
-                                                        .withOpacity(0.7)),
-                                          ),
+                                child: (result.data?[i] as List<dynamic>)
+                                        .isEmpty
+                                    ? Center(
+                                        child: Column(
+                                          mainAxisAlignment:
+                                              MainAxisAlignment.center,
+                                          crossAxisAlignment:
+                                              CrossAxisAlignment.center,
+                                          children: [
+                                            Icon(
+                                              Icons.cleaning_services,
+                                              color: colors.textColor,
+                                              size: 40,
+                                            ),
+                                            const SizedBox(height: 10),
+                                            Text(
+                                              "No address found",
+                                              style: textTheme.bodyMedium
+                                                  ?.copyWith(
+                                                      color: colors.textColor),
+                                            )
+                                          ],
                                         ),
-                                      );
-                                    }),
+                                      )
+                                    : ListView.builder(
+                                        shrinkWrap: true,
+                                        itemCount: result.data?[i].length,
+                                        itemBuilder: (ctx, index) {
+                                          final addr = result.data?[i][index];
+
+                                          return Padding(
+                                            padding: const EdgeInsets.symmetric(
+                                                horizontal: 15, vertical: 5),
+                                            child: ListTile(
+                                              visualDensity: VisualDensity(
+                                                  vertical: -2, horizontal: -2),
+                                              tileColor: colors.secondaryColor
+                                                  .withValues(alpha: 0.5),
+                                              shape: RoundedRectangleBorder(
+                                                  borderRadius:
+                                                      BorderRadius.circular(
+                                                          10)),
+                                              onTap: () {
+                                                addressController.text = addr;
+                                                Navigator.pop(context);
+                                              },
+                                              leading: CryptoPicture(
+                                                  crypto: crypto,
+                                                  size: 30,
+                                                  colors: colors),
+                                              title: Text(
+                                                "${(addr as String).substring(0, 10)}...${(addr).substring(addr.length - 10, addr.length)}",
+                                                style: textTheme.bodyMedium
+                                                    ?.copyWith(
+                                                        color: colors.textColor
+                                                            .withOpacity(0.7)),
+                                              ),
+                                            ),
+                                          );
+                                        }),
                               );
                             } else if (result.hasError) {
                               return Center(

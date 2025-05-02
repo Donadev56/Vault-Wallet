@@ -16,10 +16,11 @@ class CryptoPicture extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final double radius = 50;
     return Stack(
       children: [
         ClipRRect(
-          borderRadius: BorderRadius.circular(50),
+          borderRadius: BorderRadius.circular(radius),
           child: crypto.icon != null &&
                   crypto.icon!.toLowerCase().startsWith("http")
               ? Image.network(
@@ -41,7 +42,7 @@ class CryptoPicture extends StatelessWidget {
                       decoration: BoxDecoration(
                           // ignore: deprecated_member_use
                           color: colors.textColor.withOpacity(0.6),
-                          borderRadius: BorderRadius.circular(50)),
+                          borderRadius: BorderRadius.circular(radius)),
                       child: Center(
                         child: Text(
                           crypto.symbol.length > 1
@@ -70,11 +71,11 @@ class CryptoPicture extends StatelessWidget {
               child: Container(
                   padding: const EdgeInsets.all(2),
                   decoration: BoxDecoration(
-                    borderRadius: BorderRadius.circular(50),
+                    borderRadius: BorderRadius.circular(radius),
                     color: primaryColor ?? colors.primaryColor,
                   ),
                   child: ClipRRect(
-                    borderRadius: BorderRadius.circular(50),
+                    borderRadius: BorderRadius.circular(radius),
                     child: crypto.network?.icon == null
                         ? Container(
                             width: size / 2.75,

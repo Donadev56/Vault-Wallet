@@ -2,21 +2,21 @@ import 'package:moonwallet/logger/logger.dart';
 import 'package:moonwallet/service/db/global_database.dart';
 import 'package:moonwallet/types/types.dart';
 
-class BalanceDatabase {
+class ListAddressDynamicDb {
   final _db = GlobalDatabase();
   final PublicData account;
   final Crypto crypto;
-  BalanceDatabase({required this.account, required this.crypto});
+  ListAddressDynamicDb({required this.account, required this.crypto});
 
   String get cryptoId =>
       (crypto.isNative ? crypto.chainId.toString() : crypto.contractAddress) ??
       crypto.cryptoId;
   String get dataKey =>
-      "user/${account.addressByToken(crypto).trim().toLowerCase()}/crypto/$cryptoId/balance-database";
+      "user/${account.addressByToken(crypto).trim().toLowerCase()}/last_used_addresses/$cryptoId/addresses-database";
 
-  Future<bool> saveData(String balance) async {
+  Future<bool> saveData(List<String> addresses) async {
     try {
-      await _db.saveDynamicData(data: balance, key: dataKey);
+      await _db.saveDynamicData(data: addresses, key: dataKey);
       return true;
     } catch (e) {
       logError(e.toString());
@@ -24,13 +24,13 @@ class BalanceDatabase {
     }
   }
 
-  Future<String> getBalance() async {
+  Future<List<dynamic>> getData() async {
     try {
       final savedData = await _db.getDynamicData(key: dataKey);
-      return savedData is double ? savedData.toString() : savedData ?? "0";
+      return (savedData is List ? savedData : savedData) ?? [];
     } catch (e) {
       logError(e.toString());
-      return "0";
+      return [];
     }
   }
 }

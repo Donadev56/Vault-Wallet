@@ -4,6 +4,7 @@ import 'package:flutter_hooks/flutter_hooks.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:moonwallet/custom/web3_webview/lib/utils/loading.dart';
+import 'package:moonwallet/custom/web3_webview/lib/widgets/alert.dart';
 import 'package:moonwallet/main.dart';
 import 'package:moonwallet/notifiers/providers.dart';
 import 'package:moonwallet/service/db/wallet_db.dart';
@@ -12,12 +13,14 @@ import 'package:moonwallet/utils/crypto.dart';
 import 'package:moonwallet/utils/themes.dart';
 import 'package:moonwallet/widgets/appBar/button.dart';
 import 'package:moonwallet/widgets/appBar/show_wallet_actions.dart';
+import 'package:moonwallet/widgets/func/security/ask_password.dart';
 import 'package:moonwallet/widgets/screen_widgets/crypto_picture.dart';
 import 'package:moonwallet/widgets/func/tokens_config/show_add_network.dart';
 import 'package:moonwallet/widgets/func/tokens_config/show_add_token.dart';
 import 'package:moonwallet/widgets/func/snackbar.dart';
 import 'package:moonwallet/widgets/func/tokens_config/show_edit_network_modal.dart';
 import 'package:moonwallet/widgets/func/tokens_config/show_select_network_modal.dart';
+import 'package:moonwallet/widgets/solana_related/dialogs/show_first_solana_use_dialog.dart';
 import 'package:ulid/ulid.dart';
 
 import 'package:flutter/material.dart';
@@ -179,7 +182,6 @@ class _AddCryptoViewState extends ConsumerState<AddCryptoView> {
               name: contractInfo?.name ?? "Unknown ",
               color: network?.color ?? Colors.white,
               type: CryptoType.token,
-              valueUsd: 0,
               cryptoId: generateUUID(),
               canDisplay: true,
               network: network,
@@ -271,83 +273,85 @@ class _AddCryptoViewState extends ConsumerState<AddCryptoView> {
                 showAppBarWalletActions(
                   context: context,
                   colors: colors,
-                  child: Column(
-                    spacing: 10,
-                    children: [
-                      CustomListTitleButton(
-                          roundedOf: roundedOf,
-                          fontSizeOf: fontSizeOf,
-                          iconSizeOf: iconSizeOf,
-                          textColor: colors.textColor,
-                          text: "Add custom token",
-                          icon: Icons.add,
-                          onTap: () {
-                            showAddToken(
-                                roundedOf: roundedOf,
-                                fontSizeOf: fontSizeOf,
-                                iconSizeOf: iconSizeOf,
-                                reorganizedCrypto: reorganizedCrypto,
-                                notifyError: notifyError,
-                                notifySuccess: notifySuccess,
-                                addCrypto: addCrypto,
-                                context: context,
-                                colors: colors,
-                                width: width,
-                                hasSaved: hasSaved);
-                          }),
-                      CustomListTitleButton(
-                          roundedOf: roundedOf,
-                          fontSizeOf: fontSizeOf,
-                          iconSizeOf: iconSizeOf,
-                          textColor: colors.textColor,
-                          text: "Add custom network",
-                          icon: Icons.construction,
-                          onTap: () async {
-                            final newNetwork = await showAddNetwork(
-                                roundedOf: roundedOf,
-                                fontSizeOf: fontSizeOf,
-                                iconSizeOf: iconSizeOf,
-                                context: context,
-                                colors: colors);
-                            if (newNetwork != null) {
-                              if (reorganizedCrypto.any(
-                                  (c) => c.chainId == newNetwork.chainId)) {
-                                notifyError("Network already exist");
-                                return;
-                              }
-                              addNetwork(newNetwork)
-                                  .withLoading(context, colors);
-                            }
-                          }),
-                      CustomListTitleButton(
-                          roundedOf: roundedOf,
-                          fontSizeOf: fontSizeOf,
-                          iconSizeOf: iconSizeOf,
-                          textColor: colors.textColor,
-                          text: "Edit network",
-                          icon: Icons.border_color,
-                          onTap: () async {
-                            final selectedNetwork =
-                                await showSelectNetworkModal(
-                                    roundedOf: roundedOf,
-                                    fontSizeOf: fontSizeOf,
-                                    iconSizeOf: iconSizeOf,
-                                    context: context,
-                                    colors: colors,
-                                    networks: reorganizedCrypto);
-                            if (selectedNetwork != null) {
-                              showEditNetwork(
+                  children: [
+                    Column(
+                      spacing: 10,
+                      children: [
+                        CustomListTitleButton(
+                            roundedOf: roundedOf,
+                            fontSizeOf: fontSizeOf,
+                            iconSizeOf: iconSizeOf,
+                            textColor: colors.textColor,
+                            text: "Add custom token",
+                            icon: Icons.add,
+                            onTap: () {
+                              showAddToken(
+                                  roundedOf: roundedOf,
+                                  fontSizeOf: fontSizeOf,
+                                  iconSizeOf: iconSizeOf,
+                                  reorganizedCrypto: reorganizedCrypto,
+                                  notifyError: notifyError,
+                                  notifySuccess: notifySuccess,
+                                  addCrypto: addCrypto,
+                                  context: context,
+                                  colors: colors,
+                                  width: width,
+                                  hasSaved: hasSaved);
+                            }),
+                        CustomListTitleButton(
+                            roundedOf: roundedOf,
+                            fontSizeOf: fontSizeOf,
+                            iconSizeOf: iconSizeOf,
+                            textColor: colors.textColor,
+                            text: "Add custom network",
+                            icon: Icons.construction,
+                            onTap: () async {
+                              final newNetwork = await showAddNetwork(
                                   roundedOf: roundedOf,
                                   fontSizeOf: fontSizeOf,
                                   iconSizeOf: iconSizeOf,
                                   context: context,
-                                  network: selectedNetwork,
-                                  onSubmitted: editNetwork,
                                   colors: colors);
-                            }
-                          })
-                    ],
-                  ),
+                              if (newNetwork != null) {
+                                if (reorganizedCrypto.any(
+                                    (c) => c.chainId == newNetwork.chainId)) {
+                                  notifyError("Network already exist");
+                                  return;
+                                }
+                                addNetwork(newNetwork)
+                                    .withLoading(context, colors);
+                              }
+                            }),
+                        CustomListTitleButton(
+                            roundedOf: roundedOf,
+                            fontSizeOf: fontSizeOf,
+                            iconSizeOf: iconSizeOf,
+                            textColor: colors.textColor,
+                            text: "Edit network",
+                            icon: Icons.border_color,
+                            onTap: () async {
+                              final selectedNetwork =
+                                  await showSelectNetworkModal(
+                                      roundedOf: roundedOf,
+                                      fontSizeOf: fontSizeOf,
+                                      iconSizeOf: iconSizeOf,
+                                      context: context,
+                                      colors: colors,
+                                      networks: reorganizedCrypto);
+                              if (selectedNetwork != null) {
+                                showEditNetwork(
+                                    roundedOf: roundedOf,
+                                    fontSizeOf: fontSizeOf,
+                                    iconSizeOf: iconSizeOf,
+                                    context: context,
+                                    network: selectedNetwork,
+                                    onSubmitted: editNetwork,
+                                    colors: colors);
+                              }
+                            })
+                      ],
+                    )
+                  ],
                 );
               },
               icon: Icon(
@@ -452,8 +456,46 @@ class _AddCryptoViewState extends ConsumerState<AddCryptoView> {
                           value: crypto.canDisplay,
                           onChanged: (newVal) async {
                             try {
+                              if (crypto.getNetworkType == NetworkType.svm &&
+                                  currentAccount?.svmAddress == null) {
+                                final confirm = await showFirstUseDialog(
+                                    context: context, colors: colors);
+                                if (confirm) {
+                                  final password = await askPassword(
+                                      context: context, colors: colors);
+                                  if (password.isNotEmpty) {
+                                    try {
+                                      final result = await savedCryptoProvider
+                                          .toggleAndEnableSolana(
+                                              crypto, newVal, password)
+                                          .withLoading(
+                                            context,
+                                            colors,
+                                            "Creating Solana wallet",
+                                          );
+                                      if (!result) {
+                                        showAlert(
+                                            context: context,
+                                            colors: colors,
+                                            title: "Invalid Account",
+                                            content:
+                                                "Create a new valid wallet and try again.",
+                                            confirmText: "Ok");
+                                      }
+                                    } catch (e) {
+                                      logError(e.toString());
+                                      notifyError(e.toString());
+                                      return;
+                                    }
+                                  }
+
+                                  return;
+                                }
+                                return;
+                              }
                               final result = await savedCryptoProvider
                                   .toggleCanDisplay(crypto, newVal);
+
                               if (result) {
                                 log("State changed successfully");
                               } else {

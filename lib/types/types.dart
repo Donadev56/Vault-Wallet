@@ -178,6 +178,9 @@ class PublicData {
       this.isBackup = false,
       required this.createdLocally,
       this.id = 0});
+  bool hasAddress(NetworkType type) {
+    return addresses.any((address) => address.type == type);
+  }
 
   String addressByToken(Crypto crypto) {
     final type =
@@ -191,9 +194,11 @@ class PublicData {
   String get evmAddress => addresses
       .firstWhere((address) => address.type == NetworkType.evm)
       .address;
-  String get svmAddress => addresses
-      .firstWhere((address) => address.type == NetworkType.svm)
-      .address;
+
+  String? get svmAddress => addresses
+      .where((address) => address.type == NetworkType.svm)
+      .firstOrNull
+      ?.address;
 
   factory PublicData.fromJson(Map<dynamic, dynamic> json) {
     List<PublicAddress> addresses() {
@@ -228,12 +233,12 @@ class PublicData {
         createdLocally: json["createdLocally"] ?? false);
   }
   bool get isSaved => createdLocally && isBackup;
-  Map<String, dynamic> toJson() {
+  Map<dynamic, dynamic> toJson() {
     return {
       'keyId': keyId,
       'creationDate': creationDate,
       'walletName': walletName,
-      'addresses': addresses,
+      'addresses': addresses.map((e) => e.toJson()).toList(),
       'isWatchOnly': isWatchOnly,
       'walletIcon': walletIcon?.toJson() ?? Icons.wallet.toJson(),
       'walletColor': walletColor?.value ?? Colors.transparent.value,
@@ -360,7 +365,6 @@ class Crypto {
   final CryptoType type;
   final String? contractAddress;
   final int decimals;
-  final double valueUsd;
   final String cryptoId;
   final bool canDisplay;
   final String symbol;
@@ -378,7 +382,6 @@ class Crypto {
       this.network,
       this.contractAddress,
       required this.decimals,
-      required this.valueUsd,
       required this.cryptoId,
       required this.canDisplay,
       required this.symbol,
@@ -427,7 +430,6 @@ class Crypto {
                 .map((e) => e.toString())
                 .toList()
             : null,
-        valueUsd: cryptoJson["valueUsd"],
         symbol: cryptoJson["symbol"],
         cgSymbol: cryptoJson["cgSymbol"] ?? "");
   }
@@ -458,7 +460,6 @@ class Crypto {
                 .map((e) => e.toString())
                 .toList()
             : null,
-        valueUsd: cryptoJson["valueUsd"] ?? 0,
         symbol: cryptoJson["symbol"],
         networkType: cryptoJson["networkType"] != null
             ? NetworkType.values[cryptoJson["networkType"]]
@@ -480,7 +481,6 @@ class Crypto {
       "network": network?.toJson(),
       "contractAddress": contractAddress,
       "explorers": explorers,
-      "valueUsd": valueUsd,
       "symbol": symbol,
       "cgSymbol": cgSymbol,
       "networkType": networkType?.index,
@@ -491,6 +491,8 @@ class Crypto {
   String get getRpcUrl => this.isNative
       ? (this.rpcUrls?.firstOrNull ?? "")
       : (this.network?.rpcUrls?.firstOrNull ?? "");
+  NetworkType get getNetworkType =>
+      this.isNative ? this.networkType! : this.network!.networkType!;
 
   Crypto copyWith({
     String? name,
@@ -521,7 +523,6 @@ class Crypto {
       type: type ?? this.type,
       contractAddress: contractAddress ?? this.contractAddress,
       decimals: decimals ?? this.decimals,
-      valueUsd: valueUsd ?? this.valueUsd,
       cryptoId: cryptoId ?? this.cryptoId,
       canDisplay: canDisplay ?? this.canDisplay,
       symbol: symbol ?? this.symbol,
@@ -1473,14 +1474,14 @@ class PublicAddress {
   final NetworkType type;
 
   PublicAddress({required this.address, required this.type});
-  Map<String, dynamic> toJson() {
+  Map<dynamic, dynamic> toJson() {
     return {
       'address': address,
       'type': type.index,
     };
   }
 
-  factory PublicAddress.fromJson(Map<String, dynamic> json) {
+  factory PublicAddress.fromJson(Map<dynamic, dynamic> json) {
     return PublicAddress(
       address: json['address'],
       type: NetworkType.values[json['type'] as int],
@@ -1491,4 +1492,53 @@ class PublicAddress {
   String toString() {
     return 'PublicAddress{address: $address, type: $type}';
   }
+}
+
+class TransactionReceiptData {
+  final String from;
+  final String to;
+  final String? transactionId;
+  final String? value;
+  final String? block;
+  final bool? status;
+
+  TransactionReceiptData({
+    required this.from,
+    required this.to,
+    required this.transactionId,
+    this.value,
+    required this.block,
+    required this.status,
+  });
+  Map<String, dynamic> toJson() {
+    return {
+      'from': from,
+      'to': to,
+      'transactionId': transactionId,
+      'value': value,
+      'block': block,
+      'status': status,
+    };
+  }
+
+  factory TransactionReceiptData.fromJson(Map<String, dynamic> json) {
+    return TransactionReceiptData(
+      from: json['from'],
+      to: json['to'],
+      transactionId: json['transactionId'],
+      value: json['value'],
+      block: json['block'],
+      status: json['status'] ?? false,
+    );
+  }
+}
+
+class SolanaRequestResponse {
+  final bool ok;
+  final String memo;
+
+  SolanaRequestResponse({
+    required this.ok,
+    required this.memo,
+  });
 }

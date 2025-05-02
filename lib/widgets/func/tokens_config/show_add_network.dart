@@ -66,7 +66,6 @@ Future<Crypto?> showAddNetwork({
                             color: Colors.grey,
                             type: CryptoType.native,
                             decimals: 18,
-                            valueUsd: 0,
                             cryptoId: IdManager().generateUUID(),
                             canDisplay: true,
                             symbol: symbolController.text,

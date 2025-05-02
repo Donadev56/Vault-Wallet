@@ -1,13 +1,15 @@
+import 'package:decimal/decimal.dart';
 import 'package:flutter/material.dart';
 import 'package:moonwallet/custom/web3_webview/lib/utils/loading.dart';
 import 'package:moonwallet/logger/logger.dart';
 import 'package:moonwallet/service/db/balance_database.dart';
 import 'package:moonwallet/service/external_data/price_manager.dart';
 import 'package:moonwallet/service/internet_manager.dart';
+import 'package:moonwallet/service/web3_interactions/evm/addresses.dart';
 import 'package:moonwallet/service/web3_interactions/evm/token_manager.dart';
 import 'package:moonwallet/service/db/wallet_db.dart';
 import 'package:moonwallet/types/types.dart';
-import 'package:moonwallet/widgets/func/transactions/ask_user_for_conf.dart';
+import 'package:moonwallet/widgets/func/transactions/evm/ask_user_evm.dart';
 import 'package:moonwallet/widgets/func/security/ask_password.dart';
 import 'package:moonwallet/widgets/func/snackbar.dart';
 import 'package:web3dart/web3dart.dart';
@@ -20,6 +22,7 @@ class EthInteractionManager {
   final walletStorage = WalletDatabase();
   final priceManager = PriceManager();
   final tokenManager = TokenManager();
+  final EthAddresses ethAddresses = EthAddresses();
   Future<String?> fetchBalanceUsingRpc(
       PublicData account, Crypto crypto) async {
     try {
@@ -213,18 +216,18 @@ class EthInteractionManager {
     try {
       final nativeBalance = await getUserBalance(data.account, data.crypto)
           .withLoading(context, colors);
+
       final nativeBalanceDecimal = (nativeBalance).toDecimal();
       final amountDecimal = (data.amount).toDecimal();
 
-      if (nativeBalanceDecimal <= amountDecimal) {
+      if (nativeBalanceDecimal < amountDecimal) {
         throw Exception("Insufficient balance");
       }
 
       final to = data.addressTo;
-      final amount = data.amount;
-      log("Amount $amount");
 
-      final valueWei = EthUtils().ethToBigInt(amount, data.crypto.decimals);
+      final valueWei = EthUtils()
+          .ethToBigInt(amountDecimal.toString(), data.crypto.decimals);
       final valueHex = EthUtils().bigIntToHex(valueWei);
       final cryptoPrice =
           (await priceManager.getTokenMarketData(data.crypto.cgSymbol ?? ""))
@@ -241,17 +244,46 @@ class EthInteractionManager {
 
       final gasPrice =
           await getGasPrice(data.crypto.rpcUrls?.firstOrNull ?? "");
+      final baseFees = Decimal.fromBigInt((estimatedGas * gasPrice));
+      final feesCostWei = baseFees * Decimal.parse('1.5');
+      final feesCostEth = feesCostWei /
+          Decimal.fromInt(10).pow(data.crypto.decimals).toDecimal();
+      final totalCost = feesCostEth.toDecimal() + amountDecimal;
+      log("Fees cost : ${feesCostEth.toDecimal()}");
 
-      log("Gas : ${estimatedGas.toString()}");
+      log("Total cost : ${totalCost.toString()}");
+      String amountToTransferHex = "0x0";
+      BigInt valueBigIntToTransfer = valueWei;
+      Decimal amountEthToTransfer = amountDecimal;
+
+      final canAffordTotalCost = totalCost <= nativeBalanceDecimal;
+      log("Can afford total cost : $canAffordTotalCost");
+      final canSubtractFeesFromBalance =
+          (nativeBalanceDecimal - feesCostEth.toDecimal()) > Decimal.zero;
+
+      log("Can subtract fees from balance : $canSubtractFeesFromBalance");
+      if (canAffordTotalCost) {
+        amountToTransferHex = EthUtils().bigIntToHex(valueWei);
+      } else if (!canAffordTotalCost && canSubtractFeesFromBalance) {
+        valueBigIntToTransfer =
+            (Decimal.fromBigInt(valueWei) - feesCostWei).toBigInt();
+
+        amountToTransferHex = EthUtils().bigIntToHex((valueBigIntToTransfer));
+        amountEthToTransfer = amountDecimal - feesCostEth.toDecimal();
+      } else {
+        throw Exception("Amount too low after gas fees");
+      }
+
+      log("Possible transfer : ${amountToTransferHex.toString()}");
 
       final transaction = TransactionToConfirm(
           gasPrice: gasPrice,
-          valueBigInt: valueWei,
+          valueBigInt: valueBigIntToTransfer,
           cryptoPrice: cryptoPrice ?? 0,
           gasHex: EthUtils().bigIntToHex(estimatedGas),
           gasBigint: estimatedGas,
-          valueHex: valueHex,
-          valueEth: amount,
+          valueHex: amountToTransferHex,
+          valueEth: amountEthToTransfer.toString(),
           account: data.account,
           addressTo: to,
           crypto: data.crypto,
@@ -340,6 +372,21 @@ class EthInteractionManager {
     }
   }
 
+  Future<String?> transferHandler(BasicTransactionData transaction,
+      AppColors colors, BuildContext context) async {
+    try {
+      if (transaction.crypto.isNative) {
+        return await buildAndSendNativeTransaction(
+            transaction, colors, context);
+      } else {
+        return await buildAndSendStandardToken(transaction, colors, context);
+      }
+    } catch (e) {
+      logError(e.toString());
+      rethrow;
+    }
+  }
+
   Future<String> approveEthTransaction(
       {required Crypto crypto,
       required TransactionToConfirm data,
@@ -351,7 +398,7 @@ class EthInteractionManager {
         throw "No Context";
       }
 
-      final confirmedResponse = await askUserForConfirmation(
+      final confirmedResponse = await askUserEvm(
         crypto: crypto,
         txData: data,
         colors: colors,

@@ -450,14 +450,13 @@ class _EditWalletsViewState extends ConsumerState<EditWalletsView> {
                       onPressed: () {
                         vibrate();
 
-                        showAppBarWalletActions(
-                            child: WalletActions(
-                                roundedOf: roundedOf,
-                                fontSizeOf: fontSizeOf,
-                                iconSizeOf: iconSizeOf,
-                                colors: colors),
-                            context: context,
-                            colors: colors);
+                        showAppBarWalletActions(children: [
+                          WalletActions(
+                              roundedOf: roundedOf,
+                              fontSizeOf: fontSizeOf,
+                              iconSizeOf: iconSizeOf,
+                              colors: colors)
+                        ], context: context, colors: colors);
                       },
                       icon: Icon(Icons.add, color: colors.primaryColor),
                       label: Text(

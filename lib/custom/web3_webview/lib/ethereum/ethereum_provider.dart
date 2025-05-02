@@ -546,7 +546,6 @@ class EthereumProvider {
               name: network.chainName,
               color: Colors.grey,
               type: CryptoType.native,
-              valueUsd: 0,
               cryptoId: newId,
               canDisplay: true,
               symbol: network.chainName,
