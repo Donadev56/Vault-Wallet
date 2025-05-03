@@ -3,10 +3,8 @@ import 'dart:typed_data';
 import 'package:flutter/material.dart';
 import 'package:flutter_feather_icons/flutter_feather_icons.dart';
 import 'package:lucide_icons_flutter/lucide_icons.dart';
-import 'package:moonwallet/logger/logger.dart';
 import 'package:moonwallet/screens/auth/home.dart';
 import 'package:moonwallet/types/types.dart';
-import 'package:share_plus/share_plus.dart';
 
 final List<Map<String, dynamic>> browserModalOptions = [
   {"name": 'Refresh', "icon": LucideIcons.refreshCcw},
@@ -176,20 +174,6 @@ final List<Map<String, dynamic>> appBarButtonOptions = [
       
     }
   } */
-
-Future<void> share(
-    {required String text,
-    required String subject,
-    VoidCallback? onError}) async {
-  try {
-    Share.share(text, subject: subject);
-  } catch (e) {
-    logError(e.toString());
-    if (onError != null) {
-      onError();
-    }
-  }
-}
 
 final List<DApp> dapps = [
   DApp(

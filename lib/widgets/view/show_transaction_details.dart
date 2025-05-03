@@ -5,6 +5,7 @@ import 'package:modal_bottom_sheet/modal_bottom_sheet.dart';
 import 'package:moonwallet/logger/logger.dart';
 import 'package:moonwallet/types/types.dart';
 import 'package:moonwallet/utils/constant.dart';
+import 'package:moonwallet/utils/share_manager.dart';
 import 'package:moonwallet/widgets/screen_widgets/crypto_picture.dart';
 import 'package:moonwallet/widgets/view/details_container.dart';
 import 'package:timer_builder/timer_builder.dart';
@@ -353,7 +354,8 @@ void showTransactionDetails(
                         onTap: () async {
                           final text =
                               "${!currentNetwork.isNative ? currentNetwork.network?.explorers![0] : currentNetwork.explorers![0]}/tx/${tr.hash}";
-                          share(text: text, subject: "Share Transaction Hash");
+                          ShareManager().shareText(
+                              text: text, subject: "Share Transaction Hash");
                         },
                         child: Container(
                             padding: const EdgeInsets.all(10),

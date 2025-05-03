@@ -1,12 +1,12 @@
 import 'package:flutter/material.dart';
 import 'package:modal_bottom_sheet/modal_bottom_sheet.dart';
 
-Future<T> showStandardModalBottomSheet<T>({
-  required Widget Function(BuildContext) builder,
-  required BuildContext context,
-}) async {
+Future<T> showStandardModalBottomSheet<T>(
+    {required BuildContext context,
+    required Widget Function(BuildContext) builder,
+    Color? barrierColor}) async {
   final T result = await showCupertinoModalBottomSheet(
-      barrierColor: Colors.black.withOpacity(0.9),
+      barrierColor: barrierColor ?? Colors.black.withOpacity(0.9),
       topRadius: const Radius.circular(20),
       backgroundColor: Colors.transparent,
       shape: RoundedRectangleBorder(

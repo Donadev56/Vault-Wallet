@@ -13,14 +13,13 @@ void showAppBarWalletActions(
         return Material(
           color: colors.primaryColor,
           child: StandardContainer(
-              colors: colors,
               child: Padding(
-                padding: const EdgeInsets.all(15),
-                child: ListView(
-                  shrinkWrap: true,
-                  children: children,
-                ),
-              )),
+            padding: const EdgeInsets.all(15),
+            child: ListView(
+              shrinkWrap: true,
+              children: children,
+            ),
+          )),
         );
       });
 }

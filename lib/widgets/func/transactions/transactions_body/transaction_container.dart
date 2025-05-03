@@ -6,16 +6,20 @@ class TransactionContainer extends StatelessWidget {
   final AppColors colors;
   final Widget? child;
   final EdgeInsetsGeometry? padding;
+  final Color? backgroundColor;
 
   const TransactionContainer(
-      {super.key, required this.colors, this.child, this.padding});
+      {super.key,
+      required this.colors,
+      this.child,
+      this.padding,
+      this.backgroundColor});
 
   @override
   Widget build(BuildContext context) {
     return StandardContainer(
       padding: padding,
-      colors: colors,
-      backgroundColor: colors.secondaryColor,
+      backgroundColor: backgroundColor ?? colors.primaryColor,
       child: child,
     );
   }

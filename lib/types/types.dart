@@ -848,6 +848,7 @@ class Option {
   final TextStyle? titleStyle;
   final Color? tileColor;
   final Color? splashColor;
+  final VisualDensity? density;
   final void Function()? onPressed;
 
   Option(
@@ -861,7 +862,8 @@ class Option {
       this.splashColor,
       this.onPressed,
       this.shape,
-      this.iconSize = 30});
+      this.iconSize = 30,
+      this.density});
 
   Map<String, dynamic> toJson() {
     return {

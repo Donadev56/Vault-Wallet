@@ -13,7 +13,10 @@ import 'package:moonwallet/utils/crypto.dart';
 import 'package:moonwallet/utils/themes.dart';
 import 'package:moonwallet/widgets/appBar/button.dart';
 import 'package:moonwallet/widgets/appBar/show_wallet_actions.dart';
+import 'package:moonwallet/widgets/dialogs/show_standard_sheet.dart';
+import 'package:moonwallet/widgets/dialogs/standard_container.dart';
 import 'package:moonwallet/widgets/func/security/ask_password.dart';
+import 'package:moonwallet/widgets/func/tokens_config/show_token_detials.dart';
 import 'package:moonwallet/widgets/screen_widgets/crypto_picture.dart';
 import 'package:moonwallet/widgets/func/tokens_config/show_add_network.dart';
 import 'package:moonwallet/widgets/func/tokens_config/show_add_token.dart';
@@ -440,7 +443,10 @@ class _AddCryptoViewState extends ConsumerState<AddCryptoView> {
                     child: ListTile(
                       contentPadding: const EdgeInsets.symmetric(
                           vertical: 8, horizontal: 20),
-                      onTap: () {},
+                      onTap: () {
+                        showTokenDetails(
+                            context: context, colors: colors, crypto: crypto);
+                      },
                       leading: CryptoPicture(
                           crypto: crypto,
                           size: imageSizeOf(40),

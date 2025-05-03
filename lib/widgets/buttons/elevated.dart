@@ -8,26 +8,35 @@ class CustomElevatedButton extends StatelessWidget {
   final bool enabled;
   final AppColors colors;
   final Widget? icon;
+  final double opacity;
+  final TextStyle? textStyle;
+  final Color? textColor;
+  final EdgeInsetsGeometry? padding;
 
-  const CustomElevatedButton({
-    super.key,
-    required this.onPressed,
-    this.child,
-    this.enabled = true,
-    required this.colors,
-    this.text,
-    this.icon,
-  });
+  const CustomElevatedButton(
+      {super.key,
+      required this.onPressed,
+      this.child,
+      this.enabled = true,
+      required this.colors,
+      this.text,
+      this.icon,
+      this.opacity = 1,
+      this.textStyle,
+      this.textColor,
+      this.padding});
 
   @override
   Widget build(BuildContext context) {
     final textTheme = Theme.of(context).textTheme;
     final style = ElevatedButton.styleFrom(
       elevation: 0,
-      backgroundColor:
-          enabled ? colors.themeColor : colors.themeColor.withOpacity(0.4),
+      backgroundColor: enabled
+          ? colors.themeColor.withOpacity(opacity)
+          : colors.themeColor.withOpacity(0.4),
       foregroundColor: colors.primaryColor,
-      padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 20),
+      padding:
+          padding ?? const EdgeInsets.symmetric(vertical: 12, horizontal: 20),
       shape: RoundedRectangleBorder(
         borderRadius: BorderRadius.circular(50),
       ),
@@ -36,11 +45,12 @@ class CustomElevatedButton extends StatelessWidget {
     final label = child ??
         Text(
           text ?? "",
-          style: textTheme.bodyMedium?.copyWith(
-            color: colors.primaryColor,
-            fontSize: 16,
-            fontWeight: FontWeight.w900,
-          ),
+          style: textStyle ??
+              textTheme.bodyMedium?.copyWith(
+                color: textColor ?? colors.primaryColor,
+                fontSize: 16,
+                fontWeight: FontWeight.w900,
+              ),
         );
 
     return icon != null

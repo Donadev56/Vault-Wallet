@@ -44,7 +44,7 @@ class WarningStaticMessage extends StatelessWidget {
               child: Text(
                 content,
                 style: textTheme.bodyMedium?.copyWith(
-                    fontSize: 16,
+                    fontSize: 12,
                     color: colors.textColor.withOpacity(0.5),
                     decoration: TextDecoration.none),
               ),

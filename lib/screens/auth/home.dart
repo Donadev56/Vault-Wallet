@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:moonwallet/screens/dashboard/wallet_actions/add_mnemonic.dart';
-import 'package:moonwallet/screens/dashboard/wallet_actions/create_private_key.dart';
+import 'package:moonwallet/screens/dashboard/wallet_actions/create_mnemonic_key.dart';
 import 'package:moonwallet/types/types.dart';
 
 class HomeScreen extends StatefulWidget {
@@ -96,7 +96,7 @@ class _HomeScreenState extends State<HomeScreen> {
                         Navigator.push(
                             context,
                             MaterialPageRoute(
-                                builder: (ctx) => CreatePrivateKeyMain()));
+                                builder: (ctx) => CreateMnemonicMain()));
                       },
                       icon: Icon(Icons.add, color: colors.primaryColor),
                       label: Text(

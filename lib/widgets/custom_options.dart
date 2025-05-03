@@ -95,6 +95,8 @@ class CustomOptionWidget extends StatelessWidget {
                         return Material(
                           color: Colors.transparent,
                           child: ListTile(
+                            visualDensity:
+                                option.density ?? VisualDensity.compact,
                             minVerticalPadding: 0,
                             contentPadding: listTitlePadding,
                             tileColor: option.tileColor ?? tileColor,

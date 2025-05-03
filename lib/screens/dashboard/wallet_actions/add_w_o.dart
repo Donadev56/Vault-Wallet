@@ -15,7 +15,11 @@ import 'package:moonwallet/types/types.dart';
 import 'package:moonwallet/utils/colors.dart';
 import 'package:moonwallet/utils/prefs.dart';
 import 'package:moonwallet/utils/themes.dart';
+import 'package:moonwallet/widgets/backup/backup_related.dart';
 import 'package:moonwallet/widgets/backup/warning_static_message.dart';
+import 'package:moonwallet/widgets/buttons/elevated.dart';
+import 'package:moonwallet/widgets/buttons/elevated_low_opacity_button.dart';
+import 'package:moonwallet/widgets/buttons/outlined.dart';
 import 'package:moonwallet/widgets/func/security/ask_password.dart';
 import 'package:moonwallet/widgets/func/snackbar.dart';
 import 'package:moonwallet/widgets/scanner/show_scanner.dart';
@@ -191,88 +195,89 @@ class _AddPrivateKeyState extends ConsumerState<AddObservationWallet> {
                 decoration: TextDecoration.none),
           ),
         ),
-        body: Form(
-          key: _formKey,
-          child: SingleChildScrollView(
-            child: Column(
-              mainAxisSize: MainAxisSize.max,
-              children: [
-                Align(
-                  alignment: Alignment.topLeft,
-                  child: Container(
-                      margin: const EdgeInsets.only(top: 25, left: 20),
-                      child: Column(
-                        spacing: 15,
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Text(
-                            "Add public address",
-                            style: textTheme.headlineMedium?.copyWith(
-                              color: colors.textColor,
-                              fontSize: 25,
-                              fontWeight: FontWeight.bold,
+        body: SpaceWithFixedBottom(
+          body: Form(
+              key: _formKey,
+              child: Column(
+                mainAxisSize: MainAxisSize.max,
+                children: [
+                  Align(
+                    alignment: Alignment.topLeft,
+                    child: Container(
+                        margin: const EdgeInsets.only(top: 25, left: 20),
+                        child: Column(
+                          spacing: 15,
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text(
+                              "Add public address",
+                              style: textTheme.headlineMedium?.copyWith(
+                                color: colors.textColor,
+                                fontSize: 25,
+                                fontWeight: FontWeight.bold,
+                              ),
                             ),
-                          ),
-                          Text(
-                            "Enter a valid address starting with 0x.",
-                            style: textTheme.bodySmall?.copyWith(
-                                color: colors.textColor.withValues(
-                              alpha: 0.7,
-                            )),
-                          ),
-                        ],
-                      )),
-                ),
-                Container(
-                  margin: const EdgeInsets.all(20),
-                  child: Material(
-                    color: Colors.transparent,
-                    child: TextFormField(
-                      validator: (value) {
-                        if (value != null) {
-                          final res = keyTester(value);
-                          if (res) {
-                            return null;
+                            Text(
+                              "Enter a valid address starting with 0x.",
+                              style: textTheme.bodySmall?.copyWith(
+                                  color: colors.textColor.withValues(
+                                alpha: 0.7,
+                              )),
+                            ),
+                          ],
+                        )),
+                  ),
+                  Container(
+                    margin: const EdgeInsets.all(20),
+                    child: Material(
+                      color: Colors.transparent,
+                      child: TextFormField(
+                        validator: (value) {
+                          if (value != null) {
+                            final res = keyTester(value);
+                            if (res) {
+                              return null;
+                            } else {
+                              return "Invalid Address";
+                            }
                           } else {
-                            return "Invalid Address";
+                            return "Please enter the public address";
                           }
-                        } else {
-                          return "Please enter the public address";
-                        }
-                      },
-                      style: textTheme.bodyMedium?.copyWith(
-                        color: colors.textColor,
-                      ),
-                      cursorColor: colors.themeColor,
-                      minLines: 3,
-                      maxLines: 5,
-                      controller: _textController,
-                      decoration: InputDecoration(
-                        filled: true,
-                        fillColor: colors.secondaryColor,
-                        enabledBorder: OutlineInputBorder(
-                            borderSide: BorderSide(
-                                width: 0, color: Colors.transparent)),
-                        focusedBorder: OutlineInputBorder(
-                            borderSide: BorderSide(
-                                width: 0, color: Colors.transparent)),
-                        labelText: 'Address',
-                        labelStyle: TextStyle(color: colors.textColor),
-                        border: OutlineInputBorder(
-                          borderRadius: BorderRadius.circular(10),
-                          borderSide: BorderSide(color: colors.textColor),
+                        },
+                        style: textTheme.bodyMedium?.copyWith(
+                          color: colors.textColor,
+                        ),
+                        cursorColor: colors.themeColor,
+                        minLines: 3,
+                        maxLines: 5,
+                        controller: _textController,
+                        decoration: InputDecoration(
+                          filled: true,
+                          fillColor: colors.secondaryColor,
+                          enabledBorder: OutlineInputBorder(
+                              borderSide: BorderSide(
+                                  width: 0, color: Colors.transparent)),
+                          focusedBorder: OutlineInputBorder(
+                              borderSide: BorderSide(
+                                  width: 0, color: Colors.transparent)),
+                          labelText: 'Address',
+                          labelStyle: TextStyle(color: colors.textColor),
+                          border: OutlineInputBorder(
+                            borderRadius: BorderRadius.circular(10),
+                            borderSide: BorderSide(color: colors.textColor),
+                          ),
                         ),
                       ),
                     ),
                   ),
-                ),
-                const SizedBox(height: 16),
-                Row(
-                  children: [
-                    Expanded(
-                      child: Padding(
+                  const SizedBox(height: 16),
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      Padding(
                         padding: const EdgeInsets.symmetric(horizontal: 20),
-                        child: OutlinedButton.icon(
+                        child: CustomOutlinedButton(
+                          colors: colors,
                           onPressed: () async {
                             final data = await Clipboard.getData("text/plain");
                             if (data != null && data.text != null) {
@@ -284,127 +289,61 @@ class _AddPrivateKeyState extends ConsumerState<AddObservationWallet> {
                             }
                           },
                           icon: Icon(Icons.paste, color: colors.themeColor),
-                          label: Text(
-                            "Paste",
-                            style: textTheme.bodyMedium?.copyWith(
-                              fontSize: fontSizeOf(16),
-                              color: colors.themeColor,
-                            ),
-                          ),
-                          style: OutlinedButton.styleFrom(
-                            side: BorderSide(color: colors.themeColor),
-                            // Instead of setting an infinite width, just set the height.
-                            minimumSize: const Size.fromHeight(50),
-                            shape: RoundedRectangleBorder(
-                              borderRadius:
-                                  BorderRadius.circular(roundedOf(30)),
-                            ),
-                          ),
+                          text: "Paste",
                         ),
                       ),
-                    ),
-                    Expanded(
-                      child: Padding(
-                        padding: const EdgeInsets.symmetric(horizontal: 20),
-                        child: OutlinedButton.icon(
-                          onPressed: () {
-                            showScanner(
-                                context: context,
-                                controller: _mobileScannerController,
-                                colors: colors,
-                                onResult: (result) {
-                                  _textController.text = result;
-                                });
-                          },
-                          icon: Icon(LucideIcons.maximize,
-                              color: colors.themeColor),
-                          label: Text(
-                            "Scan",
-                            style: textTheme.bodyMedium?.copyWith(
-                              fontSize: fontSizeOf(16),
-                              color: colors.themeColor,
-                            ),
-                          ),
-                          style: OutlinedButton.styleFrom(
-                            side: BorderSide(color: colors.themeColor),
-                            minimumSize: const Size.fromHeight(50),
-                            shape: RoundedRectangleBorder(
-                              borderRadius:
-                                  BorderRadius.circular(roundedOf(30)),
-                            ),
-                          ),
-                        ),
-                      ),
-                    ),
-                  ],
+                      Padding(
+                          padding: const EdgeInsets.symmetric(horizontal: 20),
+                          child: CustomOutlinedButton(
+                            colors: colors,
+                            onPressed: () {
+                              showScanner(
+                                  context: context,
+                                  controller: _mobileScannerController,
+                                  colors: colors,
+                                  onResult: (result) {
+                                    _textController.text = result;
+                                  });
+                            },
+                            icon: Icon(LucideIcons.maximize,
+                                color: colors.themeColor),
+                            text: "Scan",
+                          )),
+                    ],
+                  ),
+                  SizedBox(
+                    height: 10,
+                  ),
+                  WarningStaticMessage(
+                      colors: colors,
+                      title: "Warning",
+                      content:
+                          "Please conduct your own research before adding an observation portfolio. We are not responsible for your interactions with external addresses."),
+                  SizedBox(
+                    height: 40,
+                  ),
+                ],
+              )),
+          bottom: Align(
+            alignment: Alignment.center,
+            child: SizedBox(
+              width: MediaQuery.of(context).size.width,
+              child: Padding(
+                padding: EdgeInsets.symmetric(vertical: 10, horizontal: 20),
+                child: ElevatedLowOpacityButton(
+                  icon: Icon(
+                    Icons.chevron_right,
+                    color: colors.themeColor,
+                  ),
+                  colors: colors,
+                  onPressed: () async {
+                    if (_formKey.currentState?.validate() ?? false) {
+                      await handleSubmit();
+                    }
+                  },
+                  text: "Next",
                 ),
-                SizedBox(
-                  height: 10,
-                ),
-                WarningStaticMessage(
-                    colors: colors,
-                    title: "Warning",
-                    content:
-                        "Please conduct your own research before adding an observation portfolio. We are not responsible for your interactions with external addresses."),
-                SizedBox(
-                  height: 40,
-                ),
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  crossAxisAlignment: CrossAxisAlignment.center,
-                  children: [
-                    Padding(
-                      padding: EdgeInsets.only(
-                          bottom: 20, left: 20), // Optional padding
-                      child: OutlinedButton(
-                        style: ElevatedButton.styleFrom(
-                          backgroundColor: colors.primaryColor,
-                          side: BorderSide(color: colors.themeColor, width: 1),
-                          shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(roundedOf(30)),
-                          ),
-                        ),
-                        onPressed: () {
-                          Navigator.pop(context);
-                        },
-                        child: Text(
-                          "Back",
-                          style: textTheme.bodyMedium?.copyWith(
-                            fontSize: fontSizeOf(18),
-                            color: colors.themeColor,
-                            decoration: TextDecoration.none,
-                          ),
-                        ),
-                      ),
-                    ),
-                    Padding(
-                      padding: EdgeInsets.only(
-                          bottom: 20, right: 20), // Optional padding
-                      child: ElevatedButton(
-                        style: ElevatedButton.styleFrom(
-                            shape: RoundedRectangleBorder(
-                              borderRadius:
-                                  BorderRadius.circular(roundedOf(30)),
-                            ),
-                            backgroundColor: colors.themeColor),
-                        onPressed: () async {
-                          if (_formKey.currentState?.validate() ?? false) {
-                            await handleSubmit();
-                          }
-                        },
-                        child: Text(
-                          "Next",
-                          style: textTheme.bodyMedium?.copyWith(
-                            fontSize: fontSizeOf(18),
-                            color: colors.primaryColor,
-                            decoration: TextDecoration.none,
-                          ),
-                        ),
-                      ),
-                    ),
-                  ],
-                ),
-              ],
+              ),
             ),
           ),
         ));

@@ -11,7 +11,7 @@ class CryptoStorageManager {
 
   Future<List<Crypto>?> getSavedCryptos({required PublicData wallet}) async {
     try {
-      final name = "savedCrypto/test25/${wallet.keyId}";
+      final name = "savedCrypto/test26/${wallet.keyId}";
       log("Getting crypto for address ${wallet.keyId}");
 
       final String? cryptoDataString = await saver.getDynamicData(name: name);
@@ -44,7 +44,7 @@ class CryptoStorageManager {
   Future<bool> saveListCrypto(
       {required List<Crypto> cryptos, required PublicData wallet}) async {
     try {
-      final name = "savedCrypto/test25/${wallet.keyId}";
+      final name = "savedCrypto/test26/${wallet.keyId}";
       log("Saving crypto for address ${wallet.keyId}");
 
       List<dynamic> cryptoJson = cryptos.map((c) => c.toJson()).toList();

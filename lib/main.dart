@@ -22,7 +22,7 @@ import 'package:moonwallet/screens/dashboard/settings/settings.dart';
 import 'package:moonwallet/screens/dashboard/wallet_actions/add_w_o.dart';
 import 'package:moonwallet/screens/dashboard/wallet_actions/add_mnemonic.dart';
 import 'package:moonwallet/screens/dashboard/wallet_actions/add_private_key.dart';
-import 'package:moonwallet/screens/dashboard/wallet_actions/create_private_key.dart';
+import 'package:moonwallet/screens/dashboard/wallet_actions/create_mnemonic_key.dart';
 import 'package:moonwallet/secure_check_view.dart';
 import 'package:moonwallet/service/db/old_db.dart';
 import 'package:moonwallet/service/db/wallet_db.dart';
@@ -325,7 +325,7 @@ class _MyAppState extends State<MyApp> {
                   Routes.home: (context) => HomeScreen(),
                   Routes.importWalletMain: (context) => AddPrivateKeyInMain(),
                   Routes.createPrivateKeyMain: (context) =>
-                      CreatePrivateKeyMain(),
+                      CreateMnemonicMain(),
                   Routes.createAccountFromSed: (context) => AddMnemonicScreen(),
                   Routes.addObservationWallet: (context) =>
                       AddObservationWallet(),

@@ -51,8 +51,9 @@ void showCustomDrawer({
   String walletName = account.walletName;
   File? currentImage = profileImage;
   bool useBio = canUseBio;
-  double bigRadius = 20;
-  double smallRadius = 5;
+  double bigRadius = 10;
+  double smallRadius = 10;
+
   final BorderRadius borderRadiusTop = BorderRadius.only(
       topLeft: Radius.circular(roundedOf(bigRadius)),
       topRight: Radius.circular(roundedOf(bigRadius)),

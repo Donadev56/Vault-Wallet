@@ -14,7 +14,11 @@ import 'package:moonwallet/types/types.dart';
 import 'package:moonwallet/utils/colors.dart';
 import 'package:moonwallet/utils/prefs.dart';
 import 'package:moonwallet/utils/themes.dart';
+import 'package:moonwallet/widgets/backup/backup_related.dart';
+import 'package:moonwallet/widgets/backup/warning_static_message.dart';
 import 'package:moonwallet/widgets/bottom_pin_copy.dart';
+import 'package:moonwallet/widgets/buttons/elevated_low_opacity_button.dart';
+import 'package:moonwallet/widgets/buttons/outlined.dart';
 import 'package:moonwallet/widgets/func/security/ask_password.dart';
 import 'package:moonwallet/widgets/func/snackbar.dart';
 import 'package:moonwallet/widgets/scanner/show_scanner.dart';
@@ -264,123 +268,108 @@ class _AddPrivateKeyState extends ConsumerState<AddMnemonicScreen> {
                 decoration: TextDecoration.none),
           ),
         ),
-        body: Form(
-          key: _formKey,
-          child: SingleChildScrollView(
-            child: Column(
-              mainAxisSize: MainAxisSize.max,
-              children: [
-                Align(
-                  alignment: Alignment.topLeft,
-                  child: Container(
-                      margin: const EdgeInsets.only(top: 25, left: 20),
-                      child: Column(
-                        spacing: 15,
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Text(
-                            "Add mnemonic ",
-                            style: textTheme.headlineMedium?.copyWith(
-                              color: colors.textColor,
-                              fontSize: 25,
-                              fontWeight: FontWeight.bold,
+        body: SpaceWithFixedBottom(
+            body: Form(
+              key: _formKey,
+              child: Column(
+                mainAxisSize: MainAxisSize.max,
+                children: [
+                  Align(
+                    alignment: Alignment.topLeft,
+                    child: Container(
+                        margin: const EdgeInsets.only(top: 25, left: 20),
+                        child: Column(
+                          spacing: 15,
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text(
+                              "Add mnemonic ",
+                              style: textTheme.headlineMedium?.copyWith(
+                                color: colors.textColor,
+                                fontSize: 25,
+                                fontWeight: FontWeight.bold,
+                              ),
                             ),
-                          ),
-                          Text(
-                            "Enter a mnemonic containing 12 keywords and make sure they are saved.",
-                            style: textTheme.bodySmall?.copyWith(
-                                color: colors.textColor.withValues(
-                              alpha: 0.7,
-                            )),
-                          ),
-                        ],
-                      )),
-                ),
-                Container(
-                  margin: const EdgeInsets.all(20),
-                  child: Material(
-                    color: Colors.transparent,
-                    child: TextFormField(
-                      inputFormatters: [SingleSpaceTextInputFormatter()],
-                      validator: (value) {
-                        if (value != null) {
-                          final res = keyTester(value);
-                          if (res) {
-                            return null;
+                            Text(
+                              "Enter a mnemonic containing 12 keywords and make sure they are saved.",
+                              style: textTheme.bodySmall?.copyWith(
+                                  color: colors.textColor.withValues(
+                                alpha: 0.7,
+                              )),
+                            ),
+                          ],
+                        )),
+                  ),
+                  Container(
+                    margin: const EdgeInsets.all(20),
+                    child: Material(
+                      color: Colors.transparent,
+                      child: TextFormField(
+                        inputFormatters: [SingleSpaceTextInputFormatter()],
+                        validator: (value) {
+                          if (value != null) {
+                            final res = keyTester(value);
+                            if (res) {
+                              return null;
+                            } else {
+                              return "Invalid 12 words";
+                            }
                           } else {
-                            return "Invalid 12 words";
+                            return "Please enter your 12 words";
                           }
-                        } else {
-                          return "Please enter your 12 words";
-                        }
-                      },
-                      style: textTheme.bodyMedium?.copyWith(
-                        color: colors.textColor,
-                      ),
-                      cursorColor: colors.themeColor,
-                      minLines: 3,
-                      maxLines: 5,
-                      controller: _textController,
-                      decoration: InputDecoration(
-                        filled: true,
-                        fillColor: colors.secondaryColor,
-                        enabledBorder: OutlineInputBorder(
-                            borderSide: BorderSide(
-                                width: 0, color: Colors.transparent)),
-                        focusedBorder: OutlineInputBorder(
-                            borderSide: BorderSide(
-                                width: 0, color: Colors.transparent)),
-                        labelText: 'Mnemonic',
-                        labelStyle: TextStyle(color: colors.textColor),
-                        border: OutlineInputBorder(
-                          borderRadius: BorderRadius.circular(roundedOf(10)),
-                          borderSide: BorderSide(color: colors.textColor),
+                        },
+                        style: textTheme.bodyMedium?.copyWith(
+                          color: colors.textColor,
+                        ),
+                        cursorColor: colors.themeColor,
+                        minLines: 3,
+                        maxLines: 5,
+                        controller: _textController,
+                        decoration: InputDecoration(
+                          filled: true,
+                          fillColor: colors.secondaryColor,
+                          enabledBorder: OutlineInputBorder(
+                              borderSide: BorderSide(
+                                  width: 0, color: Colors.transparent)),
+                          focusedBorder: OutlineInputBorder(
+                              borderSide: BorderSide(
+                                  width: 0, color: Colors.transparent)),
+                          labelText: 'Mnemonic',
+                          labelStyle: TextStyle(color: colors.textColor),
+                          border: OutlineInputBorder(
+                            borderRadius: BorderRadius.circular(roundedOf(10)),
+                            borderSide: BorderSide(color: colors.textColor),
+                          ),
                         ),
                       ),
                     ),
                   ),
-                ),
-                const SizedBox(height: 16),
-                Row(
-                  children: [
-                    Expanded(
-                      child: Padding(
+                  const SizedBox(height: 16),
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      Padding(
                         padding: const EdgeInsets.symmetric(horizontal: 20),
-                        child: OutlinedButton.icon(
-                          onPressed: () async {
-                            final data = await Clipboard.getData("text/plain");
-                            if (data != null && data.text != null) {
-                              log(data.toString());
-                              setState(() {
-                                String text = data.text ?? "";
-                                _textController.text = text;
-                              });
-                            }
-                          },
-                          icon: Icon(Icons.paste, color: colors.themeColor),
-                          label: Text(
-                            "Paste",
-                            style: textTheme.bodyMedium?.copyWith(
-                              fontSize: fontSizeOf(16),
-                              color: colors.themeColor,
-                            ),
-                          ),
-                          style: OutlinedButton.styleFrom(
-                            side: BorderSide(color: colors.themeColor),
-                            // Instead of setting an infinite width, just set the height.
-                            minimumSize: const Size.fromHeight(50),
-                            shape: RoundedRectangleBorder(
-                              borderRadius:
-                                  BorderRadius.circular(roundedOf(30)),
-                            ),
-                          ),
-                        ),
+                        child: CustomOutlinedButton(
+                            colors: colors,
+                            onPressed: () async {
+                              final data =
+                                  await Clipboard.getData("text/plain");
+                              if (data != null && data.text != null) {
+                                log(data.toString());
+                                setState(() {
+                                  String text = data.text ?? "";
+                                  _textController.text = text;
+                                });
+                              }
+                            },
+                            icon: Icon(Icons.paste, color: colors.themeColor),
+                            text: "Paste"),
                       ),
-                    ),
-                    Expanded(
-                      child: Padding(
+                      Padding(
                         padding: const EdgeInsets.symmetric(horizontal: 20),
-                        child: OutlinedButton.icon(
+                        child: CustomOutlinedButton(
+                          colors: colors,
                           onPressed: () {
                             showScanner(
                                 context: context,
@@ -394,127 +383,44 @@ class _AddPrivateKeyState extends ConsumerState<AddMnemonicScreen> {
                           },
                           icon: Icon(LucideIcons.maximize,
                               color: colors.themeColor),
-                          label: Text(
-                            "Scan",
-                            style: textTheme.bodyMedium?.copyWith(
-                              fontSize: fontSizeOf(16),
-                              color: colors.themeColor,
-                            ),
-                          ),
-                          style: OutlinedButton.styleFrom(
-                            side: BorderSide(color: colors.themeColor),
-                            minimumSize: const Size.fromHeight(50),
-                            shape: RoundedRectangleBorder(
-                              borderRadius:
-                                  BorderRadius.circular(roundedOf(30)),
-                            ),
-                          ),
+                          text: "Scan",
                         ),
                       ),
-                    ),
-                  ],
-                ),
-                SizedBox(
-                  height: 20,
-                ),
-                Align(
-                  alignment: Alignment.topLeft,
-                  child: Padding(
-                    padding: const EdgeInsets.all(20),
-                    child: RichText(
-                      text: TextSpan(children: [
-                        WidgetSpan(
-                            child: Row(
-                          children: [
-                            Icon(
-                              LucideIcons.circleAlert,
-                              color: Colors.pinkAccent,
-                            ),
-                            SizedBox(
-                              width: 5,
-                            ),
-                            Text("Important :",
-                                style: textTheme.bodyMedium?.copyWith(
-                                    fontSize: fontSizeOf(16),
-                                    color: colors.textColor,
-                                    decoration: TextDecoration.none)),
-                          ],
-                        )),
-                        WidgetSpan(
-                          child: Padding(
-                            padding: const EdgeInsets.only(top: 10),
-                            child: Text(
-                              "The Seed phrase is secret and is the only way to access your funds. Never share your private key with anyone and keep it in a safe place.",
-                              style: textTheme.bodyMedium?.copyWith(
-                                  fontSize: fontSizeOf(16),
-                                  color: colors.textColor.withOpacity(0.5),
-                                  decoration: TextDecoration.none),
-                            ),
-                          ),
-                        ),
-                      ]),
-                    ),
+                    ],
                   ),
-                ),
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  crossAxisAlignment: CrossAxisAlignment.center,
-                  children: [
-                    Padding(
-                      padding: EdgeInsets.only(
-                          bottom: 20, left: 20), // Optional padding
-                      child: OutlinedButton(
-                        style: ElevatedButton.styleFrom(
-                          backgroundColor: colors.primaryColor,
-                          side: BorderSide(color: colors.themeColor, width: 1),
-                          shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(roundedOf(30)),
-                          ),
-                        ),
-                        onPressed: () {
-                          Navigator.pop(context);
-                        },
-                        child: Text(
-                          "Back",
-                          style: textTheme.bodyMedium?.copyWith(
-                            fontSize: fontSizeOf(18),
-                            color: colors.themeColor,
-                            decoration: TextDecoration.none,
-                          ),
-                        ),
-                      ),
-                    ),
-                    Padding(
-                      padding: EdgeInsets.only(
-                          bottom: 20, right: 20), // Optional padding
-                      child: ElevatedButton(
-                        style: ElevatedButton.styleFrom(
-                            shape: RoundedRectangleBorder(
-                              borderRadius:
-                                  BorderRadius.circular(roundedOf(30)),
-                            ),
-                            backgroundColor: colors.themeColor),
-                        onPressed: () async {
-                          if (_formKey.currentState?.validate() ?? false) {
-                            await onSubmit();
-                          }
-                        },
-                        child: Text(
-                          "Next",
-                          style: textTheme.bodyMedium?.copyWith(
-                            fontSize: fontSizeOf(18),
-                            color: colors.primaryColor,
-                            decoration: TextDecoration.none,
-                          ),
-                        ),
-                      ),
-                    ),
-                  ],
-                )
-              ],
+                  SizedBox(
+                    height: 20,
+                  ),
+                  Align(
+                    alignment: Alignment.topLeft,
+                    child: WarningStaticMessage(
+                        colors: colors,
+                        title: "Important :",
+                        content:
+                            "The Seed phrase is secret and is the only way to access your funds. Never share your private key with anyone and keep it in a safe place."),
+                  ),
+                ],
+              ),
             ),
-          ),
-        ));
+            bottom: SizedBox(
+              width: MediaQuery.of(context).size.width,
+              child: Padding(
+                padding: EdgeInsets.symmetric(vertical: 10, horizontal: 20),
+                child: ElevatedLowOpacityButton(
+                  icon: Icon(
+                    Icons.chevron_right,
+                    color: colors.themeColor,
+                  ),
+                  colors: colors,
+                  onPressed: () async {
+                    if (_formKey.currentState?.validate() ?? false) {
+                      await onSubmit();
+                    }
+                  },
+                  text: "Next",
+                ),
+              ),
+            )));
   }
 }
 

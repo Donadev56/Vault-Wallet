@@ -14,7 +14,7 @@ if (keystorePropertiesFile.exists()) {
 }
 
 android {
-    namespace = "com.opennode.moonwallet"
+    namespace = "com.opennode.vault_wallet"
     compileSdk = 35
     ndkVersion = "25.1.8937393"
 
@@ -30,7 +30,7 @@ android {
 
     defaultConfig {
         // TODO: Specify your own unique Application ID (https://developer.android.com/studio/build/application-id.html).
-        applicationId = "com.opennode.moonwallet"
+        applicationId = "com.opennode.vault_wallet"
         // You can update the following values to match your application needs.
         // For more information, see: https://flutter.dev/to/review-gradle-config.
         minSdk = 21

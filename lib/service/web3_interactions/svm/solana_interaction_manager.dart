@@ -44,26 +44,37 @@ class SolanaInteractionManager {
   }
 
   Future<String?> getBalanceToken(PublicData account, Crypto crypto) async {
+    final db = BalanceDatabase(account: account, crypto: crypto);
+    final solAddress = account.svmAddress;
+    final tokenAddress = crypto.contractAddress;
     try {
-      final db = BalanceDatabase(account: account, crypto: crypto);
       final savedBalance = db.getBalance();
-      final solAddress = account.svmAddress;
-      final tokenAddress = crypto.contractAddress;
+
       if (solAddress == null) {
         throw "Invalid address";
       }
       if (tokenAddress == null) {
         throw "Invalid Token address";
       }
+      if (!isAddressValid(solAddress)) {
+        throw "Invalid key format";
+      }
+
+      if (!isAddressValid(tokenAddress)) {
+        throw "Invalid Token key $tokenAddress format";
+      }
 
       if (!(await internet.isConnected())) {
         return await savedBalance;
       }
 
+      log("The address $tokenAddress is valid");
       final accounts = await _rpcClient.getTokenAccountsByOwner(
         solAddress,
         dto.TokenAccountsFilter.byMint(tokenAddress),
       );
+
+      log("Accounts $tokenAddress ${accounts.toJson()}");
 
       if (accounts.value.isEmpty) {
         throw "No token accounts found ";
@@ -76,12 +87,16 @@ class SolanaInteractionManager {
       await db.saveData(balanceUi ?? "0");
       return balanceUi;
     } catch (e) {
-      logError(e.toString());
-      return null;
+      logError(
+          'An error occurred while getting balance of $solAddress using $tokenAddress token address\n Error : $e');
     }
+
+    return await db.getBalance();
   }
 
   Future<String?> getUserBalance(PublicData account, Crypto crypto) async {
+    final db = BalanceDatabase(account: account, crypto: crypto);
+
     try {
       final db = BalanceDatabase(account: account, crypto: crypto);
       final address = account.svmAddress;
@@ -101,7 +116,7 @@ class SolanaInteractionManager {
       return balance.value.toString();
     } catch (e) {
       logError(e.toString());
-      return null;
+      return await db.getBalance();
     }
   }
 
@@ -158,6 +173,7 @@ class SolanaInteractionManager {
       if (wallet == null) {
         throw "Invalid Key Pair";
       }
+      final recentBlockhash = await _rpcClient.getLatestBlockhash();
 
       final instructions = <Instruction>[];
 
@@ -174,16 +190,18 @@ class SolanaInteractionManager {
 
       instructions.add(transaction);
 
-      final message = Message(instructions: instructions);
-      final signature = await _rpcClient
-          .signAndSendTransaction(message, [wallet]).withLoading(
-              context, colors, "Waiting For Transfer");
+      final message = Message(
+        instructions: instructions,
+      );
+
+      final signature = await _rpcClient.signAndSendTransaction(
+          message, [wallet]).withLoading(context, colors, "Sending...");
       log("Message signed $signature");
 
       return signature;
     } catch (e) {
       logError(e.toString());
-      return null;
+      rethrow;
     }
   }
   /*

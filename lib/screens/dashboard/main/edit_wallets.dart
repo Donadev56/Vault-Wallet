@@ -7,6 +7,7 @@ import 'package:moonwallet/notifiers/providers.dart';
 import 'package:moonwallet/screens/dashboard/wallet_actions/private/private_key_screen.dart';
 import 'package:moonwallet/service/vibration.dart';
 import 'package:moonwallet/types/types.dart';
+import 'package:moonwallet/widgets/buttons/elevated_low_opacity_button.dart';
 import 'package:moonwallet/widgets/screen_widgets/account_list_title_widget.dart';
 import 'package:moonwallet/widgets/appBar/show_account_options.dart';
 import 'package:moonwallet/widgets/appBar/show_wallet_actions.dart';
@@ -446,36 +447,21 @@ class _EditWalletsViewState extends ConsumerState<EditWalletsView> {
                   width: width,
                   child: Container(
                     padding: const EdgeInsets.symmetric(horizontal: 20),
-                    child: ElevatedButton.icon(
-                      onPressed: () {
-                        vibrate();
+                    child: ElevatedLowOpacityButton(
+                        colors: colors,
+                        text: "Add Wallet",
+                        icon: Icon(Icons.add, color: colors.themeColor),
+                        onPressed: () {
+                          vibrate();
 
-                        showAppBarWalletActions(children: [
-                          WalletActions(
-                              roundedOf: roundedOf,
-                              fontSizeOf: fontSizeOf,
-                              iconSizeOf: iconSizeOf,
-                              colors: colors)
-                        ], context: context, colors: colors);
-                      },
-                      icon: Icon(Icons.add, color: colors.primaryColor),
-                      label: Text(
-                        "Add Wallet",
-                        style: textTheme.bodyMedium?.copyWith(
-                            fontSize: fontSizeOf(16),
-                            color: colors.primaryColor,
-                            fontWeight: FontWeight.bold),
-                      ),
-                      style: ElevatedButton.styleFrom(
-                        elevation: 0,
-                        padding: const EdgeInsets.symmetric(
-                            vertical: 0, horizontal: 8),
-                        backgroundColor: colors.themeColor,
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(roundedOf(25)),
-                        ),
-                      ),
-                    ),
+                          showAppBarWalletActions(children: [
+                            WalletActions(
+                                roundedOf: roundedOf,
+                                fontSizeOf: fontSizeOf,
+                                iconSizeOf: iconSizeOf,
+                                colors: colors)
+                          ], context: context, colors: colors);
+                        }),
                   ),
                 );
               }),

@@ -119,6 +119,8 @@ dependencies:
   decimal: ^3.2.1
   solana: ^0.31.2+1
   bs58: ^1.0.2
+  pretty_qr_code: ^3.4.0
+  cross_file: ^0.3.3
 
 
 
@@ -151,7 +153,7 @@ dev_dependencies:
 flutter_launcher_icons:
   android: "launcher_icon"
   ios: true
-  image_path: "assets/logo/main/image.png"
+  image_path: "assets/icons/3.png"
   min_sdk_android: 21 # android min sdk min:16, default 21
 
 
@@ -181,35 +183,17 @@ flutter:
         - asset: assets/fonts/roboto_regular.ttf
         
   assets:
-  - assets/4.png
-  - assets/b1.webp
-  - assets/image.png
-  - assets/g2.gif
-  - assets/blur1.png
-  - assets/blur/blur.png
+ 
   - assets/icon/icon4.png
-  - assets/logo/png/v_b.png
-  - assets/logo/png/vault_1.png
   - assets/logo/png/vault2.png
   - assets/logo/png/v_png.png
-  - assets/logo/png/v_t.png
-  - assets/logo/png/v_t2.png
-
-
-  - assets/i1.png
-  - assets/bnb.png
-  - assets/sonic.png
-
+  - assets/logo/png/icon.png  
   - assets/bg/i2.png
-  - assets/pro/image.png
-  - assets/logos/usdt2.png
-  - assets/logos/bitcoin.png
-  - assets/logos/eth.png
-  - assets/logos/pol.webp
+ 
   - assets/web3/ethers.min.js
 
 
-
+    
   # The following line ensures that the Material Icons font is
   # included with your application, so that you can use the icons in
   # the material Icons class.

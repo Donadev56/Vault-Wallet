@@ -19,6 +19,7 @@ class TransactionDestinationDetails extends StatelessWidget {
   Widget build(BuildContext context) {
     final textTheme = Theme.of(context).textTheme;
     return TransactionContainer(
+      backgroundColor: colors.secondaryColor,
       colors: colors,
       child: Column(
         children: [
@@ -37,21 +38,25 @@ class TransactionDestinationDetails extends StatelessWidget {
               ),
             ],
           ),
-          SizedBox(
-            height: 3,
+          Divider(
+            color: colors.textColor.withValues(alpha: 0.1),
           ),
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
               Text(
                 "To",
-                style: textTheme.bodyMedium
-                    ?.copyWith(color: colors.textColor, fontSize: 14),
+                style: textTheme.bodyMedium?.copyWith(
+                    color: colors.textColor,
+                    fontSize: 14,
+                    fontWeight: FontWeight.normal),
               ),
               Text(
                 "${to.substring(0, 6)}...${to.substring(to.length - 6)}",
-                style: textTheme.bodyMedium
-                    ?.copyWith(color: colors.textColor, fontSize: 14),
+                style: textTheme.bodyMedium?.copyWith(
+                    color: colors.textColor,
+                    fontSize: 14,
+                    fontWeight: FontWeight.normal),
               ),
             ],
           )

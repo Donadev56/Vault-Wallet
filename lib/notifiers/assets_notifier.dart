@@ -138,7 +138,8 @@ class AssetsNotifier extends AsyncNotifier<List<Asset>> {
 
         cryptoBalance.addAll(results.map((r) => r["cryptoBalance"] as Asset));
 
-        cryptoBalance.sort((a, b) => (b.balanceUsd).compareTo(a.balanceUsd));
+        cryptoBalance.sort((a, b) =>
+            (double.parse(b.balanceUsd)).compareTo(double.parse(a.balanceUsd)));
 
         final userAssets = cryptoBalance;
         await saveListAssets(cryptoBalance, account);

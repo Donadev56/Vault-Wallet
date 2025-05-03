@@ -15,6 +15,7 @@ import 'package:moonwallet/utils/colors.dart';
 import 'package:moonwallet/utils/constant.dart';
 import 'package:moonwallet/utils/crypto.dart';
 import 'package:moonwallet/utils/prefs.dart';
+import 'package:moonwallet/utils/share_manager.dart';
 import 'package:moonwallet/utils/themes.dart';
 import 'package:moonwallet/custom/web3_webview/lib/web3_webview.dart';
 import 'package:moonwallet/widgets/func/browser/show_bottom_options.dart';
@@ -46,7 +47,7 @@ class Web3BrowserScreenState extends State<Web3BrowserScreen> {
   bool isDarkMode = false;
 
   String _title = 'Loading...';
-  String currentUrl = 'https://www.moonbnb.pro';
+  String currentUrl = 'https://www.google.com';
   bool canShowAppBarOptions = true;
   int _chainId = 204;
   double progress = 0;
@@ -413,10 +414,9 @@ class Web3BrowserScreenState extends State<Web3BrowserScreen> {
                             Navigator.pop(context);
                           },
                           onShareClick: () async {
-                            share(
-                                subject: "Share Url",
-                                text:
-                                    "take a look at this url ${(await _webViewController?.getUrl()).toString()}");
+                            await ShareManager().shareUri(
+                                url: (await _webViewController?.getUrl())
+                                    .toString());
                           },
                           context: context,
                           darkNavigatorColor: darkNavigatorColor,

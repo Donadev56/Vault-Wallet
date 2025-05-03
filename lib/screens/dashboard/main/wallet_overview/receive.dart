@@ -1,5 +1,8 @@
 // ignore_for_file: deprecated_member_use
 
+import 'dart:ui';
+
+import 'package:cross_file/cross_file.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_hooks/flutter_hooks.dart';
@@ -14,9 +17,13 @@ import 'package:moonwallet/types/types.dart';
 import 'package:moonwallet/utils/colors.dart';
 import 'package:moonwallet/utils/crypto.dart';
 import 'package:moonwallet/utils/prefs.dart';
+import 'package:moonwallet/utils/share_manager.dart';
 import 'package:moonwallet/utils/themes.dart';
+import 'package:moonwallet/widgets/actions.dart';
 import 'package:moonwallet/widgets/app_bar_title.dart';
+import 'package:moonwallet/widgets/buttons/elevated.dart';
 import 'package:moonwallet/widgets/screen_widgets/crypto_picture.dart';
+import 'package:pretty_qr_code/pretty_qr_code.dart';
 import 'package:qr_flutter/qr_flutter.dart';
 
 class ReceiveScreen extends StatefulHookConsumerWidget {
@@ -106,6 +113,10 @@ class _ReceiveScreenState extends ConsumerState<ReceiveScreen> {
       return size * uiConfig.value.styles.imageSizeScaleFactor;
     }
 
+    double iconSizeOf(double size) {
+      return size * uiConfig.value.styles.iconSizeScaleFactor;
+    }
+
     double roundedOf(double size) {
       return size * uiConfig.value.styles.radiusScaleFactor;
     }
@@ -167,14 +178,15 @@ class _ReceiveScreenState extends ConsumerState<ReceiveScreen> {
                           TextSpan(
                             text: crypto!.name,
                             style: textTheme.bodyMedium?.copyWith(
+                                fontSize: fontSizeOf(12),
                                 color: warningColor,
                                 fontWeight: FontWeight.bold),
                           ),
                           TextSpan(
                             text:
                                 " assets to this address , other assets will be lost forever.",
-                            style: textTheme.bodyMedium
-                                ?.copyWith(color: warningColor),
+                            style: textTheme.bodyMedium?.copyWith(
+                                color: warningColor, fontSize: fontSizeOf(12)),
                           )
                         ]),
                     overflow: TextOverflow.clip,
@@ -216,7 +228,7 @@ class _ReceiveScreenState extends ConsumerState<ReceiveScreen> {
                         maxWidth: 300,
                       ),
                       child: Container(
-                          padding: const EdgeInsets.all(10),
+                          padding: const EdgeInsets.all(5),
                           margin: const EdgeInsets.all(10),
                           decoration: BoxDecoration(
                             borderRadius: BorderRadius.circular(roundedOf(10)),
@@ -228,27 +240,18 @@ class _ReceiveScreenState extends ConsumerState<ReceiveScreen> {
                               alignment: Alignment.center,
                               children: [
                                 ConstrainedBox(
-                                  constraints: BoxConstraints(
-                                      maxWidth: 300, maxHeight: 270),
-                                  child: QrImageView(
+                                  constraints: BoxConstraints(),
+                                  child: PrettyQrView.data(
                                     data:
                                         currentAccount.addressByToken(crypto!),
-                                    version: 3,
-                                    size: width * 0.8,
-                                    gapless: false,
+                                    decoration: const PrettyQrDecoration(
+                                      image: PrettyQrDecorationImage(
+                                          image: AssetImage(
+                                              "assets/logo/png/icon.png")),
+                                      quietZone: PrettyQrQuietZone.standart,
+                                    ),
                                   ),
                                 ),
-                                Positioned(
-                                    child: Container(
-                                        padding: const EdgeInsets.all(2),
-                                        decoration: BoxDecoration(
-                                            color: Colors.white,
-                                            borderRadius: BorderRadius.circular(
-                                                roundedOf(50))),
-                                        child: CryptoPicture(
-                                            crypto: crypto!,
-                                            size: 30,
-                                            colors: colors)))
                               ],
                             ));
                           })))
@@ -266,45 +269,86 @@ class _ReceiveScreenState extends ConsumerState<ReceiveScreen> {
                   child: Container(
                       padding: const EdgeInsets.all(10),
                       decoration: BoxDecoration(
-                          borderRadius: BorderRadius.circular(roundedOf(30)),
-                          color: colors.secondaryColor),
+                        borderRadius: BorderRadius.circular(roundedOf(30)),
+                      ),
                       child: Center(
-                        child: Text(
+                        child: GestureDetector(
+                          onTap:  () => Clipboard.setData(ClipboardData(
+                        text: currentAccount.addressByToken(crypto!),)),
+                          child: Text(
                           currentAccount.addressByToken(crypto!),
-                          overflow: TextOverflow.ellipsis,
+                          overflow: TextOverflow.fade,
+                          textAlign: TextAlign.center,
                           style: textTheme.bodyMedium?.copyWith(
                               color: colors.textColor,
-                              fontSize: fontSizeOf(11)),
+                              fontWeight: FontWeight.bold,
+                              fontSize: fontSizeOf(14)),
                         ),
+                        ) ,
                       ))),
             ),
             SizedBox(
               height: 10,
             ),
-            ConstrainedBox(
-                constraints: BoxConstraints(
-                  maxWidth: 300,
-                ),
-                child: SizedBox(
-                  width: width * 0.85,
-                  child: ElevatedButton.icon(
-                    style: ElevatedButton.styleFrom(
-                        elevation: 0, backgroundColor: colors.themeColor),
-                    onPressed: () {
-                      Clipboard.setData(ClipboardData(
-                          text: currentAccount.addressByToken(crypto!)));
-                    },
-                    icon: Icon(
-                      Icons.copy,
-                      color: colors.primaryColor,
-                    ),
-                    label: Text(
-                      "Copy the address",
-                      style: textTheme.bodyMedium?.copyWith(
-                          color: colors.primaryColor, fontSize: fontSizeOf(14)),
-                    ),
+            Align(
+              alignment: Alignment.center,
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                children: [
+                  ActionsWidgets(
+                    radius: roundedOf(30),
+
+                    showName: false,
+                    size: iconSizeOf(60),
+                    fontSize: fontSizeOf(14),
+                    iconSize: iconSizeOf(20),
+                    color: colors.secondaryColor,
+                    textColor: colors.textColor,
+                    text: "Copy",
+                    onTap: () => Clipboard.setData(ClipboardData(
+                        text: currentAccount.addressByToken(crypto!))),
+                    actIcon: Icons.copy,
                   ),
-                ))
+                  ActionsWidgets(
+               showName: false,
+                    radius: roundedOf(30),
+                    size: iconSizeOf(60),
+                    fontSize: fontSizeOf(14),
+                    iconSize: iconSizeOf(20),
+                    color: colors.secondaryColor,
+                    textColor: colors.textColor,
+                    text: "Share",
+                    onTap: () async {
+                      final qrCode = QrCode.fromData(
+                        data: currentAccount.addressByToken(crypto!),
+                        errorCorrectLevel: QrErrorCorrectLevel.H,
+                      );
+
+                      final qrImage = QrImage(qrCode);
+                      final qrImageBytes = await qrImage.toImageAsBytes(
+                        size: 512,
+                        format: ImageByteFormat.png,
+                        decoration: const PrettyQrDecoration(
+                          quietZone : PrettyQrQuietZone.standart, 
+
+                          image: PrettyQrDecorationImage(
+                            padding: EdgeInsets.all(20),
+                              image: AssetImage("assets/logo/png/icon.png")),
+                          background: Colors.white,
+                          
+                        ),
+                      );
+                      if (qrImageBytes == null) {
+                        return;
+                      }
+
+                      await ShareManager().shareQrImage(qrImageBytes);
+                    },
+                    actIcon: Icons.share,
+                  )
+                ],
+              ),
+            )
           ],
         )),
       ),

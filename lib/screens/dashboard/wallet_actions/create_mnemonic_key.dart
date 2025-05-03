@@ -13,18 +13,19 @@ import 'package:moonwallet/utils/prefs.dart';
 import 'package:moonwallet/utils/themes.dart';
 import 'package:moonwallet/widgets/backup/backup_related.dart';
 import 'package:moonwallet/widgets/bottom_pin_copy.dart';
+import 'package:moonwallet/widgets/buttons/elevated_low_opacity_button.dart';
 import 'package:moonwallet/widgets/func/security/ask_password.dart';
 import 'package:moonwallet/widgets/func/snackbar.dart';
 import 'package:page_transition/page_transition.dart';
 
-class CreatePrivateKeyMain extends StatefulHookConsumerWidget {
-  const CreatePrivateKeyMain({super.key});
+class CreateMnemonicMain extends StatefulHookConsumerWidget {
+  const CreateMnemonicMain({super.key});
 
   @override
-  ConsumerState<CreatePrivateKeyMain> createState() => _CreatePrivateKeyState();
+  ConsumerState<CreateMnemonicMain> createState() => _CreateMnemonicKeyState();
 }
 
-class _CreatePrivateKeyState extends ConsumerState<CreatePrivateKeyMain> {
+class _CreateMnemonicKeyState extends ConsumerState<CreateMnemonicMain> {
   Map<String, dynamic>? data;
   String userPassword = "";
   int attempt = 0;
@@ -268,88 +269,74 @@ class _CreatePrivateKeyState extends ConsumerState<CreatePrivateKeyMain> {
               decoration: TextDecoration.none),
         ),
       ),
-      body: SingleChildScrollView(
-        child: Column(
-          children: [
-            Align(
-              alignment: Alignment.topLeft,
-              child: Container(
-                  margin: const EdgeInsets.only(top: 25, left: 20),
-                  child: Column(
-                    spacing: 15,
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(
-                        "Create new Wallet",
-                        style: textTheme.headlineMedium?.copyWith(
-                          color: colors.textColor,
-                          fontSize: 25,
-                          fontWeight: FontWeight.bold,
+      body: SpaceWithFixedBottom(
+          body: Column(
+            children: [
+              Align(
+                alignment: Alignment.topLeft,
+                child: Container(
+                    margin: const EdgeInsets.only(top: 25, left: 20),
+                    child: Column(
+                      spacing: 15,
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          "Create new Wallet",
+                          style: textTheme.headlineMedium?.copyWith(
+                            color: colors.textColor,
+                            fontSize: 25,
+                            fontWeight: FontWeight.bold,
+                          ),
                         ),
-                      ),
-                      Text(
-                        "These 12 words are unique and confidential. They're your only way to access your data. Make sure you keep them safe and never share them with anyone.",
-                        style: textTheme.bodySmall?.copyWith(
-                            color: colors.textColor.withValues(
-                          alpha: 0.7,
-                        )),
-                      ),
-                    ],
-                  )),
-            ),
-            SizedBox(
-              height: 20,
-            ),
-            Container(
-              margin: const EdgeInsets.all(20),
-              padding: const EdgeInsets.all(20),
-              decoration: BoxDecoration(
-                  color: colors.secondaryColor,
-                  borderRadius: BorderRadius.circular(10)),
-              child: Wrap(
-                children: List.generate(seed.length, (index) {
-                  final word = seed[index];
-                  return MnemonicChip(
-                      density: VisualDensity(vertical: -2, horizontal: -2),
-                      colors: colors,
-                      index: index,
-                      word: word);
-                }),
+                        Text(
+                          "These 12 words are unique and confidential. They're your only way to access your data. Make sure you keep them safe and never share them with anyone.",
+                          style: textTheme.bodySmall?.copyWith(
+                              color: colors.textColor.withValues(
+                            alpha: 0.7,
+                          )),
+                        ),
+                      ],
+                    )),
               ),
-            ),
-            const SizedBox(height: 16),
-            SizedBox(
-              height: 30,
-            ),
-            Align(
-              alignment: Alignment.center,
+              SizedBox(
+                height: 20,
+              ),
+              Container(
+                margin: const EdgeInsets.all(20),
+                padding: const EdgeInsets.all(20),
+                decoration: BoxDecoration(
+                    color: colors.secondaryColor,
+                    borderRadius: BorderRadius.circular(10)),
+                child: Wrap(
+                  children: List.generate(seed.length, (index) {
+                    final word = seed[index];
+                    return MnemonicChip(
+                        density: VisualDensity(vertical: -2, horizontal: -2),
+                        colors: colors,
+                        index: index,
+                        word: word);
+                  }),
+                ),
+              ),
+              const SizedBox(height: 16),
+            ],
+          ),
+          bottom: Align(
+            alignment: Alignment.center,
+            child: Padding(
+              padding: const EdgeInsets.symmetric(vertical: 10),
               child: SizedBox(
                 width: MediaQuery.of(context).size.width * 0.9,
-                child: OutlinedButton(
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: colors.primaryColor,
-                    side: BorderSide(color: colors.themeColor, width: 1),
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(roundedOf(30)),
-                    ),
-                  ),
+                child: ElevatedLowOpacityButton(
+                  colors: colors,
                   onPressed: () async {
                     await onSubmit();
                   },
-                  child: Text(
-                    "Start Using",
-                    style: textTheme.bodyMedium?.copyWith(
-                      fontSize: fontSizeOf(14),
-                      color: colors.themeColor,
-                      decoration: TextDecoration.none,
-                    ),
-                  ),
+                  text: "Start Using",
                 ),
               ),
-            )
-          ],
-        ),
-      ),
+            ),
+          )),
     );
   }
 }
