@@ -8,12 +8,14 @@ import 'package:hive_ce/hive.dart';
 import 'package:moonwallet/service/db/secure_storage.dart';
 import 'package:moonwallet/types/types.dart';
 import 'package:moonwallet/utils/crypto.dart';
+import 'package:moonwallet/utils/prefs.dart';
 import 'package:web3dart/web3dart.dart';
 
 class WalletDatabase {
   final passwordName = "userPassword";
   final secureService = SecureStorageService();
   final encryptService = EncryptService();
+  final prefs = PublicDataManager();
   final boxName = "usersWallets";
 
   final publicWalletKey = "publicWallets";
@@ -90,7 +92,7 @@ class WalletDatabase {
       if (!privateSaveResult || !publicResult) {
         throw ("The result is $privateSaveResult and the public result is $publicResult, So error occurred");
       } else {
-        encryptService.saveLastConnectedData(privateWallet.keyId);
+        prefs.saveLastConnectedData(privateWallet.keyId);
         log("Saved successfully");
         return publicWallet;
       }
@@ -130,7 +132,7 @@ class WalletDatabase {
       List<PublicData> accounts = [];
       final savedData = await getListDynamicData(name: publicWalletKey);
 
-      final lastAccount = await encryptService.getLastConnectedAddress();
+      final lastAccount = await prefs.getLastConnectedAddress();
 
       if (savedData != null && lastAccount != null) {
         for (final account in savedData) {
@@ -273,7 +275,7 @@ class WalletDatabase {
         logError("The result  is $publicResult, So error occurred");
         return null;
       } else {
-        encryptService.saveLastConnectedData(keyId);
+        prefs.saveLastConnectedData(keyId);
         log("Saved successfully");
         return publicWallet;
       }

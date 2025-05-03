@@ -21,6 +21,7 @@ class CustomOutlinedFilledTextFormField extends StatelessWidget {
   final EdgeInsetsGeometry? contentPadding;
   final int minLines;
   final int maxLines;
+  final TextStyle? textStyle;
 
   const CustomOutlinedFilledTextFormField(
       {super.key,
@@ -42,7 +43,8 @@ class CustomOutlinedFilledTextFormField extends StatelessWidget {
       this.maxLines = 1,
       this.minLines = 1,
       this.filledColor,
-      this.contentPadding});
+      this.contentPadding,
+      this.textStyle});
 
   @override
   Widget build(BuildContext context) {
@@ -56,8 +58,9 @@ class CustomOutlinedFilledTextFormField extends StatelessWidget {
       onChanged: onChanged,
       minLines: minLines,
       maxLines: maxLines,
-      style: textTheme.bodyMedium
-          ?.copyWith(color: colors.textColor, fontSize: fontSizeOf(14)),
+      style: textStyle ??
+          textTheme.bodyMedium
+              ?.copyWith(color: colors.textColor, fontSize: fontSizeOf(14)),
       decoration: InputDecoration(
           contentPadding: contentPadding,
           prefixIcon: prefixIcon,

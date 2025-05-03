@@ -20,7 +20,7 @@ class RpcService {
           return balance;
 
         case NetworkType.svm:
-          final balance = await _solanaClient.getUserBalance(account, crypto);
+          final balance = await _solanaClient.getBalance(account, crypto);
           final balanceDecimal = ((Decimal.parse(balance ?? "0") /
                   Decimal.fromInt(10).pow(9).toDecimal()))
               .toDecimal()

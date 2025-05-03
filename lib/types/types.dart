@@ -1505,10 +1505,10 @@ class TransactionReceiptData {
   TransactionReceiptData({
     required this.from,
     required this.to,
-    required this.transactionId,
+    this.transactionId,
     this.value,
-    required this.block,
-    required this.status,
+    this.block,
+    this.status,
   });
   Map<String, dynamic> toJson() {
     return {
@@ -1535,10 +1535,10 @@ class TransactionReceiptData {
 
 class SolanaRequestResponse {
   final bool ok;
-  final String memo;
+  final String? memo;
 
   SolanaRequestResponse({
     required this.ok,
-    required this.memo,
+    this.memo,
   });
 }

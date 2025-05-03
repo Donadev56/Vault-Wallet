@@ -4,15 +4,13 @@ import 'dart:convert';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:local_auth/local_auth.dart';
 import 'package:moonwallet/logger/logger.dart';
-import 'package:moonwallet/service/db/global_database.dart';
+import 'package:moonwallet/service/db/secure_storage.dart';
 import 'package:moonwallet/service/db/wallet_db.dart';
 import 'package:moonwallet/types/types.dart';
-import 'package:moonwallet/utils/crypto.dart';
 
 class AppSecureConfigNotifier extends AsyncNotifier<AppSecureConfig> {
-  final _db = GlobalDatabase();
   final _walletStorage = WalletDatabase();
-  final _encryptService = EncryptService();
+  final _secureStorage = SecureStorageService();
   final LocalAuthentication _auth = LocalAuthentication();
 
   final dataKey = "userSecureConfig";
@@ -22,15 +20,14 @@ class AppSecureConfigNotifier extends AsyncNotifier<AppSecureConfig> {
 
   Future<bool> saveConfig(AppSecureConfig secureConfig, String password) async {
     try {
-      final encryptedSecureConfig = await _encryptService.encryptJson(
-          jsonEncode(secureConfig.toJson()), password);
-      final result =
-          await _db.saveDynamicData(data: encryptedSecureConfig, key: dataKey);
-      if (result) {
-        state = AsyncData(secureConfig);
+      if (!(await _walletStorage.isPasswordValid(password))) {
+        throw Exception("Wrong password");
       }
+      await _secureStorage.saveDataInFSS(
+          json.encode(secureConfig.toJson()), dataKey);
+      state = AsyncData(secureConfig);
 
-      return result;
+      return true;
     } catch (e) {
       logError(e.toString());
       return false;
@@ -39,17 +36,12 @@ class AppSecureConfigNotifier extends AsyncNotifier<AppSecureConfig> {
 
   Future<AppSecureConfig> getSecureConfig() async {
     try {
-      final savedConfig = await _db.getDynamicData(key: dataKey);
+      final savedConfig = await _secureStorage.loadDataFromFSS(dataKey);
       if (savedConfig == null) {
         return AppSecureConfig();
       }
-      final decryptedConfig = await _encryptService.decryptJson(
-          savedConfig, (await _walletStorage.getSavedPassword()) ?? "");
-      if (decryptedConfig != null) {
-        return AppSecureConfig.fromJson(jsonDecode(decryptedConfig));
-      }
 
-      return AppSecureConfig();
+      return AppSecureConfig.fromJson(jsonDecode(savedConfig));
     } catch (e) {
       logError(e.toString());
       return AppSecureConfig();
@@ -71,7 +63,7 @@ class AppSecureConfigNotifier extends AsyncNotifier<AppSecureConfig> {
 
   Future<bool> toggleCanUseBio(bool v, String password) async {
     try {
-      if (!(await WalletDatabase().isPasswordValid(password))) {
+      if (!(await _walletStorage.isPasswordValid(password))) {
         throw Exception("Wrong password");
       }
       if (!v) {

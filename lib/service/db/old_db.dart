@@ -145,7 +145,7 @@ class Web3Manager {
 
   Future<bool> saveLastAccount(String address) async {
     try {
-      final res = encryptService.saveLastConnectedData(address);
+      final res = PublicDataManager().saveLastConnectedData(address);
       return res;
     } catch (e) {
       logError(e.toString());

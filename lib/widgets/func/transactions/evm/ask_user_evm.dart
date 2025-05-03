@@ -2,11 +2,10 @@
 
 import 'package:flutter/material.dart';
 import 'package:flutter_feather_icons/flutter_feather_icons.dart';
-import 'package:modal_bottom_sheet/modal_bottom_sheet.dart';
 import 'package:moonwallet/logger/logger.dart';
 import 'package:moonwallet/types/types.dart';
 import 'package:moonwallet/widgets/buttons/elevated.dart';
-import 'package:moonwallet/widgets/func/transactions/show_custom_gas_modal.dart';
+import 'package:moonwallet/widgets/func/transactions/evm/show_custom_gas_modal.dart';
 import 'package:moonwallet/widgets/func/transactions/transactions_body/show_transaction_request.dart';
 import 'package:moonwallet/widgets/func/transactions/transactions_body/transaction_app_bar.dart';
 import 'package:moonwallet/widgets/func/transactions/transactions_body/transaction_destination_details.dart';
@@ -66,6 +65,7 @@ Future<UserCustomGasRequestResponse?> askUserEvm({
                 shrinkWrap: true,
                 children: [
                   TransactionAppBar(
+                      padding: const EdgeInsets.only(bottom: 10),
                       colors: colors,
                       title: "Transfer",
                       actions: [

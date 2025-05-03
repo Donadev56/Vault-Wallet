@@ -5,10 +5,18 @@ import 'package:moonwallet/widgets/dialogs/standard_container.dart';
 class TransactionContainer extends StatelessWidget {
   final AppColors colors;
   final Widget? child;
-  const TransactionContainer({super.key, required this.colors, this.child});
+  final EdgeInsetsGeometry? padding;
+
+  const TransactionContainer(
+      {super.key, required this.colors, this.child, this.padding});
 
   @override
   Widget build(BuildContext context) {
-    return StandardContainer(colors: colors, child: child);
+    return StandardContainer(
+      padding: padding,
+      colors: colors,
+      backgroundColor: colors.secondaryColor,
+      child: child,
+    );
   }
 }

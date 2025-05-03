@@ -453,6 +453,8 @@ class _SendTransactionScreenState extends ConsumerState<SendTransactionScreen> {
                   Form(
                     key: _formKey,
                     child: CustomOutlinedFilledTextFormField(
+                      textStyle: textTheme.bodyMedium?.copyWith(
+                          color: colors.textColor, fontWeight: FontWeight.w500),
                       labelText: "Enter Address",
                       suffixIcon: IconButton(
                         onPressed: () async {
@@ -497,6 +499,8 @@ class _SendTransactionScreenState extends ConsumerState<SendTransactionScreen> {
                     ),
                   ),
                   CustomOutlinedFilledTextFormField(
+                    textStyle: textTheme.bodyMedium?.copyWith(
+                        color: colors.textColor, fontWeight: FontWeight.bold),
                     labelText: "Amount ${crypto!.symbol}",
                     fontSizeOf: fontSizeOf,
                     iconSizeOf: iconSizeOf,
@@ -567,6 +571,8 @@ class _SendTransactionScreenState extends ConsumerState<SendTransactionScreen> {
                     colors: colors,
                   ),
                   CustomOutlinedFilledTextFormField(
+                    textStyle: textTheme.bodyMedium?.copyWith(
+                        color: colors.textColor, fontWeight: FontWeight.bold),
                     labelText: "Amount USD",
                     suffixIcon: SizedBox(
                       width: 35,

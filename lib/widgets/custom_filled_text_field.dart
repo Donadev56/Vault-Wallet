@@ -20,6 +20,8 @@ class CustomFilledTextFormField extends StatelessWidget {
   final EdgeInsetsGeometry? contentPadding;
   final int minLines;
   final int maxLines;
+  final TextStyle? textStyle;
+  final void Function()? onTap;
 
   const CustomFilledTextFormField(
       {super.key,
@@ -40,12 +42,15 @@ class CustomFilledTextFormField extends StatelessWidget {
       this.rounded = 10,
       this.maxLines = 1,
       this.minLines = 1,
-      this.contentPadding});
+      this.contentPadding,
+      this.textStyle,
+      this.onTap});
 
   @override
   Widget build(BuildContext context) {
     final textTheme = TextTheme.of(context);
     return TextFormField(
+      onTap: onTap,
       readOnly: readOnly,
       validator: validator,
       keyboardType: keyboardType,
@@ -54,8 +59,9 @@ class CustomFilledTextFormField extends StatelessWidget {
       onChanged: onChanged,
       minLines: minLines,
       maxLines: maxLines,
-      style: textTheme.bodyMedium
-          ?.copyWith(color: colors.textColor, fontSize: fontSizeOf(14)),
+      style: textStyle ??
+          textTheme.bodyMedium
+              ?.copyWith(color: colors.textColor, fontSize: fontSizeOf(14)),
       decoration: InputDecoration(
           contentPadding: contentPadding,
           prefixIcon: prefixIcon,

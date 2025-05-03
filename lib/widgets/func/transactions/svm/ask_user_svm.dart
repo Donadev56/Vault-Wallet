@@ -4,7 +4,9 @@ import 'package:flutter/material.dart';
 import 'package:flutter_feather_icons/flutter_feather_icons.dart';
 import 'package:moonwallet/logger/logger.dart';
 import 'package:moonwallet/types/types.dart';
+import 'package:moonwallet/widgets/buttons/elevated.dart';
 import 'package:moonwallet/widgets/custom_filled_text_field.dart';
+import 'package:moonwallet/widgets/func/transactions/svm/show_memo_input.dart';
 import 'package:moonwallet/widgets/func/transactions/transactions_body/label_text.dart';
 import 'package:moonwallet/widgets/func/transactions/transactions_body/show_transaction_request.dart';
 import 'package:moonwallet/widgets/func/transactions/transactions_body/transaction_app_bar.dart';
@@ -21,6 +23,7 @@ Future<SolanaRequestResponse?> askUserSvm({
   required String value,
 }) async {
   try {
+    final memoController = TextEditingController();
     final result = await showTransactionRequest<SolanaRequestResponse>(
       context: context,
       builder: (BuildContext context) {
@@ -33,6 +36,7 @@ Future<SolanaRequestResponse?> askUserSvm({
                 shrinkWrap: true,
                 children: [
                   TransactionAppBar(
+                      padding: const EdgeInsets.only(bottom: 10),
                       colors: colors,
                       title: "Transfer",
                       actions: [
@@ -54,7 +58,7 @@ Future<SolanaRequestResponse?> askUserSvm({
                   TransactionDestinationDetails(
                       colors: colors, crypto: crypto, from: from, to: to),
                   SizedBox(
-                    height: 10,
+                    height: 15,
                   ),
                   Align(
                       alignment: Alignment.centerLeft,
@@ -63,6 +67,17 @@ Future<SolanaRequestResponse?> askUserSvm({
                     height: 10,
                   ),
                   CustomFilledTextFormField(
+                      controller: memoController,
+                      onTap: () async {
+                        final memo = await showMemoInput(
+                            context: context,
+                            colors: colors,
+                            initialText: memoController.text);
+                        if (memo != null) {
+                          memoController.text = memo;
+                        }
+                      },
+                      readOnly: true,
                       suffixIcon: Icon(
                         Icons.article,
                         color: colors.textColor,
@@ -76,16 +91,22 @@ Future<SolanaRequestResponse?> askUserSvm({
                   SizedBox(
                     height: 40,
                   ),
-                  ElevatedButton(
-                      onPressed: () {},
-                      child: Text(
-                        "Confirm",
-                        style: textTheme.bodyMedium?.copyWith(
-                          color: colors.primaryColor,
-                          fontWeight: FontWeight.bold,
-                          fontSize: 16,
-                        ),
-                      ))
+                  CustomElevatedButton(
+                    onPressed: () {
+                      Navigator.pop(
+                          context,
+                          SolanaRequestResponse(
+                              ok: true,
+                              memo: memoController.text.isEmpty
+                                  ? null
+                                  : memoController.text));
+                    },
+                    colors: colors,
+                    text: "Confirm",
+                  ),
+                  SizedBox(
+                    height: 20,
+                  ),
                 ],
               ),
             );

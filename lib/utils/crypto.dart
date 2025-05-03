@@ -45,27 +45,6 @@ class EncryptService {
     }
   }
 
-  Future<String?> getLastConnectedAddress() async {
-    try {
-      final prefs = await SharedPreferences.getInstance();
-      return prefs.getString('lastAccountConnected');
-    } catch (e) {
-      logError("Error : ${e.toString()}");
-      return null;
-    }
-  }
-
-  Future<bool> saveLastConnectedData(String data) async {
-    try {
-      final prefs = await SharedPreferences.getInstance();
-      await prefs.setString('lastAccountConnected', data);
-      return true;
-    } catch (e) {
-      logError("Error : ${e.toString()}");
-      return false;
-    }
-  }
-
   String generateUniqueId() {
     return Ulid().toUuid();
   }
