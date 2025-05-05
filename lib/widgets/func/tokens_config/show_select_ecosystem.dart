@@ -8,7 +8,6 @@ import 'package:moonwallet/widgets/custom_filled_text_field.dart';
 import 'package:moonwallet/widgets/dialogs/search_modal_header.dart';
 import 'package:moonwallet/widgets/dialogs/standard_container.dart';
 import 'package:moonwallet/widgets/func/tokens_config/show_token_detials.dart';
-import 'package:moonwallet/widgets/func/transactions/transactions_body/label_text.dart';
 import 'package:moonwallet/widgets/screen_widgets/crypto_picture.dart';
 
 Future<TokenEcosystem?> showSelectEcoSystem(

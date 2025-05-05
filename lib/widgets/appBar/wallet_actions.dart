@@ -1,13 +1,11 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_hooks/flutter_hooks.dart';
-import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:lucide_icons_flutter/lucide_icons.dart';
 import 'package:moonwallet/logger/logger.dart';
 import 'package:moonwallet/main.dart';
-import 'package:moonwallet/notifiers/providers.dart';
 import 'package:moonwallet/screens/dashboard/wallet_actions/add_private_key.dart';
 import 'package:moonwallet/screens/dashboard/wallet_actions/add_w_o.dart';
+import 'package:moonwallet/service/external_data/crypto_request_manager.dart';
 import 'package:moonwallet/types/account_related_types.dart';
 import 'package:moonwallet/types/types.dart';
 import 'package:moonwallet/widgets/appBar/button.dart';
@@ -18,28 +16,19 @@ class WalletActions extends HookConsumerWidget {
   final DoubleFactor fontSizeOf;
   final DoubleFactor iconSizeOf;
   final AppColors colors;
-  const WalletActions(
-      {super.key,
-      required this.colors,
-      required this.fontSizeOf,
-      required this.iconSizeOf,
-      required this.roundedOf});
+  const WalletActions({
+    super.key,
+    required this.colors,
+    required this.fontSizeOf,
+    required this.iconSizeOf,
+    required this.roundedOf,
+  });
 
   @override
   Widget build(BuildContext context, ref) {
-    final savedCryptoProvider = ref.watch(savedCryptosProviderNotifier);
-    final savedCrypto = useState<List<Crypto>>([]);
-
-    useEffect(() {
-      savedCryptoProvider.whenData((data) {
-        savedCrypto.value = data;
-      });
-
-      return null;
-    }, [savedCryptoProvider]);
-
     Future<TokenEcosystem?> selectEcosystem() async {
-      final cryptos = savedCrypto.value;
+      final cryptos = await CryptoRequestManager().getAllCryptos();
+
       if (cryptos.isEmpty) {
         logError("Crypto list is empty");
         return null;

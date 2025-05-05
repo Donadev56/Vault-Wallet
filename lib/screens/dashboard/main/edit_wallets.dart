@@ -2,9 +2,11 @@ import 'package:flutter/material.dart';
 import 'package:flutter_hooks/flutter_hooks.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
+import 'package:moonwallet/custom/web3_webview/lib/utils/loading.dart';
 import 'package:moonwallet/logger/logger.dart';
 import 'package:moonwallet/notifiers/providers.dart';
 import 'package:moonwallet/screens/dashboard/wallet_actions/private/private_key_screen.dart';
+import 'package:moonwallet/service/external_data/crypto_request_manager.dart';
 import 'package:moonwallet/service/vibration.dart';
 import 'package:moonwallet/types/account_related_types.dart';
 import 'package:moonwallet/types/types.dart';
@@ -326,7 +328,8 @@ class _EditWalletsViewState extends ConsumerState<EditWalletsView> {
                                       child: Material(
                                         shadowColor: Colors.transparent,
                                         elevation: 0,
-                                        color: colors.grayColor.withValues(alpha: 0.4),
+                                        color: colors.grayColor
+                                            .withValues(alpha: 0.4),
                                         child: child,
                                       ),
                                     ),
@@ -429,7 +432,7 @@ class _EditWalletsViewState extends ConsumerState<EditWalletsView> {
                         colors: colors,
                         text: "Add Wallet",
                         icon: Icon(Icons.add, color: colors.themeColor),
-                        onPressed: () {
+                        onPressed: () async {
                           vibrate();
 
                           showAppBarWalletActions(children: [
