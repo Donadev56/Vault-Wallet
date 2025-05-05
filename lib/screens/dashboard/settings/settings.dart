@@ -76,14 +76,8 @@ class _SettingsPageState extends ConsumerState<SettingsPage> {
 
     Future<void> updateEnableBio(bool v) async {
       try {
-        final password =
-            await askPassword(useBio: false, context: context, colors: colors);
-
-        if (password.isEmpty) {
-          notifyError("Invalid password");
-          return;
-        }
-        final result = await secureConfigNotifier.toggleCanUseBio(v, password);
+        final result =
+            await secureConfigNotifier.toggleCanUseBio(v, context, colors);
         if (result) {
           notifySuccess(v ? "Enabled" : "Disabled");
 
@@ -99,8 +93,8 @@ class _SettingsPageState extends ConsumerState<SettingsPage> {
     Future<void> updateLockAtStartup(bool v) async {
       try {
         final password =
-            await askPassword(context: context, colors: colors, useBio: false);
-        if (password.isEmpty) {
+            await askUserPassword(context: context, colors: colors);
+        if (password == null) {
           log("No password provided");
           return;
         }

@@ -1,10 +1,10 @@
 import 'package:moonwallet/logger/logger.dart';
 import 'package:moonwallet/service/db/global_database.dart';
-import 'package:moonwallet/types/types.dart';
+import 'package:moonwallet/types/account_related_types.dart';
 
 class ListAddressDynamicDb {
   final _db = GlobalDatabase();
-  final PublicData account;
+  final PublicAccount account;
   final Crypto crypto;
   ListAddressDynamicDb({required this.account, required this.crypto});
 

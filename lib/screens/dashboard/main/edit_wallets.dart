@@ -6,19 +6,20 @@ import 'package:moonwallet/logger/logger.dart';
 import 'package:moonwallet/notifiers/providers.dart';
 import 'package:moonwallet/screens/dashboard/wallet_actions/private/private_key_screen.dart';
 import 'package:moonwallet/service/vibration.dart';
+import 'package:moonwallet/types/account_related_types.dart';
 import 'package:moonwallet/types/types.dart';
 import 'package:moonwallet/widgets/buttons/elevated_low_opacity_button.dart';
+import 'package:moonwallet/widgets/func/security/ask_password.dart';
 import 'package:moonwallet/widgets/screen_widgets/account_list_title_widget.dart';
 import 'package:moonwallet/widgets/appBar/show_account_options.dart';
 import 'package:moonwallet/widgets/appBar/show_wallet_actions.dart';
 import 'package:moonwallet/widgets/appBar/wallet_actions.dart';
-import 'package:moonwallet/widgets/func/security/ask_password.dart';
 import 'package:moonwallet/widgets/func/snackbar.dart';
 import 'package:page_transition/page_transition.dart';
 
 class EditWalletsView extends StatefulHookConsumerWidget {
   final AppColors colors;
-  final PublicData account;
+  final PublicAccount account;
 
   const EditWalletsView(
       {super.key, required this.account, required this.colors});
@@ -29,8 +30,8 @@ class EditWalletsView extends StatefulHookConsumerWidget {
 
 class _EditWalletsViewState extends ConsumerState<EditWalletsView> {
   AppColors colors = AppColors.defaultTheme;
-  late PublicData account;
-  List<PublicData> accounts = [];
+  late PublicAccount account;
+  List<PublicAccount> accounts = [];
   String searchQuery = "";
   @override
   void initState() {
@@ -39,8 +40,8 @@ class _EditWalletsViewState extends ConsumerState<EditWalletsView> {
     account = widget.account;
   }
 
-  List<PublicData> filteredList(
-      {String query = "", required List<PublicData> accts}) {
+  List<PublicAccount> filteredList(
+      {String query = "", required List<PublicAccount> accts}) {
     return accts
         .where((account) =>
             account.walletName.toLowerCase().contains(query.toLowerCase()) ||
@@ -137,8 +138,11 @@ class _EditWalletsViewState extends ConsumerState<EditWalletsView> {
           Navigator.pop(context);
           throw ("This is a watch-only wallet.");
         }
-        String userPassword =
-            await askPassword(context: context, colors: colors, useBio: false);
+        String? userPassword =
+            await askUserPassword(context: context, colors: colors);
+        if (userPassword == null) {
+          throw InvalidPasswordException();
+        }
 
         if (mounted && userPassword.isNotEmpty) {
           Navigator.push(
@@ -183,29 +187,16 @@ class _EditWalletsViewState extends ConsumerState<EditWalletsView> {
         if (accounts.isEmpty) {
           throw ("No account found");
         }
-        final password =
-            await askPassword(context: context, colors: colors, useBio: false);
         final accountToRemove =
             accounts.where((acc) => acc.keyId == walletId).first;
-        if (password.isNotEmpty) {
-          // validateThePassword
-          final result =
-              await providerNotifier.walletSaver.getDecryptedData(password);
-          if (result == null) {
-            throw ("Invalid password");
-          }
-          final deleteResult =
-              await providerNotifier.deleteWallet(accountToRemove);
-          if (deleteResult) {
-            notifySuccess("Account deleted successfully");
-            close();
-            return true;
-          } else {
-            throw ("Failed to delete account");
-          }
+        final deleteResult = await providerNotifier.deleteWallet(
+            accountToRemove, colors, context);
+        if (deleteResult) {
+          notifySuccess("Account deleted successfully");
+          close();
+          return true;
         } else {
-          logError("Password is required");
-          return false;
+          throw ("Failed to delete account");
         }
       } catch (e) {
         logError(e.toString());
@@ -215,7 +206,7 @@ class _EditWalletsViewState extends ConsumerState<EditWalletsView> {
     }
 
     Future<bool> editWallet(
-        {required PublicData account,
+        {required PublicAccount account,
         Color? color,
         IconData? icon,
         String? name}) async {
@@ -234,8 +225,8 @@ class _EditWalletsViewState extends ConsumerState<EditWalletsView> {
           /*
          final index = accounts.indexWhere((acc)=> acc.keyId.trim().toLowerCase() == account.keyId.trim().toLowerCase() );
 
-          List<PublicData> newList = accounts;
-          newList[index] = PublicData(keyId: account.keyId, walletIcon: icon ?? account.walletIcon, walletColor: color ?? account.walletColor , creationDate: account.creationDate, walletName: name ?? account.walletName, address: account.address, isWatchOnly: account.isWatchOnly);
+          List<PublicAccount> newList = accounts;
+          newList[index] = PublicAccount(keyId: account.keyId, walletIcon: icon ?? account.walletIcon, walletColor: color ?? account.walletColor , creationDate: account.creationDate, walletName: name ?? account.walletName, address: account.address, isWatchOnly: account.isWatchOnly);
           setState(() {
             accounts = newList ;
           });*/

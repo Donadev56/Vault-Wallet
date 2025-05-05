@@ -50,9 +50,9 @@ class ColorsManager extends Themes {
     try {
       final savedTheme = await getThemeName();
       if (savedTheme != null) {
-        final defaultTheme = allColors[savedTheme];
-        if (defaultTheme != null) {
-          return defaultTheme;
+        final theme = allColors[savedTheme];
+        if (theme != null) {
+          return theme;
         } else {
           log("Default theme not found");
           return AppColors.defaultTheme;
@@ -63,8 +63,9 @@ class ColorsManager extends Themes {
       }
     } catch (e) {
       logError(e.toString());
-      return AppColors.defaultTheme;
     }
+
+    return AppColors.defaultTheme;
   }
 
   Future<AppColors> getColorsFromTheme() async {

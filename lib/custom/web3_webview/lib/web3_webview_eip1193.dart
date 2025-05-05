@@ -12,6 +12,7 @@ import 'package:flutter/gestures.dart';
 
 import 'package:flutter_inappwebview/flutter_inappwebview.dart';
 import 'package:moonwallet/logger/logger.dart';
+import 'package:moonwallet/types/account_related_types.dart';
 import 'package:moonwallet/types/types.dart';
 import 'package:uuid/uuid.dart';
 
@@ -808,15 +809,12 @@ class InAppWebViewEIP1193State extends State<Web3WebView> {
   void initState() {
     super.initState();
     _loadWeb3();
+    final account = widget.web3WalletConfig?.currentAccount;
+    if (account == null) {
+      throw "Account could not be null";
+    }
     _provider.initialize(
-      account: widget.web3WalletConfig?.currentAccount ??
-          PublicData(
-              createdLocally: false,
-              keyId: "",
-              creationDate: 0,
-              walletName: "",
-              addresses: [],
-              isWatchOnly: true),
+      account: account,
       address: widget.web3WalletConfig?.address ?? "",
       defaultNetwork: widget.web3WalletConfig?.currentNetwork ?? _ethNetwork,
       additionalNetworks: widget.web3WalletConfig?.supportNetworks ??

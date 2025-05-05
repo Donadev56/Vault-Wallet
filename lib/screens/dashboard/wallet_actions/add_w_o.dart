@@ -11,6 +11,7 @@ import 'package:moonwallet/notifiers/providers.dart';
 import 'package:moonwallet/screens/dashboard/page_manager.dart'
     show PagesManagerView;
 import 'package:moonwallet/service/db/wallet_db.dart';
+import 'package:moonwallet/types/account_related_types.dart';
 import 'package:moonwallet/types/types.dart';
 import 'package:moonwallet/utils/colors.dart';
 import 'package:moonwallet/utils/prefs.dart';
@@ -156,7 +157,7 @@ class _AddPrivateKeyState extends ConsumerState<AddObservationWallet> {
     Future<void> handleSubmit() async {
       try {
         final password =
-            await askPassword(context: context, colors: colors, useBio: false);
+            await askUserPassword(context: context, colors: colors) ?? "";
         if (password.isNotEmpty) {
           setState(() {
             userPassword = password;

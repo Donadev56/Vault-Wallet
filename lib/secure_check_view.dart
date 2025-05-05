@@ -3,9 +3,10 @@ import 'package:loading_animation_widget/loading_animation_widget.dart';
 import 'package:moonwallet/logger/logger.dart';
 import 'package:moonwallet/notifiers/app_secure_config_notifier.dart';
 import 'package:moonwallet/screens/dashboard/page_manager.dart';
-import 'package:moonwallet/service/db/wallet_db.dart';
+import 'package:moonwallet/service/db/wallet_db_stateless.dart';
+import 'package:moonwallet/types/account_related_types.dart';
 import 'package:moonwallet/types/types.dart';
-import 'package:moonwallet/widgets/func/security/ask_password.dart';
+import 'package:moonwallet/widgets/func/security/ask_derivate_key.dart';
 import 'package:moonwallet/widgets/func/snackbar.dart';
 
 class SecureCheckView extends StatefulWidget {
@@ -43,19 +44,21 @@ class _SecureCheckViewState extends State<SecureCheckView> {
 
   Future<void> _promptForPassword() async {
     try {
-      final walletStorage = WalletDatabase();
-      final password = await askPassword(context: context, colors: colors);
-
-      if (password.isNotEmpty) {
-        final result = await walletStorage.isPasswordValid(password);
-
-        if (!result) {
-          notifyError("Invalid Password");
-          return;
-        }
-
-        goToDashboard();
+      final walletStorage = WalletDbStateLess();
+      final deriveKey = await askDerivateKey(context: context, colors: colors);
+      if (deriveKey == null) {
+        throw InvalidPasswordException();
       }
+      final decryptDataResult =
+          await walletStorage.decryptPrivateDataUsingKey(deriveKey);
+      if (decryptDataResult == null) {
+        throw InvalidPasswordException();
+      }
+
+      goToDashboard();
+    } on InvalidPasswordException catch (e) {
+      logError(e.toString());
+      notifyError("Invalid password");
     } catch (e) {
       logError(e.toString());
       notifyError(e.toString());

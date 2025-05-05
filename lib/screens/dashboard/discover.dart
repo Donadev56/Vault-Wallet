@@ -12,6 +12,7 @@ import 'package:lucide_icons_flutter/lucide_icons.dart';
 import 'package:moonwallet/logger/logger.dart';
 import 'package:moonwallet/notifiers/providers.dart';
 import 'package:moonwallet/screens/dashboard/discover/browser.dart';
+import 'package:moonwallet/types/account_related_types.dart';
 import 'package:moonwallet/types/types.dart';
 import 'package:moonwallet/utils/colors.dart';
 import 'package:moonwallet/utils/constant.dart';
@@ -38,8 +39,8 @@ class _DiscoverScreenState extends ConsumerState<DiscoverScreen>
   bool _isSearchFocused = false;
   bool isDarkMode = false;
   List<Crypto> networks = [];
-  PublicData? currentAccount;
-  List<PublicData> accounts = [];
+  PublicAccount? currentAccount;
+  List<PublicAccount> accounts = [];
 
   final String historyName = "UserHistory";
   final _focusNode = FocusNode();

@@ -2,17 +2,19 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:moonwallet/logger/logger.dart';
 import 'package:moonwallet/notifiers/providers.dart';
-import 'package:moonwallet/service/db/wallet_db.dart';
+import 'package:moonwallet/service/db/wallet_db_stateless.dart';
+import 'package:moonwallet/types/account_related_types.dart';
 import 'package:moonwallet/types/types.dart';
+import 'package:moonwallet/widgets/func/security/ask_password.dart';
 
-class AccountsNotifier extends AsyncNotifier<List<PublicData>> {
-  final walletSaver = WalletDatabase();
+class AccountsNotifier extends AsyncNotifier<List<PublicAccount>> {
+  final walletSaver = WalletDbStateLess();
 
-  List<PublicData> get currentAccounts => [...state.value ?? []];
+  List<PublicAccount> get currentAccounts => [...state.value ?? []];
 
   @override
-  Future<List<PublicData>> build() async {
-    return await getPublicData();
+  Future<List<PublicAccount>> build() async {
+    return await getPublicAccount();
   }
 
   Future<bool> saveLastConnectedAccount(String keyId) async {
@@ -28,33 +30,34 @@ class AccountsNotifier extends AsyncNotifier<List<PublicData>> {
     }
   }
 
-  PublicData? getAccountByKeyId(String keyId) {
+  PublicAccount? getAccountByKeyId(String keyId) {
     return state.value?.firstWhere((acc) => acc.keyId == keyId);
   }
 
-  Future<List<PublicData>> getPublicData() async {
+  Future<List<PublicAccount>> getPublicAccount() async {
     try {
-      final savedData = await walletSaver.getPublicData();
-      List<PublicData> accounts = [];
-      if (savedData != null && savedData.isNotEmpty) {
-        for (final account in savedData) {
-          final newAccount = PublicData.fromJson(account);
-          accounts.add(newAccount);
-        }
-      }
-      log("Accounts length ${accounts.length}");
-      return accounts;
+      return await walletSaver.getListPublicAccount();
     } catch (e) {
       logError(e.toString());
       return [];
     }
   }
 
-  Future<bool> deleteWallet(PublicData accountToRemove) async {
+  Future<bool> deleteWallet(PublicAccount accountToRemove, AppColors colors,
+      BuildContext context) async {
     try {
+      final password = await askUserPassword(context: context, colors: colors);
+      if (password == null) {
+        throw InvalidPasswordException();
+      }
+      final isValid = await WalletDbStateLess().isPasswordValid(password);
+
+      if (!isValid) {
+        throw InvalidPasswordException();
+      }
       if (state.value == null) throw ("No account found");
       if (state.value?.length != null && (state.value?.length ?? 0) == 1) {
-        await walletSaver.saveListPublicData([]);
+        await walletSaver.saveListPublicAccount([]);
         state = AsyncData([]);
       }
 
@@ -70,7 +73,7 @@ class AccountsNotifier extends AsyncNotifier<List<PublicData>> {
         await saveLastConnectedAccount(currentAccounts[accountIndex - 1].keyId);
       }
 
-      final result = await walletSaver.saveListPublicData(newState.value!);
+      final result = await walletSaver.saveListPublicAccount(newState.value!);
       if (result) {
         state = newState;
 
@@ -97,7 +100,7 @@ class AccountsNotifier extends AsyncNotifier<List<PublicData>> {
       accounts.insert(newIndex, removedAccount);
       state = AsyncValue.data(accounts);
 
-      final result = await walletSaver.saveListPublicData(accounts);
+      final result = await walletSaver.saveListPublicAccount(accounts);
       if (result) {
         log("List reordered successfully");
         return true;
@@ -111,7 +114,7 @@ class AccountsNotifier extends AsyncNotifier<List<PublicData>> {
   }
 
   Future<bool> editWallet(
-      {required PublicData account,
+      {required PublicAccount account,
       String? name,
       IconData? icon,
       Color? color}) async {
@@ -121,7 +124,7 @@ class AccountsNotifier extends AsyncNotifier<List<PublicData>> {
       final res = await walletSaver.editWallet(
           account: account, newName: name, icon: icon, color: color);
       if (res != null) {
-        final newWallets = await getPublicData();
+        final newWallets = await getPublicAccount();
         state = AsyncValue.data(newWallets);
         return true;
       }

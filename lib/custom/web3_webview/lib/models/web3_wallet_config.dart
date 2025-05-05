@@ -1,4 +1,4 @@
-import 'package:moonwallet/types/types.dart';
+import 'package:moonwallet/types/account_related_types.dart';
 
 import '../json_rpc_method.dart';
 import '../ethereum/wallet_dialog_service.dart';
@@ -7,7 +7,7 @@ import 'network_config.dart';
 class Web3WalletConfig {
   final String? privateKey;
   final String? address;
-  final PublicData currentAccount;
+  final PublicAccount currentAccount;
   final String? name;
   final String? icon;
   final String? id;

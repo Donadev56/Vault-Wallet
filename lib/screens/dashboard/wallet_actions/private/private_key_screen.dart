@@ -3,12 +3,13 @@ import 'package:flutter/services.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:moonwallet/logger/logger.dart';
 import 'package:moonwallet/screens/dashboard/wallet_actions/private/backup.dart';
+import 'package:moonwallet/service/db/wallet_db_stateless.dart';
 import 'package:moonwallet/service/external_data/price_manager.dart';
 import 'package:moonwallet/service/db/wallet_db.dart';
+import 'package:moonwallet/types/account_related_types.dart';
 import 'package:moonwallet/types/types.dart';
 import 'package:moonwallet/utils/colors.dart';
-import 'package:moonwallet/utils/crypto.dart';
-import 'package:moonwallet/utils/prefs.dart';
+import 'package:moonwallet/utils/encrypt_service.dart';
 import 'package:moonwallet/utils/themes.dart';
 import 'package:moonwallet/widgets/alerts/show_alert.dart';
 import 'package:moonwallet/widgets/backup/warning_static_message.dart';
@@ -18,7 +19,7 @@ import 'package:page_transition/page_transition.dart';
 
 class PrivateKeyScreen extends StatefulHookConsumerWidget {
   final String? password;
-  final PublicData account;
+  final PublicAccount account;
   final AppColors? colors;
 
   const PrivateKeyScreen(
@@ -57,9 +58,8 @@ class _PrivateKeyScreenState extends ConsumerState<PrivateKeyScreen> {
   final web3Manager = WalletDatabase();
   final encryptService = EncryptService();
   final priceManager = PriceManager();
-  final publicDataManager = PublicDataManager();
-  SecureData? secureData;
-  late PublicData account;
+  PrivateAccount? privateAccount;
+  late PublicAccount account;
 
   String walletKeyId = "";
   String password = "";
@@ -115,7 +115,7 @@ class _PrivateKeyScreenState extends ConsumerState<PrivateKeyScreen> {
               color: colors.textColor,
             ),
             onPressed: () {
-              getSecureData();
+              getPrivateAccount();
               Navigator.pop(context);
             },
             label: Text(
@@ -128,16 +128,16 @@ class _PrivateKeyScreenState extends ConsumerState<PrivateKeyScreen> {
         ]);
   }
 
-  Future<void> getSecureData() async {
+  Future<void> getPrivateAccount() async {
     try {
-      final data = await WalletDatabase()
-          .getSecureData(password: password, account: account);
+      final data = await WalletDbStateLess()
+          .getPrivateAccountUsingPassword(password: password, account: account);
       if (data != null) {
-        _mnemonicController.text = data.mnemonic ?? "No Mnemonic";
-        _privateKeyController.text = data.privateKey;
+        _mnemonicController.text = data.keyOrigin;
+        _privateKeyController.text = data.keyOrigin;
 
         setState(() {
-          secureData = data;
+          privateAccount = data;
         });
       }
     } catch (e) {
@@ -229,8 +229,8 @@ class _PrivateKeyScreenState extends ConsumerState<PrivateKeyScreen> {
             SizedBox(
               height: 15,
             ),
-            if (secureData?.createdLocally == false ||
-                secureData?.isBackup == true)
+            if (privateAccount?.createdLocally == false ||
+                privateAccount?.isBackup == true)
               Row(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 crossAxisAlignment: CrossAxisAlignment.center,
@@ -296,7 +296,7 @@ class _PrivateKeyScreenState extends ConsumerState<PrivateKeyScreen> {
                           child: BackupSeedScreen(
                               publicAccount: account,
                               password: password,
-                              wallet: secureData!,
+                              wallet: privateAccount!,
                               colors: colors))),
                   label: Text(
                     "Backup phrases",

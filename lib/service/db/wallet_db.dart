@@ -4,161 +4,264 @@ import 'package:flutter/material.dart';
 import 'package:moonwallet/logger/logger.dart';
 
 import 'package:hive_ce/hive.dart';
+import 'package:moonwallet/service/address_manager.dart';
 
 import 'package:moonwallet/service/db/secure_storage.dart';
-import 'package:moonwallet/types/types.dart';
-import 'package:moonwallet/utils/crypto.dart';
+import 'package:moonwallet/service/db/wallet_db_keys.dart';
+import 'package:moonwallet/types/account_related_types.dart';
+import 'package:moonwallet/utils/encrypt_service.dart';
 import 'package:moonwallet/utils/prefs.dart';
-import 'package:web3dart/web3dart.dart';
 
 class WalletDatabase {
-  final passwordName = "userPassword";
-  final secureService = SecureStorageService();
-  final encryptService = EncryptService();
-  final prefs = PublicDataManager();
-  final boxName = "usersWallets";
-
-  final publicWalletKey = "publicWallets";
-  final privateWalletKey = "privateWallets";
+  final _secureService = SecureStorageService();
+  final _encryptService = EncryptService();
+  final _prefs = PublicDataManager();
+  final _addressManager = AddressManager();
+  final _keys = WalletKeys();
 
   Future<Box?> getBox() async {
     try {
-      await Hive.openBox(boxName);
-      return Hive.box(boxName);
+      await Hive.openBox(_keys.boxName);
+      return Hive.box(_keys.boxName);
     } catch (e) {
       logError(e.toString());
       return null;
     }
   }
 
-  Future<PublicData?> savePrivateData(
-      {required String privatekey,
-      required String password,
+  Future<DerivateKeys> _deriveEncryptionKey(String password) async {
+    try {
+      List<int> salt = [];
+      final savedDerivationInfo = await getDerivationInfo();
+
+      if (savedDerivationInfo == null) {
+        salt = _encryptService.generateSalt();
+      } else {
+        salt = savedDerivationInfo.salt;
+      }
+      final secretKey =
+          await _encryptService.deriveEncryptionKey(password, salt);
+
+      final rawKey = await secretKey.extractBytes();
+      final keyBase64 = base64Encode(rawKey);
+      await saveDerivationInfo(
+          DerivateKeys(derivateKey: keyBase64, salt: salt));
+      return DerivateKeys(derivateKey: keyBase64, salt: salt);
+    } catch (e) {
+      logError(e.toString());
+      rethrow;
+    }
+  }
+
+  Future<DerivateKeys> deriveEncryptionKeyStateless(String password) async {
+    try {
+      List<int> salt = [];
+      final savedDerivationInfo = await getDerivationInfo();
+      if (savedDerivationInfo == null) {
+        throw Exception();
+      }
+
+      salt = savedDerivationInfo.salt;
+
+      final secretKey =
+          await _encryptService.deriveEncryptionKey(password, salt);
+
+      final rawKey = await secretKey.extractBytes();
+      final keyBase64 = base64Encode(rawKey);
+      return DerivateKeys(derivateKey: keyBase64, salt: salt);
+    } catch (e) {
+      logError(e.toString());
+      rethrow;
+    }
+  }
+
+  Future<DerivateKeys> _generateNewSecretKey(String password) async {
+    try {
+      final salt = _encryptService.generateSalt();
+
+      final secretKey =
+          await _encryptService.deriveEncryptionKey(password, salt);
+
+      final derivateKey = base64Encode((await secretKey.extractBytes()));
+      return DerivateKeys(derivateKey: derivateKey, salt: salt);
+    } catch (e) {
+      logError(e.toString());
+      rethrow;
+    }
+  }
+
+  Future<List<PrivateAccount>> _getListPrivateAccount(
+      List<dynamic> listPublicAccount, String deriveKeyBase64) async {
+    final encryptedPrivateData =
+        await getDynamicData(name: _keys.privateWalletKey);
+    if (encryptedPrivateData == null ||
+        (encryptedPrivateData as List<int>).isEmpty) {
+      return [];
+    }
+    final encryptInfo = await getEncryptionInfo();
+    if (encryptInfo == null) {
+      throw Exception();
+    }
+
+    final decryptedPrivateData = await _encryptService.decrypt(
+        encryptedPrivateData,
+        deriveKeyBase64,
+        encryptInfo.nonce,
+        encryptInfo.mac);
+    if (listPublicAccount.isNotEmpty && decryptedPrivateData == null) {
+      throw InvalidPasswordException();
+    }
+
+    if (decryptedPrivateData == null) {
+      return [];
+    }
+
+    final List<dynamic> privateDataJson = json.decode(decryptedPrivateData);
+    return privateDataJson.map((e) => PrivateAccount.fromJson(e)).toList();
+  }
+
+  Future<List<PublicAccount>> getListPublicAccount() async {
+    final List<dynamic>? data =
+        await getDynamicData(name: _keys.publicWalletKey);
+    if (data == null) {
+      return [];
+    }
+    return data.map((e) => PublicAccount.fromJson(e)).toList();
+  }
+
+  Future<PublicAccount?> savePrivateData(
+      {required String password,
       required String walletName,
-      String? mnemonic,
+      required Origin origin,
+      required List<NetworkType> networks,
+      required String keyOrigin,
       required bool createdLocally}) async {
     try {
-      final date = (DateTime.now().microsecondsSinceEpoch);
-      final keyId = encryptService.generateUniqueId();
-      final Credentials fromHex = EthPrivateKey.fromHex(privatekey);
-      final addr = fromHex.address.hex;
-      // generate a new wallet
-      final SecureData privateWallet = SecureData(
+      if (origin.isPublicAddress) {
+        throw "Cannot use this function for public watch only accounts";
+      }
+
+      if (networks.isEmpty) {
+        throw "An account should have at last one compatible network";
+      }
+
+      // current date ;
+      final date = (DateTime.now().millisecondsSinceEpoch / 1000).toInt();
+      final keyId = _encryptService.generateUniqueId();
+      final accountAddresses = await _addressManager.generateAddressFromOrigin(
+          keyOrigin, origin, networks);
+
+      // this _derivateEncryptionKeyStateFull will automatically update the state if necessary
+      final derive = await _deriveEncryptionKey(password);
+      log("Derive Key ${derive.derivateKey}");
+
+      // create a new  private wallet
+
+      final PrivateAccount privateWallet = PrivateAccount(
+          origin: origin,
+          supportedNetworks: networks,
           isBackup: false,
           keyId: keyId,
-          privateKey: privatekey,
           walletName: walletName,
-          mnemonic: mnemonic,
+          keyOrigin: keyOrigin,
           createdLocally: createdLocally,
           creationDate: date);
+      // create a new public wallet associated with private wallet by keyId
 
-      final PublicData publicWallet = PublicData(
+      final PublicAccount publicWallet = PublicAccount(
+          origin: origin,
+          supportedNetworks: networks,
           isWatchOnly: false,
-          addresses: [PublicAddress(address: addr, type: NetworkType.evm)],
+          addresses: accountAddresses,
           keyId: keyId,
           createdLocally: createdLocally,
           walletName: walletName,
           creationDate: date);
 
-      final dataJson = privateWallet.toJson();
-      final publicDataJson = publicWallet.toJson();
+      List<PublicAccount> listPublicAccount = await getListPublicAccount();
+      List<PrivateAccount> privateDataList =
+          await _getListPrivateAccount(listPublicAccount, derive.derivateKey);
 
-      List<dynamic> listPublicDataJson;
-      final publicDataResult = await getListDynamicData(name: publicWalletKey);
+      privateDataList.add(privateWallet);
+      listPublicAccount.add(publicWallet);
+      log("Saving data");
+      await saveListPrivateDataJson(privateDataList, derive.derivateKey);
 
-      if (publicDataResult != null) {
-        listPublicDataJson = publicDataResult;
-        log("Public data found ${json.encode(listPublicDataJson).toString()}");
-      } else {
-        listPublicDataJson = [];
-      }
+      await saveDynamicData(
+          data: listPublicAccount.map((e) => e.toJson()).toList(),
+          boxName: _keys.publicWalletKey);
+      await saveDerivationInfo(
+          DerivateKeys(derivateKey: derive.derivateKey, salt: derive.salt));
 
-      List<dynamic> privateDataList;
-      final decryptedArrayData = await getDecryptedData(password);
-      if (decryptedArrayData == null) {
-        throw ("Invalid Password");
-      }
-      privateDataList = decryptedArrayData;
-
-      listPublicDataJson.add(publicDataJson);
-      privateDataList.add(dataJson);
-
-      final publicResult = await saveListDynamicData(
-          data: listPublicDataJson, boxName: publicWalletKey);
-
-      final privateSaveResult =
-          await saveListPrivateDataJson(privateDataList, password);
-
-      if (!privateSaveResult || !publicResult) {
-        throw ("The result is $privateSaveResult and the public result is $publicResult, So error occurred");
-      } else {
-        prefs.saveLastConnectedData(privateWallet.keyId);
-        log("Saved successfully");
-        return publicWallet;
-      }
+      _prefs.saveLastConnectedData(privateWallet.keyId);
+      log("Saved successfully");
+      return publicWallet;
     } catch (e) {
       logError(e.toString());
       return null;
+    }
+  }
+
+  Future<List<PrivateAccount>> getAlreadySavedListPrivateAccount(
+      String derivateKey) async {
+    try {
+      final savedData = await getDynamicData(name: _keys.privateWalletKey);
+      if (savedData == null) {
+        throw "Saved Private Data not found";
+      }
+      if ((savedData as List<int>).isEmpty) {
+        throw Exception("Invalid saved Data format");
+      }
+
+      final encryptInfo = await getEncryptionInfo();
+      if (encryptInfo == null) {
+        throw Exception();
+      }
+      final decryptedData = await _encryptService.decrypt(
+          savedData, derivateKey, encryptInfo.nonce, encryptInfo.mac);
+      if (decryptedData == null) {
+        throw InvalidPasswordException();
+      }
+      List<dynamic> dataJson = json.decode(decryptedData);
+      return dataJson.map((e) => PrivateAccount.fromJson(e)).toList();
+    } catch (e) {
+      logError(e.toString());
+      rethrow;
     }
   }
 
   Future<bool> changePassword(String oldPassword, String newPassword) async {
     try {
-      final dataJson = await getDecryptedData(oldPassword);
-      if (dataJson == null) {
-        logError("Decrypted data is null");
-        throw Exception("Incorrect password ");
-      }
-      final String jsonDataArray = json.encode(dataJson);
-      final encryptedData =
-          await encryptService.encryptJson(jsonDataArray, newPassword);
+      final oldDerive = await deriveEncryptionKeyStateless(oldPassword);
+      final newDerivateKey = await _generateNewSecretKey(newPassword);
 
-      if (encryptedData != null) {
-        await saveDynamicData(data: encryptedData, boxName: privateWalletKey);
-        await secureService.saveDataInFSS(newPassword, passwordName);
-        return true;
-      } else {
-        logError("An error occurred");
-        return false;
+      final alreadySavedData =
+          await getAlreadySavedListPrivateAccount(oldDerive.derivateKey);
+      if (alreadySavedData.isEmpty) {
+        throw "No decrypted data found";
       }
+
+      await saveSecureData(alreadySavedData, newDerivateKey.derivateKey);
+      await saveDerivationInfo(newDerivateKey);
+
+      return true;
     } catch (e) {
       logError(e.toString());
-      return false;
+      rethrow;
     }
   }
 
-  Future<List<PublicData>> getSavedWallets() async {
-    try {
-      List<PublicData> accounts = [];
-      final savedData = await getListDynamicData(name: publicWalletKey);
-
-      final lastAccount = await prefs.getLastConnectedAddress();
-
-      if (savedData != null && lastAccount != null) {
-        for (final account in savedData) {
-          final newAccount = PublicData.fromJson(account);
-          accounts.add(newAccount);
-        }
-      }
-
-      return accounts;
-    } catch (e) {
-      logError('Error getting saved wallets: $e');
-      return [];
-    }
-  }
-
-  Future<PublicData?> editWallet(
-      {required PublicData account,
+  Future<PublicAccount?> editWallet(
+      {required PublicAccount account,
       List<PublicAddress>? addresses,
       String? newName,
       IconData? icon,
       bool? isBackup,
       Color? color}) async {
     try {
-      List<PublicData> savedAccounts = await getSavedWallets();
+      List<PublicAccount> savedAccounts = await getListPublicAccount();
 
-      final PublicData newWallet = account.copyWith(
+      final PublicAccount newWallet = account.copyWith(
           walletColor: color,
           walletIcon: icon,
           walletName: newName,
@@ -170,7 +273,7 @@ class WalletDatabase {
             account.keyId.trim().toLowerCase()) {
           final index = savedAccounts.indexOf(acc);
           savedAccounts[index] = newWallet;
-          await saveListPublicData(savedAccounts);
+          await saveListPublicAccount(savedAccounts);
           return newWallet;
         }
       }
@@ -182,185 +285,84 @@ class WalletDatabase {
     }
   }
 
-  Future<SecureData?> editPrivateWalletData({
-    required SecureData account,
-    required String password,
+  Future<PrivateAccount?> editPrivateWalletData({
+    required PrivateAccount account,
+    required String deriveKey,
     bool? isBackup,
   }) async {
     try {
-      final listSecureData = await getListSecureData(password: password);
-      if (listSecureData == null) {
-        throw "An error has occurred";
+      final listPrivateAccount =
+          await getAlreadySavedListPrivateAccount(deriveKey);
+
+      if (listPrivateAccount.isEmpty) {
+        throw "Private account is empty";
+      }
+      final deriveInfo = await getDerivationInfo();
+      if (deriveInfo == null) {
+        throw Exception("Derive info is null");
       }
 
-      final SecureData newWallet = account.copyWith(isBackup: isBackup);
+      final PrivateAccount newWallet = account.copyWith(isBackup: isBackup);
+      final targetAccountIndex = listPrivateAccount.indexWhere((e) =>
+          e.keyId.trim().toLowerCase() == account.keyId.trim().toLowerCase());
 
-      for (final acc in listSecureData) {
-        if (acc.keyId.trim().toLowerCase() ==
-            account.keyId.trim().toLowerCase()) {
-          final index = listSecureData.indexOf(acc);
-          listSecureData[index] = newWallet;
-          await saveListPrivateDataJson(
-              listSecureData.map((e) => e.toJson()).toList(), password);
-          return newWallet;
-        }
+      if (targetAccountIndex < 0) {
+        throw "Account not found";
       }
-
-      return null;
+      listPrivateAccount[targetAccountIndex] = newWallet;
+      await saveListPrivateDataJson(listPrivateAccount, deriveKey);
+      return newWallet;
     } catch (e) {
       logError(e.toString());
       return null;
     }
   }
 
-  Future<List<dynamic>?> getDecryptedData(String password) async {
+  Future<EncryptionInfo?> getEncryptionInfo() async {
     try {
-      List<dynamic> dataToSave;
-      final savedData = await getDynamicData(name: privateWalletKey);
-
-      if (savedData == null) {
-        log("Data is null");
-        dataToSave = [];
-        return [];
-      } else {
-        log("Data is not null");
-        final decryptData =
-            await encryptService.decryptJson(savedData, password);
-        if (decryptData != null) {
-          dataToSave = json.decode(decryptData);
-          return dataToSave;
-        } else {
-          logError("The password is incorrect");
-          return null;
-        }
+      final data =
+          await _secureService.loadDataFromFSS(_keys.encryptionInfoKey);
+      if (data == null) {
+        throw "Data not found";
       }
+      final jsonData = json.decode(data);
+      log("Json Data ${jsonData}");
+      return EncryptionInfo.fromJson(jsonData);
     } catch (e) {
       logError(e.toString());
       return null;
     }
   }
 
-  Future<PublicData?> saveObservationWalletInStorage(
-      String walletName, String address, NetworkType type) async {
+  Future<DerivateKeys?> getDerivationInfo() async {
     try {
-      final date = (DateTime.now().microsecondsSinceEpoch);
-      final keyId = encryptService.generateUniqueId();
-      final addr = address;
-      log("Address found : $addr");
-      // generate a new wallet
-
-      final PublicData publicWallet = PublicData(
-          isBackup: true,
-          createdLocally: false,
-          addresses: [PublicAddress(address: address, type: type)],
-          keyId: keyId,
-          isWatchOnly: true,
-          walletName: walletName,
-          creationDate: date);
-
-      final publicDataJson = publicWallet.toJson();
-      List<dynamic> listPublicDataJson;
-      final publicDataResult = await getListDynamicData(name: publicWalletKey);
-      if (publicDataResult != null) {
-        listPublicDataJson = publicDataResult;
-        log("Public data found ${json.encode(listPublicDataJson).toString()}");
-      } else {
-        listPublicDataJson = [];
+      final data = await _secureService.loadDataFromFSS(_keys.derivationInfo);
+      if (data == null) {
+        throw "Data not found";
       }
-
-      listPublicDataJson.add(publicDataJson);
-      final publicResult = await saveListDynamicData(
-          data: listPublicDataJson, boxName: publicWalletKey);
-      if (!publicResult) {
-        logError("The result  is $publicResult, So error occurred");
-        return null;
-      } else {
-        prefs.saveLastConnectedData(keyId);
-        log("Saved successfully");
-        return publicWallet;
-      }
+      return DerivateKeys.fromJson(json.decode(data));
     } catch (e) {
       logError(e.toString());
       return null;
     }
   }
 
-  // get the savedKey if the user uses fingerprint
-  Future<String?> getSavedPassword() async {
+  Future<bool> saveEncryptionInfo(EncryptionInfo info) async {
     try {
-      final password = await secureService.loadDataFromFSS(passwordName);
-      if (password == null) {
-        return null;
-      }
-      return password;
-    } catch (e) {
-      logError(e.toString());
-      return null;
-    }
-  }
-
-  Future<bool> isPasswordValid(String password) async {
-    try {
-      final data = await getDecryptedData(password);
-      return data != null && data.isNotEmpty;
+      final jsonInfo = json.encode(info.toJson());
+      await _secureService.saveDataInFSS(jsonInfo, _keys.encryptionInfoKey);
+      return true;
     } catch (e) {
       logError(e.toString());
       return false;
     }
   }
 
-  Future<SecureData?> getSecureData(
-      {required String password, required PublicData account}) async {
+  Future<bool> saveDerivationInfo(DerivateKeys info) async {
     try {
-      final listSecureData = await getListSecureData(password: password);
-      if (listSecureData == null) {
-        throw "An error has occurred";
-      }
-
-      if (listSecureData.isNotEmpty) {
-        for (final e in listSecureData) {
-          if (e.keyId.trim().toLowerCase() == account.keyId.toLowerCase()) {
-            return e;
-          }
-        }
-      }
-
-      return null;
-    } catch (e) {
-      logError(e.toString());
-
-      rethrow;
-    }
-  }
-
-  Future<List<SecureData>?> getListSecureData(
-      {required String password}) async {
-    try {
-      final decryptedData = await getDecryptedData(password);
-      if (decryptedData == null) {
-        throw 'Invalid password';
-      }
-      final List<SecureData> listSecureData = [];
-      for (final data in decryptedData) {
-        final SecureData newData = SecureData.fromJson(data);
-        listSecureData.add(newData);
-      }
-      return listSecureData;
-    } catch (e) {
-      logError(e.toString());
-      rethrow;
-    }
-  }
-
-  Future<bool> saveListPublicDataJson(List<dynamic> data) async {
-    try {
-      final res =
-          await saveListDynamicData(data: data, boxName: publicWalletKey);
-      if (res) {
-        return true;
-      } else {
-        return false;
-      }
+      final jsonInfo = json.encode(info.toJson());
+      await _secureService.saveDataInFSS(jsonInfo, _keys.derivationInfo);
+      return true;
     } catch (e) {
       logError(e.toString());
       return false;
@@ -368,40 +370,37 @@ class WalletDatabase {
   }
 
   Future<bool> saveListPrivateDataJson(
-      List<dynamic> dataArrayJson, String password) async {
+      List<PrivateAccount> dataArrayJson, String derivateKey) async {
     try {
-      final String jsonDataArray = json.encode(dataArrayJson);
-      final encryptedData =
-          await encryptService.encryptJson(jsonDataArray, password);
-
-      if (encryptedData != null) {
-        await saveDynamicData(data: encryptedData, boxName: privateWalletKey);
-        await secureService.saveDataInFSS(password, passwordName);
-        return true;
-      } else {
-        logError("An error occurred");
-        return false;
-      }
+      return await saveSecureData(dataArrayJson, derivateKey);
     } catch (e) {
       logError(e.toString());
-      return false;
+      rethrow;
     }
   }
 
-  Future<List<dynamic>?> getPublicData() async {
+  Future<bool> saveSecureData(
+      List<PrivateAccount> data, String derivateKey) async {
     try {
-      return await getListDynamicData(name: publicWalletKey);
+      final secretBox =
+          await _encryptService.encrypt(data.toJsonString(), derivateKey);
+
+      await saveDynamicData(
+          data: secretBox.cipherText, boxName: _keys.privateWalletKey);
+      await saveEncryptionInfo(
+          EncryptionInfo(mac: secretBox.mac.bytes, nonce: secretBox.nonce));
+      return true;
     } catch (e) {
       logError(e.toString());
-      return null;
+      rethrow;
     }
   }
 
-  Future<bool> saveListPublicData(List<PublicData> publicDataJson) async {
+  Future<bool> saveListPublicAccount(List<PublicAccount> publicAccount) async {
     try {
-      final jsonDataArray = (publicDataJson.map((d) => d.toJson()).toList());
-      final res = await saveListDynamicData(
-          data: jsonDataArray, boxName: publicWalletKey);
+      final jsonDataArray = (publicAccount.map((d) => d.toJson()).toList());
+      final res = await saveDynamicData(
+          data: jsonDataArray, boxName: _keys.publicWalletKey);
       if (res) {
         return true;
       } else {
@@ -413,30 +412,14 @@ class WalletDatabase {
     }
   }
 
-  Future<List<dynamic>?> getListDynamicData({required String name}) async {
-    try {
-      final savedWallets = (await getBox())?.get(name);
-      if (savedWallets == null) {
-        throw "No saved wallets";
-      }
-      if (savedWallets != null) {
-        return savedWallets;
-      }
-      return null;
-    } catch (e) {
-      logError(e.toString());
-      return null;
-    }
-  }
-
-  Future<bool> saveListDynamicData(
-      {required List<dynamic> data, required String boxName}) async {
+  Future<bool> saveDynamicData(
+      {required dynamic data, required String boxName}) async {
     try {
       final box = await getBox();
       if (box == null) {
         throw "Box Not Initialized";
       }
-      box.put(boxName, data);
+      await box.put(boxName, data);
       return true;
     } catch (e) {
       logError(e.toString());
@@ -458,21 +441,6 @@ class WalletDatabase {
     } catch (e) {
       logError(e.toString());
       return null;
-    }
-  }
-
-  Future<bool> saveDynamicData(
-      {required String data, required String boxName}) async {
-    try {
-      final box = await getBox();
-      if (box == null) {
-        throw "Box Not Initialized";
-      }
-      await box.put(boxName, data);
-      return true;
-    } catch (e) {
-      logError(e.toString());
-      return false;
     }
   }
 }

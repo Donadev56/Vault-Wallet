@@ -5,8 +5,12 @@ import 'package:moonwallet/custom/web3_webview/lib/utils/loading.dart';
 import 'package:moonwallet/logger/logger.dart';
 import 'package:moonwallet/service/db/balance_database.dart';
 import 'package:moonwallet/service/db/wallet_db.dart';
+import 'package:moonwallet/service/db/wallet_db_stateless.dart';
 import 'package:moonwallet/service/internet_manager.dart';
+import 'package:moonwallet/service/web3_interactions/svm/solana_address.dart';
+import 'package:moonwallet/types/account_related_types.dart';
 import 'package:moonwallet/types/types.dart';
+import 'package:moonwallet/widgets/func/security/ask_derivate_key.dart';
 import 'package:moonwallet/widgets/func/security/ask_password.dart';
 import 'package:moonwallet/widgets/func/transactions/svm/ask_user_svm.dart';
 import 'package:solana/dto.dart' as dto;
@@ -16,34 +20,10 @@ import 'package:solana/solana.dart';
 class SolanaInteractionManager {
   RpcClient get _rpcClient => RpcClient("https://api.mainnet-beta.solana.com");
   final internet = InternetManager();
-  final walletDb = WalletDatabase();
+  final walletDb = WalletDbStateLess();
+  final solAddress = SolanaAddress();
 
-  Future<String?> generateAddress(String mnemonic) async {
-    try {
-      final keyPair = await getKeyPair(mnemonic);
-      if (keyPair == null) {
-        throw "Failed to generate key pair";
-      }
-      final address = keyPair.address;
-      log("Generated address: $address");
-      return address;
-    } catch (e) {
-      logError(e.toString());
-      return null;
-    }
-  }
-
-  Future<Ed25519HDKeyPair?> getKeyPair(String mnemonic) async {
-    try {
-      final keyPair = await Ed25519HDKeyPair.fromMnemonic(mnemonic);
-      return keyPair;
-    } catch (e) {
-      logError(e.toString());
-      return null;
-    }
-  }
-
-  Future<String?> getBalanceToken(PublicData account, Crypto crypto) async {
+  Future<String?> getBalanceToken(PublicAccount account, Crypto crypto) async {
     final db = BalanceDatabase(account: account, crypto: crypto);
     final solAddress = account.svmAddress;
     final tokenAddress = crypto.contractAddress;
@@ -56,11 +36,11 @@ class SolanaInteractionManager {
       if (tokenAddress == null) {
         throw "Invalid Token address";
       }
-      if (!isAddressValid(solAddress)) {
+      if (!this.solAddress.isAddressValid(solAddress)) {
         throw "Invalid key format";
       }
 
-      if (!isAddressValid(tokenAddress)) {
+      if (!this.solAddress.isAddressValid(tokenAddress)) {
         throw "Invalid Token key $tokenAddress format";
       }
 
@@ -94,7 +74,7 @@ class SolanaInteractionManager {
     return await db.getBalance();
   }
 
-  Future<String?> getUserBalance(PublicData account, Crypto crypto) async {
+  Future<String?> getUserBalance(PublicAccount account, Crypto crypto) async {
     final db = BalanceDatabase(account: account, crypto: crypto);
 
     try {
@@ -120,7 +100,7 @@ class SolanaInteractionManager {
     }
   }
 
-  Future<String?> getBalance(PublicData account, Crypto crypto) async {
+  Future<String?> getBalance(PublicAccount account, Crypto crypto) async {
     try {
       if (crypto.isNative) {
         return await getUserBalance(account, crypto);
@@ -157,23 +137,22 @@ class SolanaInteractionManager {
       }
       final memo = confirmation.memo;
 
-      final password = await askPassword(context: context, colors: colors);
-      if (password.isEmpty) {
-        throw "Invalid Password";
+      final deriveKey = await askDerivateKey(context: context, colors: colors);
+      if (deriveKey == null) {
+        throw InvalidPasswordException();
       }
-      final secureData = await walletDb.getSecureData(
-          password: password, account: data.account);
-      final mnemonic = secureData?.mnemonic;
+      final privateAccount = await walletDb.getPrivateAccountUsingKey(
+          deriveKey: deriveKey, account: data.account);
+      final mnemonic = privateAccount?.keyOrigin;
 
       if (mnemonic == null) {
         throw "Invalid Wallet";
       }
 
-      final wallet = await getKeyPair(mnemonic);
+      final wallet = await solAddress.getKeyPair(mnemonic);
       if (wallet == null) {
         throw "Invalid Key Pair";
       }
-      final recentBlockhash = await _rpcClient.getLatestBlockhash();
 
       final instructions = <Instruction>[];
 
@@ -222,13 +201,4 @@ class SolanaInteractionManager {
     }
   }
   */
-
-  bool isAddressValid(String address) {
-    try {
-      final decoded = base58.decode(address);
-      return decoded.length == 32;
-    } catch (e) {
-      return false;
-    }
-  }
 }

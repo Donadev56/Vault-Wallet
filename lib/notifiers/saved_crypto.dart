@@ -1,14 +1,17 @@
+import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:moonwallet/logger/logger.dart';
 import 'package:moonwallet/notifiers/providers.dart';
-import 'package:moonwallet/service/db/wallet_db.dart';
+import 'package:moonwallet/service/db/wallet_db_stateless.dart';
 import 'package:moonwallet/service/external_data/crypto_request_manager.dart';
 import 'package:moonwallet/service/rpc_service.dart';
+import 'package:moonwallet/types/account_related_types.dart';
 import 'package:moonwallet/types/types.dart';
+import 'package:moonwallet/widgets/func/security/ask_derivate_key.dart';
 
 class SavedCryptoProvider extends AsyncNotifier<List<Crypto>> {
   late final cryptoStorage = ref.read(cryptoStorageProvider);
-  final walletStorage = WalletDatabase();
+  final walletStorage = WalletDbStateLess();
   final rpcService = RpcService();
 
   @override
@@ -24,15 +27,16 @@ class SavedCryptoProvider extends AsyncNotifier<List<Crypto>> {
       }
       List<Crypto> listCrypto = [];
 
-      List<Crypto> cryptos = [];
+      List<Crypto> savedCryptos = [];
       try {
-        cryptos = await cryptoStorage.getSavedCryptos(wallet: account) ?? [];
+        savedCryptos =
+            await cryptoStorage.getSavedCryptos(wallet: account) ?? [];
       } catch (e) {
         logError(e.toString());
       }
 
-      if (cryptos.isNotEmpty) {
-        return cryptos;
+      if (savedCryptos.isNotEmpty) {
+        return compatibleCryptos(account, savedCryptos);
       }
 
       List<Crypto> standardCrypto = [];
@@ -46,12 +50,11 @@ class SavedCryptoProvider extends AsyncNotifier<List<Crypto>> {
 
       if (standardCrypto.isNotEmpty) {
         listCrypto = standardCrypto;
-      } // else {
-      // listCrypto = popularCrypto;
-      // }
+      }
+
       if (listCrypto.isNotEmpty) {
         await saveListCrypto(listCrypto, account);
-        return listCrypto;
+        return compatibleCryptos(account, listCrypto);
       }
       checkCryptoUpdate(account: account);
       return [];
@@ -61,7 +64,22 @@ class SavedCryptoProvider extends AsyncNotifier<List<Crypto>> {
     }
   }
 
-  Future<void> checkCryptoUpdate({required PublicData account}) async {
+  List<Crypto> compatibleCryptos(
+      PublicAccount account, List<Crypto> listCrypto) {
+    if (account.origin.isMnemonic) {
+      return listCrypto;
+    }
+
+    if (account.origin.isPrivateKey || account.origin.isPublicAddress) {
+      return listCrypto
+          .where(
+              (e) => e.getNetworkType == account.supportedNetworks.firstOrNull)
+          .toList();
+    }
+    return [];
+  }
+
+  Future<void> checkCryptoUpdate({required PublicAccount account}) async {
     try {
       final List<Crypto> standardCrypto =
           await CryptoRequestManager().getAllCryptos();
@@ -110,7 +128,8 @@ class SavedCryptoProvider extends AsyncNotifier<List<Crypto>> {
     }
   }
 
-  Future<bool> saveListCrypto(List<Crypto> cryptos, PublicData account) async {
+  Future<bool> saveListCrypto(
+      List<Crypto> cryptos, PublicAccount account) async {
     try {
       final result =
           await cryptoStorage.saveListCrypto(cryptos: cryptos, wallet: account);
@@ -162,7 +181,7 @@ class SavedCryptoProvider extends AsyncNotifier<List<Crypto>> {
       String? symbol,
       List<String>? rpcUrls,
       List<String>? explorers,
-      required PublicData currentAccount}) async {
+      required PublicAccount currentAccount}) async {
     try {
       final result = await cryptoStorage.editNetwork(
           chainId: chainId,
@@ -210,17 +229,22 @@ class SavedCryptoProvider extends AsyncNotifier<List<Crypto>> {
   }
 
   Future<bool> toggleAndEnableSolana(
-      Crypto crypto, bool value, String password) async {
+      Crypto crypto, bool value, BuildContext context, AppColors colors) async {
     try {
       final account = await ref.watch(currentAccountProvider.future);
       if (account == null) {
         logError("No account found");
         return false;
       }
+      final derivateKey =
+          await askDerivateKey(context: context, colors: colors);
+      if (derivateKey == null) {
+        throw InvalidPasswordException();
+      }
 
-      final secureData = await walletStorage.getSecureData(
-          password: password, account: account);
-      final mnemonic = secureData?.mnemonic;
+      final privateAccount = await walletStorage.getPrivateAccountUsingKey(
+          deriveKey: derivateKey, account: account);
+      final mnemonic = privateAccount?.keyOrigin;
 
       if (mnemonic == null) {
         throw ("Incompatible account");

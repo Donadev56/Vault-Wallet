@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:moonwallet/types/account_related_types.dart';
 import 'package:moonwallet/types/types.dart';
 import 'package:moonwallet/widgets/screen_widgets/crypto_picture.dart';
 

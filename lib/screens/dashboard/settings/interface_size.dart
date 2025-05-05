@@ -5,6 +5,7 @@ import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:lucide_icons_flutter/lucide_icons.dart';
 import 'package:moonwallet/logger/logger.dart';
 import 'package:moonwallet/notifiers/providers.dart';
+import 'package:moonwallet/types/account_related_types.dart';
 import 'package:moonwallet/types/types.dart';
 import 'package:moonwallet/widgets/screen_widgets/account_list_title_widget.dart';
 import 'package:moonwallet/widgets/actions.dart';
@@ -35,7 +36,7 @@ class _InterfaceSizeViewState extends ConsumerState<InterfaceSizeView> {
     final currentAccountAsync = ref.watch(currentAccountProvider);
 
     final uiConfig = useState<AppUIConfig>(AppUIConfig.defaultConfig);
-    final account = useState<PublicData?>(null);
+    final account = useState<PublicAccount?>(null);
 
     useEffect(() {
       currentAccountAsync.whenData((acc) => account.value = acc);
@@ -215,14 +216,7 @@ class _InterfaceSizeViewState extends ConsumerState<InterfaceSizeView> {
               alignment: Alignment.center,
               child: AccountListTitleWidget(
                   colors: colors,
-                  wallet: account.value ??
-                      PublicData(
-                          createdLocally: false,
-                          keyId: "",
-                          creationDate: 0,
-                          walletName: "",
-                          addresses: [],
-                          isWatchOnly: true),
+                  wallet: account.value!,
                   onTap: () => log("taped"),
                   onMoreTap: () => log("more"),
                   fontSizeOf: fontSizeOf,

@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:moonwallet/logger/logger.dart';
 import 'package:moonwallet/notifiers/providers.dart';
 import 'package:moonwallet/service/rpc_service.dart';
+import 'package:moonwallet/types/account_related_types.dart';
 import 'package:moonwallet/types/types.dart';
 
 class AssetsNotifier extends AsyncNotifier<List<Asset>> {
@@ -13,7 +14,7 @@ class AssetsNotifier extends AsyncNotifier<List<Asset>> {
   @override
   Future<List<Asset>> build() async {
     try {
-      PublicData? account = await getAccount();
+      PublicAccount? account = await getAccount();
       if (account == null) {
         logError("The account is null");
         return [];
@@ -26,16 +27,16 @@ class AssetsNotifier extends AsyncNotifier<List<Asset>> {
     }
   }
 
-  Future<PublicData?> getAccount() async {
+  Future<PublicAccount?> getAccount() async {
     try {
-      PublicData? account;
+      PublicAccount? account;
       final savedAccount = await ref.watch(currentAccountProvider.future);
       if (savedAccount != null) {
         return savedAccount;
       }
 
       final accounts =
-          await ref.read(accountsNotifierProvider.notifier).getPublicData();
+          await ref.read(accountsNotifierProvider.notifier).getPublicAccount();
       if (accounts.isNotEmpty) {
         account = accounts[0];
         log("Account found ${account.keyId}");
@@ -53,7 +54,7 @@ class AssetsNotifier extends AsyncNotifier<List<Asset>> {
     }
   }
 
-  Future<void> rebuild(PublicData account) async {
+  Future<void> rebuild(PublicAccount account) async {
     try {
       state = AsyncData((await getUserAssets(account: account)));
       ref.invalidate(savedCryptosProviderNotifier);
@@ -62,7 +63,7 @@ class AssetsNotifier extends AsyncNotifier<List<Asset>> {
     }
   }
 
-  Future<bool> saveListAssets(List<Asset> assets, PublicData account) async {
+  Future<bool> saveListAssets(List<Asset> assets, PublicAccount account) async {
     try {
       final result =
           await cryptoStorage.saveListAssets(assets: assets, account: account);
@@ -75,8 +76,8 @@ class AssetsNotifier extends AsyncNotifier<List<Asset>> {
     }
   }
 
-  Future<Map<String, dynamic>> getAssetData(Crypto crypto, PublicData account,
-      List<CryptoMarketData> listTokenData) async {
+  Future<Map<String, dynamic>> getAssetData(Crypto crypto,
+      PublicAccount account, List<CryptoMarketData> listTokenData) async {
     try {
       final cryptoBalance = await RpcService().getBalance(
         crypto,
@@ -117,7 +118,7 @@ class AssetsNotifier extends AsyncNotifier<List<Asset>> {
     }
   }
 
-  Future<List<Asset>> getUserAssets({required PublicData account}) async {
+  Future<List<Asset>> getUserAssets({required PublicAccount account}) async {
     try {
       log("Updating assets");
       final savedCrypto = await ref.read(savedCryptosProviderNotifier.future);

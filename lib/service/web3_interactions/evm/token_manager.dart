@@ -4,9 +4,9 @@ import 'package:moonwallet/custom/web3_webview/lib/utils/loading.dart';
 import 'package:moonwallet/logger/logger.dart';
 import 'package:moonwallet/service/external_data/price_manager.dart';
 import 'package:moonwallet/service/web3_interactions/evm/eth_interaction_manager.dart';
+import 'package:moonwallet/types/account_related_types.dart';
 import 'package:moonwallet/types/types.dart';
 import 'package:moonwallet/widgets/func/transactions/evm/ask_user_evm.dart';
-import 'package:moonwallet/widgets/func/security/ask_password.dart';
 import 'package:moonwallet/widgets/func/account_related/show_watch_only_warning.dart';
 import 'package:web3dart/web3dart.dart';
 import 'package:http/http.dart';
@@ -191,7 +191,8 @@ class TokenManager {
     }
   }
 
-  _validateAccount(PublicData account, BuildContext context, AppColors colors) {
+  _validateAccount(
+      PublicAccount account, BuildContext context, AppColors colors) {
     if (account.isWatchOnly) {
       showWatchOnlyWaring(colors: colors, context: context);
       throw Exception(
@@ -289,26 +290,17 @@ class TokenManager {
             EtherAmount.inWei(confirmedResponse.gasPrice ?? data.gasPrice),
       );
 
-      String userPassword = "";
-      userPassword =
-          await askPassword(context: context, colors: colors, useBio: true);
+      final result = await web3InteractionManager
+          .sendTransaction(
+              colors: colors,
+              context: context,
+              transaction: transaction,
+              chainId: network.chainId ?? 1,
+              rpcUrl: network.rpcUrls?.firstOrNull ?? "",
+              account: data.account)
+          .withLoading(context, colors);
 
-      if (userPassword.isNotEmpty) {
-        final result = await web3InteractionManager
-            .sendTransaction(
-                colors: colors,
-                context: context,
-                transaction: transaction,
-                chainId: network.chainId ?? 1,
-                rpcUrl: network.rpcUrls?.firstOrNull ?? "",
-                password: userPassword,
-                address: from)
-            .withLoading(context, colors);
-
-        return result;
-      } else {
-        throw Exception("An error occurred while trying to get the password");
-      }
+      return result;
     } catch (e) {
       logError(e.toString());
       rethrow;

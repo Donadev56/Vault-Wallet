@@ -24,11 +24,8 @@ import 'package:moonwallet/screens/dashboard/wallet_actions/add_mnemonic.dart';
 import 'package:moonwallet/screens/dashboard/wallet_actions/add_private_key.dart';
 import 'package:moonwallet/screens/dashboard/wallet_actions/create_mnemonic_key.dart';
 import 'package:moonwallet/secure_check_view.dart';
-import 'package:moonwallet/service/db/old_db.dart';
-import 'package:moonwallet/service/db/wallet_db.dart';
 import 'package:moonwallet/types/types.dart';
 import 'package:moonwallet/utils/colors.dart';
-import 'package:moonwallet/utils/prefs.dart';
 import 'package:moonwallet/widgets/func/snackbar.dart';
 
 void main() async {
@@ -54,7 +51,6 @@ class Routes {
 
   static const String discover = '/discover';
   static const String home = '/home';
-  static const String addPrivateKey = '/addPrivateKey';
   static const String pinAuth = '/pinAuth';
   static const String addObservationWallet = '/addObservationWallet';
   static const String settings = '/settings';
@@ -111,14 +107,7 @@ class _MyAppState extends State<MyApp> {
 
   Future<bool> hasAtLastOneAccount() async {
     try {
-      final prefs = PublicDataManager();
-
-      final hasAlreadyUpgraded =
-          await prefs.getDataFromPrefs(key: "alreadyUpgraded");
-      if (hasAlreadyUpgraded == null) {
-        await upgradeDatabase();
-      }
-      final accounts = await AccountsNotifier().getPublicData();
+      final accounts = await AccountsNotifier().getPublicAccount();
       return accounts.isNotEmpty;
     } catch (e) {
       logError(e.toString());
@@ -129,48 +118,6 @@ class _MyAppState extends State<MyApp> {
           colors: colors);
 
       return false;
-    }
-  }
-
-  Future<void> upgradeDatabase() async {
-    try {
-      final lastDbManager = Web3Manager();
-      final newDbManager = WalletDatabase();
-      final prefs = PublicDataManager();
-
-      final savedPassword = await lastDbManager.getSavedPassword();
-      if (savedPassword != null) {
-        final savedData = await lastDbManager.getPublicData();
-        final decryptedData =
-            await lastDbManager.getDecryptedData(savedPassword);
-
-        int savedTimes = 0;
-        if (savedData != null) {
-          final saved = await newDbManager.saveListPublicDataJson(savedData);
-          if (saved) {
-            savedTimes++;
-          }
-        }
-        if (decryptedData != null) {
-          final saved = await newDbManager.saveListPrivateDataJson(
-              decryptedData, savedPassword);
-          if (saved) {
-            savedTimes++;
-          }
-        }
-        if (savedTimes > 0) {
-          final saved =
-              await prefs.saveDataInPrefs(data: "true", key: "alreadyUpgraded");
-          log("Data saved $saved");
-        }
-      }
-    } catch (e) {
-      logError(e.toString());
-      showCustomSnackBar(
-          type: MessageType.error,
-          context: context,
-          message: e.toString(),
-          colors: colors);
     }
   }
 
@@ -323,7 +270,6 @@ class _MyAppState extends State<MyApp> {
                         colors: colors,
                       ),
                   Routes.home: (context) => HomeScreen(),
-                  Routes.importWalletMain: (context) => AddPrivateKeyInMain(),
                   Routes.createPrivateKeyMain: (context) =>
                       CreateMnemonicMain(),
                   Routes.createAccountFromSed: (context) => AddMnemonicScreen(),

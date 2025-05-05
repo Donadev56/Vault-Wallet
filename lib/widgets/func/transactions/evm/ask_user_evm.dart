@@ -3,6 +3,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_feather_icons/flutter_feather_icons.dart';
 import 'package:moonwallet/logger/logger.dart';
+import 'package:moonwallet/types/account_related_types.dart';
 import 'package:moonwallet/types/types.dart';
 import 'package:moonwallet/widgets/buttons/elevated.dart';
 import 'package:moonwallet/widgets/func/transactions/evm/show_custom_gas_modal.dart';

@@ -3,7 +3,7 @@ import 'dart:convert';
 import 'package:moonwallet/logger/logger.dart';
 import 'package:moonwallet/service/db/global_database.dart';
 import 'package:moonwallet/service/internet_manager.dart';
-import 'package:moonwallet/types/types.dart';
+import 'package:moonwallet/types/account_related_types.dart';
 import 'package:http/http.dart' as http;
 
 class CryptoRequestManager {

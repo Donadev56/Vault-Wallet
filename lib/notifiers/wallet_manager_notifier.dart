@@ -1,32 +1,34 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:moonwallet/logger/logger.dart';
 import 'package:moonwallet/notifiers/providers.dart';
-import 'package:moonwallet/service/db/wallet_db.dart';
+import 'package:moonwallet/service/db/wallet_db_stateless.dart';
 import 'package:moonwallet/service/web3_interactions/evm/addresses.dart';
-import 'package:moonwallet/types/types.dart';
+import 'package:moonwallet/types/account_related_types.dart';
 
-class Web3Notifier {
-  final web3Manager = WalletDatabase();
+class WalletManagerNotifier {
+  final web3Manager = WalletDbStateLess();
   final ethAddresses = EthAddresses();
 
   final Ref ref;
-  Web3Notifier(this.ref);
+  WalletManagerNotifier(this.ref);
 
-  Future<PublicData?> saveSeed(
-      String seed, String userPassword, bool createdLocally) async {
+  Future<PublicAccount?> saveMnemonic(
+      String mnemonic, String userPassword, bool createdLocally) async {
+    final accountsProvider = ref.watch(accountsNotifierProvider.notifier);
+
     try {
-      final secretData = await ethAddresses.createPrivatekeyFromSeed(seed);
-
-      final key = secretData["key"];
       if (userPassword.isEmpty) {
         throw Exception("passwords must not be empty ");
       }
+      final walletCounts = (await accountsProvider.getPublicAccount()).length;
       final result = await web3Manager.savePrivateData(
           createdLocally: createdLocally,
-          privatekey: key,
           password: userPassword,
-          walletName: "New Wallet",
-          mnemonic: seed);
+          walletName: "New Wallet $walletCounts",
+          origin: Origin.mnemonic,
+          networks: NetworkType.values,
+          keyOrigin: mnemonic);
+
       ref.invalidate(accountsNotifierProvider);
       if (result != null) {
         return result;
@@ -39,15 +41,16 @@ class Web3Notifier {
     }
   }
 
-  Future<PublicData?> savePrivateKey(
-      String privateKey, String userPassword, bool createdLocally) async {
+  Future<PublicAccount?> savePrivateKey(String privateKey, String userPassword,
+      bool createdLocally, NetworkType type) async {
     try {
       final response = await web3Manager.savePrivateData(
-        createdLocally: createdLocally,
-        privatekey: privateKey,
-        password: userPassword,
-        walletName: "MoonWallet-1",
-      );
+          createdLocally: createdLocally,
+          keyOrigin: privateKey,
+          origin: Origin.privateKey,
+          password: userPassword,
+          walletName: "MoonWallet-1",
+          networks: [type]);
       if (response != null) {
         ref.invalidate(accountsNotifierProvider);
 
@@ -61,10 +64,10 @@ class Web3Notifier {
     }
   }
 
-  Future<PublicData?> saveWO(String address, NetworkType type) async {
+  Future<PublicAccount?> saveWO(String address, NetworkType type) async {
     try {
       final result = await web3Manager.saveObservationWalletInStorage(
-          "New view Wallet", address, type);
+          "New view Wallet", address, type, [type]);
       if (result != null) {
         ref.invalidate(accountsNotifierProvider);
         return result;

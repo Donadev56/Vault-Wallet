@@ -8,8 +8,9 @@ import 'package:moonwallet/custom/web3_webview/lib/widgets/alert.dart';
 import 'package:moonwallet/main.dart';
 import 'package:moonwallet/notifiers/providers.dart';
 import 'package:moonwallet/service/db/wallet_db.dart';
+import 'package:moonwallet/types/account_related_types.dart';
 import 'package:moonwallet/utils/colors.dart';
-import 'package:moonwallet/utils/crypto.dart';
+import 'package:moonwallet/utils/encrypt_service.dart';
 import 'package:moonwallet/utils/themes.dart';
 import 'package:moonwallet/widgets/appBar/button.dart';
 import 'package:moonwallet/widgets/appBar/show_wallet_actions.dart';
@@ -32,7 +33,6 @@ import 'package:moonwallet/logger/logger.dart';
 import 'package:moonwallet/service/db/crypto_storage_manager.dart';
 import 'package:moonwallet/service/web3_interactions/evm/token_manager.dart';
 import 'package:moonwallet/types/types.dart';
-import 'package:moonwallet/utils/prefs.dart';
 
 class AddCryptoView extends StatefulHookConsumerWidget {
   final AppColors? colors;
@@ -47,22 +47,14 @@ class _AddCryptoViewState extends ConsumerState<AddCryptoView> {
   List<Crypto> reorganizedCrypto = [];
   final cryptoStorageManager = CryptoStorageManager();
   final tokenManager = TokenManager();
-  List<PublicData> accounts = [];
+  List<PublicAccount> accounts = [];
   final web3Manager = WalletDatabase();
   final encryptService = EncryptService();
 
   bool hasSaved = false;
-  PublicData? currentAccount;
-  final nullAccount = PublicData(
-      createdLocally: false,
-      keyId: "",
-      creationDate: 0,
-      walletName: "",
-      addresses: [],
-      isWatchOnly: false);
+  PublicAccount? currentAccount;
   final TextEditingController _searchController = TextEditingController();
 
-  final publicDataManager = PublicDataManager();
   AppColors colors = AppColors.defaultTheme;
 
   bool saved = false;
@@ -467,32 +459,28 @@ class _AddCryptoViewState extends ConsumerState<AddCryptoView> {
                                 final confirm = await showFirstUseDialog(
                                     context: context, colors: colors);
                                 if (confirm) {
-                                  final password = await askPassword(
-                                      context: context, colors: colors);
-                                  if (password.isNotEmpty) {
-                                    try {
-                                      final result = await savedCryptoProvider
-                                          .toggleAndEnableSolana(
-                                              crypto, newVal, password)
-                                          .withLoading(
-                                            context,
-                                            colors,
-                                            "Creating Solana wallet",
-                                          );
-                                      if (!result) {
-                                        showAlert(
-                                            context: context,
-                                            colors: colors,
-                                            title: "Invalid Account",
-                                            content:
-                                                "Create a new valid wallet and try again.",
-                                            confirmText: "Ok");
-                                      }
-                                    } catch (e) {
-                                      logError(e.toString());
-                                      notifyError(e.toString());
-                                      return;
+                                  try {
+                                    final result = await savedCryptoProvider
+                                        .toggleAndEnableSolana(
+                                            crypto, newVal, context, colors)
+                                        .withLoading(
+                                          context,
+                                          colors,
+                                          "Creating Solana wallet",
+                                        );
+                                    if (!result) {
+                                      showAlert(
+                                          context: context,
+                                          colors: colors,
+                                          title: "Invalid Account",
+                                          content:
+                                              "Create a new valid wallet and try again.",
+                                          confirmText: "Ok");
                                     }
+                                  } catch (e) {
+                                    logError(e.toString());
+                                    notifyError(e.toString());
+                                    return;
                                   }
 
                                   return;

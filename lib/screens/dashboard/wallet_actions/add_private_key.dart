@@ -9,6 +9,7 @@ import 'package:moonwallet/logger/logger.dart';
 import 'package:moonwallet/notifiers/providers.dart';
 import 'package:moonwallet/screens/dashboard/page_manager.dart';
 import 'package:moonwallet/service/db/wallet_db.dart';
+import 'package:moonwallet/types/account_related_types.dart';
 import 'package:moonwallet/types/types.dart';
 import 'package:moonwallet/utils/colors.dart';
 import 'package:moonwallet/utils/prefs.dart';
@@ -24,7 +25,8 @@ import 'package:page_transition/page_transition.dart';
 import 'package:web3dart/web3dart.dart';
 
 class AddPrivateKeyInMain extends StatefulHookConsumerWidget {
-  const AddPrivateKeyInMain({super.key});
+  final NetworkType networkType;
+  const AddPrivateKeyInMain({super.key, required this.networkType});
 
   @override
   ConsumerState<AddPrivateKeyInMain> createState() => _AddPrivateKeyState();
@@ -38,6 +40,7 @@ class _AddPrivateKeyState extends ConsumerState<AddPrivateKeyInMain> {
   int secAttempt = 0;
   final publicDataManager = PublicDataManager();
   bool isDarkMode = false;
+  late NetworkType networkType;
 
   final manager = WalletDatabase();
   AppColors colors = AppColors.defaultTheme;
@@ -64,6 +67,7 @@ class _AddPrivateKeyState extends ConsumerState<AddPrivateKeyInMain> {
   void initState() {
     _textController = TextEditingController();
     getSavedTheme();
+    networkType = widget.networkType;
 
     super.initState();
   }
@@ -164,7 +168,7 @@ class _AddPrivateKeyState extends ConsumerState<AddPrivateKeyInMain> {
           throw Exception("passwords must not be empty ");
         }
         final result = await web3Provider
-            .savePrivateKey(key, userPassword, false)
+            .savePrivateKey(key, userPassword, false, networkType)
             .withLoading(context, colors, "Creating wallet");
         if (result != null) {
           lastAccountNotifier.updateKeyId(result.keyId);
@@ -191,7 +195,7 @@ class _AddPrivateKeyState extends ConsumerState<AddPrivateKeyInMain> {
     Future<void> handleSubmit() async {
       try {
         final password =
-            await askPassword(context: context, colors: colors, useBio: false);
+            await askUserPassword(context: context, colors: colors) ?? "";
         if (password.isNotEmpty) {
           setState(() {
             userPassword = password;

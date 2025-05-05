@@ -3,10 +3,11 @@
 import 'package:flutter/material.dart';
 import 'package:jazzicon/jazzicon.dart';
 import 'package:jazzicon/jazziconshape.dart';
+import 'package:moonwallet/types/account_related_types.dart';
 import 'package:moonwallet/types/types.dart';
 
 class AccountListTitleWidget extends StatelessWidget {
-  final PublicData wallet;
+  final PublicAccount wallet;
   final Function() onTap;
   final Function() onMoreTap;
   final Color? tileColor;

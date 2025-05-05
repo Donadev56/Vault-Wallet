@@ -4,6 +4,7 @@ import 'dart:ui';
 
 import 'package:flutter/material.dart';
 import 'package:lucide_icons_flutter/lucide_icons.dart';
+import 'package:moonwallet/types/account_related_types.dart';
 import 'package:moonwallet/types/types.dart';
 import 'package:moonwallet/widgets/barre.dart';
 
@@ -11,9 +12,9 @@ selectAnAccount(
     {required AppColors colors,
     required Crypto crypto,
     required BuildContext context,
-    required List<PublicData> accounts,
-    required PublicData currentAccount,
-    required void Function(PublicData wallet) onTap}) {
+    required List<PublicAccount> accounts,
+    required PublicAccount currentAccount,
+    required void Function(PublicAccount wallet) onTap}) {
   showModalBottomSheet(
       isScrollControlled: true,
       backgroundColor: Colors.transparent,

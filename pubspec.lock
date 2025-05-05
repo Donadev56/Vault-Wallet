@@ -354,7 +354,7 @@ packages:
     source: hosted
     version: "3.0.6"
   cryptography:
-    dependency: transitive
+    dependency: "direct main"
     description:
       name: cryptography
       sha256: d146b76d33d94548cf035233fbc2f4338c1242fa119013bead807d033fc4ae05
@@ -466,7 +466,7 @@ packages:
     source: hosted
     version: "2.1.1"
   ed25519_hd_key:
-    dependency: transitive
+    dependency: "direct main"
     description:
       name: ed25519_hd_key
       sha256: "31e191ec97492873067e46dc9cc0c7d55170559c83a478400feffa0627acaccf"

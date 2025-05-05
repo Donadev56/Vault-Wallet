@@ -1,63 +1,48 @@
-import 'package:moonwallet/custom/web3_webview/lib/web3_webview.dart';
-import 'package:moonwallet/logger/logger.dart';
+import 'dart:typed_data';
 
 import 'package:bip39/bip39.dart' as bip39;
 import 'package:bip32/bip32.dart' as bip32;
 import 'package:hex/hex.dart';
-import 'dart:typed_data';
+import 'package:moonwallet/custom/web3_webview/lib/web3_webview.dart';
+import 'package:moonwallet/logger/logger.dart';
 
 class EthAddresses {
-  Future<Map<String, dynamic>> createWallet() async {
+  String generateEthAddress(String privateKey) {
+    final credentials = EthPrivateKey.fromHex(privateKey);
+    final address = credentials.address;
+    return address.hex;
+  }
+
+  bip32.BIP32? derivateBip32KeyFromPath(String mnemonic, String path) {
     try {
-      final seed = generateMnemonic();
-      final privateKey = deriveEthereumPrivateKey(seed);
+      Uint8List seed = bip39.mnemonicToSeed(mnemonic);
 
-      if (privateKey == null) {
-        logError("Private key is null");
-        return {};
-      }
-      final data = {"key": privateKey, "seed": seed};
+      final bip32.BIP32 root = bip32.BIP32.fromSeed(seed);
 
-      return data;
+      final bip32.BIP32 child = root.derivePath(path);
+
+      return child;
     } catch (e) {
       logError(e.toString());
-      return {};
+      rethrow;
     }
   }
 
-  Future<Map<String, dynamic>> createPrivatekeyFromSeed(String seed) async {
+  String? derivateEthereumKeyFromMnemonic(String mnemonic) {
     try {
-      final privateKey = deriveEthereumPrivateKey(seed);
-      if (privateKey == null) {
-        logError("Private key is null");
-        return {};
+      final child = derivateBip32KeyFromPath(mnemonic, "m/44'/60'/0'/0/0");
+      if (child == null) {
+        throw "Invalid Mnemonic";
       }
-      final data = {"key": privateKey, "seed": seed};
-
-      return data;
+      final privateKey = child.privateKey;
+      if (privateKey == null) {
+        throw "Private Key not found";
+      }
+      return HEX.encode(privateKey);
     } catch (e) {
       logError(e.toString());
-      return {};
+      rethrow;
     }
-  }
-
-  String generateMnemonic() {
-    return bip39.generateMnemonic();
-  }
-
-  String? deriveEthereumPrivateKey(String mnemonic) {
-    Uint8List seed = bip39.mnemonicToSeed(mnemonic);
-
-    final bip32.BIP32 root = bip32.BIP32.fromSeed(seed);
-
-    final bip32.BIP32 child = root.derivePath("m/44'/60'/0'/0/0");
-
-    final privateKey = child.privateKey;
-    if (privateKey == null) {
-      logError("Private key is null");
-      return null;
-    }
-    return HEX.encode(privateKey);
   }
 
   bool isAddressValid(String address) {

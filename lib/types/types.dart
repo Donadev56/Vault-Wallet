@@ -2,12 +2,7 @@
 
 import 'package:decimal/decimal.dart';
 import 'package:flutter/material.dart';
-import 'package:lucide_icons_flutter/lucide_icons.dart';
-import 'package:web3dart/credentials.dart';
-
-enum CryptoType { native, token }
-
-enum NetworkType { evm, svm }
+import 'package:moonwallet/types/account_related_types.dart';
 
 enum ColorType { dark, light, other }
 
@@ -30,68 +25,6 @@ extension StringDecimal on String {
       return Decimal.zero;
     }
     return Decimal.parse(this);
-  }
-}
-
-class SecureData {
-  final String privateKey;
-  final String keyId;
-  final int creationDate;
-  final String walletName;
-  final String? mnemonic;
-  final bool createdLocally;
-  final bool isBackup;
-
-  SecureData(
-      {required this.createdLocally,
-      required this.privateKey,
-      required this.keyId,
-      required this.creationDate,
-      required this.walletName,
-      this.mnemonic,
-      required this.isBackup});
-
-  factory SecureData.fromJson(Map<dynamic, dynamic> json) {
-    return SecureData(
-        privateKey: json['privatekey'],
-        keyId: json['keyId'] ?? "",
-        creationDate: json['creationDate'] ?? 0,
-        walletName: json['walletName'] ?? "",
-        mnemonic: json['mnemonic'],
-        createdLocally: json["createdLocally"] ?? false,
-        isBackup: json["isBackup"] ?? false);
-  }
-
-  Map<String, dynamic> toJson() {
-    return {
-      'privatekey': privateKey,
-      'keyId': keyId,
-      'creationDate': creationDate,
-      'walletName': walletName,
-      'mnemonic': mnemonic,
-      "createdLocally": createdLocally,
-      "isBackup": isBackup
-    };
-  }
-
-  SecureData copyWith({
-    String? privateKey,
-    String? keyId,
-    int? creationDate,
-    String? walletName,
-    String? mnemonic,
-    String? address,
-    bool? isBackup,
-    bool? createdLocally,
-  }) {
-    return SecureData(
-        privateKey: privateKey ?? this.privateKey,
-        keyId: keyId ?? this.keyId,
-        creationDate: creationDate ?? this.creationDate,
-        walletName: walletName ?? this.walletName,
-        mnemonic: mnemonic ?? this.mnemonic,
-        createdLocally: createdLocally ?? this.createdLocally,
-        isBackup: isBackup ?? this.isBackup);
   }
 }
 
@@ -152,125 +85,6 @@ class PinSubmitResult {
       'error': error,
       'newTitle': newTitle,
     };
-  }
-}
-
-class PublicData {
-  int id;
-  final String keyId;
-  final int creationDate;
-  final String walletName;
-  final List<PublicAddress> addresses;
-  final bool isWatchOnly;
-  final IconData? walletIcon;
-  final Color? walletColor;
-  final bool isBackup;
-  final bool createdLocally;
-
-  PublicData(
-      {required this.keyId,
-      required this.creationDate,
-      required this.walletName,
-      required this.addresses,
-      required this.isWatchOnly,
-      this.walletIcon = LucideIcons.wallet,
-      this.walletColor = Colors.transparent,
-      this.isBackup = false,
-      required this.createdLocally,
-      this.id = 0});
-  bool hasAddress(NetworkType type) {
-    return addresses.any((address) => address.type == type);
-  }
-
-  String addressByToken(Crypto crypto) {
-    final type =
-        crypto.isNative ? crypto.networkType : crypto.network?.networkType;
-    if (type == null) {
-      throw ArgumentError("Network type is null");
-    }
-    return addresses.firstWhere((address) => address.type == type).address;
-  }
-
-  String get evmAddress => addresses
-      .firstWhere((address) => address.type == NetworkType.evm)
-      .address;
-
-  String? get svmAddress => addresses
-      .where((address) => address.type == NetworkType.svm)
-      .firstOrNull
-      ?.address;
-
-  factory PublicData.fromJson(Map<dynamic, dynamic> json) {
-    List<PublicAddress> addresses() {
-      if (json["address"] != null && json["addresses"] == null) {
-        return [PublicAddress(address: json["address"], type: NetworkType.evm)];
-      } else if (json["addresses"] != null) {
-        return (json["addresses"] as List<dynamic>)
-            .map((e) => PublicAddress.fromJson(e))
-            .toList();
-      } else {
-        return [];
-      }
-    }
-
-    return PublicData(
-        keyId: json['keyId'] as String,
-        creationDate: json['creationDate'] as int,
-        walletName: json['walletName'] as String,
-        addresses: addresses(),
-        isWatchOnly: json['isWatchOnly'] as bool,
-        walletIcon: json["walletIcon"] != null
-            ? IconData(json['walletIcon']["codePoint"],
-                fontFamily: json['walletIcon']['fontFamily'],
-                matchTextDirection: json['walletIcon']["matchTextDirection"],
-                fontPackage: json['walletIcon']['fontPackage'])
-            : Icons.wallet,
-        walletColor: json['walletColor'] != null
-            ? Color(json['walletColor'] ?? 0x00000000)
-            : Colors.transparent,
-        id: json['id'] ?? 0,
-        isBackup: json["isBackup"] ?? false,
-        createdLocally: json["createdLocally"] ?? false);
-  }
-  bool get isSaved => createdLocally && isBackup;
-  Map<dynamic, dynamic> toJson() {
-    return {
-      'keyId': keyId,
-      'creationDate': creationDate,
-      'walletName': walletName,
-      'addresses': addresses.map((e) => e.toJson()).toList(),
-      'isWatchOnly': isWatchOnly,
-      'walletIcon': walletIcon?.toJson() ?? Icons.wallet.toJson(),
-      'walletColor': walletColor?.value ?? Colors.transparent.value,
-      'id': id,
-      "isBackup": isBackup,
-      "createdLocally": createdLocally
-    };
-  }
-
-  PublicData copyWith({
-    int? id,
-    String? keyId,
-    int? creationDate,
-    String? walletName,
-    List<PublicAddress>? addresses,
-    bool? isWatchOnly,
-    IconData? walletIcon,
-    Color? walletColor,
-    bool? isBackup,
-    bool? createdLocally,
-  }) {
-    return PublicData(
-        id: id ?? this.id,
-        keyId: keyId ?? this.keyId,
-        creationDate: creationDate ?? this.creationDate,
-        walletName: walletName ?? this.walletName,
-        addresses: addresses ?? this.addresses,
-        isWatchOnly: isWatchOnly ?? this.isWatchOnly,
-        walletIcon: walletIcon ?? this.walletIcon,
-        walletColor: walletColor ?? this.walletColor,
-        isBackup: isBackup ?? this.isBackup,
-        createdLocally: createdLocally ?? this.createdLocally);
   }
 }
 
@@ -351,202 +165,6 @@ class EthTransaction {
       'value': value,
       'id': id,
     };
-  }
-}
-
-class Crypto {
-  final String name;
-  final String? icon;
-  final int? chainId;
-  final Crypto? network;
-  final Color? color;
-  final List<String>? rpcUrls;
-  final List<String>? explorers;
-  final CryptoType type;
-  final String? contractAddress;
-  final int decimals;
-  final String cryptoId;
-  final bool canDisplay;
-  final String symbol;
-  final String? cgSymbol;
-  final NetworkType? networkType;
-
-  Crypto(
-      {required this.name,
-      this.icon,
-      this.chainId,
-      required this.color,
-      this.rpcUrls,
-      required this.type,
-      this.explorers,
-      this.network,
-      this.contractAddress,
-      required this.decimals,
-      required this.cryptoId,
-      required this.canDisplay,
-      required this.symbol,
-      this.networkType,
-      this.cgSymbol}) {
-    if (type == CryptoType.token) {
-      if (contractAddress == null || network == null) {
-        throw ArgumentError(
-            "A token should have a contract address and a valid network");
-      }
-    }
-    if (type == CryptoType.native) {
-      if (chainId == null || rpcUrls == null) {
-        throw ArgumentError(
-            "A network should have Chain ID and a valid rpcUrl");
-      }
-      if (networkType == null) {
-        throw ArgumentError("A network should have a valid network type");
-      }
-    }
-  }
-  factory Crypto.fromJsonRequest(Map<String, dynamic> cryptoJson) {
-    return Crypto(
-        canDisplay: cryptoJson["canDisplay"],
-        cryptoId: cryptoJson["cryptoId"],
-        name: cryptoJson["name"],
-        color: Color(cryptoJson["color"] ?? 0x00000000),
-        type: CryptoType.values[cryptoJson["type"]],
-        icon: cryptoJson["icon"],
-        networkType: cryptoJson["networkType"] != null
-            ? NetworkType.values[cryptoJson["networkType"]]
-            : null,
-        rpcUrls: cryptoJson["rpcUrls"] != null
-            ? (cryptoJson["rpcUrls"] as List<dynamic>)
-                .map((e) => e.toString())
-                .toList()
-            : null,
-        decimals: cryptoJson["decimals"],
-        chainId: cryptoJson["chainId"],
-        network: cryptoJson["network"] != null
-            ? Crypto.fromJsonRequest(cryptoJson["network"])
-            : null,
-        contractAddress: cryptoJson["contractAddress"],
-        explorers: cryptoJson["explorers"] != null
-            ? (cryptoJson["explorers"] as List<dynamic>)
-                .map((e) => e.toString())
-                .toList()
-            : null,
-        symbol: cryptoJson["symbol"],
-        cgSymbol: cryptoJson["cgSymbol"] ?? "");
-  }
-
-  factory Crypto.fromJson(Map<String, dynamic> cryptoJson) {
-    return Crypto(
-        canDisplay: cryptoJson["canDisplay"],
-        cryptoId: cryptoJson["cryptoId"],
-        name: cryptoJson["name"],
-        color: cryptoJson["color"] != null
-            ? Color(cryptoJson["color"])
-            : Colors.transparent,
-        type: CryptoType.values[cryptoJson["type"]],
-        icon: cryptoJson["icon"],
-        rpcUrls: cryptoJson["rpcUrls"] != null
-            ? (cryptoJson["rpcUrls"] as List<dynamic>)
-                .map((e) => e.toString())
-                .toList()
-            : null,
-        decimals: cryptoJson["decimals"] ?? 18,
-        chainId: cryptoJson["chainId"],
-        network: cryptoJson["network"] != null
-            ? Crypto.fromJson(cryptoJson["network"])
-            : null,
-        contractAddress: cryptoJson["contractAddress"],
-        explorers: cryptoJson["explorers"] != null
-            ? (cryptoJson["explorers"] as List<dynamic>)
-                .map((e) => e.toString())
-                .toList()
-            : null,
-        symbol: cryptoJson["symbol"],
-        networkType: cryptoJson["networkType"] != null
-            ? NetworkType.values[cryptoJson["networkType"]]
-            : null,
-        cgSymbol: cryptoJson["cgSymbol"] ?? "");
-  }
-
-  Map<String, dynamic> toJson() {
-    return {
-      "canDisplay": canDisplay,
-      "cryptoId": cryptoId,
-      "name": name,
-      "color": color?.value ?? Colors.orangeAccent.value,
-      "type": type.index,
-      "icon": icon,
-      "rpcUrls": rpcUrls,
-      "decimals": decimals,
-      "chainId": chainId,
-      "network": network?.toJson(),
-      "contractAddress": contractAddress,
-      "explorers": explorers,
-      "symbol": symbol,
-      "cgSymbol": cgSymbol,
-      "networkType": networkType?.index,
-    };
-  }
-
-  bool get isNative => type == CryptoType.native;
-  String get getRpcUrl => this.isNative
-      ? (this.rpcUrls?.firstOrNull ?? "")
-      : (this.network?.rpcUrls?.firstOrNull ?? "");
-  NetworkType get getNetworkType =>
-      this.isNative ? this.networkType! : this.network!.networkType!;
-
-  Crypto copyWith({
-    String? name,
-    String? icon,
-    int? chainId,
-    Crypto? network,
-    Color? color,
-    List<String>? rpcUrls,
-    List<String>? explorers,
-    CryptoType? type,
-    String? contractAddress,
-    int? decimals,
-    double? valueUsd,
-    String? cryptoId,
-    bool? canDisplay,
-    String? symbol,
-    String? cgSymbol,
-    NetworkType? networkType,
-  }) {
-    return Crypto(
-      name: name ?? this.name,
-      icon: icon ?? this.icon,
-      chainId: chainId ?? this.chainId,
-      network: network ?? this.network,
-      color: color ?? this.color,
-      rpcUrls: rpcUrls ?? this.rpcUrls,
-      explorers: explorers ?? this.explorers,
-      type: type ?? this.type,
-      contractAddress: contractAddress ?? this.contractAddress,
-      decimals: decimals ?? this.decimals,
-      cryptoId: cryptoId ?? this.cryptoId,
-      canDisplay: canDisplay ?? this.canDisplay,
-      symbol: symbol ?? this.symbol,
-      cgSymbol: cgSymbol ?? this.cgSymbol,
-      networkType: networkType ?? this.networkType,
-    );
-  }
-}
-
-class Cryptos {
-  final List<Crypto> networks;
-
-  Cryptos({
-    required this.networks,
-  });
-
-  factory Cryptos.fromJson(List<dynamic> jsonList) {
-    return Cryptos(
-      networks: jsonList.map((json) => Crypto.fromJson(json)).toList(),
-    );
-  }
-
-  List<Map<String, dynamic>> toJson() {
-    return networks.map((network) => network.toJson()).toList();
   }
 }
 
@@ -735,48 +353,6 @@ class TransactionListResponseType {
   }
 }
 
-class Asset {
-  final Crypto crypto;
-  final String balanceUsd;
-  final String balanceCrypto;
-  final double cryptoTrendPercent;
-  final double cryptoPrice;
-  final CryptoMarketData? marketData;
-
-  Asset(
-      {required this.crypto,
-      required this.balanceUsd,
-      required this.balanceCrypto,
-      required this.cryptoTrendPercent,
-      required this.cryptoPrice,
-      this.marketData});
-
-  // Convert a JSON Map to a HistoryItem instance
-  factory Asset.fromJson(Map<String, dynamic> json) {
-    return Asset(
-        crypto: Crypto.fromJson(json['crypto']),
-        balanceUsd: json['balanceUsd'] ?? "0",
-        balanceCrypto: json['balanceCrypto'] ?? "0",
-        cryptoTrendPercent: json['cryptoTrendPercent'] ?? 0,
-        cryptoPrice: json['cryptoPrice'] ?? 0,
-        marketData: json["marketData"] != null
-            ? CryptoMarketData.fromJson(json["marketData"])
-            : null);
-  }
-
-  // Convert a HistoryItem instance to a JSON Map
-  Map<String, dynamic> toJson() {
-    return {
-      'crypto': crypto.toJson(),
-      'balanceUsd': balanceUsd,
-      'balanceCrypto': balanceCrypto,
-      'cryptoTrendPercent': cryptoTrendPercent,
-      'cryptoPrice': cryptoPrice,
-      "marketData": marketData?.toJson()
-    };
-  }
-}
-
 class AppColors {
   final Color primaryColor;
   final Color themeColor;
@@ -940,7 +516,7 @@ class WidgetInitialData {
   final AppColors colors;
   final String? initialBalanceUsd;
   final String? initialBalanceCrypto;
-  final PublicData account;
+  final PublicAccount account;
   final double? cryptoPrice;
 
   WidgetInitialData({
@@ -993,70 +569,6 @@ class TradeData {
     return TradeData(price: json['p'], binanceSymbol: json['s']);
   }
 }
-
-/*
-
-class Chain {
-  final int chainId;
-  final String name;
-  final NetworkType type;
-  final String keyId;
-  final String symbol;
-  final String path;
-  final String imageUrl;
-  final Crypto nativeToken;
-  final Color color;
-  final List<String> rpcUrls;
-  final List<String> explorers;
-
-  Chain({
-    required this.chainId,
-    required this.keyId,
-    required this.name,
-    required this.symbol,
-    required this.path,
-    required this.nativeToken,
-    required this.explorers,
-    required this.imageUrl,
-    required this.rpcUrls,
-    required this.color,
-    required this.type,
-  });
-
-  Map<String, dynamic> toJson() {
-    return {
-      'chainId': chainId,
-      'keyId': keyId,
-      'name': name,
-      'symbol': symbol,
-      'path': path,
-      'nativeToken': nativeToken.toJson(), 
-      'explorers': explorers,
-      'imageUrl': imageUrl,
-      'rpcUrls': rpcUrls,
-      'color': color.value,
-      'type': type.index
-    };
-  }
-
-  factory Chain.fromJson(Map<String, dynamic> json) {
-    return Chain(
-      chainId: json['chainId'],
-      keyId: json['keyId'],
-      name: json['name'],
-      symbol: json['symbol'],
-      path: json['path'],
-      nativeToken: Crypto.fromJson(json['nativeToken']),
-      explorers: List<String>.from(json['explorers']),
-      imageUrl: json['imageUrl'],
-      rpcUrls: List<String>.from(json['rpcUrls']),
-      color: Color(json['color']),
-      type: NetworkType.values[json["type"] as int] 
-      
-    );
-  }
-}
-*/
 
 class CryptoMarketData {
   final String id;
@@ -1221,7 +733,7 @@ class BasicTransactionData {
   final String addressTo;
   final String amount;
   final Crypto crypto;
-  final PublicData account;
+  final PublicAccount account;
 
   BasicTransactionData(
       {required this.addressTo,
@@ -1235,7 +747,7 @@ class TransactionToConfirm {
   final String valueHex;
   final BigInt valueBigInt;
   final Crypto crypto;
-  final PublicData account;
+  final PublicAccount account;
   final String? gasHex;
   final BigInt? gasBigint;
   final String? data;
@@ -1448,7 +960,7 @@ class FiatCurrency {
 
 class TransferData {
   final String amountInEth;
-  final PublicData account;
+  final PublicAccount account;
   final Crypto crypto;
   final BigInt gas;
   final String to;
@@ -1462,39 +974,6 @@ class TransferData {
 }
 
 typedef DoubleFactor = double Function(double size);
-
-class AccountAccess {
-  final Credentials cred;
-  final String key;
-  final String address;
-
-  AccountAccess({required this.address, required this.cred, required this.key});
-}
-
-class PublicAddress {
-  final String address;
-  final NetworkType type;
-
-  PublicAddress({required this.address, required this.type});
-  Map<dynamic, dynamic> toJson() {
-    return {
-      'address': address,
-      'type': type.index,
-    };
-  }
-
-  factory PublicAddress.fromJson(Map<dynamic, dynamic> json) {
-    return PublicAddress(
-      address: json['address'],
-      type: NetworkType.values[json['type'] as int],
-    );
-  }
-
-  @override
-  String toString() {
-    return 'PublicAddress{address: $address, type: $type}';
-  }
-}
 
 class TransactionReceiptData {
   final String from;

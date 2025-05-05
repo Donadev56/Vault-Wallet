@@ -10,11 +10,10 @@ import 'package:flutter/services.dart';
 import 'package:lucide_icons_flutter/lucide_icons.dart';
 import 'package:moonwallet/logger/logger.dart';
 import 'package:moonwallet/service/db/wallet_db.dart';
+import 'package:moonwallet/types/account_related_types.dart';
 import 'package:moonwallet/types/types.dart';
 import 'package:moonwallet/utils/colors.dart';
-import 'package:moonwallet/utils/constant.dart';
-import 'package:moonwallet/utils/crypto.dart';
-import 'package:moonwallet/utils/prefs.dart';
+import 'package:moonwallet/utils/encrypt_service.dart';
 import 'package:moonwallet/utils/share_manager.dart';
 import 'package:moonwallet/utils/themes.dart';
 import 'package:moonwallet/custom/web3_webview/lib/web3_webview.dart';
@@ -25,7 +24,7 @@ class Web3BrowserScreen extends StatefulWidget {
   final Crypto? network;
   final List<Crypto> networks;
   final AppColors? colors;
-  final PublicData account;
+  final PublicAccount account;
 
   const Web3BrowserScreen(
       {super.key,
@@ -43,7 +42,6 @@ class Web3BrowserScreenState extends State<Web3BrowserScreen> {
   Color darkNavigatorColor = Color(0XFF0D0D0D);
   Color darkNavigatorColorMainValue = Color(0XFF0D0D0D);
   final GlobalKey<InAppWebViewEIP1193State> webViewKey = GlobalKey();
-  final publicDataManager = PublicDataManager();
   bool isDarkMode = false;
 
   String _title = 'Loading...';
@@ -59,9 +57,9 @@ class Web3BrowserScreenState extends State<Web3BrowserScreen> {
   InAppWebViewController? _webViewController;
   bool _isInitialized = false;
   bool isFullScreen = false;
-  List<PublicData> accounts = [];
+  List<PublicAccount> accounts = [];
   List<Crypto> networks = [];
-  PublicData? currentAccount;
+  PublicAccount? currentAccount;
   final web3Manager = WalletDatabase();
   final priceManager = PriceManager();
 
@@ -226,7 +224,7 @@ class Web3BrowserScreenState extends State<Web3BrowserScreen> {
     }
   }
 
-  Future<void> getSavedCrypto({required PublicData account}) async {
+  Future<void> getSavedCrypto({required PublicAccount account}) async {
     try {
       final savedCryptos =
           await CryptoStorageManager().getSavedCryptos(wallet: account);

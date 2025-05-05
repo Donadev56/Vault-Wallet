@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:moonwallet/logger/logger.dart';
 import 'package:moonwallet/screens/dashboard/main/wallet_overview.dart';
+import 'package:moonwallet/types/account_related_types.dart';
 import 'package:moonwallet/types/types.dart';
 import 'package:moonwallet/utils/number_formatter.dart';
 import 'package:moonwallet/widgets/screen_widgets/crypto_picture.dart';
@@ -10,7 +11,7 @@ typedef DoubleFactor = double Function(double size);
 class CoinCustomListTitle extends StatelessWidget {
   final AppColors colors;
   final Crypto crypto;
-  final PublicData currentAccount;
+  final PublicAccount currentAccount;
   final DoubleFactor roundedOf;
   final DoubleFactor fontSizeOf;
   final DoubleFactor iconSizeOf;

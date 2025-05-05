@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:moonwallet/service/db/crypto_storage_manager.dart';
 import 'package:moonwallet/service/vibration.dart';
+import 'package:moonwallet/types/account_related_types.dart';
 import 'package:moonwallet/types/types.dart';
 import 'package:moonwallet/widgets/flowting_modat.dart';
 import 'package:moonwallet/widgets/func/appearance/show_change_text_dialog.dart';
@@ -11,16 +12,19 @@ import 'package:moonwallet/widgets/func/tokens_config/show_select_network_modal.
 import '../../logger/logger.dart';
 
 typedef EditWalletNameType = Future<bool> Function(
-    {required PublicData account, String? name, IconData? icon, Color? color});
+    {required PublicAccount account,
+    String? name,
+    IconData? icon,
+    Color? color});
 void showAccountOptions({
   required BuildContext context,
   required AppColors colors,
-  required List<PublicData> availableAccounts,
-  required List<PublicData> originalList,
-  required PublicData wallet,
+  required List<PublicAccount> availableAccounts,
+  required List<PublicAccount> originalList,
+  required PublicAccount wallet,
   required EditWalletNameType editWallet,
   required Future<bool> Function(String keyId) deleteWallet,
-  required void Function(List<PublicData> accounts) updateListAccount,
+  required void Function(List<PublicAccount> accounts) updateListAccount,
   required void Function(int index) showPrivateData,
   required int index,
   required DoubleFactor roundedOf,

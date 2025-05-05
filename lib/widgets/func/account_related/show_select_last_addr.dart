@@ -1,19 +1,17 @@
 import 'dart:ui';
 import 'package:flutter/material.dart';
-import 'package:lucide_icons_flutter/lucide_icons.dart';
 import 'package:modal_bottom_sheet/modal_bottom_sheet.dart';
 import 'package:moonwallet/service/db/list_address_dynamic_db.dart';
+import 'package:moonwallet/types/account_related_types.dart';
 import 'package:moonwallet/types/types.dart';
-import 'package:moonwallet/utils/prefs.dart';
 import 'package:moonwallet/widgets/screen_widgets/crypto_picture.dart';
 
 import '../../../logger/logger.dart';
 
 void showSelectLastAddr(
     {required BuildContext context,
-    required List<PublicData> accounts,
-    required PublicDataManager publicDataManager,
-    required PublicData currentAccount,
+    required List<PublicAccount> accounts,
+    required PublicAccount currentAccount,
     required AppColors colors,
     required TextEditingController addressController,
     required Crypto crypto}) {

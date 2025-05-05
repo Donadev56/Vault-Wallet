@@ -1,10 +1,11 @@
 import 'package:flutter/material.dart';
+import 'package:moonwallet/types/account_related_types.dart';
 import 'package:moonwallet/types/types.dart';
 
 class AccountChip extends StatelessWidget {
   final AppColors colors;
   final DoubleFactor roundedOf;
-  final PublicData currentAccount;
+  final PublicAccount currentAccount;
   final DoubleFactor fontSizeOf;
   const AccountChip({
     super.key,

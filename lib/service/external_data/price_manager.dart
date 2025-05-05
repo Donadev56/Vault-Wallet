@@ -4,6 +4,7 @@ import 'package:http/http.dart' as http;
 import 'package:moonwallet/service/db/crypto_storage_manager.dart';
 import 'package:moonwallet/service/db/global_database.dart';
 import 'package:moonwallet/service/internet_manager.dart';
+import 'package:moonwallet/types/account_related_types.dart';
 import 'package:moonwallet/types/types.dart';
 import 'package:moonwallet/utils/prefs.dart';
 

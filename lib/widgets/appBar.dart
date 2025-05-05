@@ -6,6 +6,7 @@ import 'package:flutter_feather_icons/flutter_feather_icons.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:moonwallet/screens/dashboard/main/edit_wallets.dart';
 import 'package:moonwallet/service/vibration.dart';
+import 'package:moonwallet/types/account_related_types.dart';
 import 'package:moonwallet/types/types.dart';
 import 'package:moonwallet/widgets/appBar/show_custom_drawer.dart';
 import 'package:moonwallet/widgets/appBar/show_wallet_actions.dart';
@@ -27,10 +28,10 @@ class CustomAppBar extends ConsumerWidget implements PreferredSizeWidget {
   final Color textColor;
   final Color surfaceTintColor;
   final List<Crypto> availableCryptos;
-  final List<PublicData> accounts;
+  final List<PublicAccount> accounts;
   final String totalBalanceUsd;
   final Future<bool> Function(String keyId) deleteWallet;
-  final PublicData currentAccount;
+  final PublicAccount currentAccount;
   final ActionWithIndexType changeAccount;
   final ActionWithIndexType showPrivateData;
   final ReorderList reorderList;
@@ -41,10 +42,10 @@ class CustomAppBar extends ConsumerWidget implements PreferredSizeWidget {
   final bool isHidden;
   final AppColors colors;
   final Future<bool> Function(File) changeProfileImage;
-  final Future<bool> Function(bool state, String password) toggleCanUseBio;
+  final Future<bool> Function(bool state) toggleCanUseBio;
   final bool canUseBio;
   final Future<bool> Function(
-      {required PublicData account,
+      {required PublicAccount account,
       String? name,
       IconData? icon,
       Color? color}) editWallet;

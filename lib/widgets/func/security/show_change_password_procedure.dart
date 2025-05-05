@@ -1,24 +1,24 @@
 import 'package:flutter/material.dart';
-import 'package:flutter/widgets.dart';
 import 'package:moonwallet/service/db/wallet_db.dart';
 import 'package:moonwallet/types/types.dart';
-import 'package:moonwallet/widgets/bottom_pin_copy.dart';
+import 'package:moonwallet/widgets/bottom_pin.dart';
 import 'package:moonwallet/widgets/func/security/ask_password.dart';
 import 'package:moonwallet/widgets/func/snackbar.dart';
 
 void showChangePasswordProcedure(
     {required BuildContext context, required AppColors colors}) async {
-  String newPassword = "";
-  String confirmPassword = "";
+  void notifyError(String message) {
+    showCustomSnackBar(context: context, message: message, colors: colors);
+  }
 
-  final password = await askPassword(
-      useBio: false, context: context, colors: colors, title: "Old Password");
-  if (password.isEmpty) {
-    showCustomSnackBar(
-        context: context,
-        message: "Incorrect password",
-        type: MessageType.error,
-        colors: colors);
+  String newPassword = "";
+  String confirmedPassword = "";
+
+  final password = await askUserPassword(
+      context: context, colors: colors, title: "Old Password");
+
+  if (password == null || password.isEmpty) {
+    notifyError("Incorrect password");
     return;
   }
 
@@ -39,7 +39,7 @@ void showChangePasswordProcedure(
                 newTitle: "New password",
                 error: "Password does not match");
           } else {
-            confirmPassword = newPassword;
+            confirmedPassword = newPassword;
             return PinSubmitResult(success: true, repeat: false);
           }
         }
@@ -48,33 +48,24 @@ void showChangePasswordProcedure(
       title: "New password");
 
   if (res) {
-    if (password == confirmPassword) {
-      showCustomSnackBar(
-          type: MessageType.error,
-          context: context,
-          message: "The old password and the new one are the same",
-          colors: colors);
+    if (password == confirmedPassword) {
+      notifyError("The old password and the new one are the same");
       newPassword = "";
-      confirmPassword = "";
+      confirmedPassword = "";
     } else {
       final walletManager = WalletDatabase();
       final result =
-          await walletManager.changePassword(password, confirmPassword);
+          await walletManager.changePassword(password, confirmedPassword);
       if (!result) {
-        showCustomSnackBar(
-            context: context,
-            message: "Failed to change password",
-            type: MessageType.error,
-            colors: colors);
+        notifyError("Failed to change password");
         newPassword = "";
-        confirmPassword = "";
+        confirmedPassword = "";
       } else {
         showCustomSnackBar(
             icon: Icons.check,
             iconColor: colors.greenColor,
             context: context,
             message: "Password changed successfully",
-            type: MessageType.success,
             colors: colors);
       }
     }

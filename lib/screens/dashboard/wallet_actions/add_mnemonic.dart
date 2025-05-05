@@ -10,13 +10,13 @@ import 'package:moonwallet/logger/logger.dart';
 import 'package:moonwallet/notifiers/providers.dart';
 import 'package:moonwallet/screens/dashboard/page_manager.dart';
 import 'package:moonwallet/service/db/wallet_db.dart';
+import 'package:moonwallet/types/account_related_types.dart';
 import 'package:moonwallet/types/types.dart';
 import 'package:moonwallet/utils/colors.dart';
-import 'package:moonwallet/utils/prefs.dart';
 import 'package:moonwallet/utils/themes.dart';
 import 'package:moonwallet/widgets/backup/backup_related.dart';
 import 'package:moonwallet/widgets/backup/warning_static_message.dart';
-import 'package:moonwallet/widgets/bottom_pin_copy.dart';
+import 'package:moonwallet/widgets/bottom_pin.dart';
 import 'package:moonwallet/widgets/buttons/elevated_low_opacity_button.dart';
 import 'package:moonwallet/widgets/buttons/outlined.dart';
 import 'package:moonwallet/widgets/func/security/ask_password.dart';
@@ -38,7 +38,6 @@ class _AddPrivateKeyState extends ConsumerState<AddMnemonicScreen> {
   int attempt = 0;
   int secAttempt = 0;
   final web3Manager = WalletDatabase();
-  final publicDataManager = PublicDataManager();
   bool isDarkMode = false;
   String firstPassword = "";
   String secondPassword = "";
@@ -111,7 +110,7 @@ class _AddPrivateKeyState extends ConsumerState<AddMnemonicScreen> {
         ref.watch(lastConnectedKeyIdNotifierProvider.notifier);
 
     final uiConfig = useState<AppUIConfig>(AppUIConfig.defaultConfig);
-    final accounts = useState<List<PublicData>>([]);
+    final accounts = useState<List<PublicAccount>>([]);
 
     useEffect(() {
       appUIConfigAsync.whenData((data) {
@@ -146,7 +145,7 @@ class _AddPrivateKeyState extends ConsumerState<AddMnemonicScreen> {
           throw Exception("No Seed generated yet.");
         }
         final result = await web3Provider
-            .saveSeed(_textController.text, userPassword, false)
+            .saveMnemonic(_textController.text, userPassword, false)
             .withLoading(context, colors, "Creating Wallet");
 
         if (result != null) {
@@ -217,7 +216,7 @@ class _AddPrivateKeyState extends ConsumerState<AddMnemonicScreen> {
     Future<void> handleSubmit() async {
       try {
         final password =
-            await askPassword(context: context, colors: colors, useBio: false);
+            await askUserPassword(context: context, colors: colors) ?? "";
         if (password.isNotEmpty) {
           setState(() {
             userPassword = password;
@@ -256,17 +255,9 @@ class _AddPrivateKeyState extends ConsumerState<AddMnemonicScreen> {
           leading: IconButton(
               onPressed: () => Navigator.pop(context),
               icon: Icon(
-                Icons.arrow_back,
+                Icons.chevron_left,
                 color: colors.textColor,
               )),
-          title: Text(
-            "Mnemonic",
-            style: textTheme.headlineMedium?.copyWith(
-                color: colors.textColor,
-                fontSize: fontSizeOf(20),
-                fontWeight: FontWeight.bold,
-                decoration: TextDecoration.none),
-          ),
         ),
         body: SpaceWithFixedBottom(
             body: Form(
@@ -277,7 +268,7 @@ class _AddPrivateKeyState extends ConsumerState<AddMnemonicScreen> {
                   Align(
                     alignment: Alignment.topLeft,
                     child: Container(
-                        margin: const EdgeInsets.only(top: 25, left: 20),
+                        margin: const EdgeInsets.only(left: 20),
                         child: Column(
                           spacing: 15,
                           crossAxisAlignment: CrossAxisAlignment.start,
@@ -397,7 +388,7 @@ class _AddPrivateKeyState extends ConsumerState<AddMnemonicScreen> {
                         colors: colors,
                         title: "Important :",
                         content:
-                            "The Seed phrase is secret and is the only way to access your funds. Never share your private key with anyone and keep it in a safe place."),
+                            "The mnemonic phrase is secret and is the only way to access your funds. Never share your private key with anyone and keep it in a safe place."),
                   ),
                 ],
               ),

@@ -121,6 +121,8 @@ dependencies:
   bs58: ^1.0.2
   pretty_qr_code: ^3.4.0
   cross_file: ^0.3.3
+  ed25519_hd_key: ^2.3.0
+  cryptography: ^2.7.0
 
 
 
@@ -189,6 +191,7 @@ flutter:
   - assets/logo/png/v_png.png
   - assets/logo/png/icon.png  
   - assets/bg/i2.png
+  
  
   - assets/web3/ethers.min.js
 

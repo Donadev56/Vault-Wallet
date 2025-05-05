@@ -2,13 +2,17 @@ import 'package:decimal/decimal.dart';
 import 'package:flutter/material.dart';
 import 'package:moonwallet/custom/web3_webview/lib/utils/loading.dart';
 import 'package:moonwallet/logger/logger.dart';
+import 'package:moonwallet/service/address_manager.dart';
 import 'package:moonwallet/service/db/balance_database.dart';
+import 'package:moonwallet/service/db/wallet_db_stateless.dart';
 import 'package:moonwallet/service/external_data/price_manager.dart';
 import 'package:moonwallet/service/internet_manager.dart';
 import 'package:moonwallet/service/web3_interactions/evm/addresses.dart';
 import 'package:moonwallet/service/web3_interactions/evm/token_manager.dart';
 import 'package:moonwallet/service/db/wallet_db.dart';
+import 'package:moonwallet/types/account_related_types.dart';
 import 'package:moonwallet/types/types.dart';
+import 'package:moonwallet/widgets/func/security/ask_derivate_key.dart';
 import 'package:moonwallet/widgets/func/transactions/evm/ask_user_evm.dart';
 import 'package:moonwallet/widgets/func/security/ask_password.dart';
 import 'package:moonwallet/widgets/func/snackbar.dart';
@@ -19,12 +23,14 @@ import 'utils.dart';
 
 class EthInteractionManager {
   var httpClient = Client();
-  final walletStorage = WalletDatabase();
+  final walletStorage = WalletDbStateLess();
+
   final priceManager = PriceManager();
   final tokenManager = TokenManager();
+  final addressManager = AddressManager();
   final EthAddresses ethAddresses = EthAddresses();
   Future<String?> fetchBalanceUsingRpc(
-      PublicData account, Crypto crypto) async {
+      PublicAccount account, Crypto crypto) async {
     try {
       final address = account.evmAddress;
       final rpc = crypto.isNative
@@ -51,7 +57,7 @@ class EthInteractionManager {
     }
   }
 
-  Future<String> getUserBalance(PublicData account, Crypto crypto) async {
+  Future<String> getUserBalance(PublicAccount account, Crypto crypto) async {
     try {
       final db = BalanceDatabase(account: account, crypto: crypto);
       final savedBalanceFunc = db.getBalance();
@@ -85,32 +91,33 @@ class EthInteractionManager {
     }
   }
 
-  Future<AccountAccess?> getAccess(
-      {required String password, required String address}) async {
+  Future<AccountAccess?> getAccessUsingKey(
+      {required String deriveKey, required PublicAccount account}) async {
     try {
-      final savedPrivateKeys = await walletStorage.getDecryptedData(password);
-      if (savedPrivateKeys != null) {
-        if (savedPrivateKeys.isNotEmpty) {
-          for (final privatekey in savedPrivateKeys) {
-            final key = privatekey["privatekey"];
-            final Credentials fromHex = EthPrivateKey.fromHex(key);
-
-            final keyAddr = fromHex.address.hex;
-            if (keyAddr.trim().toLowerCase() == address.trim().toLowerCase()) {
-              log("Key found for address $address");
-              return AccountAccess(address: address, cred: fromHex, key: key);
-            }
-          }
-
-          return null;
-        } else {
-          log("No key found for address $address");
-          throw Exception("Internal error : No key found for address $address");
-        }
-      } else {
-        log("Invalid password or no data found");
-        throw Exception("Internal error : Invalid password or no data found");
+      final privateAccount = await walletStorage.getPrivateAccountUsingKey(
+          deriveKey: deriveKey, account: account);
+      if (privateAccount == null) {
+        throw InvalidPasswordException();
       }
+      String privateKey = "";
+      if (privateAccount.origin.isMnemonic) {
+        final privateKeyResult = addressManager.ethAddress
+            .derivateEthereumKeyFromMnemonic(privateAccount.keyOrigin);
+        if (privateKeyResult == null) {
+          throw InvalidPasswordException();
+        }
+        privateKey = privateKeyResult;
+      }
+
+      if (privateAccount.origin.isPrivateKey) {
+        privateKey = privateAccount.keyOrigin;
+      }
+
+      final Credentials fromHex = EthPrivateKey.fromHex(privateKey);
+
+      final keyAddr = fromHex.address.hex;
+
+      return AccountAccess(address: keyAddr, cred: fromHex, key: privateKey);
     } catch (e) {
       logError(e.toString());
       return null;
@@ -121,8 +128,7 @@ class EthInteractionManager {
       {required Transaction transaction,
       required int chainId,
       required String rpcUrl,
-      required String password,
-      required String address,
+      required PublicAccount account,
       required AppColors colors,
       required BuildContext context}) async {
     try {
@@ -131,7 +137,12 @@ class EthInteractionManager {
         throw Exception("Internal error : rpcUrl is empty");
       }
       var ethClient = Web3Client(rpcUrl, httpClient);
-      final access = await getAccess(password: password, address: address);
+      final deriveKey = await askDerivateKey(context: context, colors: colors);
+      if (deriveKey == null) {
+        throw InvalidPasswordException();
+      }
+      final access =
+          await getAccessUsingKey(deriveKey: deriveKey, account: account);
       final credentials = access?.cred;
 
       if (credentials != null) {
@@ -302,7 +313,8 @@ class EthInteractionManager {
     }
   }
 
-  Future<BigInt?> simulateTransaction(Crypto crypto, PublicData account) async {
+  Future<BigInt?> simulateTransaction(
+      Crypto crypto, PublicAccount account) async {
     return estimateGas(
         rpcUrl: !crypto.isNative
             ? crypto.network?.rpcUrls?.firstOrNull ?? ""
@@ -417,24 +429,16 @@ class EthInteractionManager {
             EtherAmount.inWei(confirmedResponse.gasPrice ?? data.gasPrice),
       );
 
-      String userPassword =
-          await askPassword(context: context, colors: colors, useBio: true);
+      final result = await sendTransaction(
+              colors: colors,
+              context: context,
+              transaction: transaction,
+              chainId: crypto.chainId ?? 1,
+              rpcUrl: crypto.rpcUrls?.firstOrNull ?? "",
+              account: data.account)
+          .withLoading(context, colors);
 
-      if (userPassword.isNotEmpty) {
-        final result = await sendTransaction(
-                colors: colors,
-                context: context,
-                transaction: transaction,
-                chainId: crypto.chainId ?? 1,
-                rpcUrl: crypto.rpcUrls?.firstOrNull ?? "",
-                password: userPassword,
-                address: data.account.evmAddress)
-            .withLoading(context, colors);
-
-        return result;
-      } else {
-        throw Exception("An error occurred while trying to enter the password");
-      }
+      return result;
     } catch (e) {
       logError('Error sending Ethereum transaction: $e');
       throw Exception(e.toString());

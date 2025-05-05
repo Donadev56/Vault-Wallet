@@ -5,14 +5,14 @@ import 'package:moonwallet/custom/web3_webview/lib/utils/loading.dart';
 import 'package:moonwallet/logger/logger.dart';
 import 'package:moonwallet/notifiers/providers.dart';
 import 'package:moonwallet/screens/dashboard/page_manager.dart';
+import 'package:moonwallet/service/address_manager.dart';
 import 'package:moonwallet/service/db/wallet_db.dart';
-import 'package:moonwallet/service/web3_interactions/evm/addresses.dart';
+import 'package:moonwallet/types/account_related_types.dart';
 import 'package:moonwallet/types/types.dart';
 import 'package:moonwallet/utils/colors.dart';
-import 'package:moonwallet/utils/prefs.dart';
 import 'package:moonwallet/utils/themes.dart';
 import 'package:moonwallet/widgets/backup/backup_related.dart';
-import 'package:moonwallet/widgets/bottom_pin_copy.dart';
+import 'package:moonwallet/widgets/bottom_pin.dart';
 import 'package:moonwallet/widgets/buttons/elevated_low_opacity_button.dart';
 import 'package:moonwallet/widgets/func/security/ask_password.dart';
 import 'package:moonwallet/widgets/func/snackbar.dart';
@@ -26,16 +26,14 @@ class CreateMnemonicMain extends StatefulHookConsumerWidget {
 }
 
 class _CreateMnemonicKeyState extends ConsumerState<CreateMnemonicMain> {
-  Map<String, dynamic>? data;
+  String? mnemonic;
   String userPassword = "";
   int attempt = 0;
 
-  final publicDataManager = PublicDataManager();
-
   bool isDarkMode = false;
   final manager = WalletDatabase();
-  final ethAddresses = EthAddresses();
-  PublicData? account;
+  final addressManager = AddressManager();
+  PublicAccount? account;
   AppColors colors = AppColors.defaultTheme;
 
   Themes themes = Themes();
@@ -70,16 +68,13 @@ class _CreateMnemonicKeyState extends ConsumerState<CreateMnemonicMain> {
 
   Future<void> createWallet() async {
     try {
-      final wallet = await ethAddresses.createWallet();
-      if (wallet.isNotEmpty) {
+      final result = addressManager.generateMnemonic();
+      if (result.isNotEmpty) {
         setState(() {
-          data = wallet;
+          mnemonic = result;
         });
-      } else {
-        throw Exception("The key is Null");
       }
     } catch (e) {
-      if (!mounted) return;
       notifyError("Failed to create a wallet");
     }
   }
@@ -104,7 +99,7 @@ class _CreateMnemonicKeyState extends ConsumerState<CreateMnemonicMain> {
         ref.watch(lastConnectedKeyIdNotifierProvider.notifier);
     final accountsAsync = ref.watch(accountsNotifierProvider);
 
-    final accounts = useState<List<PublicData>>([]);
+    final accounts = useState<List<PublicAccount>>([]);
 
     final uiConfig = useState<AppUIConfig>(AppUIConfig.defaultConfig);
 
@@ -120,25 +115,18 @@ class _CreateMnemonicKeyState extends ConsumerState<CreateMnemonicMain> {
       });
       return null;
     }, [accountsAsync]);
-    double fontSizeOf(double size) {
-      return size * uiConfig.value.styles.fontSizeScaleFactor;
-    }
-
-    double roundedOf(double size) {
-      return size * uiConfig.value.styles.radiusScaleFactor;
-    }
 
     Future<void> saveData() async {
       try {
-        if (data == null) {
+        if (mnemonic == null) {
           throw Exception("No key generated yet.");
         }
-        final mnemonic = data!["seed"];
+
         if (userPassword.isEmpty) {
           throw Exception("passwords must not be empty or not equal ");
         }
         final result = await web3Provider
-            .saveSeed(mnemonic, userPassword, true)
+            .saveMnemonic(mnemonic!, userPassword, true)
             .withLoading(context, colors, "Creating wallet");
 
         if (result != null) {
@@ -213,7 +201,7 @@ class _CreateMnemonicKeyState extends ConsumerState<CreateMnemonicMain> {
     Future<void> handleSubmit() async {
       try {
         final password =
-            await askPassword(context: context, colors: colors, useBio: false);
+            await askUserPassword(context: context, colors: colors) ?? "";
         if (password.isNotEmpty) {
           setState(() {
             userPassword = password;
@@ -238,18 +226,6 @@ class _CreateMnemonicKeyState extends ConsumerState<CreateMnemonicMain> {
       }
     }
 
-    if (data == null) {
-      return Material(
-        child: Center(
-          child: CircularProgressIndicator(
-            color: colors.themeColor,
-          ),
-        ),
-      );
-    }
-
-    final seed = (data!["seed"] as String).split(" ");
-
     return Scaffold(
       backgroundColor: colors.primaryColor,
       appBar: AppBar(
@@ -257,17 +233,9 @@ class _CreateMnemonicKeyState extends ConsumerState<CreateMnemonicMain> {
         leading: IconButton(
             onPressed: () => Navigator.pop(context),
             icon: Icon(
-              Icons.arrow_back,
+              Icons.chevron_left,
               color: colors.textColor,
             )),
-        title: Text(
-          "Wallet creation",
-          style: textTheme.headlineMedium?.copyWith(
-              color: colors.textColor,
-              fontSize: fontSizeOf(20),
-              fontWeight: FontWeight.bold,
-              decoration: TextDecoration.none),
-        ),
       ),
       body: SpaceWithFixedBottom(
           body: Column(
@@ -275,7 +243,7 @@ class _CreateMnemonicKeyState extends ConsumerState<CreateMnemonicMain> {
               Align(
                 alignment: Alignment.topLeft,
                 child: Container(
-                    margin: const EdgeInsets.only(top: 25, left: 20),
+                    margin: const EdgeInsets.only(left: 20),
                     child: Column(
                       spacing: 15,
                       crossAxisAlignment: CrossAxisAlignment.start,
@@ -307,16 +275,22 @@ class _CreateMnemonicKeyState extends ConsumerState<CreateMnemonicMain> {
                 decoration: BoxDecoration(
                     color: colors.secondaryColor,
                     borderRadius: BorderRadius.circular(10)),
-                child: Wrap(
-                  children: List.generate(seed.length, (index) {
-                    final word = seed[index];
-                    return MnemonicChip(
-                        density: VisualDensity(vertical: -2, horizontal: -2),
-                        colors: colors,
-                        index: index,
-                        word: word);
-                  }),
-                ),
+                child: mnemonic == null
+                    ? CircularProgressIndicator(
+                        color: colors.themeColor,
+                      )
+                    : Wrap(
+                        children:
+                            List.generate(mnemonic!.split(" ").length, (index) {
+                          final word = mnemonic!.split(' ')[index];
+                          return MnemonicChip(
+                              density:
+                                  VisualDensity(vertical: -2, horizontal: -2),
+                              colors: colors,
+                              index: index,
+                              word: word);
+                        }),
+                      ),
               ),
               const SizedBox(height: 16),
             ],

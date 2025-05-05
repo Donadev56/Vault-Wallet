@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 
 import 'package:flutter_feather_icons/flutter_feather_icons.dart';
 import 'package:moonwallet/service/external_data/price_manager.dart';
+import 'package:moonwallet/types/account_related_types.dart';
 import 'package:moonwallet/types/types.dart';
 import 'package:moonwallet/widgets/charts_/line_chart.dart';
 import 'package:moonwallet/widgets/flowting_modat.dart';

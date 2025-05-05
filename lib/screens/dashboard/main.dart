@@ -11,6 +11,7 @@ import 'package:moonwallet/screens/auth/home.dart';
 import 'package:moonwallet/screens/dashboard/main/wallet_overview/receive.dart';
 import 'package:moonwallet/screens/dashboard/main/wallet_overview/send.dart';
 import 'package:moonwallet/screens/dashboard/wallet_actions/private/private_key_screen.dart';
+import 'package:moonwallet/types/account_related_types.dart';
 import 'package:moonwallet/utils/number_formatter.dart';
 import 'package:moonwallet/utils/colors.dart';
 import 'package:moonwallet/widgets/backup/show_backup_alert.dart';
@@ -31,7 +32,6 @@ import 'package:moonwallet/main.dart';
 import 'package:moonwallet/service/vibration.dart';
 import 'package:moonwallet/types/types.dart';
 import 'package:moonwallet/utils/constant.dart';
-import 'package:moonwallet/utils/prefs.dart';
 import 'package:moonwallet/widgets/actions.dart';
 import 'package:moonwallet/widgets/appBar.dart';
 import 'package:moonwallet/widgets/func/snackbar.dart';
@@ -56,7 +56,6 @@ class _MainDashboardScreenState extends ConsumerState<MainDashboardScreen>
       GlobalKey<RefreshIndicatorState>();
   final GlobalKey<ScaffoldState> _scaffoldKey = GlobalKey<ScaffoldState>();
   AppColors colors = AppColors.defaultTheme;
-  final publicDataManager = PublicDataManager();
   List<Crypto> reorganizedCrypto = [];
   int currentOrder = 0;
   String searchCryptoQuery = "";
@@ -123,7 +122,7 @@ class _MainDashboardScreenState extends ConsumerState<MainDashboardScreen>
 
     final assets = useState<List<Asset>>([]);
     final initialAssets = useState<List<Asset>>([]);
-    final accounts = useState<List<PublicData>>([]);
+    final accounts = useState<List<PublicAccount>>([]);
     final totalBalance = useState<String>("0");
     final profileImage = useState<File?>(null);
     final uiConfig = useState<AppUIConfig>(AppUIConfig.defaultConfig);
@@ -241,9 +240,10 @@ class _MainDashboardScreenState extends ConsumerState<MainDashboardScreen>
       return size * uiConfig.value.styles.radiusScaleFactor;
     }
 
-    Future<bool> toggleCanUseBio(bool state, String password) async {
+    Future<bool> toggleCanUseBio(bool state) async {
       try {
-        return await secureConfigNotifier.toggleCanUseBio(state, password);
+        return await secureConfigNotifier.toggleCanUseBio(
+            state, context, colors);
       } catch (e) {
         logError(e.toString());
         return false;
@@ -290,33 +290,24 @@ class _MainDashboardScreenState extends ConsumerState<MainDashboardScreen>
     Future<bool> deleteWallet(String walletId) async {
       try {
         if (accounts.value.isEmpty) {
-          throw ("No account found ");
+          logError("No account found ");
+          return false;
         }
         if (accounts.value.isEmpty) {
           throw ("No account found");
         }
-        final password =
-            await askPassword(context: context, colors: colors, useBio: false);
         final accountToRemove =
-            accounts.value.where((acc) => acc.keyId == walletId).first;
-        if (password.isNotEmpty) {
-          final result =
-              await providerNotifier.walletSaver.getDecryptedData(password);
-          if (result == null) {
-            throw ("Invalid password");
-          }
-          final deleteResult =
-              await providerNotifier.deleteWallet(accountToRemove);
-          if (deleteResult) {
-            notifySuccess("Account deleted successfully");
-            Navigator.pop(context);
-            return true;
-          } else {
-            throw ("Failed to delete account");
-          }
+            accounts.value.where((acc) => acc.keyId == walletId).firstOrNull;
+        if (accountToRemove == null) {
+          throw "Account not found";
+        }
+        final deleteResult = await providerNotifier.deleteWallet(
+            accountToRemove, colors, context);
+        if (deleteResult) {
+          notifySuccess("Account deleted successfully");
+          return true;
         } else {
-          logError("Password is required");
-          return false;
+          throw ("Failed to delete account");
         }
       } catch (e) {
         logError(e.toString());
@@ -326,7 +317,7 @@ class _MainDashboardScreenState extends ConsumerState<MainDashboardScreen>
     }
 
     Future<bool> editWallet(
-        {required PublicData account,
+        {required PublicAccount account,
         Color? color,
         IconData? icon,
         String? name}) async {
@@ -420,7 +411,7 @@ class _MainDashboardScreenState extends ConsumerState<MainDashboardScreen>
           throw ("This is a watch-only wallet.");
         }
         String userPassword =
-            await askPassword(context: context, colors: colors, useBio: false);
+            await askUserPassword(context: context, colors: colors) ?? "";
 
         if (mounted && userPassword.isNotEmpty) {
           Navigator.push(

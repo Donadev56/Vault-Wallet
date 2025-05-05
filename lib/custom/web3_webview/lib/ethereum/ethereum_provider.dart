@@ -10,11 +10,12 @@ import 'package:moonwallet/logger/logger.dart';
 import 'package:moonwallet/service/db/crypto_storage_manager.dart';
 import 'package:moonwallet/service/db/known_host_manager.dart';
 import 'package:moonwallet/service/web3_interactions/evm/eth_interaction_manager.dart';
+import 'package:moonwallet/types/account_related_types.dart';
 import 'package:moonwallet/types/types.dart';
 import 'package:moonwallet/utils/id_manager.dart';
 import 'package:moonwallet/custom/web3_webview/lib/utils/loading.dart';
 import 'package:moonwallet/custom/web3_webview/lib/widgets/alert.dart';
-import 'package:moonwallet/widgets/func/security/ask_password.dart';
+import 'package:moonwallet/widgets/func/security/ask_derivate_key.dart';
 import 'package:web3dart/web3dart.dart';
 
 import '../json_rpc_method.dart';
@@ -40,7 +41,7 @@ class EthereumProvider {
 
   // Core components
   late Web3Client _web3client;
-  PublicData? currentAccount;
+  PublicAccount? currentAccount;
 
   // State
   WalletState? _state;
@@ -68,7 +69,7 @@ class EthereumProvider {
     required EIP6963ProviderInfo providerInfo,
     List<NetworkConfig> additionalNetworks = const [],
     WalletDialogTheme? theme,
-    required PublicData account,
+    required PublicAccount account,
   }) async {
     // Configure dialog service theme
     _dialogService.configureTheme(theme ?? WalletDialogTheme());
@@ -636,79 +637,82 @@ class EthereumProvider {
       await _webViewController!.evaluateJavascript(source: js);
     }
   }
-}
 
-Future<SigningHandler?> getSigningHandler(
-    {required BuildContext context,
-    required AppColors colors,
-    WalletState? state}) async {
-  try {
-    final access =
-        await getAccess(context: context, colors: colors, state: state);
-    if (access != null) {
-      return SigningHandler(access.cred, access.key);
-    } else {
-      logError("Incorrect password ${access?.address}");
-      throw WalletException('Incorrect password');
+  Future<SigningHandler?> getSigningHandler(
+      {required BuildContext context,
+      required AppColors colors,
+      WalletState? state}) async {
+    try {
+      final access =
+          await getAccess(context: context, colors: colors, state: state);
+      if (access != null) {
+        return SigningHandler(access.cred, access.key);
+      } else {
+        logError("Incorrect password ${access?.address}");
+        throw WalletException('Incorrect password');
+      }
+    } catch (e) {
+      logError('Error ${e.toString()}');
+
+      throw WalletException('Failed to create transaction handler: $e');
     }
-  } catch (e) {
-    logError('Error ${e.toString()}');
-
-    throw WalletException('Failed to create transaction handler: $e');
   }
-}
 
-Future<TransactionHandler?> getTxHandler({
-  required BuildContext context,
-  required AppColors colors,
-  required Web3Client web3client,
-  required NetworkConfig network,
-  WalletState? state,
-}) async {
-  try {
-    final access =
-        await getAccess(context: context, colors: colors, state: state);
-    if (access != null) {
-      final handler = TransactionHandler(
-        web3client,
-        access.cred,
-        int.parse(network.chainId),
-      );
-      log("Handler ${handler.toString()}");
-
-      return handler;
-    } else {
-      logError("An internal error occurred");
-      throw WalletException('An internal error occurred');
-    }
-  } catch (e) {
-    logError('Error ${e.toString()}');
-    throw WalletException('Failed to create signing handler: $e');
-  }
-}
-
-Future<AccountAccess?> getAccess(
-    {required BuildContext context,
+  Future<TransactionHandler?> getTxHandler({
+    required BuildContext context,
     required AppColors colors,
-    WalletState? state}) async {
-  try {
-    final password = await askPassword(context: context, colors: colors);
-    final address = state?.address;
-    if (address == null) {
-      throw WalletException("Invalid State : address is null");
-    }
-    if (password.isEmpty) {
-      throw WalletException("Invalid Password");
-    }
-    final cred = await EthInteractionManager()
-        .getAccess(password: password, address: address);
-    if (cred == null) {
-      throw WalletException("Invalid Password");
-    }
+    required Web3Client web3client,
+    required NetworkConfig network,
+    WalletState? state,
+  }) async {
+    try {
+      final access =
+          await getAccess(context: context, colors: colors, state: state);
+      if (access != null) {
+        final handler = TransactionHandler(
+          web3client,
+          access.cred,
+          int.parse(network.chainId),
+        );
+        log("Handler ${handler.toString()}");
 
-    return AccountAccess(address: address, cred: cred.cred, key: cred.key);
-  } catch (e) {
-    logError("Error ${e.toString()}");
-    throw WalletException('Failed to create signing handler: $e');
+        return handler;
+      } else {
+        logError("An internal error occurred");
+        throw WalletException('An internal error occurred');
+      }
+    } catch (e) {
+      logError('Error ${e.toString()}');
+      throw WalletException('Failed to create signing handler: $e');
+    }
+  }
+
+  Future<AccountAccess?> getAccess(
+      {required BuildContext context,
+      required AppColors colors,
+      WalletState? state}) async {
+    try {
+      final deriveKey = await askDerivateKey(context: context, colors: colors);
+      final address = state?.address;
+      if (address == null) {
+        throw WalletException("Invalid State : address is null");
+      }
+      if (currentAccount == null) {
+        throw "No Account Found";
+      }
+      if (deriveKey == null) {
+        throw WalletException("Invalid Password");
+      }
+      final cred = await EthInteractionManager()
+          .getAccessUsingKey(deriveKey: deriveKey, account: currentAccount!);
+      if (cred == null) {
+        throw WalletException("Invalid Password");
+      }
+
+      return AccountAccess(address: address, cred: cred.cred, key: cred.key);
+    } catch (e) {
+      logError("Error ${e.toString()}");
+      throw WalletException('Failed to create signing handler: $e');
+    }
   }
 }

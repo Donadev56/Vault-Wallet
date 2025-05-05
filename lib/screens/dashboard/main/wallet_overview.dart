@@ -20,13 +20,14 @@ import 'package:moonwallet/screens/dashboard/main/wallet_overview/send.dart';
 import 'package:moonwallet/service/external_data/crypto_request_manager.dart';
 import 'package:moonwallet/service/db/crypto_storage_manager.dart';
 import 'package:moonwallet/service/rpc_service.dart';
+import 'package:moonwallet/types/account_related_types.dart';
 import 'package:moonwallet/utils/number_formatter.dart';
 import 'package:moonwallet/service/external_data/price_manager.dart';
 import 'package:moonwallet/service/web3_interactions/evm/transaction_request_manager.dart';
 import 'package:moonwallet/service/external_data/transactions.dart';
 import 'package:moonwallet/types/types.dart';
 import 'package:moonwallet/utils/colors.dart';
-import 'package:moonwallet/utils/crypto.dart';
+import 'package:moonwallet/utils/encrypt_service.dart';
 import 'package:moonwallet/utils/prefs.dart';
 import 'package:moonwallet/utils/themes.dart';
 import 'package:moonwallet/widgets/actions.dart';
@@ -52,15 +53,9 @@ class _WalletViewScreenState extends ConsumerState<WalletViewScreen>
   List<EsTransaction> transactions = [];
   late InternetConnection internetChecker;
   final formatter = NumberFormatter();
-  PublicData currentAccount = PublicData(
-      createdLocally: false,
-      keyId: "",
-      creationDate: 0,
-      walletName: "",
-      addresses: [],
-      isWatchOnly: false);
+  late PublicAccount currentAccount;
 
-  List<PublicData> accounts = [];
+  List<PublicAccount> accounts = [];
   List<Crypto> reorganizedCrypto = [];
   String cryptoId = "";
 
@@ -69,7 +64,6 @@ class _WalletViewScreenState extends ConsumerState<WalletViewScreen>
   final priceManager = PriceManager();
   final rpcService = RpcService();
 
-  final publicDataManager = PublicDataManager();
   final cryptoStorageManager = CryptoStorageManager();
   final ScrollController _scrollController = ScrollController();
 
@@ -118,7 +112,7 @@ class _WalletViewScreenState extends ConsumerState<WalletViewScreen>
   }
 
   Future<void> getTokenBalance(
-      {required PublicData account, required Crypto crypto}) async {
+      {required PublicAccount account, required Crypto crypto}) async {
     try {
       final ethBalance = await rpcService.getBalance(crypto, account);
       final price = await getPrice(crypto.cgSymbol ?? "");

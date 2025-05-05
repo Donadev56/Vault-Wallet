@@ -6,6 +6,7 @@ import 'package:google_fonts/google_fonts.dart';
 import 'package:lucide_icons_flutter/lucide_icons.dart';
 import 'package:moonwallet/screens/dashboard/settings/settings.dart';
 import 'package:moonwallet/screens/dashboard/wallet_actions/private/private_key_screen.dart';
+import 'package:moonwallet/types/account_related_types.dart';
 import 'package:moonwallet/utils/number_formatter.dart';
 import 'package:moonwallet/types/types.dart';
 import 'package:moonwallet/widgets/avatar_modal.dart';
@@ -28,10 +29,10 @@ void showCustomDrawer({
   required AppColors colors,
   required List<Crypto> availableCryptos,
   required String totalBalanceUsd,
-  required PublicData account,
-  required Future<void> Function(PublicData account) deleteWallet,
+  required PublicAccount account,
+  required Future<void> Function(PublicAccount account) deleteWallet,
   required bool canUseBio,
-  required Future<bool> Function(bool state, String password) toggleCanUseBio,
+  required Future<bool> Function(bool state) toggleCanUseBio,
   required bool isHidden,
   required DoubleFactor roundedOf,
   required DoubleFactor fontSizeOf,
@@ -40,7 +41,7 @@ void showCustomDrawer({
   required DoubleFactor listTitleHorizontalOf,
   required DoubleFactor listTitleVerticalOf,
   required Future Function(
-          {required PublicData account,
+          {required PublicAccount account,
           String? name,
           IconData? icon,
           Color? color})
@@ -423,11 +424,10 @@ void showCustomDrawer({
                                       colors: colors, context: context);
                                   return;
                                 }
-                                final password = await askPassword(
-                                    useBio: false,
-                                    context: context,
-                                    colors: colors);
-                                if (password.isNotEmpty) {
+                                final password = await askUserPassword(
+                                    context: context, colors: colors);
+
+                                if (password != null && password.isNotEmpty) {
                                   Navigator.push(
                                       context,
                                       MaterialPageRoute(
@@ -471,17 +471,8 @@ void showCustomDrawer({
                                   trailing: Switch(
                                       value: useBio,
                                       onChanged: (v) async {
-                                        final password = await askPassword(
-                                            useBio: false,
-                                            context: context,
-                                            colors: colors);
+                                        final result = await toggleCanUseBio(v);
 
-                                        if (password.isEmpty) {
-                                          notifyError("Invalid password");
-                                          return;
-                                        }
-                                        final result =
-                                            await toggleCanUseBio(v, password);
                                         if (result) {
                                           notifySuccess(
                                               v ? "Enabled" : "Disabled");

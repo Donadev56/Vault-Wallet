@@ -8,16 +8,16 @@ import 'package:moonwallet/screens/dashboard/main.dart';
 import 'package:moonwallet/screens/dashboard/swap.dart';
 import 'package:moonwallet/screens/dashboard/trending.dart';
 import 'package:moonwallet/service/vibration.dart';
+import 'package:moonwallet/types/account_related_types.dart' as types;
 import 'package:moonwallet/types/types.dart' as types;
 import 'package:moonwallet/utils/colors.dart';
-import 'package:moonwallet/utils/prefs.dart';
 import 'package:moonwallet/utils/themes.dart';
 import 'package:moonwallet/widgets/navBar.dart';
 import 'package:moonwallet/widgets/view/show_transaction_details.dart';
 
 class PagesManagerView extends StatefulHookConsumerWidget {
   final types.AppColors colors;
-  final types.PublicData? currentAccount;
+  final types.PublicAccount? currentAccount;
   final types.Crypto? crypto;
   final types.TransactionDetails? transaction;
 
@@ -37,10 +37,9 @@ class _PagesManagerViewState extends ConsumerState<PagesManagerView> {
   int currentIndex = 2;
 
   bool _isInitialized = false;
-  types.PublicData? currentAccount;
+  types.PublicAccount? currentAccount;
   types.Crypto? crypto;
   types.TransactionDetails? transaction;
-  final publicDataManager = PublicDataManager();
   bool isDarkMode = false;
 
   types.AppColors colors = types.AppColors.defaultTheme;

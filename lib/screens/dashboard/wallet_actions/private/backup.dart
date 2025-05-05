@@ -1,14 +1,15 @@
 import 'package:flutter/material.dart';
 import 'package:moonwallet/screens/dashboard/wallet_actions/private/backup_test.dart';
+import 'package:moonwallet/types/account_related_types.dart';
 import 'package:moonwallet/types/types.dart';
 import 'package:moonwallet/widgets/backup/backup_related.dart';
 import 'package:page_transition/page_transition.dart';
 
 class BackupSeedScreen extends StatefulWidget {
   final String password;
-  final SecureData wallet;
+  final PrivateAccount wallet;
   final AppColors colors;
-  final PublicData publicAccount;
+  final PublicAccount publicAccount;
 
   const BackupSeedScreen(
       {super.key,
@@ -23,8 +24,8 @@ class BackupSeedScreen extends StatefulWidget {
 
 class _BackupSeedScreenState extends State<BackupSeedScreen> {
   late String password;
-  late SecureData wallet;
-  late PublicData publicAccount;
+  late PrivateAccount wallet;
+  late PublicAccount publicAccount;
 
   AppColors colors = AppColors.defaultTheme;
 
@@ -40,7 +41,7 @@ class _BackupSeedScreenState extends State<BackupSeedScreen> {
   @override
   Widget build(BuildContext context) {
     final textTheme = TextTheme.of(context);
-    final words = wallet.mnemonic ?? "";
+    final words = wallet.keyOrigin;
     final wordsList = words.split(" ");
 
     return Scaffold(

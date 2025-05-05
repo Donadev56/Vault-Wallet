@@ -47,13 +47,11 @@ Future<bool> showPinModalBottomSheet(
               setModalState(() {
                 numbers[numberOfNumbers] = index + 1;
                 numberOfNumbers++;
-                log(numbers.toString());
               });
             } else if (index == 9) {
               setModalState(() {
                 numbers[numberOfNumbers] = 0;
 
-                log(numbers.toString());
                 numberOfNumbers++;
               });
             } else {
@@ -63,14 +61,12 @@ Future<bool> showPinModalBottomSheet(
               setModalState(() {
                 numbers[numberOfNumbers] = 0;
                 numberOfNumbers--;
-                log(numbers.toString());
               });
             }
 
             if (numberOfNumbers == 6) {
               final PinSubmitResult result =
                   await handleSubmit(numbers.join().toString());
-              log("result: $result");
               if (result.success && !result.repeat ||
                   !result.success && !result.repeat) {
                 reInit();

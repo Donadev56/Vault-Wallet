@@ -1,15 +1,18 @@
 import 'dart:async';
 import 'dart:convert';
 
+import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:local_auth/local_auth.dart';
 import 'package:moonwallet/logger/logger.dart';
 import 'package:moonwallet/service/db/secure_storage.dart';
-import 'package:moonwallet/service/db/wallet_db.dart';
+import 'package:moonwallet/service/db/wallet_db_stateless.dart';
+import 'package:moonwallet/types/account_related_types.dart';
 import 'package:moonwallet/types/types.dart';
+import 'package:moonwallet/widgets/func/security/ask_password.dart';
 
 class AppSecureConfigNotifier extends AsyncNotifier<AppSecureConfig> {
-  final _walletStorage = WalletDatabase();
+  final _walletStorage = WalletDbStateLess();
   final _secureStorage = SecureStorageService();
   final LocalAuthentication _auth = LocalAuthentication();
 
@@ -61,8 +64,13 @@ class AppSecureConfigNotifier extends AsyncNotifier<AppSecureConfig> {
     }
   }
 
-  Future<bool> toggleCanUseBio(bool v, String password) async {
+  Future<bool> toggleCanUseBio(
+      bool v, BuildContext context, AppColors colors) async {
     try {
+      final password = await askUserPassword(context: context, colors: colors);
+      if (password == null) {
+        throw InvalidPasswordException();
+      }
       if (!(await _walletStorage.isPasswordValid(password))) {
         throw Exception("Wrong password");
       }

@@ -10,14 +10,14 @@ import 'package:moonwallet/notifiers/assets_notifier.dart';
 import 'package:moonwallet/notifiers/last_account_notifier.dart';
 import 'package:moonwallet/notifiers/profile_image_notifier.dart';
 import 'package:moonwallet/notifiers/saved_crypto.dart';
-import 'package:moonwallet/notifiers/web3_notifier.dart';
+import 'package:moonwallet/notifiers/wallet_manager_notifier.dart';
 import 'package:moonwallet/service/db/crypto_storage_manager.dart';
 import 'package:moonwallet/service/external_data/price_manager.dart';
 import 'package:moonwallet/service/db/wallet_db.dart';
+import 'package:moonwallet/types/account_related_types.dart' as types;
 import 'package:moonwallet/types/types.dart' as types;
 import 'package:moonwallet/utils/colors.dart';
-import 'package:moonwallet/utils/crypto.dart';
-import 'package:moonwallet/utils/prefs.dart';
+import 'package:moonwallet/utils/encrypt_service.dart';
 
 final connectivityStatusProvider = StreamProvider<InternetStatus>((ref) {
   return InternetConnection().onStatusChange;
@@ -26,7 +26,7 @@ final internetConnectionProvider =
     Provider<InternetConnection>((ref) => InternetConnection());
 
 final accountsNotifierProvider =
-    AsyncNotifierProvider<AccountsNotifier, List<types.PublicData>>(
+    AsyncNotifierProvider<AccountsNotifier, List<types.PublicAccount>>(
         AccountsNotifier.new);
 
 final assetsNotifierProvider =
@@ -43,7 +43,6 @@ final walletSaverProvider = Provider((ref) => WalletDatabase());
 final encryptServiceProvider = Provider((ref) => EncryptService());
 final priceProvider = Provider((ref) => PriceManager());
 
-final publicDataProvider = Provider((ref) => (PublicDataManager()));
 final cryptoStorageProvider = Provider((ref) => (CryptoStorageManager()));
 
 final savedCryptosProviderNotifier =
@@ -63,11 +62,13 @@ final getSavedAssetsProvider = FutureProvider<List<types.Asset>?>((ref) async {
   return null;
 });
 
-final allAccountsProvider = FutureProvider<List<types.PublicData>>((ref) async {
+final allAccountsProvider =
+    FutureProvider<List<types.PublicAccount>>((ref) async {
   return await ref.watch(accountsNotifierProvider.future);
 });
 
-final currentAccountProvider = FutureProvider<types.PublicData?>((ref) async {
+final currentAccountProvider =
+    FutureProvider<types.PublicAccount?>((ref) async {
   final accounts = await ref.watch(accountsNotifierProvider.future);
   final lastKeyId = await ref.watch(lastConnectedKeyIdNotifierProvider.future);
   if (accounts.isEmpty) {
@@ -91,8 +92,8 @@ final lastConnectedKeyIdNotifierProvider =
     AsyncNotifierProvider<LastConnectedKeyIdNotifier, String?>(
         LastConnectedKeyIdNotifier.new);
 
-final web3ProviderNotifier = Provider<Web3Notifier>((ref) {
-  return Web3Notifier(ref);
+final web3ProviderNotifier = Provider<WalletManagerNotifier>((ref) {
+  return WalletManagerNotifier(ref);
 });
 
 final appUIConfigProvider =

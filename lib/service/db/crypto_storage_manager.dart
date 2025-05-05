@@ -4,12 +4,12 @@ import 'dart:convert';
 
 import 'package:moonwallet/logger/logger.dart';
 import 'package:moonwallet/service/db/wallet_db.dart';
-import 'package:moonwallet/types/types.dart';
+import 'package:moonwallet/types/account_related_types.dart';
 
 class CryptoStorageManager {
   final saver = WalletDatabase();
 
-  Future<List<Crypto>?> getSavedCryptos({required PublicData wallet}) async {
+  Future<List<Crypto>?> getSavedCryptos({required PublicAccount wallet}) async {
     try {
       final name = "savedCrypto/test26/${wallet.keyId}";
       log("Getting crypto for address ${wallet.keyId}");
@@ -42,7 +42,7 @@ class CryptoStorageManager {
   }
 
   Future<bool> saveListCrypto(
-      {required List<Crypto> cryptos, required PublicData wallet}) async {
+      {required List<Crypto> cryptos, required PublicAccount wallet}) async {
     try {
       final name = "savedCrypto/test26/${wallet.keyId}";
       log("Saving crypto for address ${wallet.keyId}");
@@ -63,7 +63,7 @@ class CryptoStorageManager {
     }
   }
 
-  Future<List<Asset>?> getSavedAssets({required PublicData wallet}) async {
+  Future<List<Asset>?> getSavedAssets({required PublicAccount wallet}) async {
     try {
       final name = "assetsOf/test4/${wallet.keyId}";
       log("getting assets for address ${wallet.keyId}");
@@ -126,7 +126,7 @@ class CryptoStorageManager {
   }
 
   Future<bool> saveListAssets(
-      {required List<Asset> assets, required PublicData account}) async {
+      {required List<Asset> assets, required PublicAccount account}) async {
     try {
       final cryptoListString = assets.map((c) => c.toJson()).toList();
       final name = "assetsOf/test4/${account.keyId}";
@@ -143,7 +143,7 @@ class CryptoStorageManager {
   Future<bool> toggleCanDisplay(
       {required Crypto crypto,
       required bool value,
-      required PublicData wallet}) async {
+      required PublicAccount wallet}) async {
     try {
       final List<Crypto>? savedCryptos = await getSavedCryptos(wallet: wallet);
       final cryptoToEdit = crypto;
@@ -170,7 +170,7 @@ class CryptoStorageManager {
       {required int chainId,
       String? name,
       String? symbol,
-      required PublicData wallet,
+      required PublicAccount wallet,
       List<String>? rpcUrls,
       List<String>? explorers}) async {
     try {
@@ -205,7 +205,7 @@ class CryptoStorageManager {
   }
 
   Future<bool> addCrypto(
-      {required Crypto crypto, required PublicData wallet}) async {
+      {required Crypto crypto, required PublicAccount wallet}) async {
     try {
       final List<Crypto>? savedCryptos = await getSavedCryptos(wallet: wallet);
       if (savedCryptos != null) {

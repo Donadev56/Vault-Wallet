@@ -5,6 +5,7 @@ import 'package:moonwallet/logger/logger.dart';
 import 'package:moonwallet/notifiers/providers.dart';
 import 'package:moonwallet/screens/dashboard/page_manager.dart';
 import 'package:moonwallet/service/db/wallet_db.dart';
+import 'package:moonwallet/types/account_related_types.dart';
 import 'package:moonwallet/types/types.dart';
 import 'dart:math';
 
@@ -14,9 +15,9 @@ import 'package:page_transition/page_transition.dart';
 
 class BackupTestScreen extends ConsumerStatefulWidget {
   final String password;
-  final SecureData wallet;
+  final PrivateAccount wallet;
   final AppColors colors;
-  final PublicData publicAccount;
+  final PublicAccount publicAccount;
 
   const BackupTestScreen(
       {super.key,
@@ -31,14 +32,14 @@ class BackupTestScreen extends ConsumerStatefulWidget {
 
 class _BackupTestScreenState extends ConsumerState<BackupTestScreen> {
   late String password;
-  late SecureData wallet;
+  late PrivateAccount wallet;
   AppColors colors = AppColors.defaultTheme;
   String originalWorlds = "";
   List<String> originalWorldsList = [];
   List<String> mixedWordsList = [];
   List<int> randomNumbers = [];
   List<String> selectedWords = [];
-  late PublicData publicAccount;
+  late PublicAccount publicAccount;
 
   @override
   void initState() {
@@ -56,7 +57,7 @@ class _BackupTestScreenState extends ConsumerState<BackupTestScreen> {
 
   void init() {
     setState(() {
-      originalWorlds = wallet.mnemonic ?? "";
+      originalWorlds = wallet.keyOrigin;
       originalWorldsList = originalWorlds.split(" ");
       mixedWordsList = originalWorldsList..shuffle(Random());
     });
@@ -101,8 +102,10 @@ class _BackupTestScreenState extends ConsumerState<BackupTestScreen> {
           throw "$word3 doesn't match ";
         }
 
+        final derive = await walletDb.deriveEncryptionKeyStateless(password);
+
         await walletDb.editPrivateWalletData(
-            account: wallet, password: password, isBackup: true);
+            account: wallet, deriveKey: derive.derivateKey, isBackup: true);
         await walletDb.editWallet(account: publicAccount, isBackup: true);
 
         Future.delayed((Duration(seconds: 2))).withLoading(context, colors);

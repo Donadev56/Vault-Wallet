@@ -8,6 +8,7 @@ import 'package:moment_dart/moment_dart.dart';
 import 'package:moonwallet/custom/web3_webview/lib/utils/loading.dart';
 import 'package:moonwallet/logger/logger.dart';
 import 'package:moonwallet/notifiers/providers.dart';
+import 'package:moonwallet/types/account_related_types.dart';
 import 'package:moonwallet/utils/number_formatter.dart';
 import 'package:moonwallet/service/web3_interactions/evm/transaction_request_manager.dart';
 import 'package:moonwallet/service/external_data/transactions.dart';
@@ -29,7 +30,7 @@ class _AccountDataViewState extends ConsumerState<AccountDataView>
     with SingleTickerProviderStateMixin {
   List<Crypto> cryptos = [];
   List<Asset> assets = [];
-  PublicData? account;
+  PublicAccount? account;
   AppColors colors = AppColors.defaultTheme;
   late TabController _tabController;
   bool isTabInit = false;

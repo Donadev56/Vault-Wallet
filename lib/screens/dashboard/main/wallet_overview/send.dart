@@ -16,13 +16,14 @@ import 'package:moonwallet/notifiers/providers.dart';
 import 'package:moonwallet/screens/dashboard/page_manager.dart';
 import 'package:moonwallet/service/db/list_address_dynamic_db.dart';
 import 'package:moonwallet/service/rpc_service.dart';
+import 'package:moonwallet/types/account_related_types.dart';
 import 'package:moonwallet/utils/number_formatter.dart';
 import 'package:moonwallet/service/external_data/price_manager.dart';
 import 'package:moonwallet/service/vibration.dart';
 import 'package:moonwallet/service/db/wallet_db.dart';
 import 'package:moonwallet/types/types.dart';
 import 'package:moonwallet/utils/colors.dart';
-import 'package:moonwallet/utils/crypto.dart';
+import 'package:moonwallet/utils/encrypt_service.dart';
 import 'package:moonwallet/utils/prefs.dart';
 import 'package:moonwallet/utils/themes.dart';
 import 'package:moonwallet/widgets/app_bar_title.dart';
@@ -62,11 +63,13 @@ class _SendTransactionScreenState extends ConsumerState<SendTransactionScreen> {
   double networkBalance = 0;
   bool isDarkMode = false;
   Color darkNavigatorColor = Color(0XFF0D0D0D);
-  List<PublicData> accounts = [];
-  List<PublicData> filteredAccounts = [];
+  List<PublicAccount> accounts = [];
+  List<PublicAccount> filteredAccounts = [];
   List<dynamic> lastEthUsedAddresses = [];
   List<String> lastAddresses = [];
-  PublicData currentAccount = PublicData(
+  PublicAccount currentAccount = PublicAccount(
+      origin: Origin.publicAddress,
+      supportedNetworks: [],
       createdLocally: false,
       keyId: "",
       creationDate: 0,
@@ -76,7 +79,6 @@ class _SendTransactionScreenState extends ConsumerState<SendTransactionScreen> {
   final web3Manager = WalletDatabase();
   final encryptService = EncryptService();
   final priceManager = PriceManager();
-  final publicDataManager = PublicDataManager();
 
   Crypto? crypto;
 
@@ -266,7 +268,7 @@ class _SendTransactionScreenState extends ConsumerState<SendTransactionScreen> {
       final results = await Future.wait([
         priceManager.getTokenMarketData(crypto!.cgSymbol ?? ""), // 0
         rpcService.getBalance(crypto!, currentAccount), // 1
-        publicDataManager.getDataFromPrefs(key: addressKey), // 2
+        PublicDataManager().getDataFromPrefs(key: addressKey), // 2
       ]);
 
       final price = (results[0] as CryptoMarketData).currentPrice;
@@ -426,7 +428,6 @@ class _SendTransactionScreenState extends ConsumerState<SendTransactionScreen> {
                                 showSelectLastAddr(
                                     accounts: accounts,
                                     context: context,
-                                    publicDataManager: publicDataManager,
                                     currentAccount: currentAccount,
                                     colors: colors,
                                     addressController: _addressController,

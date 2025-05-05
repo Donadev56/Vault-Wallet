@@ -13,18 +13,16 @@ import 'package:moonwallet/notifiers/providers.dart';
 import 'package:moonwallet/service/db/crypto_storage_manager.dart';
 import 'package:moonwallet/service/external_data/price_manager.dart';
 import 'package:moonwallet/service/db/wallet_db.dart';
+import 'package:moonwallet/types/account_related_types.dart';
 import 'package:moonwallet/types/types.dart';
 import 'package:moonwallet/utils/colors.dart';
-import 'package:moonwallet/utils/crypto.dart';
-import 'package:moonwallet/utils/prefs.dart';
+import 'package:moonwallet/utils/encrypt_service.dart';
 import 'package:moonwallet/utils/share_manager.dart';
 import 'package:moonwallet/utils/themes.dart';
 import 'package:moonwallet/widgets/actions.dart';
 import 'package:moonwallet/widgets/app_bar_title.dart';
-import 'package:moonwallet/widgets/buttons/elevated.dart';
 import 'package:moonwallet/widgets/screen_widgets/crypto_picture.dart';
 import 'package:pretty_qr_code/pretty_qr_code.dart';
-import 'package:qr_flutter/qr_flutter.dart';
 
 class ReceiveScreen extends StatefulHookConsumerWidget {
   final WidgetInitialData initData;
@@ -39,19 +37,12 @@ class _ReceiveScreenState extends ConsumerState<ReceiveScreen> {
   bool isDarkMode = false;
   final cryptoStorageManager = CryptoStorageManager();
 
-  List<PublicData> accounts = [];
-  List<PublicData> filteredAccounts = [];
-  PublicData currentAccount = PublicData(
-      createdLocally: false,
-      keyId: "",
-      creationDate: 0,
-      walletName: "",
-      addresses: [],
-      isWatchOnly: false);
+  List<PublicAccount> accounts = [];
+  List<PublicAccount> filteredAccounts = [];
+  late PublicAccount currentAccount;
   final web3Manager = WalletDatabase();
   final encryptService = EncryptService();
   final priceManager = PriceManager();
-  final publicDataManager = PublicDataManager();
   Crypto? crypto;
   @override
   void initState() {
@@ -91,7 +82,6 @@ class _ReceiveScreenState extends ConsumerState<ReceiveScreen> {
 
   @override
   Widget build(BuildContext context) {
-    final width = MediaQuery.of(context).size.width;
     final textTheme = Theme.of(context).textTheme;
     //final height = MediaQuery.of(context).size.height;
     final appUIConfigAsync = ref.watch(appUIConfigProvider);
@@ -273,18 +263,19 @@ class _ReceiveScreenState extends ConsumerState<ReceiveScreen> {
                       ),
                       child: Center(
                         child: GestureDetector(
-                          onTap:  () => Clipboard.setData(ClipboardData(
-                        text: currentAccount.addressByToken(crypto!),)),
+                          onTap: () => Clipboard.setData(ClipboardData(
+                            text: currentAccount.addressByToken(crypto!),
+                          )),
                           child: Text(
-                          currentAccount.addressByToken(crypto!),
-                          overflow: TextOverflow.fade,
-                          textAlign: TextAlign.center,
-                          style: textTheme.bodyMedium?.copyWith(
-                              color: colors.textColor,
-                              fontWeight: FontWeight.bold,
-                              fontSize: fontSizeOf(14)),
+                            currentAccount.addressByToken(crypto!),
+                            overflow: TextOverflow.fade,
+                            textAlign: TextAlign.center,
+                            style: textTheme.bodyMedium?.copyWith(
+                                color: colors.textColor,
+                                fontWeight: FontWeight.bold,
+                                fontSize: fontSizeOf(14)),
+                          ),
                         ),
-                        ) ,
                       ))),
             ),
             SizedBox(
@@ -297,7 +288,6 @@ class _ReceiveScreenState extends ConsumerState<ReceiveScreen> {
                 children: [
                   ActionsWidgets(
                     radius: roundedOf(30),
-
                     showName: false,
                     size: iconSizeOf(60),
                     fontSize: fontSizeOf(14),
@@ -310,7 +300,7 @@ class _ReceiveScreenState extends ConsumerState<ReceiveScreen> {
                     actIcon: Icons.copy,
                   ),
                   ActionsWidgets(
-               showName: false,
+                    showName: false,
                     radius: roundedOf(30),
                     size: iconSizeOf(60),
                     fontSize: fontSizeOf(14),
@@ -329,13 +319,11 @@ class _ReceiveScreenState extends ConsumerState<ReceiveScreen> {
                         size: 512,
                         format: ImageByteFormat.png,
                         decoration: const PrettyQrDecoration(
-                          quietZone : PrettyQrQuietZone.standart, 
-
+                          quietZone: PrettyQrQuietZone.standart,
                           image: PrettyQrDecorationImage(
-                            padding: EdgeInsets.all(20),
+                              padding: EdgeInsets.all(20),
                               image: AssetImage("assets/logo/png/icon.png")),
                           background: Colors.white,
-                          
                         ),
                       );
                       if (qrImageBytes == null) {

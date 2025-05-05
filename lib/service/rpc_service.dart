@@ -4,6 +4,7 @@ import 'package:moonwallet/logger/logger.dart';
 import 'package:moonwallet/service/web3_interactions/evm/eth_interaction_manager.dart';
 import 'package:moonwallet/service/web3_interactions/evm/web3_client.dart';
 import 'package:moonwallet/service/web3_interactions/svm/solana_interaction_manager.dart';
+import 'package:moonwallet/types/account_related_types.dart';
 import 'package:moonwallet/types/types.dart';
 import 'package:web3dart/web3dart.dart';
 
@@ -11,7 +12,7 @@ class RpcService {
   final EthInteractionManager _ethClient = EthInteractionManager();
   final SolanaInteractionManager _solanaClient = SolanaInteractionManager();
 
-  Future<String> getBalance(Crypto crypto, PublicData account) async {
+  Future<String> getBalance(Crypto crypto, PublicAccount account) async {
     try {
       final networkType = crypto.getNetworkType;
       switch (networkType) {
@@ -45,7 +46,7 @@ class RpcService {
 
   Future<String> generateSolanaAddress(String mnemonic) async {
     try {
-      final address = await _solanaClient.generateAddress(mnemonic);
+      final address = await _solanaClient.solAddress.generateAddress(mnemonic);
       return address ?? "";
     } catch (e) {
       logError(e.toString());
@@ -123,7 +124,7 @@ class RpcService {
               ? null
               : "Invalid address";
         case NetworkType.svm:
-          return _solanaClient.isAddressValid(address)
+          return _solanaClient.solAddress.isAddressValid(address)
               ? null
               : "Invalid Solana address";
       }
