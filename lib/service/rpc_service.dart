@@ -133,4 +133,33 @@ class RpcService {
       return "Invalid address";
     }
   }
+
+  bool? validateAddressUsingType(String address, NetworkType networkType) {
+    try {
+      switch (networkType) {
+        case NetworkType.evm:
+          return _ethClient.ethAddresses.isAddressValid(address);
+        case NetworkType.svm:
+          return _solanaClient.solAddress.isAddressValid(address);
+      }
+    } catch (e) {
+      logError(e.toString());
+      return false;
+    }
+  }
+
+  Future<bool?> validatePrivateKey(
+      String privateKey, NetworkType networkType) async {
+    try {
+      switch (networkType) {
+        case NetworkType.evm:
+          return _ethClient.ethAddresses.isPrivateKeyValid(privateKey);
+        case NetworkType.svm:
+          return await _solanaClient.solAddress.isPrivateKeyValid(privateKey);
+      }
+    } catch (e) {
+      logError(e.toString());
+      return false;
+    }
+  }
 }

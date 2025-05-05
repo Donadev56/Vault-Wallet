@@ -18,9 +18,9 @@ import 'package:moonwallet/utils/colors.dart';
 import 'package:moonwallet/utils/constant.dart';
 import 'package:moonwallet/utils/prefs.dart';
 import 'package:moonwallet/utils/themes.dart';
-import 'package:moonwallet/widgets/func/browser/change_network.dart';
 
 import 'package:moonwallet/widgets/func/snackbar.dart';
+import 'package:moonwallet/widgets/func/tokens_config/show_select_network_modal.dart';
 
 class DiscoverScreen extends StatefulHookConsumerWidget {
   final AppColors? colors;
@@ -239,67 +239,6 @@ class _DiscoverScreenState extends ConsumerState<DiscoverScreen>
     }
   }
 
-  Future<void> openBrowser(String url) async {
-    try {
-      if (currentAccount == null) {
-        throw "No account found";
-      }
-
-      if (url.isEmpty) {
-        showCustomSnackBar(
-            type: MessageType.error,
-            context: context,
-            message: "Url cannot be empty",
-            colors: colors);
-        return;
-      }
-      if (networks.isEmpty) {
-        showCustomSnackBar(
-            type: MessageType.error,
-            context: context,
-            message: "No saved cryptos found",
-            colors: colors);
-        return;
-      }
-      Crypto? network;
-      await showChangeNetworkModal(
-              title: "Select a network",
-              networks: networks,
-              colors: colors,
-              changeNetwork: (crypto) async {
-                network = crypto;
-              },
-              context: context,
-              darkNavigatorColor: colors.primaryColor,
-              textColor: colors.textColor,
-              chainId: networks[0].chainId ?? 204)
-          .then((result) {
-        if (result && network != null && currentAccount != null) {
-          Navigator.push(
-            context,
-            MaterialPageRoute(
-              builder: (context) => Web3BrowserScreen(
-                networks: networks,
-                account: currentAccount!,
-                url: url,
-                network: network,
-              ),
-            ),
-          );
-        } else {
-          logError("No network selected or result is not true");
-        }
-      });
-    } catch (e) {
-      logError(e.toString());
-      showCustomSnackBar(
-          type: MessageType.error,
-          context: context,
-          message: "Error opening browser: $e",
-          colors: colors);
-    }
-  }
-
   @override
   Widget build(BuildContext context) {
     double width = MediaQuery.of(context).size.width;
@@ -325,6 +264,10 @@ class _DiscoverScreenState extends ConsumerState<DiscoverScreen>
       return size * uiConfig.value.styles.imageSizeScaleFactor;
     }
 
+    double iconSizeOf(double size) {
+      return size * uiConfig.value.styles.iconSizeScaleFactor;
+    }
+
     double roundedOf(double size) {
       return size * uiConfig.value.styles.radiusScaleFactor;
     }
@@ -348,6 +291,63 @@ class _DiscoverScreenState extends ConsumerState<DiscoverScreen>
             .toList();
       },
     );
+
+    Future<void> openBrowser(String url) async {
+      try {
+        if (currentAccount == null) {
+          throw "No account found";
+        }
+
+        if (url.isEmpty) {
+          showCustomSnackBar(
+              type: MessageType.error,
+              context: context,
+              message: "Url cannot be empty",
+              colors: colors);
+          return;
+        }
+        if (networks.isEmpty) {
+          showCustomSnackBar(
+              type: MessageType.error,
+              context: context,
+              message: "No saved cryptos found",
+              colors: colors);
+          return;
+        }
+        final selected = await showSelectNetworkModal(
+          context: context,
+          colors: colors,
+          roundedOf: roundedOf,
+          fontSizeOf: fontSizeOf,
+          iconSizeOf: iconSizeOf,
+          networks: networks,
+        );
+
+        if (selected != null) {
+          Navigator.push(
+            context,
+            MaterialPageRoute(
+              builder: (context) => Web3BrowserScreen(
+                networks: networks,
+                account: currentAccount!,
+                url: url,
+                network: selected,
+              ),
+            ),
+          );
+        } else {
+          logError("No network selected or result is not true");
+        }
+      } catch (e) {
+        logError(e.toString());
+        showCustomSnackBar(
+            type: MessageType.error,
+            context: context,
+            message: "Error opening browser: $e",
+            colors: colors);
+      }
+    }
+
     return Scaffold(
         backgroundColor: colors.primaryColor,
         appBar: AppBar(

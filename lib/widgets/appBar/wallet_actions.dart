@@ -1,10 +1,19 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_hooks/flutter_hooks.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:lucide_icons_flutter/lucide_icons.dart';
+import 'package:moonwallet/logger/logger.dart';
 import 'package:moonwallet/main.dart';
+import 'package:moonwallet/notifiers/providers.dart';
+import 'package:moonwallet/screens/dashboard/wallet_actions/add_private_key.dart';
+import 'package:moonwallet/screens/dashboard/wallet_actions/add_w_o.dart';
+import 'package:moonwallet/types/account_related_types.dart';
 import 'package:moonwallet/types/types.dart';
 import 'package:moonwallet/widgets/appBar/button.dart';
+import 'package:moonwallet/widgets/func/tokens_config/show_select_ecosystem.dart';
 
-class WalletActions extends StatelessWidget {
+class WalletActions extends HookConsumerWidget {
   final DoubleFactor roundedOf;
   final DoubleFactor fontSizeOf;
   final DoubleFactor iconSizeOf;
@@ -17,7 +26,40 @@ class WalletActions extends StatelessWidget {
       required this.roundedOf});
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, ref) {
+    final savedCryptoProvider = ref.watch(savedCryptosProviderNotifier);
+    final savedCrypto = useState<List<Crypto>>([]);
+
+    useEffect(() {
+      savedCryptoProvider.whenData((data) {
+        savedCrypto.value = data;
+      });
+
+      return null;
+    }, [savedCryptoProvider]);
+
+    Future<TokenEcosystem?> selectEcosystem() async {
+      final cryptos = savedCrypto.value;
+      if (cryptos.isEmpty) {
+        logError("Crypto list is empty");
+        return null;
+      }
+      final networks = cryptos.where((c) => c.isNative).toList();
+
+      final ecosystem = await showSelectEcoSystem(
+          context: context,
+          colors: colors,
+          roundedOf: roundedOf,
+          fontSizeOf: fontSizeOf,
+          iconSizeOf: iconSizeOf,
+          networks: networks);
+      if (ecosystem != null) {
+        return ecosystem;
+      }
+
+      return null;
+    }
+
     return Column(
       spacing: 10,
       children: [
@@ -48,8 +90,16 @@ class WalletActions extends StatelessWidget {
             textColor: colors.textColor,
             text: "Import private key",
             icon: LucideIcons.key,
-            onTap: () {
-              Navigator.pushNamed(context, Routes.importWalletMain);
+            onTap: () async {
+              final ecosystem = await selectEcosystem();
+              if (ecosystem == null) {
+                return;
+              }
+              Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                      builder: (ctx) =>
+                          AddPrivateKeyMain(ecosystem: ecosystem)));
             }),
         CustomListTitleButton(
             roundedOf: roundedOf,
@@ -58,8 +108,16 @@ class WalletActions extends StatelessWidget {
             textColor: colors.textColor,
             text: "Observation wallet",
             icon: LucideIcons.eye,
-            onTap: () {
-              Navigator.pushNamed(context, Routes.addObservationWallet);
+            onTap: () async {
+              final ecosystem = await selectEcosystem();
+              if (ecosystem == null) {
+                return;
+              }
+              Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                      builder: (ctx) =>
+                          AddObservationWallet(ecosystem: ecosystem)));
             })
       ],
     );

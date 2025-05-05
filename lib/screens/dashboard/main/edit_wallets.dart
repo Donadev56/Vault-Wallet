@@ -106,15 +106,6 @@ class _EditWalletsViewState extends ConsumerState<EditWalletsView> {
       return size * uiConfig.value.styles.fontSizeScaleFactor;
     }
 
-    double listTitleVerticalOf(double size) {
-      return size * uiConfig.value.styles.listTitleVisualDensityVerticalFactor;
-    }
-
-    double listTitleHorizontalOf(double size) {
-      return size *
-          uiConfig.value.styles.listTitleVisualDensityHorizontalFactor;
-    }
-
     Future<void> reorderList(int oldIndex, int newIndex) async {
       try {
         final result = await providerNotifier.reorderList(oldIndex, newIndex);
@@ -335,7 +326,7 @@ class _EditWalletsViewState extends ConsumerState<EditWalletsView> {
                                       child: Material(
                                         shadowColor: Colors.transparent,
                                         elevation: 0,
-                                        color: colors.secondaryColor,
+                                        color: colors.grayColor.withValues(alpha: 0.4),
                                         child: child,
                                       ),
                                     ),
@@ -359,10 +350,6 @@ class _EditWalletsViewState extends ConsumerState<EditWalletsView> {
                                             padding: EdgeInsets.symmetric(
                                                 vertical: 4, horizontal: 20),
                                             child: AccountListTitleWidget(
-                                                listTitleHorizontalOf:
-                                                    listTitleHorizontalOf,
-                                                listTitleVerticalOf:
-                                                    listTitleVerticalOf,
                                                 imageSizeOf: imageSizeOf,
                                                 iconSizeOf: iconSizeOf,
                                                 fontSizeOf: fontSizeOf,

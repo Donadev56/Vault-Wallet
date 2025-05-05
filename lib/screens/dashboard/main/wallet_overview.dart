@@ -28,7 +28,6 @@ import 'package:moonwallet/service/external_data/transactions.dart';
 import 'package:moonwallet/types/types.dart';
 import 'package:moonwallet/utils/colors.dart';
 import 'package:moonwallet/utils/encrypt_service.dart';
-import 'package:moonwallet/utils/prefs.dart';
 import 'package:moonwallet/utils/themes.dart';
 import 'package:moonwallet/widgets/actions.dart';
 import 'package:moonwallet/widgets/app_bar_title.dart';

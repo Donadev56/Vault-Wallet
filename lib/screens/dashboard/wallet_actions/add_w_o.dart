@@ -18,7 +18,6 @@ import 'package:moonwallet/utils/prefs.dart';
 import 'package:moonwallet/utils/themes.dart';
 import 'package:moonwallet/widgets/backup/backup_related.dart';
 import 'package:moonwallet/widgets/backup/warning_static_message.dart';
-import 'package:moonwallet/widgets/buttons/elevated.dart';
 import 'package:moonwallet/widgets/buttons/elevated_low_opacity_button.dart';
 import 'package:moonwallet/widgets/buttons/outlined.dart';
 import 'package:moonwallet/widgets/func/security/ask_password.dart';
@@ -26,8 +25,12 @@ import 'package:moonwallet/widgets/func/snackbar.dart';
 import 'package:moonwallet/widgets/scanner/show_scanner.dart';
 import 'package:page_transition/page_transition.dart';
 
+import '../../../service/rpc_service.dart';
+
 class AddObservationWallet extends StatefulHookConsumerWidget {
-  const AddObservationWallet({super.key});
+  final TokenEcosystem ecosystem;
+
+  const AddObservationWallet({super.key, required this.ecosystem});
 
   @override
   ConsumerState<AddObservationWallet> createState() => _AddPrivateKeyState();
@@ -39,6 +42,8 @@ class _AddPrivateKeyState extends ConsumerState<AddObservationWallet> {
   String userPassword = "";
   int attempt = 0;
   int secAttempt = 0;
+  late TokenEcosystem ecosystem;
+  final _rpcService = RpcService();
 
   final web3Manager = WalletDatabase();
   final publicDataManager = PublicDataManager();
@@ -67,6 +72,7 @@ class _AddPrivateKeyState extends ConsumerState<AddObservationWallet> {
   void initState() {
     getSavedTheme();
     _textController = TextEditingController();
+    ecosystem = widget.ecosystem;
 
     super.initState();
   }
@@ -87,9 +93,12 @@ class _AddPrivateKeyState extends ConsumerState<AddObservationWallet> {
 
   bool keyTester(String data) {
     try {
-      return data.startsWith("0x") && data.length == 42;
+      final address = data.trim();
+      return _rpcService.validateAddressUsingType(address, ecosystem.type) ??
+          false;
     } catch (e) {
-      logError(e.toString());
+      notifyError(e.toString());
+
       return false;
     }
   }
@@ -115,10 +124,6 @@ class _AddPrivateKeyState extends ConsumerState<AddObservationWallet> {
       return size * uiConfig.value.styles.fontSizeScaleFactor;
     }
 
-    double roundedOf(double size) {
-      return size * uiConfig.value.styles.radiusScaleFactor;
-    }
-
     Future<void> saveData() async {
       try {
         final bool testResult = keyTester(_textController.text);
@@ -130,7 +135,7 @@ class _AddPrivateKeyState extends ConsumerState<AddObservationWallet> {
           throw Exception("No Seed generated yet.");
         }
         final result = await web3Provider
-            .saveWO(_textController.text.trim(), NetworkType.evm)
+            .saveWO(_textController.text.trim(), ecosystem.type)
             .withLoading(context, colors);
         if (result != null) {
           lastAccountNotifier.updateKeyId(result.keyId);
@@ -184,17 +189,9 @@ class _AddPrivateKeyState extends ConsumerState<AddObservationWallet> {
           leading: IconButton(
               onPressed: () => Navigator.pop(context),
               icon: Icon(
-                Icons.arrow_back,
+                Icons.chevron_left,
                 color: colors.textColor,
               )),
-          title: Text(
-            "Public Wallet",
-            style: textTheme.headlineMedium?.copyWith(
-                color: colors.textColor,
-                fontSize: fontSizeOf(20),
-                fontWeight: FontWeight.bold,
-                decoration: TextDecoration.none),
-          ),
         ),
         body: SpaceWithFixedBottom(
           body: Form(
@@ -205,7 +202,7 @@ class _AddPrivateKeyState extends ConsumerState<AddObservationWallet> {
                   Align(
                     alignment: Alignment.topLeft,
                     child: Container(
-                        margin: const EdgeInsets.only(top: 25, left: 20),
+                        margin: const EdgeInsets.only(left: 20),
                         child: Column(
                           spacing: 15,
                           crossAxisAlignment: CrossAxisAlignment.start,
@@ -214,12 +211,12 @@ class _AddPrivateKeyState extends ConsumerState<AddObservationWallet> {
                               "Add public address",
                               style: textTheme.headlineMedium?.copyWith(
                                 color: colors.textColor,
-                                fontSize: 25,
+                                fontSize: 20,
                                 fontWeight: FontWeight.bold,
                               ),
                             ),
                             Text(
-                              "Enter a valid address starting with 0x.",
+                              "Enter a valid ${ecosystem.type.toShortString()} address.",
                               style: textTheme.bodySmall?.copyWith(
                                   color: colors.textColor.withValues(
                                 alpha: 0.7,
@@ -338,6 +335,10 @@ class _AddPrivateKeyState extends ConsumerState<AddObservationWallet> {
                   ),
                   colors: colors,
                   onPressed: () async {
+                    if (!(await keyTester(_textController.text.trim()))) {
+                      notifyError("Invalid Private Key");
+                      return;
+                    }
                     if (_formKey.currentState?.validate() ?? false) {
                       await handleSubmit();
                     }

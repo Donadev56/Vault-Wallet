@@ -1,17 +1,14 @@
-import 'package:bs58/bs58.dart';
 import 'package:decimal/decimal.dart';
 import 'package:flutter/widgets.dart';
 import 'package:moonwallet/custom/web3_webview/lib/utils/loading.dart';
 import 'package:moonwallet/logger/logger.dart';
 import 'package:moonwallet/service/db/balance_database.dart';
-import 'package:moonwallet/service/db/wallet_db.dart';
 import 'package:moonwallet/service/db/wallet_db_stateless.dart';
 import 'package:moonwallet/service/internet_manager.dart';
 import 'package:moonwallet/service/web3_interactions/svm/solana_address.dart';
 import 'package:moonwallet/types/account_related_types.dart';
 import 'package:moonwallet/types/types.dart';
 import 'package:moonwallet/widgets/func/security/ask_derivate_key.dart';
-import 'package:moonwallet/widgets/func/security/ask_password.dart';
 import 'package:moonwallet/widgets/func/transactions/svm/ask_user_svm.dart';
 import 'package:solana/dto.dart' as dto;
 import 'package:solana/encoder.dart';

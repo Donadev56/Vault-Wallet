@@ -53,4 +53,13 @@ class EthAddresses {
       return false;
     }
   }
+
+  bool isPrivateKeyValid(String privateKey) {
+    try {
+      final address = generateEthAddress(privateKey);
+      return address.isNotEmpty;
+    } catch (e) {
+      rethrow;
+    }
+  }
 }

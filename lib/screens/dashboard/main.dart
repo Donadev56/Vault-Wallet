@@ -5,7 +5,6 @@ import 'dart:io';
 import 'package:decimal/decimal.dart';
 import 'package:loading_animation_widget/loading_animation_widget.dart';
 import 'package:moonwallet/custom/refresh/check_mark.dart';
-import 'package:moonwallet/custom/web3_webview/lib/widgets/alert.dart';
 import 'package:moonwallet/notifiers/providers.dart';
 import 'package:moonwallet/screens/auth/home.dart';
 import 'package:moonwallet/screens/dashboard/main/wallet_overview/receive.dart';
@@ -14,7 +13,6 @@ import 'package:moonwallet/screens/dashboard/wallet_actions/private/private_key_
 import 'package:moonwallet/types/account_related_types.dart';
 import 'package:moonwallet/utils/number_formatter.dart';
 import 'package:moonwallet/utils/colors.dart';
-import 'package:moonwallet/widgets/backup/show_backup_alert.dart';
 import 'package:moonwallet/widgets/appBar/show_custom_drawer.dart';
 import 'package:moonwallet/widgets/backup/backup_warning_widget.dart';
 import 'package:moonwallet/widgets/screen_widgets/coin_custom_listTitle.dart';
@@ -38,6 +36,7 @@ import 'package:moonwallet/widgets/func/snackbar.dart';
 import 'package:page_transition/page_transition.dart';
 import 'package:simple_gesture_detector/simple_gesture_detector.dart';
 import 'package:flutter_hooks/flutter_hooks.dart';
+import 'package:skeletonizer/skeletonizer.dart';
 
 class MainDashboardScreen extends StatefulHookConsumerWidget {
   final AppColors? colors;
@@ -272,20 +271,6 @@ class _MainDashboardScreenState extends ConsumerState<MainDashboardScreen>
     }
 
     double width = MediaQuery.of(context).size.width;
-
-    if (reorganizedCrypto.isEmpty || isLoading) {
-      return Container(
-        decoration: BoxDecoration(color: colors.primaryColor),
-        child: Center(
-          child: SizedBox(
-            height: 30,
-            width: 30,
-            child: LoadingAnimationWidget.discreteCircle(
-                color: colors.themeColor, size: 40),
-          ),
-        ),
-      );
-    }
 
     Future<bool> deleteWallet(String walletId) async {
       try {
@@ -600,13 +585,11 @@ class _MainDashboardScreenState extends ConsumerState<MainDashboardScreen>
             key: _refreshIndicatorKey,
             onRefresh: () async {
               await vibrate(duration: 10);
-              if (currentAccount != null) {
-                final result = await ref.refresh(assetsNotifierProvider.future);
-                if (result.isNotEmpty) {
-                  initialAssets.value = result;
-                  assets.value = result;
-                  updateTotalBalance(assets.value);
-                }
+              final result = await ref.refresh(assetsNotifierProvider.future);
+              if (result.isNotEmpty) {
+                initialAssets.value = result;
+                assets.value = result;
+                updateTotalBalance(assets.value);
               }
             },
             child: SimpleGestureDetector(
@@ -622,7 +605,7 @@ class _MainDashboardScreenState extends ConsumerState<MainDashboardScreen>
                     color: colors.themeColor,
                     child: CustomScrollView(
                       slivers: <Widget>[
-                        if (!currentAccount!.isBackup &&
+                        if (!currentAccount.isBackup &&
                             currentAccount.createdLocally)
                           BackupWarningWidget(
                             colors: colors,
@@ -674,17 +657,23 @@ class _MainDashboardScreenState extends ConsumerState<MainDashboardScreen>
                                             CrossAxisAlignment.center,
                                         children: [
                                           //   Icon(FeatherIcons.dollarSign, color: colors.textColor, size: textTheme.headlineLarge?.fontSize,),
-                                          Text(
-                                            !uiConfig.value.isCryptoHidden
-                                                ? "\$${NumberFormatter().formatDecimal(maxDecimals: 2, totalBalance.value)}"
-                                                : "***",
-                                            overflow: TextOverflow.clip,
-                                            maxLines: 1,
-                                            style: textTheme.headlineLarge
-                                                ?.copyWith(
-                                                    fontSize: fontSizeOf(29.52),
-                                                    color: colors.textColor),
-                                          ),
+                                          Skeletonizer(
+                                            enabled: isLoading,
+                                            containersColor:
+                                                colors.secondaryColor,
+                                            child: Text(
+                                              !uiConfig.value.isCryptoHidden
+                                                  ? "\$${NumberFormatter().formatDecimal(maxDecimals: 2, totalBalance.value)}"
+                                                  : "***",
+                                              overflow: TextOverflow.clip,
+                                              maxLines: 1,
+                                              style: textTheme.headlineLarge
+                                                  ?.copyWith(
+                                                      fontSize:
+                                                          fontSizeOf(29.52),
+                                                      color: colors.textColor),
+                                            ),
+                                          )
                                         ],
                                       )
                                     ],
@@ -863,51 +852,60 @@ class _MainDashboardScreenState extends ConsumerState<MainDashboardScreen>
                                     ])
                           ],
                         ),
-                        SliverList(
-                          delegate: SliverChildBuilderDelegate(
-                            (BuildContext context, int index) {
-                              final assetsFilteredList =
-                                  getFilteredCryptos()[index];
-                              final crypto = assetsFilteredList.crypto;
-                              final trend =
-                                  assetsFilteredList.cryptoTrendPercent;
-                              final tokenBalance =
-                                  assetsFilteredList.balanceCrypto;
-                              final usdBalance = assetsFilteredList.balanceUsd;
-
-                              final cryptoPrice =
-                                  assetsFilteredList.cryptoPrice;
-                              if (assets.value.isEmpty) {
-                                return Center(
+                        isLoading
+                            ? SliverToBoxAdapter(
+                                child: Container(
+                                height: 300,
+                                decoration:
+                                    BoxDecoration(color: colors.primaryColor),
+                                child: Center(
                                   child: SizedBox(
                                     height: 30,
                                     width: 30,
                                     child:
                                         LoadingAnimationWidget.discreteCircle(
-                                            color: colors.themeColor,
-                                            size: iconSizeOf(40)),
+                                            color: colors.themeColor, size: 40),
                                   ),
-                                );
-                              }
-                              return CoinCustomListTitle(
-                                  roundedOf: roundedOf,
-                                  fontSizeOf: fontSizeOf,
-                                  iconSizeOf: iconSizeOf,
-                                  imageSizeOf: imageSizeOf,
-                                  listTitleHorizontalOf: listTitleHorizontalOf,
-                                  listTitleVerticalOf: listTitleVerticalOf,
-                                  trend: trend,
-                                  cryptoPrice: cryptoPrice,
-                                  colors: colors,
-                                  crypto: crypto,
-                                  currentAccount: currentAccount!,
-                                  isCryptoHidden: uiConfig.value.isCryptoHidden,
-                                  tokenBalance: tokenBalance,
-                                  usdBalance: usdBalance);
-                            },
-                            childCount: getFilteredCryptos().length,
-                          ),
-                        ),
+                                ),
+                              ))
+                            : SliverList(
+                                delegate: SliverChildBuilderDelegate(
+                                  (BuildContext context, int index) {
+                                    final assetsFilteredList =
+                                        getFilteredCryptos()[index];
+                                    final crypto = assetsFilteredList.crypto;
+                                    final trend =
+                                        assetsFilteredList.cryptoTrendPercent;
+                                    final tokenBalance =
+                                        assetsFilteredList.balanceCrypto;
+                                    final usdBalance =
+                                        assetsFilteredList.balanceUsd;
+
+                                    final cryptoPrice =
+                                        assetsFilteredList.cryptoPrice;
+
+                                    return CoinCustomListTitle(
+                                        roundedOf: roundedOf,
+                                        fontSizeOf: fontSizeOf,
+                                        iconSizeOf: iconSizeOf,
+                                        imageSizeOf: imageSizeOf,
+                                        listTitleHorizontalOf:
+                                            listTitleHorizontalOf,
+                                        listTitleVerticalOf:
+                                            listTitleVerticalOf,
+                                        trend: trend,
+                                        cryptoPrice: cryptoPrice,
+                                        colors: colors,
+                                        crypto: crypto,
+                                        currentAccount: currentAccount,
+                                        isCryptoHidden:
+                                            uiConfig.value.isCryptoHidden,
+                                        tokenBalance: tokenBalance,
+                                        usdBalance: usdBalance);
+                                  },
+                                  childCount: getFilteredCryptos().length,
+                                ),
+                              ),
                       ],
                     )))));
   }

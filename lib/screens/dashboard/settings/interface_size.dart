@@ -89,15 +89,6 @@ class _InterfaceSizeViewState extends ConsumerState<InterfaceSizeView> {
       return size * uiConfig.value.styles.fontSizeScaleFactor;
     }
 
-    double listTitleVerticalOf(double size) {
-      return size * uiConfig.value.styles.listTitleVisualDensityVerticalFactor;
-    }
-
-    double listTitleHorizontalOf(double size) {
-      return size *
-          uiConfig.value.styles.listTitleVisualDensityHorizontalFactor;
-    }
-
     return Scaffold(
       backgroundColor: colors.primaryColor,
       appBar: AppBar(
@@ -222,8 +213,6 @@ class _InterfaceSizeViewState extends ConsumerState<InterfaceSizeView> {
                   fontSizeOf: fontSizeOf,
                   iconSizeOf: iconSizeOf,
                   imageSizeOf: imageSizeOf,
-                  listTitleHorizontalOf: listTitleHorizontalOf,
-                  listTitleVerticalOf: listTitleVerticalOf,
                   roundedOf: roundedOf),
             ),
             SizedBox(

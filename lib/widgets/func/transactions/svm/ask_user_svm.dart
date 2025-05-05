@@ -28,7 +28,6 @@ Future<SolanaRequestResponse?> askUserSvm({
     final result = await showTransactionRequest<SolanaRequestResponse>(
       context: context,
       builder: (BuildContext context) {
-        final textTheme = Theme.of(context).textTheme;
         return StatefulBuilder(
           builder: (BuildContext ctx, StateSetter setModalState) {
             return TransactionParentContainer(

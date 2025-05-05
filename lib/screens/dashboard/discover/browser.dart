@@ -20,8 +20,8 @@ import 'package:moonwallet/custom/web3_webview/lib/web3_webview.dart';
 import 'package:moonwallet/widgets/func/browser/show_bottom_options.dart';
 
 class Web3BrowserScreen extends StatefulWidget {
-  final String? url;
-  final Crypto? network;
+  final String url;
+  final Crypto network;
   final List<Crypto> networks;
   final AppColors? colors;
   final PublicAccount account;
@@ -30,8 +30,8 @@ class Web3BrowserScreen extends StatefulWidget {
       {super.key,
       required this.networks,
       required this.account,
-      this.url,
-      this.network,
+      required this.url,
+      required this.network,
       this.colors});
 
   @override
@@ -55,7 +55,6 @@ class Web3BrowserScreenState extends State<Web3BrowserScreen> {
   Crypto? currentCrypto;
 
   InAppWebViewController? _webViewController;
-  bool _isInitialized = false;
   bool isFullScreen = false;
   List<PublicAccount> accounts = [];
   List<Crypto> networks = [];
@@ -166,25 +165,6 @@ class Web3BrowserScreenState extends State<Web3BrowserScreen> {
     }
   }
 
-  Uint8List hexToUint8List(String hex) {
-    if (hex.startsWith("0x") || hex.startsWith("0X")) {
-      hex = hex.substring(2);
-    }
-    if (hex.length % 2 != 0) {
-      throw 'Odd number of hex digits';
-    }
-    var l = hex.length ~/ 2;
-    var result = Uint8List(l);
-    for (var i = 0; i < l; ++i) {
-      var x = int.parse(hex.substring(2 * i, 2 * (i + 1)), radix: 16);
-      if (x.isNaN) {
-        throw 'Expected hex string';
-      }
-      result[i] = x;
-    }
-    return result;
-  }
-
   Future<void> getBgColor() async {
     try {
       if (_webViewController != null) {
@@ -251,25 +231,21 @@ class Web3BrowserScreenState extends State<Web3BrowserScreen> {
       currentAccount = widget.account;
       networks = widget.networks;
 
-      if (widget.network != null) {
-        currentCrypto = widget.network!;
-        _chainId = widget.network!.chainId!;
-      }
+      currentCrypto = widget.network;
+      _chainId = widget.network.chainId!;
 
       if (widget.colors != null) {
         colors = widget.colors!;
       }
 
-      if (widget.url != null) {
-        String url = widget.url!;
-        if (!(url.startsWith("http://") || url.startsWith("https://"))) {
-          url = "https://$url";
-        }
-        currentUrl = url;
-        if (_webViewController != null) {
-          _webViewController!
-              .loadUrl(urlRequest: URLRequest(url: WebUri(currentUrl)));
-        }
+      String url = widget.url;
+      if (!(url.startsWith("http://") || url.startsWith("https://"))) {
+        url = "https://$url";
+      }
+      currentUrl = url;
+      if (_webViewController != null) {
+        _webViewController!
+            .loadUrl(urlRequest: URLRequest(url: WebUri(currentUrl)));
       }
 
       isLoading = false;
@@ -282,26 +258,6 @@ class Web3BrowserScreenState extends State<Web3BrowserScreen> {
 
     if (_webViewController != null) {
       _webViewController!.dispose();
-    }
-  }
-
-  @override
-  void didChangeDependencies() {
-    super.didChangeDependencies();
-    if (!_isInitialized) {
-      final data = ModalRoute.of(context)?.settings.arguments;
-      if (data != null && (data as Map<String, dynamic>)["url"] != null) {
-        String url = data["url"];
-        if (!(url.startsWith("http://") || url.startsWith("https://"))) {
-          url = "https://$url";
-        }
-        currentUrl = url;
-        if (_webViewController != null) {
-          _webViewController!
-              .loadUrl(urlRequest: URLRequest(url: WebUri(currentUrl)));
-        }
-      }
-      _isInitialized = true;
     }
   }
 

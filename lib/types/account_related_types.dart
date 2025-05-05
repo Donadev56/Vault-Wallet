@@ -543,6 +543,15 @@ class DerivateKeys {
   }
 }
 
+class TokenEcosystem {
+  final String name;
+  final NetworkType type;
+  final String iconUrl;
+
+  TokenEcosystem(
+      {required this.name, required this.type, required this.iconUrl});
+}
+
 class EncryptionInfo {
   List<int> mac;
   List<int> nonce;

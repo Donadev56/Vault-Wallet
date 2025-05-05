@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:moonwallet/types/types.dart';
 
 class StandardContainer extends StatelessWidget {
   final Color? backgroundColor;

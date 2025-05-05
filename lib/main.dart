@@ -21,7 +21,6 @@ import 'package:moonwallet/screens/dashboard/settings/change_colors.dart';
 import 'package:moonwallet/screens/dashboard/settings/settings.dart';
 import 'package:moonwallet/screens/dashboard/wallet_actions/add_w_o.dart';
 import 'package:moonwallet/screens/dashboard/wallet_actions/add_mnemonic.dart';
-import 'package:moonwallet/screens/dashboard/wallet_actions/add_private_key.dart';
 import 'package:moonwallet/screens/dashboard/wallet_actions/create_mnemonic_key.dart';
 import 'package:moonwallet/secure_check_view.dart';
 import 'package:moonwallet/types/types.dart';
@@ -45,7 +44,6 @@ void main() async {
 
 class Routes {
   static const String main = '/dashboard';
-  static const String importWalletMain = '/importWalletMain';
   static const String createPrivateKeyMain = '/createPrivateKeyMain';
   static const String createAccountFromSed = '/createAccountFromSed';
 
@@ -62,8 +60,6 @@ class Routes {
   static const String test = '/tets';
   static const String accountData = '/account_data';
   static const String editWallet = '/editWallet';
-
-  static const String privateKeyCreator = '/privatekeyCreator';
 }
 
 class MyApp extends StatefulWidget {
@@ -273,8 +269,6 @@ class _MyAppState extends State<MyApp> {
                   Routes.createPrivateKeyMain: (context) =>
                       CreateMnemonicMain(),
                   Routes.createAccountFromSed: (context) => AddMnemonicScreen(),
-                  Routes.addObservationWallet: (context) =>
-                      AddObservationWallet(),
                   Routes.settings: (context) => SettingsPage(
                         colors: colors,
                       ),

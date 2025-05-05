@@ -277,7 +277,7 @@ class _AddPrivateKeyState extends ConsumerState<AddMnemonicScreen> {
                               "Add mnemonic ",
                               style: textTheme.headlineMedium?.copyWith(
                                 color: colors.textColor,
-                                fontSize: 25,
+                                fontSize: 20,
                                 fontWeight: FontWeight.bold,
                               ),
                             ),

@@ -34,11 +34,8 @@ class WalletDbStateLess extends WalletDatabase {
       NetworkType type,
       List<NetworkType> supportedNetworks) async {
     try {
-      final date = (DateTime.now().microsecondsSinceEpoch);
+      final date = (DateTime.now().millisecondsSinceEpoch / 1000).toInt();
       final keyId = _encryptService.generateUniqueId();
-      final addr = address;
-      log("Address found : $addr");
-      // generate a new wallet
 
       final publicWallet = PublicAccount(
           origin: Origin.publicAddress,
@@ -51,27 +48,18 @@ class WalletDbStateLess extends WalletDatabase {
           walletName: walletName,
           creationDate: date);
 
-      List<dynamic> listPublicAccount;
-      final publicAccountResult =
+      List<dynamic> listPublicAccount = [];
+      final publicAccountsResult =
           await getDynamicData(name: _keys.publicWalletKey);
-      if (publicAccountResult != null) {
-        listPublicAccount = publicAccountResult;
-        log("Public data found ${json.encode(listPublicAccount).toString()}");
-      } else {
-        listPublicAccount = [];
-      }
 
-      listPublicAccount.add(PublicAccount);
-      final publicResult = await saveDynamicData(
-          data: listPublicAccount, boxName: _keys.publicWalletKey);
-      if (!publicResult) {
-        logError("The result  is $publicResult, So error occurred");
-        return null;
-      } else {
-        await _prefs.saveLastConnectedData(keyId);
-        log("Saved successfully");
-        return publicWallet;
+      if (publicAccountsResult != null) {
+        listPublicAccount = publicAccountsResult;
       }
+      listPublicAccount.add(publicWallet.toJson());
+      await saveDynamicData(
+          data: listPublicAccount, boxName: _keys.publicWalletKey);
+      await _prefs.saveLastConnectedData(keyId);
+      return publicWallet;
     } catch (e) {
       logError(e.toString());
       return null;

@@ -268,17 +268,14 @@ class WalletDatabase {
           addresses: addresses,
           isBackup: isBackup);
 
-      for (final acc in savedAccounts) {
-        if (acc.keyId.trim().toLowerCase() ==
-            account.keyId.trim().toLowerCase()) {
-          final index = savedAccounts.indexOf(acc);
-          savedAccounts[index] = newWallet;
-          await saveListPublicAccount(savedAccounts);
-          return newWallet;
-        }
+      final index = savedAccounts.indexWhere((e) =>
+          e.keyId.toLowerCase().trim() == account.keyId.toLowerCase().trim());
+      if (index < 0) {
+        throw "Wallet not found";
       }
-
-      return null;
+      savedAccounts[index] = newWallet;
+      await saveListPublicAccount(savedAccounts);
+      return newWallet;
     } catch (e) {
       logError(e.toString());
       return null;
@@ -326,7 +323,6 @@ class WalletDatabase {
         throw "Data not found";
       }
       final jsonData = json.decode(data);
-      log("Json Data ${jsonData}");
       return EncryptionInfo.fromJson(jsonData);
     } catch (e) {
       logError(e.toString());
@@ -419,6 +415,7 @@ class WalletDatabase {
       if (box == null) {
         throw "Box Not Initialized";
       }
+      log("Data : $data");
       await box.put(boxName, data);
       return true;
     } catch (e) {

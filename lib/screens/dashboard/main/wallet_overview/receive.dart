@@ -2,7 +2,6 @@
 
 import 'dart:ui';
 
-import 'package:cross_file/cross_file.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_hooks/flutter_hooks.dart';
@@ -219,7 +218,6 @@ class _ReceiveScreenState extends ConsumerState<ReceiveScreen> {
                       ),
                       child: Container(
                           padding: const EdgeInsets.all(5),
-                          margin: const EdgeInsets.all(10),
                           decoration: BoxDecoration(
                             borderRadius: BorderRadius.circular(roundedOf(10)),
                             color: Colors.white,

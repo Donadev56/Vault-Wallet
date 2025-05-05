@@ -1,3 +1,5 @@
+// ignore_for_file: use_build_context_synchronously
+
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_hooks/flutter_hooks.dart';
@@ -9,6 +11,7 @@ import 'package:moonwallet/logger/logger.dart';
 import 'package:moonwallet/notifiers/providers.dart';
 import 'package:moonwallet/screens/dashboard/page_manager.dart';
 import 'package:moonwallet/service/db/wallet_db.dart';
+import 'package:moonwallet/service/rpc_service.dart';
 import 'package:moonwallet/types/account_related_types.dart';
 import 'package:moonwallet/types/types.dart';
 import 'package:moonwallet/utils/colors.dart';
@@ -24,15 +27,15 @@ import 'package:moonwallet/widgets/scanner/show_scanner.dart';
 import 'package:page_transition/page_transition.dart';
 import 'package:web3dart/web3dart.dart';
 
-class AddPrivateKeyInMain extends StatefulHookConsumerWidget {
-  final NetworkType networkType;
-  const AddPrivateKeyInMain({super.key, required this.networkType});
+class AddPrivateKeyMain extends StatefulHookConsumerWidget {
+  final TokenEcosystem ecosystem;
+  const AddPrivateKeyMain({super.key, required this.ecosystem});
 
   @override
-  ConsumerState<AddPrivateKeyInMain> createState() => _AddPrivateKeyState();
+  ConsumerState<AddPrivateKeyMain> createState() => _AddPrivateKeyState();
 }
 
-class _AddPrivateKeyState extends ConsumerState<AddPrivateKeyInMain> {
+class _AddPrivateKeyState extends ConsumerState<AddPrivateKeyMain> {
   late TextEditingController _textController;
   final _formKey = GlobalKey<FormState>();
   String userPassword = "";
@@ -40,7 +43,8 @@ class _AddPrivateKeyState extends ConsumerState<AddPrivateKeyInMain> {
   int secAttempt = 0;
   final publicDataManager = PublicDataManager();
   bool isDarkMode = false;
-  late NetworkType networkType;
+  late TokenEcosystem ecosystem;
+  final _rpcService = RpcService();
 
   final manager = WalletDatabase();
   AppColors colors = AppColors.defaultTheme;
@@ -67,50 +71,19 @@ class _AddPrivateKeyState extends ConsumerState<AddPrivateKeyInMain> {
   void initState() {
     _textController = TextEditingController();
     getSavedTheme();
-    networkType = widget.networkType;
+    ecosystem = widget.ecosystem;
 
     super.initState();
   }
 
-  bool keyTester(String data) {
+  Future<bool> keyTester(String data) async {
     try {
-      final key = data.trim();
-      if (key.length < 60) {
-        showCustomSnackBar(
-            colors: colors,
-            type: MessageType.error,
-            context: context,
-            message: "Private key is not valid.",
-            iconColor: Colors.pinkAccent);
-        return false;
-      }
-      String hexKey;
-      if (key.isEmpty) {
-        showCustomSnackBar(
-            colors: colors,
-            type: MessageType.error,
-            context: context,
-            message: "Please enter a private key !",
-            iconColor: Colors.pinkAccent);
-        return false;
-      }
-
-      if (key.startsWith("0x")) {
-        hexKey = key.substring(2);
-        log("The new key is  : $hexKey");
-      } else {
-        hexKey = key;
-      }
-
-      Credentials fromHex = EthPrivateKey.fromHex(hexKey);
-      if (fromHex.address.hex.isNotEmpty) {
-        log("Address found : ${fromHex.address.hex}");
-        return true;
-      } else {
-        return false;
-      }
+      final privateKey = data.trim();
+      return await _rpcService.validatePrivateKey(privateKey, ecosystem.type) ??
+          false;
     } catch (e) {
-      logError(e.toString());
+      notifyError(e.toString());
+
       return false;
     }
   }
@@ -146,17 +119,13 @@ class _AddPrivateKeyState extends ConsumerState<AddPrivateKeyInMain> {
       return null;
     }, [appUIConfigAsync]);
 
-    double fontSizeOf(double size) {
-      return size * uiConfig.value.styles.fontSizeScaleFactor;
-    }
-
     double roundedOf(double size) {
       return size * uiConfig.value.styles.radiusScaleFactor;
     }
 
     Future<void> saveData() async {
       try {
-        final bool testResult = keyTester(_textController.text);
+        final bool testResult = await keyTester(_textController.text);
         if (!testResult) {
           throw Exception("Invalid private key.");
         }
@@ -168,7 +137,7 @@ class _AddPrivateKeyState extends ConsumerState<AddPrivateKeyInMain> {
           throw Exception("passwords must not be empty ");
         }
         final result = await web3Provider
-            .savePrivateKey(key, userPassword, false, networkType)
+            .savePrivateKey(key, userPassword, false, ecosystem.type)
             .withLoading(context, colors, "Creating wallet");
         if (result != null) {
           lastAccountNotifier.updateKeyId(result.keyId);
@@ -222,17 +191,9 @@ class _AddPrivateKeyState extends ConsumerState<AddPrivateKeyInMain> {
           leading: IconButton(
               onPressed: () => Navigator.pop(context),
               icon: Icon(
-                Icons.arrow_back,
+                Icons.chevron_left,
                 color: colors.textColor,
               )),
-          title: Text(
-            "Private Key",
-            style: textTheme.headlineMedium?.copyWith(
-                color: colors.textColor,
-                fontSize: fontSizeOf(20),
-                fontWeight: FontWeight.bold,
-                decoration: TextDecoration.none),
-          ),
         ),
         body: SpaceWithFixedBottom(
             body: Form(
@@ -243,7 +204,7 @@ class _AddPrivateKeyState extends ConsumerState<AddPrivateKeyInMain> {
                   Align(
                     alignment: Alignment.topLeft,
                     child: Container(
-                        margin: const EdgeInsets.only(top: 25, left: 20),
+                        margin: const EdgeInsets.only(left: 20),
                         child: Column(
                           spacing: 15,
                           crossAxisAlignment: CrossAxisAlignment.start,
@@ -252,7 +213,7 @@ class _AddPrivateKeyState extends ConsumerState<AddPrivateKeyInMain> {
                               "Add private key",
                               style: textTheme.headlineMedium?.copyWith(
                                 color: colors.textColor,
-                                fontSize: 25,
+                                fontSize: 20,
                                 fontWeight: FontWeight.bold,
                               ),
                             ),
@@ -271,18 +232,6 @@ class _AddPrivateKeyState extends ConsumerState<AddPrivateKeyInMain> {
                     child: Material(
                       color: Colors.transparent,
                       child: TextFormField(
-                        validator: (value) {
-                          if (value != null) {
-                            final res = keyTester(value);
-                            if (res) {
-                              return null;
-                            } else {
-                              return "Invalid private key";
-                            }
-                          } else {
-                            return "Please enter a private key";
-                          }
-                        },
                         style: textTheme.bodyMedium?.copyWith(
                           color: colors.textColor,
                         ),
@@ -378,6 +327,10 @@ class _AddPrivateKeyState extends ConsumerState<AddPrivateKeyInMain> {
                   ),
                   colors: colors,
                   onPressed: () async {
+                    if (!(await keyTester(_textController.text.trim()))) {
+                      notifyError("Invalid Private Key");
+                      return;
+                    }
                     if (_formKey.currentState?.validate() ?? false) {
                       await handleSubmit();
                     }

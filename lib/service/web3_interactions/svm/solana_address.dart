@@ -68,6 +68,15 @@ class SolanaAddress {
     }
   }
 
+  Future<bool> isPrivateKeyValid(String privateKey) async {
+    try {
+      final keyPair = await getKeyPairByPrivateKey(privateKey);
+      return keyPair != null;
+    } catch (e) {
+      rethrow;
+    }
+  }
+
   Future<Ed25519HDKeyPair> deriveSolanaKeypair(String mnemonic) async {
     final seed = bip39.mnemonicToSeed(mnemonic);
 
