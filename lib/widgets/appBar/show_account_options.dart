@@ -104,7 +104,10 @@ void showAccountOptions({
                         } else if (i == 2) {
                           final networks = (await CryptoStorageManager()
                                   .getSavedCryptos(wallet: wallet))
-                              ?.where((e) => e.isNative)
+                              ?.where((e) =>
+                                  e.isNative &&
+                                  wallet.supportedNetworks
+                                      .contains(e.getNetworkType))
                               .where((e) => e.canDisplay == true)
                               .toList();
                           if (networks == null) {

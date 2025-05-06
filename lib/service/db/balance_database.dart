@@ -1,7 +1,6 @@
 import 'package:moonwallet/logger/logger.dart';
 import 'package:moonwallet/service/db/global_database.dart';
 import 'package:moonwallet/types/account_related_types.dart';
-import 'package:moonwallet/types/types.dart';
 
 class BalanceDatabase {
   final _db = GlobalDatabase();

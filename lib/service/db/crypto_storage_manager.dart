@@ -4,6 +4,7 @@ import 'dart:convert';
 
 import 'package:moonwallet/logger/logger.dart';
 import 'package:moonwallet/service/db/wallet_db.dart';
+import 'package:moonwallet/service/external_data/crypto_request_manager.dart';
 import 'package:moonwallet/types/account_related_types.dart';
 
 class CryptoStorageManager {
@@ -145,20 +146,25 @@ class CryptoStorageManager {
       required bool value,
       required PublicAccount wallet}) async {
     try {
-      final List<Crypto>? savedCryptos = await getSavedCryptos(wallet: wallet);
-      final cryptoToEdit = crypto;
-      if (savedCryptos == null) {
-        throw 'Saved data is null';
-      }
-      log("Crypto ${cryptoToEdit.toJson()}");
-      if (cryptoToEdit.isNative && cryptoToEdit.networkType == null) {
-        throw 'A native crypto must have a network type';
-      }
-      final index =
-          savedCryptos.indexWhere((c) => c.cryptoId == cryptoToEdit.cryptoId);
-      final newCrypto = cryptoToEdit.copyWith(canDisplay: value);
+      List<Crypto> savedCryptos = await getSavedCryptos(wallet: wallet) ?? [];
+      final targetCrypto = savedCryptos
+          .where((e) =>
+              e.cryptoId.trim().toLowerCase() ==
+              crypto.cryptoId.trim().toLowerCase())
+          .firstOrNull;
 
-      savedCryptos[index] = newCrypto;
+      if (targetCrypto == null) {
+        savedCryptos.add(crypto);
+      }
+
+      final targetIndex = savedCryptos.indexWhere((c) =>
+          c.cryptoId.trim().toLowerCase() ==
+          crypto.cryptoId.trim().toLowerCase());
+      if (targetIndex < 0) {
+        throw Exception("Invalid Index");
+      }
+      savedCryptos[targetIndex] = crypto.copyWith(canDisplay: value);
+
       return await saveListCrypto(cryptos: savedCryptos, wallet: wallet);
     } catch (e) {
       logError("Error : $e");

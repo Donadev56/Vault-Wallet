@@ -264,7 +264,7 @@ class _AccountDataViewState extends ConsumerState<AccountDataView>
         leading: IconButton(
             onPressed: () => Navigator.pop(context),
             icon: Icon(
-              Icons.arrow_back,
+              Icons.chevron_left,
               color: colors.textColor.withValues(alpha: 0.7),
             )),
         title: AppBarTitle(title: "Statistics", colors: colors),

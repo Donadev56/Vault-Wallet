@@ -184,7 +184,7 @@ class _PrivateKeyScreenState extends ConsumerState<PrivateKeyScreen> {
       appBar: AppBar(
         backgroundColor: colors.primaryColor,
         leading: IconButton(
-          icon: Icon(Icons.arrow_back, color: colors.textColor),
+          icon: Icon(Icons.chevron_left, color: colors.textColor),
           onPressed: () {
             Navigator.pop(context);
           },

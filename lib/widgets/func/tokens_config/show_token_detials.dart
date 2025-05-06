@@ -13,117 +13,104 @@ void showTokenDetails(
     required AppColors colors,
     required Crypto crypto}) {
   showStandardModalBottomSheet(
-    barrierColor: Colors.transparent,
     context: context,
     builder: (context) {
       final textTheme = TextTheme.of(context);
       return Material(
-        color: Colors.transparent,
-        child: BackdropFilter(
-          filter: ImageFilter.blur(sigmaX: 15, sigmaY: 15),
-          child: SelectableRegion(
-              selectionControls: materialTextSelectionControls,
-              child: StandardContainer(
-                padding:
-                    const EdgeInsets.symmetric(vertical: 10, horizontal: 20),
-                child: ListView(
-                  shrinkWrap: true,
-                  children: [
-                    Align(
-                      alignment: Alignment.center,
-                      child: Text(
-                        "Token Details",
-                        style: textTheme.bodyMedium
-                            ?.copyWith(fontSize: 14, color: colors.textColor),
-                      ),
+        color: colors.primaryColor,
+        child: SelectableRegion(
+            selectionControls: materialTextSelectionControls,
+            child: StandardContainer(
+              padding: const EdgeInsets.symmetric(vertical: 10, horizontal: 20),
+              child: ListView(
+                shrinkWrap: true,
+                children: [
+                  SizedBox(
+                    height: 5,
+                  ),
+                  Align(
+                    alignment: Alignment.center,
+                    child:
+                        CryptoPicture(crypto: crypto, size: 60, colors: colors),
+                  ),
+                  SizedBox(
+                    height: 10,
+                  ),
+                  Align(
+                    alignment: Alignment.center,
+                    child: Text(
+                      crypto.name,
+                      style: textTheme.bodyMedium?.copyWith(
+                          fontSize: 16,
+                          fontWeight: FontWeight.bold,
+                          color: colors.textColor),
                     ),
-                    SizedBox(
-                      height: 15,
+                  ),
+                  SizedBox(
+                    height: 30,
+                  ),
+                  StandardContainer(
+                    padding: const EdgeInsets.symmetric(
+                        vertical: 10, horizontal: 20),
+                    backgroundColor: colors.secondaryColor,
+                    child: Column(
+                      children: [
+                        RowDetailsContent(
+                            colors: colors, name: "Name", value: crypto.name),
+                        SizedBox(
+                          height: 10,
+                        ),
+                        RowDetailsContent(
+                            colors: colors,
+                            name: "Symbol",
+                            value: crypto.symbol),
+                        SizedBox(
+                          height: 10,
+                        ),
+                        RowDetailsContent(
+                            colors: colors,
+                            name: "Decimals",
+                            value: crypto.decimals.toString()),
+                        SizedBox(
+                          height: 10,
+                        ),
+                        RowDetailsContent(
+                            colors: colors,
+                            name: "Type",
+                            value: crypto.isNative ? "Native" : "Token"),
+                        SizedBox(
+                          height: 10,
+                        ),
+                        if (!crypto.isNative)
+                          InkWell(
+                              onTap: () {
+                                Clipboard.setData(ClipboardData(
+                                    text: crypto.contractAddress ?? ""));
+                              },
+                              child: RowDetailsContent(
+                                  colors: colors,
+                                  name: "Token Address",
+                                  value:
+                                      "${crypto.contractAddress?.substring(0, 10)}...")),
+                        SizedBox(
+                          height: 10,
+                        ),
+                        RowDetailsContent(
+                            colors: colors,
+                            name: "Network",
+                            value: (crypto.isNative
+                                    ? crypto.name
+                                    : crypto.network?.name) ??
+                                "Not Found"),
+                        SizedBox(
+                          height: 10,
+                        ),
+                      ],
                     ),
-                    Align(
-                      alignment: Alignment.center,
-                      child: CryptoPicture(
-                          crypto: crypto, size: 60, colors: colors),
-                    ),
-                    SizedBox(
-                      height: 10,
-                    ),
-                    Align(
-                      alignment: Alignment.center,
-                      child: Text(
-                        crypto.name,
-                        style: textTheme.bodyMedium?.copyWith(
-                            fontSize: 16,
-                            fontWeight: FontWeight.bold,
-                            color: colors.textColor),
-                      ),
-                    ),
-                    SizedBox(
-                      height: 30,
-                    ),
-                    StandardContainer(
-                      padding: const EdgeInsets.symmetric(
-                          vertical: 10, horizontal: 20),
-                      backgroundColor: colors.secondaryColor,
-                      child: Column(
-                        children: [
-                          RowDetailsContent(
-                              colors: colors, name: "Name", value: crypto.name),
-                          SizedBox(
-                            height: 10,
-                          ),
-                          RowDetailsContent(
-                              colors: colors,
-                              name: "Symbol",
-                              value: crypto.symbol),
-                          SizedBox(
-                            height: 10,
-                          ),
-                          RowDetailsContent(
-                              colors: colors,
-                              name: "Decimals",
-                              value: crypto.decimals.toString()),
-                          SizedBox(
-                            height: 10,
-                          ),
-                          RowDetailsContent(
-                              colors: colors,
-                              name: "Type",
-                              value: crypto.isNative ? "Native" : "Token"),
-                          SizedBox(
-                            height: 10,
-                          ),
-                          if (!crypto.isNative)
-                            InkWell(
-                                onTap: () {
-                                  Clipboard.setData(ClipboardData(
-                                      text: crypto.contractAddress ?? ""));
-                                },
-                                child: RowDetailsContent(
-                                    colors: colors,
-                                    name: "Token Address",
-                                    value:
-                                        "${crypto.contractAddress?.substring(0, 10)}...")),
-                          SizedBox(
-                            height: 10,
-                          ),
-                          RowDetailsContent(
-                              colors: colors,
-                              name: "Network",
-                              value: (crypto.isNative
-                                      ? crypto.name
-                                      : crypto.network?.name) ??
-                                  "Not Found"),
-                          SizedBox(
-                            height: 10,
-                          ),
-                        ],
-                      ),
-                    )
-                  ],
-                ),
-              )),
-        ),
+                  )
+                ],
+              ),
+            )),
       );
     },
   );

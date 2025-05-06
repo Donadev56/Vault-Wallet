@@ -8,6 +8,7 @@ import 'package:moonwallet/custom/web3_webview/lib/widgets/alert.dart';
 import 'package:moonwallet/main.dart';
 import 'package:moonwallet/notifiers/providers.dart';
 import 'package:moonwallet/service/db/wallet_db.dart';
+import 'package:moonwallet/service/external_data/crypto_request_manager.dart';
 import 'package:moonwallet/types/account_related_types.dart';
 import 'package:moonwallet/utils/colors.dart';
 import 'package:moonwallet/utils/encrypt_service.dart';
@@ -41,7 +42,6 @@ class AddCryptoView extends StatefulHookConsumerWidget {
 
 class _AddCryptoViewState extends ConsumerState<AddCryptoView> {
   bool isDarkMode = true;
-  List<Crypto> reorganizedCrypto = [];
   final cryptoStorageManager = CryptoStorageManager();
   final tokenManager = TokenManager();
   List<PublicAccount> accounts = [];
@@ -111,7 +111,24 @@ class _AddCryptoViewState extends ConsumerState<AddCryptoView> {
     final appUIConfigAsync = ref.watch(appUIConfigProvider);
 
     final uiConfig = useState<AppUIConfig>(AppUIConfig.defaultConfig);
+    final allCryptos = useState<List<Crypto>>([]);
+    final savedCrypto = useState<List<Crypto>>([]);
 
+    useEffect(() {
+      Future<void> getListCrypto() async {
+        try {
+          final listCrypto = await CryptoRequestManager().getSavedCrypto();
+          if (listCrypto.isNotEmpty) {
+            allCryptos.value = listCrypto;
+          }
+        } catch (e) {
+          logError(e.toString());
+        }
+      }
+
+      getListCrypto();
+      return null;
+    }, []);
     useEffect(() {
       appUIConfigAsync.whenData((data) {
         uiConfig.value = data;
@@ -149,7 +166,7 @@ class _AddCryptoViewState extends ConsumerState<AddCryptoView> {
             if (cryptos.isNotEmpty) {
               cryptos.sort((a, b) => a.symbol.compareTo(b.symbol));
               setState(() {
-                reorganizedCrypto = cryptos;
+                savedCrypto.value = cryptos;
               });
             }
           })
@@ -247,110 +264,126 @@ class _AddCryptoViewState extends ConsumerState<AddCryptoView> {
       }
     }
 
+    List<Crypto> getCryptoList() {
+      final listTokens = allCryptos.value
+          .where((c) => c.symbol
+              .toLowerCase()
+              .contains(_searchController.text.toLowerCase()) ||
+              c.name.toLowerCase().contains(_searchController.text.toLowerCase()))
+          .toList();
+
+      final account = currentAccount;
+      if (account == null) {
+        throw Exception("No account found");
+      }
+
+      if (account.origin.isPrivateKey || account.origin.isPublicAddress) {
+        return listTokens
+            .where((c) =>
+                account.supportedNetworks.contains(c.getNetworkType))
+            .toList();
+      }
+
+      return listTokens;
+    }
+
+
     return Scaffold(
       backgroundColor: colors.primaryColor,
       appBar: AppBar(
         surfaceTintColor: colors.primaryColor,
         backgroundColor: colors.primaryColor,
         actions: [
-          Container(
-            margin: const EdgeInsets.all(10),
-            height: 35,
-            width: 35,
-            decoration: BoxDecoration(
-                color: colors.grayColor.withOpacity(0.1),
-                borderRadius: BorderRadius.circular(roundedOf(5))),
-            child: IconButton(
-              onPressed: () {
-                showAppBarWalletActions(
-                  context: context,
-                  colors: colors,
-                  children: [
-                    Column(
-                      spacing: 10,
-                      children: [
-                        CustomListTitleButton(
-                            roundedOf: roundedOf,
-                            fontSizeOf: fontSizeOf,
-                            iconSizeOf: iconSizeOf,
-                            textColor: colors.textColor,
-                            text: "Add custom token",
-                            icon: Icons.add,
-                            onTap: () {
-                              showAddToken(
-                                  roundedOf: roundedOf,
-                                  fontSizeOf: fontSizeOf,
-                                  iconSizeOf: iconSizeOf,
-                                  reorganizedCrypto: reorganizedCrypto,
-                                  notifyError: notifyError,
-                                  notifySuccess: notifySuccess,
-                                  addCrypto: addCrypto,
-                                  context: context,
-                                  colors: colors,
-                                  width: width,
-                                  hasSaved: hasSaved);
-                            }),
-                        CustomListTitleButton(
-                            roundedOf: roundedOf,
-                            fontSizeOf: fontSizeOf,
-                            iconSizeOf: iconSizeOf,
-                            textColor: colors.textColor,
-                            text: "Add custom network",
-                            icon: Icons.construction,
-                            onTap: () async {
-                              final newNetwork = await showAddNetwork(
-                                  roundedOf: roundedOf,
-                                  fontSizeOf: fontSizeOf,
-                                  iconSizeOf: iconSizeOf,
-                                  context: context,
-                                  colors: colors);
-                              if (newNetwork != null) {
-                                if (reorganizedCrypto.any(
-                                    (c) => c.chainId == newNetwork.chainId)) {
-                                  notifyError("Network already exist");
-                                  return;
-                                }
-                                addNetwork(newNetwork)
-                                    .withLoading(context, colors);
+          IconButton(
+            onPressed: () {
+              showAppBarWalletActions(
+                context: context,
+                colors: colors,
+                children: [
+                  Column(
+                    spacing: 10,
+                    children: [
+                      CustomListTitleButton(
+                          roundedOf: roundedOf,
+                          fontSizeOf: fontSizeOf,
+                          iconSizeOf: iconSizeOf,
+                          textColor: colors.textColor,
+                          text: "Add custom token",
+                          icon: Icons.add,
+                          onTap: () {
+                            showAddToken(
+                                roundedOf: roundedOf,
+                                fontSizeOf: fontSizeOf,
+                                iconSizeOf: iconSizeOf,
+                                reorganizedCrypto: savedCrypto.value,
+                                notifyError: notifyError,
+                                notifySuccess: notifySuccess,
+                                addCrypto: addCrypto,
+                                context: context,
+                                colors: colors,
+                                width: width,
+                                hasSaved: hasSaved);
+                          }),
+                      CustomListTitleButton(
+                          roundedOf: roundedOf,
+                          fontSizeOf: fontSizeOf,
+                          iconSizeOf: iconSizeOf,
+                          textColor: colors.textColor,
+                          text: "Add custom network",
+                          icon: Icons.construction,
+                          onTap: () async {
+                            final newNetwork = await showAddNetwork(
+                                roundedOf: roundedOf,
+                                fontSizeOf: fontSizeOf,
+                                iconSizeOf: iconSizeOf,
+                                context: context,
+                                colors: colors);
+                            if (newNetwork != null) {
+                              if (savedCrypto.value.any(
+                                  (c) => c.chainId == newNetwork.chainId)) {
+                                notifyError("Network already exist");
+                                return;
                               }
-                            }),
-                        CustomListTitleButton(
-                            roundedOf: roundedOf,
-                            fontSizeOf: fontSizeOf,
-                            iconSizeOf: iconSizeOf,
-                            textColor: colors.textColor,
-                            text: "Edit network",
-                            icon: Icons.border_color,
-                            onTap: () async {
-                              final selectedNetwork =
-                                  await showSelectNetworkModal(
-                                      roundedOf: roundedOf,
-                                      fontSizeOf: fontSizeOf,
-                                      iconSizeOf: iconSizeOf,
-                                      context: context,
-                                      colors: colors,
-                                      networks: reorganizedCrypto);
-                              if (selectedNetwork != null) {
-                                showEditNetwork(
+                              addNetwork(newNetwork)
+                                  .withLoading(context, colors);
+                            }
+                          }),
+                      CustomListTitleButton(
+                          roundedOf: roundedOf,
+                          fontSizeOf: fontSizeOf,
+                          iconSizeOf: iconSizeOf,
+                          textColor: colors.textColor,
+                          text: "Edit network",
+                          icon: Icons.border_color,
+                          onTap: () async {
+                            final selectedNetwork =
+                                await showSelectNetworkModal(
                                     roundedOf: roundedOf,
                                     fontSizeOf: fontSizeOf,
                                     iconSizeOf: iconSizeOf,
                                     context: context,
-                                    network: selectedNetwork,
-                                    onSubmitted: editNetwork,
-                                    colors: colors);
-                              }
-                            })
-                      ],
-                    )
-                  ],
-                );
-              },
-              icon: Icon(
-                LucideIcons.plus,
-                color: colors.textColor,
-                size: iconSizeOf(20),
-              ),
+                                    colors: colors,
+                                    networks: savedCrypto.value);
+                            if (selectedNetwork != null) {
+                              showEditNetwork(
+                                  roundedOf: roundedOf,
+                                  fontSizeOf: fontSizeOf,
+                                  iconSizeOf: iconSizeOf,
+                                  context: context,
+                                  network: selectedNetwork,
+                                  onSubmitted: editNetwork,
+                                  colors: colors);
+                            }
+                          })
+                    ],
+                  )
+                ],
+              );
+            },
+            icon: Icon(
+              LucideIcons.plus,
+              color: colors.textColor,
+              size: iconSizeOf(20),
             ),
           ),
         ],
@@ -415,17 +448,18 @@ class _AddCryptoViewState extends ConsumerState<AddCryptoView> {
             axisDirection: AxisDirection.down,
             color: colors.themeColor,
             child: ListView.builder(
-                itemCount: reorganizedCrypto
-                    .where((c) => c.symbol
-                        .toLowerCase()
-                        .contains(_searchController.text.toLowerCase()))
-                    .length,
+                itemCount: getCryptoList().length,
                 itemBuilder: (ctx, i) {
-                  final crypto = reorganizedCrypto
-                      .where((c) => c.symbol
-                          .toLowerCase()
-                          .contains(_searchController.text.toLowerCase()))
-                      .toList()[i];
+                  final reorganized = getCryptoList()
+                    ..sort((a, b) => a.symbol.compareTo(b.symbol));
+                  final crypto = reorganized[i];
+                  final targetCrypto = (savedCrypto.value
+                      .where((c) =>
+                          c.cryptoId.trim().toLowerCase() ==
+                          crypto.cryptoId.trim().toLowerCase())
+                      .toList()
+                      .firstOrNull);
+                  final isEnable = targetCrypto?.canDisplay == true;
 
                   return Material(
                     color: Colors.transparent,
@@ -448,44 +482,12 @@ class _AddCryptoViewState extends ConsumerState<AddCryptoView> {
                             fontWeight: FontWeight.bold),
                       ),
                       trailing: Switch(
-                          value: crypto.canDisplay,
+                          value: isEnable,
                           onChanged: (newVal) async {
                             try {
-                              if (crypto.getNetworkType == NetworkType.svm &&
-                                  currentAccount?.svmAddress == null) {
-                                final confirm = await showFirstUseDialog(
-                                    context: context, colors: colors);
-                                if (confirm) {
-                                  try {
-                                    final result = await savedCryptoProvider
-                                        .toggleAndEnableSolana(
-                                            crypto, newVal, context, colors)
-                                        .withLoading(
-                                          context,
-                                          colors,
-                                          "Creating Solana wallet",
-                                        );
-                                    if (!result) {
-                                      showAlert(
-                                          context: context,
-                                          colors: colors,
-                                          title: "Invalid Account",
-                                          content:
-                                              "Create a new valid wallet and try again.",
-                                          confirmText: "Ok");
-                                    }
-                                  } catch (e) {
-                                    logError(e.toString());
-                                    notifyError(e.toString());
-                                    return;
-                                  }
-
-                                  return;
-                                }
-                                return;
-                              }
-                              final result = await savedCryptoProvider
-                                  .toggleCanDisplay(crypto, newVal);
+                              final result =
+                                  await savedCryptoProvider.toggleCanDisplay(
+                                      targetCrypto ?? crypto, newVal);
 
                               if (result) {
                                 log("State changed successfully");

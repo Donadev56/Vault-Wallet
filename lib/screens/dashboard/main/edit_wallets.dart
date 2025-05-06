@@ -2,11 +2,9 @@ import 'package:flutter/material.dart';
 import 'package:flutter_hooks/flutter_hooks.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
-import 'package:moonwallet/custom/web3_webview/lib/utils/loading.dart';
 import 'package:moonwallet/logger/logger.dart';
 import 'package:moonwallet/notifiers/providers.dart';
 import 'package:moonwallet/screens/dashboard/wallet_actions/private/private_key_screen.dart';
-import 'package:moonwallet/service/external_data/crypto_request_manager.dart';
 import 'package:moonwallet/service/vibration.dart';
 import 'package:moonwallet/types/account_related_types.dart';
 import 'package:moonwallet/types/types.dart';
@@ -243,7 +241,7 @@ class _EditWalletsViewState extends ConsumerState<EditWalletsView> {
         leading: IconButton(
             onPressed: () => Navigator.of(context).pop(),
             icon: Icon(
-              Icons.arrow_back,
+              Icons.chevron_left,
               color: colors.textColor.withValues(alpha: 0.6),
             )),
         title: Text(
@@ -360,14 +358,6 @@ class _EditWalletsViewState extends ConsumerState<EditWalletsView> {
                                                 isCurrent: wallet.keyId ==
                                                     account.keyId,
                                                 colors: colors,
-                                                tileColor: (wallet.keyId ==
-                                                        account.keyId
-                                                    ? Colors.transparent
-                                                    : wallet.walletColor
-                                                                ?.value !=
-                                                            0x00000000
-                                                        ? wallet.walletColor
-                                                        : Colors.transparent),
                                                 wallet: wallet,
                                                 onTap: () async {
                                                   await vibrate();
@@ -409,9 +399,6 @@ class _EditWalletsViewState extends ConsumerState<EditWalletsView> {
                                                 }),
                                           )));
                                 },
-
-                                /*   */
-
                                 onReorder: (int oldIndex, int newIndex) {
                                   vibrate();
                                   reorderList(oldIndex, newIndex);

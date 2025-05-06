@@ -1,7 +1,6 @@
 import 'package:http/http.dart';
 import 'package:moonwallet/logger/logger.dart';
 import 'package:moonwallet/types/account_related_types.dart';
-import 'package:moonwallet/types/types.dart';
 import 'package:web3dart/web3dart.dart';
 
 class DynamicWeb3Client {

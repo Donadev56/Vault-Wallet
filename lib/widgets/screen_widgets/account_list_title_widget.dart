@@ -9,7 +9,6 @@ class AccountListTitleWidget extends StatelessWidget {
   final PublicAccount wallet;
   final Function() onTap;
   final Function() onMoreTap;
-  final Color? tileColor;
   final bool showMore;
   final bool isCurrent;
 
@@ -27,7 +26,6 @@ class AccountListTitleWidget extends StatelessWidget {
       required this.wallet,
       required this.onTap,
       required this.onMoreTap,
-      this.tileColor,
       required this.fontSizeOf,
       required this.iconSizeOf,
       required this.imageSizeOf,
@@ -49,17 +47,13 @@ class AccountListTitleWidget extends StatelessWidget {
         maxLines: 1,
         overflow: TextOverflow.ellipsis,
       );
-      icon = Container(
-          width: imageSizeOf(40),
-          height: imageSizeOf(40),
-          decoration: BoxDecoration(
-              borderRadius: BorderRadius.circular(50),
-              color: colors.secondaryColor),
-          child: Center(
-            child: Icon(
-              Icons.wallet,
-              color: colors.textColor.withValues(alpha: 0.8),
-            ),
+      icon = AccountTypeIconContainer(
+          account: wallet,
+          colors: colors,
+          imageSizeOf: imageSizeOf,
+          icon: Icon(
+            Icons.wallet,
+            color: colors.textColor.withValues(alpha: 0.8),
           ));
     } else {
       final publicAddress =
@@ -72,17 +66,13 @@ class AccountListTitleWidget extends StatelessWidget {
           maxLines: 1,
           overflow: TextOverflow.ellipsis,
         );
-        icon = Container(
-            width: imageSizeOf(40),
-            height: imageSizeOf(40),
-            decoration: BoxDecoration(
-                borderRadius: BorderRadius.circular(50),
-                color: colors.secondaryColor),
-            child: Center(
-              child: Icon(
-                wallet.origin.isPrivateKey ? Icons.key : Icons.remove_red_eye,
-                color: colors.textColor.withValues(alpha: 0.8),
-              ),
+        icon = AccountTypeIconContainer(
+            account: wallet,
+            colors: colors,
+            imageSizeOf: imageSizeOf,
+            icon: Icon(
+              wallet.origin.isPrivateKey ? Icons.key : Icons.remove_red_eye,
+              color: colors.textColor.withValues(alpha: 0.8),
             ));
       } else {
         subtitle = null;
@@ -91,7 +81,6 @@ class AccountListTitleWidget extends StatelessWidget {
     }
 
     return ListTile(
-        tileColor: tileColor,
         visualDensity: VisualDensity(horizontal: (0), vertical: (-4)),
         contentPadding: const EdgeInsets.symmetric(vertical: 0, horizontal: 10),
         onTap: onTap,
@@ -166,6 +155,40 @@ class AccountListTitleWidget extends StatelessWidget {
                     ))
             ],
           ),
+        ));
+  }
+}
+
+class AccountTypeIconContainer extends StatelessWidget {
+  final DoubleFactor imageSizeOf;
+  final AppColors colors;
+  final PublicAccount account;
+  final Widget icon;
+  const AccountTypeIconContainer(
+      {super.key,
+      required this.colors,
+      required this.imageSizeOf,
+      required this.icon,
+      required this.account});
+
+  @override
+  Widget build(BuildContext context) {
+    Color color;
+    if (account.walletColor == null) {
+      color = colors.secondaryColor;
+    } else if (account.walletColor?.value == 0x00000000) {
+      color = colors.secondaryColor;
+    } else {
+      color = account.walletColor!;
+    }
+
+    return Container(
+        width: imageSizeOf(40),
+        height: imageSizeOf(40),
+        decoration: BoxDecoration(
+            borderRadius: BorderRadius.circular(50), color: color),
+        child: Center(
+          child: icon,
         ));
   }
 }

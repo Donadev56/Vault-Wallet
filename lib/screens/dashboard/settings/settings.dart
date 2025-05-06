@@ -186,7 +186,7 @@ class _SettingsPageState extends ConsumerState<SettingsPage> {
         backgroundColor: colors.primaryColor,
         centerTitle: true,
         leading: IconButton(
-          icon: Icon(Icons.arrow_back, color: colors.textColor),
+          icon: Icon(Icons.chevron_left, color: colors.textColor),
           onPressed: () => Navigator.pop(context),
         ),
         title: Text(

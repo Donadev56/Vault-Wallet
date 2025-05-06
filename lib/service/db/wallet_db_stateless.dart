@@ -1,6 +1,8 @@
 import 'dart:convert';
 
 import 'package:moonwallet/logger/logger.dart';
+import 'package:moonwallet/notifiers/saved_crypto.dart';
+import 'package:moonwallet/service/db/crypto_storage_manager.dart';
 import 'package:moonwallet/service/db/wallet_db.dart';
 import 'package:moonwallet/service/db/wallet_db_keys.dart';
 import 'package:moonwallet/types/account_related_types.dart';
@@ -48,6 +50,10 @@ class WalletDbStateLess extends WalletDatabase {
           walletName: walletName,
           creationDate: date);
 
+      final cryptoListToSave = await getCompatibleCryptos(publicWallet);
+      if (cryptoListToSave.isEmpty) {
+        throw Exception("CryptoList is empty");
+      }
       List<dynamic> listPublicAccount = [];
       final publicAccountsResult =
           await getDynamicData(name: _keys.publicWalletKey);
@@ -59,6 +65,8 @@ class WalletDbStateLess extends WalletDatabase {
       await saveDynamicData(
           data: listPublicAccount, boxName: _keys.publicWalletKey);
       await _prefs.saveLastConnectedData(keyId);
+      await CryptoStorageManager()
+          .saveListCrypto(cryptos: cryptoListToSave, wallet: publicWallet);
       return publicWallet;
     } catch (e) {
       logError(e.toString());

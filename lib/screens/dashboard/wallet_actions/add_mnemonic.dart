@@ -21,6 +21,7 @@ import 'package:moonwallet/widgets/buttons/elevated_low_opacity_button.dart';
 import 'package:moonwallet/widgets/buttons/outlined.dart';
 import 'package:moonwallet/widgets/func/security/ask_password.dart';
 import 'package:moonwallet/widgets/func/snackbar.dart';
+import 'package:moonwallet/widgets/func/transactions/transactions_body/label_text.dart';
 import 'package:moonwallet/widgets/scanner/show_scanner.dart';
 import 'package:page_transition/page_transition.dart';
 
@@ -125,10 +126,6 @@ class _AddPrivateKeyState extends ConsumerState<AddMnemonicScreen> {
       });
       return null;
     }, [accountsAsync]);
-
-    double fontSizeOf(double size) {
-      return size * uiConfig.value.styles.fontSizeScaleFactor;
-    }
 
     double roundedOf(double size) {
       return size * uiConfig.value.styles.radiusScaleFactor;
@@ -252,6 +249,7 @@ class _AddPrivateKeyState extends ConsumerState<AddMnemonicScreen> {
         appBar: AppBar(
           backgroundColor: colors.primaryColor,
           automaticallyImplyLeading: false,
+          centerTitle: true,
           leading: IconButton(
               onPressed: () => Navigator.pop(context),
               icon: Icon(

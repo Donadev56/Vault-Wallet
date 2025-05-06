@@ -130,7 +130,7 @@ class _BackupTestScreenState extends ConsumerState<BackupTestScreen> {
         leading: IconButton(
             onPressed: () => Navigator.pop(context),
             icon: Icon(
-              Icons.arrow_back,
+              Icons.chevron_left,
               color: colors.textColor,
             )),
         backgroundColor: colors.primaryColor,

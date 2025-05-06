@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:moonwallet/service/vibration.dart';
 import 'package:moonwallet/types/types.dart';
 import 'package:moonwallet/widgets/custom_filled_text_field.dart';
 
@@ -103,7 +104,10 @@ class Header extends StatelessWidget {
           ),
         ),
         IconButton(
-            onPressed: () => Navigator.of(context).pop(),
+            onPressed: () {
+              vibrate();
+              Navigator.of(context).pop();
+            },
             icon: Icon(
               Icons.keyboard_arrow_down,
               size: 30,

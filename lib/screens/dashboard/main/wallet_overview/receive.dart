@@ -125,7 +125,7 @@ class _ReceiveScreenState extends ConsumerState<ReceiveScreen> {
         backgroundColor: colors.primaryColor,
         leading: IconButton(
           icon: Icon(
-            Icons.arrow_back,
+            Icons.chevron_left,
             color: colors.textColor,
           ),
           onPressed: () {

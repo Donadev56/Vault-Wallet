@@ -155,8 +155,8 @@ class CoinCustomListTitle extends StatelessWidget {
                 Text(
                     isCryptoHidden
                         ? "***"
-                        : "\$${NumberFormatter().formatDecimal(
-                              usdBalance,
+                        : "\$${NumberFormatter().formatValue(
+                             str: usdBalance,
                               maxDecimals: 2,
                             ).trim()}",
                     overflow: TextOverflow.ellipsis,

@@ -23,9 +23,9 @@ import 'package:moonwallet/widgets/buttons/elevated_low_opacity_button.dart';
 import 'package:moonwallet/widgets/buttons/outlined.dart';
 import 'package:moonwallet/widgets/func/security/ask_password.dart';
 import 'package:moonwallet/widgets/func/snackbar.dart';
+import 'package:moonwallet/widgets/func/transactions/transactions_body/label_text.dart';
 import 'package:moonwallet/widgets/scanner/show_scanner.dart';
 import 'package:page_transition/page_transition.dart';
-import 'package:web3dart/web3dart.dart';
 
 class AddPrivateKeyMain extends StatefulHookConsumerWidget {
   final TokenEcosystem ecosystem;
@@ -186,6 +186,7 @@ class _AddPrivateKeyState extends ConsumerState<AddPrivateKeyMain> {
     return Scaffold(
         backgroundColor: colors.primaryColor,
         appBar: AppBar(
+          centerTitle: true,
           automaticallyImplyLeading: false,
           backgroundColor: colors.primaryColor,
           leading: IconButton(
@@ -217,13 +218,26 @@ class _AddPrivateKeyState extends ConsumerState<AddPrivateKeyMain> {
                                 fontWeight: FontWeight.bold,
                               ),
                             ),
-                            Text(
-                              "Enter an EVM-compatible private key.",
-                              style: textTheme.bodySmall?.copyWith(
-                                  color: colors.textColor.withValues(
-                                alpha: 0.7,
-                              )),
-                            ),
+                            Text.rich(
+                              TextSpan(
+                                children: [
+                                  const TextSpan(text: "Enter a valid "),
+                                  TextSpan(
+                                    text: ecosystem.type
+                                        .toShortString()
+                                        .toUpperCase(),
+                                    style: const TextStyle(
+                                      fontWeight: FontWeight.bold,
+                                    ),
+                                  ),
+                                  const TextSpan(text: " private key."),
+                                ],
+                                style: textTheme.bodySmall?.copyWith(
+                                  color: colors.textColor
+                                      .withAlpha(179), // 0.7 alpha
+                                ),
+                              ),
+                            )
                           ],
                         )),
                   ),

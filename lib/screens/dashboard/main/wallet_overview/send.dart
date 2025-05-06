@@ -348,7 +348,7 @@ class _SendTransactionScreenState extends ConsumerState<SendTransactionScreen> {
                 Navigator.pop(context);
               },
               icon: Icon(
-                Icons.arrow_back,
+                Icons.chevron_left,
                 color: colors.textColor,
               )),
           title: AppBarTitle(title: "Send", colors: colors)),

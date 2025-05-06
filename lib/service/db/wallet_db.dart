@@ -4,10 +4,13 @@ import 'package:flutter/material.dart';
 import 'package:moonwallet/logger/logger.dart';
 
 import 'package:hive_ce/hive.dart';
+import 'package:moonwallet/notifiers/saved_crypto.dart';
 import 'package:moonwallet/service/address_manager.dart';
+import 'package:moonwallet/service/db/crypto_storage_manager.dart';
 
 import 'package:moonwallet/service/db/secure_storage.dart';
 import 'package:moonwallet/service/db/wallet_db_keys.dart';
+import 'package:moonwallet/service/external_data/crypto_request_manager.dart';
 import 'package:moonwallet/types/account_related_types.dart';
 import 'package:moonwallet/utils/encrypt_service.dart';
 import 'package:moonwallet/utils/prefs.dart';
@@ -18,6 +21,7 @@ class WalletDatabase {
   final _prefs = PublicDataManager();
   final _addressManager = AddressManager();
   final _keys = WalletKeys();
+  final cryptoRequestManager = CryptoRequestManager();
 
   Future<Box?> getBox() async {
     try {
@@ -129,6 +133,30 @@ class WalletDatabase {
     return data.map((e) => PublicAccount.fromJson(e)).toList();
   }
 
+  Future<List<Crypto>> getCompatibleCryptos(PublicAccount account) async {
+    try {
+      final listCrypto = await cryptoRequestManager.getAllCryptos();
+      List<Crypto> compatibleCrypto = [];
+      if (account.origin.isMnemonic) {
+        return listCrypto;
+      }
+
+      if (account.origin.isPrivateKey || account.origin.isPublicAddress) {
+        compatibleCrypto = listCrypto
+            .where((e) =>
+                e.getNetworkType == account.supportedNetworks.firstOrNull)
+            .toList();
+      }
+
+      return compatibleCrypto
+          .map((e) => e.isNative ? e.copyWith(canDisplay: true) : e)
+          .toList();
+    } catch (e) {
+      logError(e.toString());
+      return [];
+    }
+  }
+
   Future<PublicAccount?> savePrivateData(
       {required String password,
       required String walletName,
@@ -194,6 +222,11 @@ class WalletDatabase {
           DerivateKeys(derivateKey: derive.derivateKey, salt: derive.salt));
 
       _prefs.saveLastConnectedData(privateWallet.keyId);
+      if (publicWallet.origin.isPrivateKey) {
+        final listCrypto = await getCompatibleCryptos(publicWallet);
+        await CryptoStorageManager()
+            .saveListCrypto(cryptos: listCrypto, wallet: publicWallet);
+      }
       log("Saved successfully");
       return publicWallet;
     } catch (e) {

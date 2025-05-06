@@ -52,7 +52,7 @@ class _BackupSeedScreenState extends State<BackupSeedScreen> {
         leading: IconButton(
             onPressed: () => Navigator.pop(context),
             icon: Icon(
-              Icons.arrow_back,
+              Icons.chevron_left,
               color: colors.textColor,
             )),
         title: Text(

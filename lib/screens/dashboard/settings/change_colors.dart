@@ -91,7 +91,7 @@ class _ChangeThemeViewState extends State<ChangeThemeView> {
                       : Navigator.pop(context);
                 },
                 icon: Icon(
-                  Icons.arrow_back,
+                  Icons.chevron_left,
                   color: colors.textColor,
                 )),
             centerTitle: true,

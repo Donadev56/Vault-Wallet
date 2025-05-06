@@ -12,7 +12,6 @@ import 'package:flutter/gestures.dart';
 
 import 'package:flutter_inappwebview/flutter_inappwebview.dart';
 import 'package:moonwallet/logger/logger.dart';
-import 'package:moonwallet/types/account_related_types.dart';
 import 'package:moonwallet/types/types.dart';
 import 'package:uuid/uuid.dart';
 

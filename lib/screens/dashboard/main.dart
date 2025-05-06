@@ -663,7 +663,7 @@ class _MainDashboardScreenState extends ConsumerState<MainDashboardScreen>
                                                 colors.secondaryColor,
                                             child: Text(
                                               !uiConfig.value.isCryptoHidden
-                                                  ? "\$${NumberFormatter().formatDecimal(maxDecimals: 2, totalBalance.value)}"
+                                                  ? "\$${NumberFormatter().formatValue(maxDecimals: 2,str : totalBalance.value)}"
                                                   : "***",
                                               overflow: TextOverflow.clip,
                                               maxLines: 1,

@@ -115,7 +115,7 @@ class _CryptoTrendViewState extends State<CryptoTrendView> {
         leading: IconButton(
             onPressed: () => Navigator.pop(context),
             icon: Icon(
-              Icons.arrow_back,
+              Icons.chevron_left,
               color: colors.textColor.withValues(alpha: 0.7),
             )),
         centerTitle: true,

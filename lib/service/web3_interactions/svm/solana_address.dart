@@ -1,5 +1,3 @@
-import 'dart:typed_data';
-
 import 'package:bs58/bs58.dart';
 import 'package:ed25519_hd_key/ed25519_hd_key.dart';
 import 'package:moonwallet/logger/logger.dart';
@@ -20,9 +18,9 @@ class SolanaAddress {
 
   Future<Ed25519HDKeyPair?> getKeyPairByPrivateKey(String privateKey) async {
     try {
-      final Uint8List keyBytes = Uint8List.fromList(base58.decode(privateKey));
-      final keyPair =
-          await Ed25519HDKeyPair.fromPrivateKeyBytes(privateKey: keyBytes);
+      final decodedPrivateKey = base58.decode(privateKey).sublist(0, 32);
+      final keyPair = await Ed25519HDKeyPair.fromPrivateKeyBytes(
+          privateKey: decodedPrivateKey);
       return keyPair;
     } catch (e) {
       logError(e.toString());

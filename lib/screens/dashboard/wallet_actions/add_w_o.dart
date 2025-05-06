@@ -22,6 +22,7 @@ import 'package:moonwallet/widgets/buttons/elevated_low_opacity_button.dart';
 import 'package:moonwallet/widgets/buttons/outlined.dart';
 import 'package:moonwallet/widgets/func/security/ask_password.dart';
 import 'package:moonwallet/widgets/func/snackbar.dart';
+import 'package:moonwallet/widgets/func/transactions/transactions_body/label_text.dart';
 import 'package:moonwallet/widgets/scanner/show_scanner.dart';
 import 'package:page_transition/page_transition.dart';
 
@@ -120,10 +121,6 @@ class _AddPrivateKeyState extends ConsumerState<AddObservationWallet> {
       return null;
     }, [appUIConfigAsync]);
 
-    double fontSizeOf(double size) {
-      return size * uiConfig.value.styles.fontSizeScaleFactor;
-    }
-
     Future<void> saveData() async {
       try {
         final bool testResult = keyTester(_textController.text);
@@ -185,6 +182,7 @@ class _AddPrivateKeyState extends ConsumerState<AddObservationWallet> {
         backgroundColor: colors.primaryColor,
         appBar: AppBar(
           automaticallyImplyLeading: false,
+          centerTitle: true,
           backgroundColor: colors.primaryColor,
           leading: IconButton(
               onPressed: () => Navigator.pop(context),
@@ -215,13 +213,26 @@ class _AddPrivateKeyState extends ConsumerState<AddObservationWallet> {
                                 fontWeight: FontWeight.bold,
                               ),
                             ),
-                            Text(
-                              "Enter a valid ${ecosystem.type.toShortString()} address.",
-                              style: textTheme.bodySmall?.copyWith(
-                                  color: colors.textColor.withValues(
-                                alpha: 0.7,
-                              )),
-                            ),
+                            Text.rich(
+                              TextSpan(
+                                children: [
+                                  const TextSpan(text: "Enter a valid "),
+                                  TextSpan(
+                                    text: ecosystem.type
+                                        .toShortString()
+                                        .toUpperCase(),
+                                    style: const TextStyle(
+                                      fontWeight: FontWeight.bold,
+                                    ),
+                                  ),
+                                  const TextSpan(text: " address."),
+                                ],
+                                style: textTheme.bodySmall?.copyWith(
+                                  color: colors.textColor
+                                      .withAlpha(179), // 0.7 alpha
+                                ),
+                              ),
+                            )
                           ],
                         )),
                   ),
@@ -335,8 +346,8 @@ class _AddPrivateKeyState extends ConsumerState<AddObservationWallet> {
                   ),
                   colors: colors,
                   onPressed: () async {
-                    if (!(await keyTester(_textController.text.trim()))) {
-                      notifyError("Invalid Private Key");
+                    if (!(keyTester(_textController.text.trim()))) {
+                      notifyError("Invalid Address");
                       return;
                     }
                     if (_formKey.currentState?.validate() ?? false) {

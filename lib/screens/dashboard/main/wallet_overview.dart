@@ -359,7 +359,7 @@ class _WalletViewScreenState extends ConsumerState<WalletViewScreen>
                 Navigator.pop(context);
               },
               icon: Icon(
-                Icons.arrow_back,
+                Icons.chevron_left,
                 color: colors.textColor,
               )),
           title: AppBarTitle(title: currentCrypto!.symbol, colors: colors),

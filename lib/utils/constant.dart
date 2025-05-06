@@ -2,12 +2,9 @@ import 'dart:typed_data';
 
 import 'package:flutter/material.dart';
 import 'package:flutter_feather_icons/flutter_feather_icons.dart';
-import 'package:jazzicon/jazzicon.dart';
 import 'package:lucide_icons_flutter/lucide_icons.dart';
 import 'package:moonwallet/screens/auth/home.dart';
-import 'package:moonwallet/types/account_related_types.dart';
 import 'package:moonwallet/types/types.dart';
-import 'package:moonwallet/widgets/screen_widgets/coin_custom_listTitle.dart';
 
 final List<Map<String, dynamic>> browserModalOptions = [
   {"name": 'Refresh', "icon": LucideIcons.refreshCcw},

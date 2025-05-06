@@ -218,14 +218,14 @@ Future<TokenEcosystem?> showSelectEcoSystem(
                                           text: TextSpan(
                                             style:
                                                 textTheme.bodyMedium?.copyWith(
-                                              fontSize: fontSizeOf(14),
+                                              fontSize: fontSizeOf(12),
                                               color: colors.textColor
                                                   .withValues(alpha: 0.8),
                                             ),
                                             children: [
                                               TextSpan(
                                                   text:
-                                                      "${ecosystem.name} and ${ecosystemNetworks.length} "),
+                                                      "${ecosystem.name} and ${ecosystemNetworks.length -1} "),
                                               TextSpan(
                                                 text: "other Chains",
                                                 style: TextStyle(
