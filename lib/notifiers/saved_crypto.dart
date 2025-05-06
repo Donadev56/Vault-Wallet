@@ -56,7 +56,6 @@ class SavedCryptoProvider extends AsyncNotifier<List<Crypto>> {
         await saveListCrypto(listCrypto, account);
         return compatibleCryptos(account, listCrypto);
       }
-      checkCryptoUpdate(account: account);
       return [];
     } catch (e) {
       logError(e.toString());
@@ -77,55 +76,6 @@ class SavedCryptoProvider extends AsyncNotifier<List<Crypto>> {
           .toList();
     }
     return [];
-  }
-
-  Future<void> checkCryptoUpdate({required PublicAccount account}) async {
-    try {
-      final List<Crypto> standardCrypto =
-          await CryptoRequestManager().getAllCryptos();
-      if (standardCrypto.isEmpty) {
-        return;
-      }
-      final savedCryptos = await cryptoStorage.getSavedCryptos(wallet: account);
-      List<Crypto> newCryptos = [];
-      List<Crypto> cryptoToSave = savedCryptos ?? [];
-
-      if (savedCryptos != null && savedCryptos.isNotEmpty) {
-        // Prepare quick lookup sets for faster comparison
-        final nativeChainIds = <int>{};
-        final contractAddresses = <String>{};
-
-        for (final crypto in savedCryptos) {
-          if (crypto.isNative && crypto.chainId != null) {
-            nativeChainIds.add(crypto.chainId!);
-          } else if (crypto.contractAddress != null) {
-            contractAddresses.add(crypto.contractAddress!.trim().toLowerCase());
-          }
-        }
-
-        for (final crypto in standardCrypto) {
-          if (crypto.isNative) {
-            if (crypto.chainId != null &&
-                !nativeChainIds.contains(crypto.chainId)) {
-              newCryptos.add(crypto);
-            }
-          } else {
-            final address = crypto.contractAddress?.trim().toLowerCase();
-            if (address != null && !contractAddresses.contains(address)) {
-              newCryptos.add(crypto);
-            }
-          }
-        }
-      }
-
-      if (newCryptos.isNotEmpty) {
-        log("Found ${newCryptos.length} new Crypto");
-        cryptoToSave.addAll(newCryptos);
-        await saveListCrypto(cryptoToSave, account);
-      }
-    } catch (e) {
-      logError(e.toString());
-    }
   }
 
   Future<bool> saveListCrypto(

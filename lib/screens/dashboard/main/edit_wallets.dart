@@ -251,6 +251,7 @@ class _EditWalletsViewState extends ConsumerState<EditWalletsView> {
             fontSize: fontSizeOf(20),
           ),
         ),
+     
         backgroundColor: colors.primaryColor,
         surfaceTintColor: colors.primaryColor,
       ),
@@ -320,14 +321,25 @@ class _EditWalletsViewState extends ConsumerState<EditWalletsView> {
                             child: ReorderableListView.builder(
                                 proxyDecorator: (child, index, animation) {
                                   return AnimatedContainer(
+                                    decoration: BoxDecoration(
+                                      boxShadow: [
+                                        BoxShadow(
+                                          color: colors.grayColor
+                                              .withValues(alpha: 0.5),
+                                          spreadRadius: 5,
+                                          blurRadius: 7,
+                                          offset: Offset(0,
+                                              3), // changes position of shadow
+                                        ),
+                                      ],
+                                    ),
                                     duration: Duration(seconds: 1),
                                     child: Transform.scale(
                                       scale: 1.1,
                                       child: Material(
                                         shadowColor: Colors.transparent,
                                         elevation: 0,
-                                        color: colors.grayColor
-                                            .withValues(alpha: 0.4),
+                                        color: colors.primaryColor,
                                         child: child,
                                       ),
                                     ),
@@ -349,7 +361,7 @@ class _EditWalletsViewState extends ConsumerState<EditWalletsView> {
                                           color: Colors.transparent,
                                           child: Padding(
                                             padding: EdgeInsets.symmetric(
-                                                vertical: 4, horizontal: 20),
+                                                vertical: 6, horizontal: 20),
                                             child: AccountListTitleWidget(
                                                 imageSizeOf: imageSizeOf,
                                                 iconSizeOf: iconSizeOf,

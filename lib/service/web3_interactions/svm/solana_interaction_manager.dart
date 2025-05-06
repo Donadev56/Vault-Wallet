@@ -1,118 +1,92 @@
+
 import 'package:decimal/decimal.dart';
 import 'package:flutter/widgets.dart';
+import 'package:moonwallet/custom/solana/src/solana.dart';
 import 'package:moonwallet/custom/web3_webview/lib/utils/loading.dart';
 import 'package:moonwallet/logger/logger.dart';
 import 'package:moonwallet/service/db/balance_database.dart';
 import 'package:moonwallet/service/db/wallet_db_stateless.dart';
 import 'package:moonwallet/service/internet_manager.dart';
 import 'package:moonwallet/service/web3_interactions/svm/solana_address.dart';
-import 'package:moonwallet/types/account_related_types.dart';
-import 'package:moonwallet/types/types.dart';
+import 'package:moonwallet/types/account_related_types.dart' as types;
+import 'package:moonwallet/types/types.dart' ;
+import 'package:moonwallet/widgets/func/account_related/show_watch_only_warning.dart';
 import 'package:moonwallet/widgets/func/security/ask_derivate_key.dart';
 import 'package:moonwallet/widgets/func/transactions/svm/ask_user_svm.dart';
-import 'package:solana/dto.dart' as dto;
 import 'package:solana/encoder.dart';
 import 'package:solana/solana.dart';
 
 class SolanaInteractionManager {
   RpcClient get _rpcClient => RpcClient("https://api.mainnet-beta.solana.com");
+  final solana = Solana();
   final internet = InternetManager();
   final walletDb = WalletDbStateLess();
   final solAddress = SolanaAddress();
 
-  Future<String?> getBalanceToken(PublicAccount account, Crypto crypto) async {
-    final db = BalanceDatabase(account: account, crypto: crypto);
-    final solAddress = account.svmAddress;
+  Future<String> getBalanceToken(types.PublicAccount account, types.Crypto crypto) async {
+  try {
     final tokenAddress = crypto.contractAddress;
-    try {
-      final savedBalance = db.getBalance();
+    final ownerAddress = account.svmAddress;
 
-      if (solAddress == null) {
-        throw "Invalid address";
-      }
-      if (tokenAddress == null) {
-        throw "Invalid Token address";
-      }
-      if (!this.solAddress.isAddressValid(solAddress)) {
-        throw "Invalid key format";
-      }
-
-      if (!this.solAddress.isAddressValid(tokenAddress)) {
-        throw "Invalid Token key $tokenAddress format";
-      }
-
-      if (!(await internet.isConnected())) {
-        return await savedBalance;
-      }
-
-      log("The address $tokenAddress is valid");
-      final accounts = await _rpcClient.getTokenAccountsByOwner(
-        solAddress,
-        dto.TokenAccountsFilter.byMint(tokenAddress),
-      );
-
-      log("Accounts $tokenAddress ${accounts.toJson()}");
-
-      if (accounts.value.isEmpty) {
-        throw "No token accounts found ";
-      }
-
-      final tokenAccountPubKey = accounts.value.first;
-      final balanceResult =
-          await _rpcClient.getTokenAccountBalance(tokenAccountPubKey.pubkey);
-      final balanceUi = balanceResult.value.uiAmountString;
-      await db.saveData(balanceUi ?? "0");
-      return balanceUi;
-    } catch (e) {
-      logError(
-          'An error occurred while getting balance of $solAddress using $tokenAddress token address\n Error : $e');
+    if (tokenAddress == null) {
+      throw Exception("Invalid account");
     }
 
-    return await db.getBalance();
+    if (ownerAddress == null) {
+      throw Exception('Invalid account : user address is null');
+    }
+
+    final balance =  await solana.getTokenBalance(
+      address: ownerAddress,
+      tokenAddress: tokenAddress,
+    );
+
+      log("Balance of ${crypto.symbol} $balance");
+
+      return balance is String ? balance : balance.toString() ;
+    
+  } catch (e) {
+    logError(e.toString());
+    rethrow ;
+    
+  }
   }
 
-  Future<String?> getUserBalance(PublicAccount account, Crypto crypto) async {
-    final db = BalanceDatabase(account: account, crypto: crypto);
-
-    try {
+  Future<String> getBalance(types.PublicAccount account,types. Crypto crypto) async {
       final db = BalanceDatabase(account: account, crypto: crypto);
-      final address = account.svmAddress;
       final savedBalance = db.getBalance();
+    try {
+      String balance = "0";
+    
 
-      if (!(await internet.isConnected())) {
+     if (!(await internet.isConnected())) {
         return await savedBalance;
       }
 
-      if (address == null) {
-        throw "No solana address found";
-      }
-      final balance = await _rpcClient.getBalance(address);
-      await db.saveData(balance.value.toString());
-
-      log("User balance: $balance");
-      return balance.value.toString();
-    } catch (e) {
-      logError(e.toString());
-      return await db.getBalance();
-    }
-  }
-
-  Future<String?> getBalance(PublicAccount account, Crypto crypto) async {
-    try {
       if (crypto.isNative) {
-        return await getUserBalance(account, crypto);
+        balance = await getSolBalance(account, crypto);
+      } else {
+         balance = await getBalanceToken(account, crypto);
+
       }
 
-      return await getBalanceToken(account, crypto);
+      await db.saveData(balance);
+      return balance ;
     } catch (e) {
       logError(e.toString());
-      return null;
+     
     }
+
+    return await savedBalance;
   }
 
   Future<String?> sendTransaction(
       BasicTransactionData data, AppColors colors, BuildContext context) async {
     try {
+      if (data.account.isWatchOnly) {
+        showWatchOnlyWaring(colors: colors, context: context);
+        throw Exception("Watch only account can't send transactions");
+      }
       final String to = data.addressTo;
       final String from = data.account.svmAddress ?? "";
       final String amount = data.amount;
@@ -136,19 +110,24 @@ class SolanaInteractionManager {
 
       final deriveKey = await askDerivateKey(context: context, colors: colors);
       if (deriveKey == null) {
-        throw InvalidPasswordException();
+        throw types.InvalidPasswordException();
       }
       final privateAccount = await walletDb.getPrivateAccountUsingKey(
           deriveKey: deriveKey, account: data.account);
-      final mnemonic = privateAccount?.keyOrigin;
+      final accountKey = privateAccount?.keyOrigin;
 
-      if (mnemonic == null) {
+      if (accountKey == null) {
         throw "Invalid Wallet";
       }
+      Ed25519HDKeyPair? wallet ;
+      if (data.account.origin.isPrivateKey) {
+        wallet = await solAddress.getKeyPairByPrivateKey(accountKey);
+      } else {
+        wallet = await solAddress.getKeyPair(accountKey);
+      }
 
-      final wallet = await solAddress.getKeyPair(mnemonic);
       if (wallet == null) {
-        throw "Invalid Key Pair";
+        throw Exception( "Invalid Account Data");
       }
 
       final instructions = <Instruction>[];
@@ -178,6 +157,25 @@ class SolanaInteractionManager {
     } catch (e) {
       logError(e.toString());
       rethrow;
+    }
+  }
+
+  Future<String> getSolBalance (types.PublicAccount account,types. Crypto crypto) async {
+    try {
+   
+      final ownerAddress = account.svmAddress;
+      if (ownerAddress == null) {
+        throw Exception("Invalid account");
+      }
+
+      final solBalance = await solana.getBalance(address: ownerAddress);
+      log("Solana balance $solBalance");
+      return solBalance.toString();
+      
+    } catch (e) {
+      logError(e.toString());
+      rethrow ;
+      
     }
   }
   /*

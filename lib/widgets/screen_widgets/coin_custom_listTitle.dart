@@ -91,9 +91,9 @@ class CoinCustomListTitle extends StatelessWidget {
                       color: colors.textColor)),
               Container(
                 padding:
-                    const EdgeInsets.symmetric(horizontal: 10, vertical: 2),
+                    const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
                 decoration: BoxDecoration(
-                    color: colors.secondaryColor,
+                    color: colors.secondaryColor.withValues(alpha: 0.5),
                     borderRadius: BorderRadius.circular(20)),
                 child: Text(
                     !crypto.isNative ? "${crypto.network?.name}" : crypto.name,
@@ -156,7 +156,7 @@ class CoinCustomListTitle extends StatelessWidget {
                     isCryptoHidden
                         ? "***"
                         : "\$${NumberFormatter().formatValue(
-                             str: usdBalance,
+                              str: usdBalance,
                               maxDecimals: 2,
                             ).trim()}",
                     overflow: TextOverflow.ellipsis,

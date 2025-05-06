@@ -266,10 +266,13 @@ class _AddCryptoViewState extends ConsumerState<AddCryptoView> {
 
     List<Crypto> getCryptoList() {
       final listTokens = allCryptos.value
-          .where((c) => c.symbol
-              .toLowerCase()
-              .contains(_searchController.text.toLowerCase()) ||
-              c.name.toLowerCase().contains(_searchController.text.toLowerCase()))
+          .where((c) =>
+              c.symbol
+                  .toLowerCase()
+                  .contains(_searchController.text.toLowerCase()) ||
+              c.name
+                  .toLowerCase()
+                  .contains(_searchController.text.toLowerCase()))
           .toList();
 
       final account = currentAccount;
@@ -279,14 +282,12 @@ class _AddCryptoViewState extends ConsumerState<AddCryptoView> {
 
       if (account.origin.isPrivateKey || account.origin.isPublicAddress) {
         return listTokens
-            .where((c) =>
-                account.supportedNetworks.contains(c.getNetworkType))
+            .where((c) => account.supportedNetworks.contains(c.getNetworkType))
             .toList();
       }
 
       return listTokens;
     }
-
 
     return Scaffold(
       backgroundColor: colors.primaryColor,

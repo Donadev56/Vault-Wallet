@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:lucide_icons_flutter/lucide_icons.dart';
 import 'package:modal_bottom_sheet/modal_bottom_sheet.dart';
 import 'package:moonwallet/types/account_related_types.dart';
 import 'package:moonwallet/types/ecosystem_config.dart';
@@ -9,6 +8,7 @@ import 'package:moonwallet/widgets/dialogs/search_modal_header.dart';
 import 'package:moonwallet/widgets/dialogs/standard_container.dart';
 import 'package:moonwallet/widgets/func/tokens_config/show_token_detials.dart';
 import 'package:moonwallet/widgets/screen_widgets/crypto_picture.dart';
+import 'package:moonwallet/widgets/standard_network_image.dart';
 
 Future<TokenEcosystem?> showSelectEcoSystem(
     {required BuildContext context,
@@ -72,15 +72,7 @@ Future<TokenEcosystem?> showSelectEcoSystem(
                           return ListTile(
                             shape: RoundedRectangleBorder(
                                 borderRadius: BorderRadius.circular(10)),
-                            leading: ClipRRect(
-                              borderRadius: BorderRadius.circular(50),
-                              child: Image.network(
-                                ecosystem.iconUrl,
-                                width: 40,
-                                height: 40,
-                                fit: BoxFit.cover,
-                              ),
-                            ),
+                            leading:  StandardNetworkImage(colors: colors, imageUrl: ecosystem.iconUrl),
                             title: Text(ecosystem.name,
                                 style: textTheme.bodyMedium
                                     ?.copyWith(color: colors.textColor)),
@@ -225,7 +217,7 @@ Future<TokenEcosystem?> showSelectEcoSystem(
                                             children: [
                                               TextSpan(
                                                   text:
-                                                      "${ecosystem.name} and ${ecosystemNetworks.length -1} "),
+                                                      "${ecosystem.name} and ${ecosystemNetworks.length - 1} "),
                                               TextSpan(
                                                 text: "other Chains",
                                                 style: TextStyle(
@@ -243,10 +235,6 @@ Future<TokenEcosystem?> showSelectEcoSystem(
                             onTap: () {
                               Navigator.pop(context, ecosystem);
                             },
-                            trailing: Icon(
-                              LucideIcons.chevronRight,
-                              color: colors.textColor,
-                            ),
                           );
                         },
                       ),
@@ -259,3 +247,4 @@ Future<TokenEcosystem?> showSelectEcoSystem(
 
   return response;
 }
+

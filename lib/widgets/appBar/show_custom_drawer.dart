@@ -213,7 +213,7 @@ void showCustomDrawer({
                               children: [
                                 Text(
                                   !isHidden
-                                      ? "\$${(NumberFormatter().formatDecimal(totalBalanceUsd, maxDecimals: 2))}"
+                                      ? "\$${(NumberFormatter().formatValue(str: totalBalanceUsd, maxDecimals: 2))}"
                                       : "***",
                                   style: textTheme.bodySmall?.copyWith(
                                       color: colors.textColor,

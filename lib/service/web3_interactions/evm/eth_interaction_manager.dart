@@ -148,7 +148,7 @@ class EthInteractionManager {
           credentials,
           transaction,
           chainId: chainId,
-        );
+        ).withLoading(context, colors,  "Sending...");
         if (hash.isNotEmpty) {
           showCustomSnackBar(
               type: MessageType.success,
@@ -434,7 +434,7 @@ class EthInteractionManager {
               chainId: crypto.chainId ?? 1,
               rpcUrl: crypto.rpcUrls?.firstOrNull ?? "",
               account: data.account)
-          .withLoading(context, colors);
+         ;
 
       return result;
     } catch (e) {

@@ -123,6 +123,7 @@ dependencies:
   cross_file: ^0.3.3
   ed25519_hd_key: ^2.3.0
   cryptography: ^2.7.0
+  solana_utils: ^0.0.1
 
 
 

@@ -3,6 +3,7 @@ import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:lucide_icons_flutter/lucide_icons.dart';
 import 'package:moonwallet/custom/web3_webview/lib/web3_webview.dart';
+import 'package:moonwallet/types/ecosystem_config.dart';
 import 'package:moonwallet/types/types.dart';
 
 enum NetworkType { evm, svm }
@@ -80,6 +81,14 @@ class PublicAccount {
   String get evmAddress => addresses
       .firstWhere((address) => address.type == NetworkType.evm)
       .address;
+      
+   TokenEcosystem? getEcosystem ()  {
+    if (origin.isMnemonic) {
+      return null ;
+    }
+
+    return ecosystemInfo[supportedNetworks.first];
+  }
 
   String? get svmAddress => addresses
       .where((address) => address.type == NetworkType.svm)

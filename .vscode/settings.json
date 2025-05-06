@@ -2,6 +2,7 @@
     "cSpell.words": [
         "BNBUSDT",
         "Buildcontext",
+        "Devnet",
         "encrypter",
         "Jazzicon",
         "Keypair",
@@ -15,7 +16,8 @@
         "Solana",
         "UKDSYXSDA",
         "USDCUSDT",
-        "webp"
+        "webp",
+        "WEBRPC"
     ],
     "cmake.sourceDirectory": "/Users/macbook/Documents/moon_wallet/moonwallet/linux"
 }

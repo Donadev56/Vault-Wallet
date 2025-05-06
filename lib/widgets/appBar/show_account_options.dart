@@ -53,6 +53,7 @@ void showAccountOptions({
               return Material(
                   color: Colors.transparent,
                   child: ListTile(
+                      visualDensity: VisualDensity.compact,
                       tileColor: isLast
                           ? colors.redColor.withOpacity(0.1)
                           : Colors.transparent,
@@ -66,7 +67,7 @@ void showAccountOptions({
                       title: Text(
                         opt["name"] ?? "",
                         style: textTheme.bodyMedium?.copyWith(
-                          fontSize: fontSizeOf(16),
+                          fontSize: fontSizeOf(14),
                           color: isLast
                               ? colors.redColor
                               : colors.textColor.withOpacity(0.8),

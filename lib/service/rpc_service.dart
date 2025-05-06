@@ -1,4 +1,3 @@
-import 'package:decimal/decimal.dart';
 import 'package:flutter/material.dart';
 import 'package:moonwallet/logger/logger.dart';
 import 'package:moonwallet/service/web3_interactions/evm/eth_interaction_manager.dart';
@@ -22,11 +21,8 @@ class RpcService {
 
         case NetworkType.svm:
           final balance = await _solanaClient.getBalance(account, crypto);
-          final balanceDecimal = ((Decimal.parse(balance ?? "0") /
-                  Decimal.fromInt(10).pow(9).toDecimal()))
-              .toDecimal()
-              .toString();
-          return balanceDecimal;
+         
+          return balance ;
       }
     } catch (e) {
       logError(e.toString());

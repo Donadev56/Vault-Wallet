@@ -1,6 +1,7 @@
 // ignore_for_file: deprecated_member_use
 
 import 'package:flutter/material.dart';
+import 'package:lucide_icons_flutter/lucide_icons.dart';
 
 import 'package:moonwallet/types/account_related_types.dart';
 import 'package:moonwallet/types/types.dart';
@@ -52,7 +53,9 @@ class AccountListTitleWidget extends StatelessWidget {
           colors: colors,
           imageSizeOf: imageSizeOf,
           icon: Icon(
-            Icons.wallet,
+                          size: 20,
+
+            Icons.phone_iphone_outlined,
             color: colors.textColor.withValues(alpha: 0.8),
           ));
     } else {
@@ -71,7 +74,8 @@ class AccountListTitleWidget extends StatelessWidget {
             colors: colors,
             imageSizeOf: imageSizeOf,
             icon: Icon(
-              wallet.origin.isPrivateKey ? Icons.key : Icons.remove_red_eye,
+              size: 20,
+              wallet.origin.isPrivateKey ? Icons.vpn_key_outlined : LucideIcons.binoculars,
               color: colors.textColor.withValues(alpha: 0.8),
             ));
       } else {

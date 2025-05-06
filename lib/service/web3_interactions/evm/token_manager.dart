@@ -1,6 +1,5 @@
 import 'package:decimal/decimal.dart';
 import 'package:flutter/material.dart';
-import 'package:moonwallet/custom/web3_webview/lib/utils/loading.dart';
 import 'package:moonwallet/logger/logger.dart';
 import 'package:moonwallet/service/external_data/price_manager.dart';
 import 'package:moonwallet/service/web3_interactions/evm/eth_interaction_manager.dart';
@@ -298,7 +297,7 @@ class TokenManager {
               chainId: network.chainId ?? 1,
               rpcUrl: network.rpcUrls?.firstOrNull ?? "",
               account: data.account)
-          .withLoading(context, colors);
+         ;
 
       return result;
     } catch (e) {
