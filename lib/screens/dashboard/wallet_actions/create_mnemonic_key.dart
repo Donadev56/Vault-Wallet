@@ -16,7 +16,6 @@ import 'package:moonwallet/widgets/bottom_pin.dart';
 import 'package:moonwallet/widgets/buttons/elevated_low_opacity_button.dart';
 import 'package:moonwallet/widgets/func/security/ask_password.dart';
 import 'package:moonwallet/widgets/func/snackbar.dart';
-import 'package:moonwallet/widgets/func/transactions/transactions_body/label_text.dart';
 import 'package:page_transition/page_transition.dart';
 
 class CreateMnemonicMain extends StatefulHookConsumerWidget {

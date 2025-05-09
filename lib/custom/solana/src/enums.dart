@@ -1,3 +1,3 @@
 /// Network Extension
 /// ------------------------------------------------------------------------------------------------
-enum NetworkType { Devnet, Mainnet }
+enum SolNetworkType { Devnet, Mainnet }

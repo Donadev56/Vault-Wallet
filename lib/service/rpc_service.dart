@@ -21,8 +21,8 @@ class RpcService {
 
         case NetworkType.svm:
           final balance = await _solanaClient.getBalance(account, crypto);
-         
-          return balance ;
+
+          return balance;
       }
     } catch (e) {
       logError(e.toString());
@@ -59,10 +59,9 @@ class RpcService {
       final networkType = transactionData.crypto.getNetworkType;
       switch (networkType) {
         case NetworkType.evm:
-          return _ethClient.transferHandler(transactionData, colors, context);
+          return _ethClient.handleTransfer(transactionData, colors, context);
         case NetworkType.svm:
-          return _solanaClient.sendTransaction(
-              transactionData, colors, context);
+          return _solanaClient.handleTransfer(transactionData, colors, context);
       }
     } catch (e) {
       logError(e.toString());

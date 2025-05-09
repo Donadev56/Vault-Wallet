@@ -1,17 +1,12 @@
 // ignore_for_file: deprecated_member_use
 
-import 'dart:ui';
 import 'package:decimal/decimal.dart';
 import 'package:flutter/rendering.dart';
-import 'package:flutter/services.dart';
-// ignore: depend_on_referenced_packages
-
 import 'package:flutter/material.dart';
 import 'package:flutter_hooks/flutter_hooks.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:internet_connection_checker_plus/internet_connection_checker_plus.dart';
 import 'package:loading_animation_widget/loading_animation_widget.dart';
-import 'package:moonwallet/custom/candlesticks/lib/candlesticks.dart';
 import 'package:moonwallet/custom/refresh/check_mark.dart';
 import 'package:moonwallet/logger/logger.dart';
 import 'package:moonwallet/notifiers/providers.dart';
@@ -19,12 +14,12 @@ import 'package:moonwallet/screens/dashboard/main/wallet_overview/receive.dart';
 import 'package:moonwallet/screens/dashboard/main/wallet_overview/send.dart';
 import 'package:moonwallet/service/external_data/crypto_request_manager.dart';
 import 'package:moonwallet/service/db/crypto_storage_manager.dart';
+import 'package:moonwallet/service/external_data/transaction_manager.dart';
 import 'package:moonwallet/service/rpc_service.dart';
 import 'package:moonwallet/types/account_related_types.dart';
+import 'package:moonwallet/types/transaction.dart';
 import 'package:moonwallet/utils/number_formatter.dart';
 import 'package:moonwallet/service/external_data/price_manager.dart';
-import 'package:moonwallet/service/web3_interactions/evm/transaction_request_manager.dart';
-import 'package:moonwallet/service/external_data/transactions.dart';
 import 'package:moonwallet/types/types.dart';
 import 'package:moonwallet/utils/colors.dart';
 import 'package:moonwallet/utils/encrypt_service.dart';
@@ -49,7 +44,6 @@ class WalletViewScreen extends StatefulHookConsumerWidget {
 class _WalletViewScreenState extends ConsumerState<WalletViewScreen>
     with SingleTickerProviderStateMixin {
   late TabController _tabController;
-  List<EsTransaction> transactions = [];
   late InternetConnection internetChecker;
   final formatter = NumberFormatter();
   late PublicAccount currentAccount;
@@ -66,17 +60,13 @@ class _WalletViewScreenState extends ConsumerState<WalletViewScreen>
   final cryptoStorageManager = CryptoStorageManager();
   final ScrollController _scrollController = ScrollController();
 
-  List<Candle> cryptoData = [];
-
-  Crypto? currentCrypto;
-
-  String userLastBalance = "0";
+  late Crypto currentCrypto;
 
   String tokenBalance = "0";
   String totalBalanceUsd = "0";
 
   bool isBalanceLoading = true;
-  bool isTransactionLoading = true;
+  double cryptoPrice = 0;
 
   AppColors colors = AppColors.defaultTheme;
   Themes themes = Themes();
@@ -99,102 +89,12 @@ class _WalletViewScreenState extends ConsumerState<WalletViewScreen>
     }
   }
 
-  Future<double> getPrice(String symbol) async {
-    try {
-      if (symbol.isEmpty) return 0;
-      final result = await priceManager.getTokenMarketData(symbol);
-      return result?.currentPrice ?? 0;
-    } catch (e) {
-      logError(e.toString());
-      return 0;
-    }
-  }
-
-  Future<void> getTokenBalance(
-      {required PublicAccount account, required Crypto crypto}) async {
-    try {
-      final ethBalance = await rpcService.getBalance(crypto, account);
-      final price = await getPrice(crypto.cgSymbol ?? "");
-      if (!mounted) return;
-      if ((await internetChecker.internetStatus
-          .then((st) => st == InternetStatus.disconnected))) {
-        throw ("Not connected to the internet");
-      }
-      setState(() {
-        tokenBalance = ethBalance;
-        totalBalanceUsd =
-            (Decimal.parse(ethBalance) * Decimal.parse(price.toString()))
-                .toString();
-        isBalanceLoading = false;
-        log("balance $tokenBalance");
-      });
-    } catch (e) {
-      logError(e.toString());
-      isBalanceLoading = false;
-    }
-  }
-
-  Future<void> fetchTransactions() async {
-    if (currentCrypto == null) {
-      log("Current crypto not found");
-      return;
-    }
-    try {
-      if (currentAccount.keyId.isEmpty || currentCrypto!.cryptoId.isEmpty) {
-        logError("Function called before init");
-        return;
-      }
-      final storage = TransactionStorage(
-          cryptoId: currentCrypto!.cryptoId, accountKey: currentAccount.keyId);
-      final savedTransactions = await storage.getTransactions();
-      log("Saved transactions:${savedTransactions.length} ");
-
-      if (savedTransactions.isNotEmpty) {
-        if (!mounted) return;
-        setState(() {
-          transactions = savedTransactions;
-          isTransactionLoading = false;
-        });
-      }
-
-      if ((await internetChecker.internetStatus
-          .then((st) => st == InternetStatus.disconnected))) {
-        throw ("Not connected to the internet");
-      }
-
-      final userTransactions = await TransactionRequestManager()
-          .getAllTransactions(
-              crypto: currentCrypto!,
-              address: currentAccount.addressByToken(currentCrypto!));
-
-      if (userTransactions.isNotEmpty) {
-        userTransactions.sort((a, b) => b.timeStamp.compareTo(a.timeStamp));
-        if (!mounted) return;
-
-        setState(() {
-          transactions = userTransactions;
-          isTransactionLoading = false;
-        });
-        log("User transactions ${userTransactions.firstOrNull?.toJson()}");
-        await storage.patchTransactions(userTransactions);
-      }
-    } catch (e) {
-      logError('Error getting transactions: $e');
-      isTransactionLoading = false;
-    } finally {
-      setState(() {
-        isTransactionLoading = false;
-      });
-    }
-  }
-
   @override
   void initState() {
     super.initState();
 
     getSavedTheme();
     reorganizeCrypto();
-    internetChecker = InternetConnection();
     _tabController = TabController(length: 3, vsync: this);
     _scrollController.addListener(_onScroll);
     init();
@@ -218,29 +118,17 @@ class _WalletViewScreenState extends ConsumerState<WalletViewScreen>
         totalBalanceUsd = widget.initData.initialBalanceUsd ?? "0";
         isBalanceLoading = false;
       }
-      if (widget.initData.initialBalanceCrypto != null) {
-        tokenBalance = widget.initData.initialBalanceCrypto ?? "0";
-      }
+      cryptoPrice = widget.initData.cryptoPrice;
+      tokenBalance = widget.initData.initialBalanceCrypto;
     });
+    final balance = await rpcService.getBalance(currentCrypto, currentAccount);
 
-    await refresh();
-  }
-
-  Future<void> refresh() async {
-    if (currentCrypto == null) {
-      log("Current crypto not found");
-      return;
-    }
-    try {
-      if (!mounted) return;
-
-      await Future.wait([
-        fetchTransactions(),
-        getTokenBalance(account: currentAccount, crypto: currentCrypto!),
-      ]);
-    } catch (e) {
-      logError(e.toString());
-    }
+    setState(() {
+      tokenBalance = balance;
+      totalBalanceUsd =
+          (Decimal.parse(balance) * Decimal.parse(cryptoPrice.toString()))
+              .toString();
+    });
   }
 
   void _onScroll() {
@@ -259,12 +147,6 @@ class _WalletViewScreenState extends ConsumerState<WalletViewScreen>
       });
       log("scroll direction is reverse");
     }
-  }
-
-  List<EsTransaction> getFilteredTransactions() {
-    final List<EsTransaction> filteredTransactions = transactions;
-    filteredTransactions.sort((a, b) => b.timeStamp.compareTo(a.timeStamp));
-    return filteredTransactions;
   }
 
   Future<void> reorganizeCrypto() async {
@@ -286,38 +168,55 @@ class _WalletViewScreenState extends ConsumerState<WalletViewScreen>
     }
   }
 
-  List<EsTransaction> transactionsList(int i) {
-    if (i == 0) {
-      return getFilteredTransactions();
-    } else if (i == 1) {
-      return getFilteredTransactions()
-          .where((tr) =>
-              tr.from.toLowerCase().trim() !=
-              currentAccount
-                  .addressByToken(currentCrypto!)
-                  .toLowerCase()
-                  .trim())
-          .toList();
-    } else if (i == 2) {
-      return getFilteredTransactions()
-          .where((tr) =>
-              tr.from.toLowerCase().trim() ==
-              currentAccount
-                  .addressByToken(currentCrypto!)
-                  .toLowerCase()
-                  .trim())
-          .toList();
-    }
-
-    return [];
-  }
-
   @override
   Widget build(BuildContext context) {
     final textTheme = Theme.of(context).textTheme;
     final appUIConfigAsync = ref.watch(appUIConfigProvider);
 
     final uiConfig = useState<AppUIConfig>(AppUIConfig.defaultConfig);
+    final transactionList = useState<List<Transaction>>([]);
+    final isInitialized = useState<bool>(false);
+    List<Transaction> getFilteredTransactions(List<Transaction> transactions) {
+      return transactions..sort((a, b) => b.timeStamp.compareTo(a.timeStamp));
+    }
+
+    useEffect(() {
+      Future<void> fetchRecentTransactions() async {
+        try {
+          final manager =
+              TransactionManager(account: currentAccount, token: currentCrypto);
+          final transactions = await manager.getTransactions();
+          if (transactions.isNotEmpty) {
+            transactionList.value = getFilteredTransactions(transactions);
+            isInitialized.value = true;
+          }
+        } catch (e) {
+          logError(e.toString());
+        }
+      }
+
+      fetchRecentTransactions();
+      return null;
+    }, [currentAccount, currentCrypto]);
+
+    useEffect(() {
+      Future<void> fetchSavedTransactions() async {
+        try {
+          final manager =
+              TransactionManager(account: currentAccount, token: currentCrypto);
+          final transactions = await manager.getSavedTransactions();
+          if (transactions.isNotEmpty) {
+            transactionList.value = getFilteredTransactions(transactions);
+          }
+        } catch (e) {
+          logError(e.toString());
+        }
+      }
+
+      fetchSavedTransactions();
+
+      return null;
+    }, [currentCrypto, currentCrypto]);
 
     useEffect(() {
       appUIConfigAsync.whenData((data) {
@@ -325,6 +224,32 @@ class _WalletViewScreenState extends ConsumerState<WalletViewScreen>
       });
       return null;
     }, [appUIConfigAsync]);
+
+    List<Transaction> transactionsList(int i) {
+      if (i == 0) {
+        return transactionList.value;
+      } else if (i == 1) {
+        return transactionList.value
+            .where((tr) =>
+                tr.from.toLowerCase().trim() !=
+                currentAccount
+                    .addressByToken(currentCrypto)
+                    .toLowerCase()
+                    .trim())
+            .toList();
+      } else if (i == 2) {
+        return transactionList.value
+            .where((tr) =>
+                tr.from.toLowerCase().trim() ==
+                currentAccount
+                    .addressByToken(currentCrypto)
+                    .toLowerCase()
+                    .trim())
+            .toList();
+      }
+
+      return [];
+    }
 
     double fontSizeOf(double size) {
       return size * uiConfig.value.styles.fontSizeScaleFactor;
@@ -342,13 +267,6 @@ class _WalletViewScreenState extends ConsumerState<WalletViewScreen>
       return size * uiConfig.value.styles.radiusScaleFactor;
     }
 
-    if (currentCrypto == null) {
-      return Center(
-        child: CircularProgressIndicator(
-          color: colors.themeColor,
-        ),
-      );
-    }
     return Scaffold(
         backgroundColor: colors.primaryColor,
         appBar: AppBar(
@@ -362,10 +280,10 @@ class _WalletViewScreenState extends ConsumerState<WalletViewScreen>
                 Icons.chevron_left,
                 color: colors.textColor,
               )),
-          title: AppBarTitle(title: currentCrypto!.symbol, colors: colors),
+          title: AppBarTitle(title: currentCrypto.symbol, colors: colors),
           actions: [
-            if (currentCrypto!.cgSymbol != null ||
-                currentCrypto!.cgSymbol?.isEmpty == false)
+            if (currentCrypto.cgSymbol != null ||
+                currentCrypto.cgSymbol?.isEmpty == false)
               IconButton(
                 onPressed: () {
                   showCryptoCandleModal(
@@ -373,7 +291,7 @@ class _WalletViewScreenState extends ConsumerState<WalletViewScreen>
                       roundedOf: roundedOf,
                       context: context,
                       colors: colors,
-                      currentCrypto: currentCrypto!);
+                      currentCrypto: currentCrypto);
                 },
                 icon: Icon(
                   Icons.show_chart,
@@ -387,7 +305,7 @@ class _WalletViewScreenState extends ConsumerState<WalletViewScreen>
                     roundedOf: roundedOf,
                     context: context,
                     colors: colors,
-                    currentCrypto: currentCrypto!);
+                    currentCrypto: currentCrypto);
               },
               icon: Icon(
                 Icons.more_vert,
@@ -412,7 +330,7 @@ class _WalletViewScreenState extends ConsumerState<WalletViewScreen>
                                 borderRadius: BorderRadius.circular(50),
                               ),
                               child: CryptoPicture(
-                                  crypto: currentCrypto!,
+                                  crypto: currentCrypto,
                                   size: imageSizeOf(65),
                                   colors: colors),
                             ),
@@ -468,8 +386,9 @@ class _WalletViewScreenState extends ConsumerState<WalletViewScreen>
                                             builder: (ctx) =>
                                                 SendTransactionScreen(
                                                   initData: WidgetInitialData(
+                                                      cryptoPrice: cryptoPrice,
                                                       account: currentAccount,
-                                                      crypto: currentCrypto!,
+                                                      crypto: currentCrypto,
                                                       colors: colors,
                                                       initialBalanceCrypto:
                                                           tokenBalance,
@@ -490,8 +409,9 @@ class _WalletViewScreenState extends ConsumerState<WalletViewScreen>
                                         MaterialPageRoute(
                                             builder: (ctx) => ReceiveScreen(
                                                   initData: WidgetInitialData(
+                                                      cryptoPrice: 0,
                                                       account: currentAccount,
-                                                      crypto: currentCrypto!,
+                                                      crypto: currentCrypto,
                                                       colors: colors,
                                                       initialBalanceCrypto:
                                                           tokenBalance,
@@ -533,7 +453,7 @@ class _WalletViewScreenState extends ConsumerState<WalletViewScreen>
           body: TabBarView(
             controller: _tabController,
             children: List.generate(3, (i) {
-              if (isTransactionLoading) {
+              if (transactionList.value.isEmpty && !isInitialized.value) {
                 return SizedBox(
                   child: Center(
                     child: SizedBox(
@@ -548,7 +468,7 @@ class _WalletViewScreenState extends ConsumerState<WalletViewScreen>
                 );
               }
 
-              return getFilteredTransactions().isEmpty
+              return transactionList.value.isEmpty
                   ? Align(
                       alignment: Alignment.topCenter,
                       child: Container(
@@ -569,12 +489,12 @@ class _WalletViewScreenState extends ConsumerState<WalletViewScreen>
                                 ),
                                 InkWell(
                                   onTap: () async {
-                                    if (currentCrypto!.isNative) {
+                                    if (currentCrypto.isNative) {
                                       await launchUrl(Uri.parse(
-                                          "${currentCrypto!.explorers![0]}/address/${currentAccount.addressByToken(currentCrypto!)}"));
+                                          "${currentCrypto.explorers![0]}/address/${currentAccount.addressByToken(currentCrypto)}"));
                                     } else {
                                       await launchUrl(Uri.parse(
-                                          "${currentCrypto!.network?.explorers![0]}/address/${currentAccount.addressByToken(currentCrypto!)}"));
+                                          "${currentCrypto.network?.explorers![0]}/address/${currentAccount.addressByToken(currentCrypto)}"));
                                     }
                                   },
                                   child: Text(
@@ -599,9 +519,7 @@ class _WalletViewScreenState extends ConsumerState<WalletViewScreen>
                           error: CheckMarkColors(
                               content: colors.textColor,
                               background: colors.redColor)),
-                      onRefresh: () async {
-                        await refresh();
-                      },
+                      onRefresh: () async {},
                       child: ListView.builder(
                           shrinkWrap: true,
                           itemCount: transactionsList(i).length,
@@ -611,7 +529,7 @@ class _WalletViewScreenState extends ConsumerState<WalletViewScreen>
                             final isFrom =
                                 transaction.from.trim().toLowerCase() ==
                                     currentAccount
-                                        .addressByToken(currentCrypto!)
+                                        .addressByToken(currentCrypto)
                                         .trim()
                                         .toLowerCase();
                             return TransactionsListElement(
@@ -622,7 +540,7 @@ class _WalletViewScreenState extends ConsumerState<WalletViewScreen>
                               isFrom: isFrom,
                               tr: transaction,
                               textColor: colors.textColor,
-                              currentCrypto: currentCrypto!,
+                              token: currentCrypto,
                             );
                           }));
             }),

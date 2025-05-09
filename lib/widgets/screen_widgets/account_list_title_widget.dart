@@ -1,7 +1,6 @@
 // ignore_for_file: deprecated_member_use
 
 import 'package:flutter/material.dart';
-import 'package:lucide_icons_flutter/lucide_icons.dart';
 
 import 'package:moonwallet/types/account_related_types.dart';
 import 'package:moonwallet/types/types.dart';
@@ -48,16 +47,20 @@ class AccountListTitleWidget extends StatelessWidget {
         maxLines: 1,
         overflow: TextOverflow.ellipsis,
       );
-      icon = AccountTypeIconContainer(
-          account: wallet,
-          colors: colors,
-          imageSizeOf: imageSizeOf,
-          icon: Icon(
-                          size: 20,
-
-            Icons.phone_iphone_outlined,
-            color: colors.textColor.withValues(alpha: 0.8),
-          ));
+      icon = Container(
+        width: 40,
+        height: 40,
+        padding: const EdgeInsets.all(10),
+        decoration: BoxDecoration(
+            color: Colors.white, borderRadius: BorderRadius.circular(50)),
+        child: Center(
+          child: Image.asset(
+            "assets/logo/png/icon.png",
+            width: 25,
+            height: 25,
+          ),
+        ),
+      );
     } else {
       final publicAddress =
           wallet.addresses.isNotEmpty ? wallet.addresses.first : null;
@@ -69,97 +72,123 @@ class AccountListTitleWidget extends StatelessWidget {
           maxLines: 1,
           overflow: TextOverflow.ellipsis,
         );
-        icon = AccountTypeIconContainer(
-            account: wallet,
-            colors: colors,
-            imageSizeOf: imageSizeOf,
-            icon: Icon(
-              size: 20,
-              wallet.origin.isPrivateKey ? Icons.vpn_key_outlined : LucideIcons.binoculars,
-              color: colors.textColor.withValues(alpha: 0.8),
-            ));
+        icon = Container(
+          width: 35,
+          height: 35,
+          decoration: BoxDecoration(
+              color: Colors.white, borderRadius: BorderRadius.circular(50)),
+          child: Center(
+            child: ClipRRect(
+              borderRadius: BorderRadius.circular(50),
+              child: Image.network(
+                wallet.getEcosystem()!.iconUrl,
+                fit: BoxFit.cover,
+              ),
+            ),
+          ),
+        );
       } else {
         subtitle = null;
         icon = null;
       }
     }
 
-    return ListTile(
-        visualDensity: VisualDensity(horizontal: (0), vertical: (-4)),
-        contentPadding: const EdgeInsets.symmetric(vertical: 0, horizontal: 10),
-        onTap: onTap,
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(6)),
-        leading: icon,
-        title: Row(
-          spacing: 5,
-          children: [
-            LayoutBuilder(builder: (ctx, c) {
-              return ConstrainedBox(
-                constraints: BoxConstraints(
-                    maxWidth: wallet.isWatchOnly
-                        ? MediaQuery.of(ctx).size.width * 0.16
-                        : MediaQuery.of(ctx).size.width * 0.4),
-                child: Text(
-                  wallet.walletName,
-                  overflow: TextOverflow.ellipsis,
-                  style: textTheme.bodyMedium?.copyWith(
-                      color: colors.textColor,
-                      fontWeight: FontWeight.w500,
-                      fontSize: fontSizeOf(14)),
-                ),
-              );
-            }),
-            if (wallet.isWatchOnly)
-              Container(
-                padding: const EdgeInsets.symmetric(vertical: 3, horizontal: 6),
-                decoration: BoxDecoration(
-                    borderRadius: BorderRadius.circular(roundedOf(20)),
-                    color: colors.secondaryColor.withOpacity(0.2),
-                    border: Border.all(color: colors.secondaryColor)),
-                child: Text(
-                  "Watch Only",
-                  style: textTheme.bodySmall?.copyWith(
-                      color: colors.textColor.withOpacity(0.8),
-                      fontSize: fontSizeOf(10)),
-                ),
-              ),
-            if (!wallet.isBackup && wallet.createdLocally)
-              Container(
-                padding: const EdgeInsets.symmetric(vertical: 3, horizontal: 6),
-                decoration: BoxDecoration(
-                    borderRadius: BorderRadius.circular(roundedOf(20)),
-                    color: colors.secondaryColor.withOpacity(0.2),
-                    border: Border.all(color: Colors.orange)),
-                child: Text(
-                  "No Backup",
-                  style: textTheme.bodySmall?.copyWith(
-                      color: Colors.orange.withOpacity(0.8),
-                      fontSize: fontSizeOf(10)),
-                ),
-              )
-          ],
-        ),
-        subtitle: subtitle,
-        trailing: ConstrainedBox(
-          constraints: BoxConstraints(maxWidth: 80),
-          child: Row(
-            mainAxisAlignment: MainAxisAlignment.end,
+    return Container(
+      decoration: BoxDecoration(
+          border:
+              isCurrent ? Border.all(width: 1, color: colors.greenColor) : null,
+          borderRadius: BorderRadius.circular(roundedOf(5))),
+      child: ListTile(
+          visualDensity: VisualDensity(horizontal: -2, vertical: -2),
+          contentPadding:
+              const EdgeInsets.symmetric(horizontal: 12, vertical: 0),
+          onTap: onTap,
+          shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(roundedOf(5))),
+          leading: icon,
+          tileColor: colors.secondaryColor,
+          title: Row(
+            spacing: 5,
             children: [
-              if (isCurrent)
-                Icon(
-                  Icons.check,
-                  color: colors.greenColor,
+              LayoutBuilder(builder: (ctx, c) {
+                return ConstrainedBox(
+                  constraints: BoxConstraints(
+                      maxWidth: wallet.isWatchOnly
+                          ? MediaQuery.of(ctx).size.width * 0.16
+                          : MediaQuery.of(ctx).size.width * 0.4),
+                  child: Text(
+                    wallet.walletName,
+                    overflow: TextOverflow.ellipsis,
+                    style: textTheme.bodyMedium?.copyWith(
+                        color: colors.textColor,
+                        fontWeight: FontWeight.w500,
+                        fontSize: fontSizeOf(14)),
+                  ),
+                );
+              }),
+              if (wallet.isWatchOnly)
+                Container(
+                  padding:
+                      const EdgeInsets.symmetric(vertical: 3, horizontal: 6),
+                  decoration: BoxDecoration(
+                      borderRadius: BorderRadius.circular(roundedOf(20)),
+                      border:
+                          Border.all(color: colors.textColor.withOpacity(0.4))),
+                  child: Text(
+                    "Watch Only",
+                    style: textTheme.bodySmall?.copyWith(
+                        color: colors.textColor.withOpacity(0.8),
+                        fontSize: fontSizeOf(10)),
+                  ),
                 ),
-              if (showMore)
-                IconButton(
-                    onPressed: onMoreTap,
-                    icon: Icon(
-                      Icons.more_vert,
-                      color: colors.textColor,
-                    ))
+              if (!wallet.isBackup && wallet.createdLocally)
+                Container(
+                  padding:
+                      const EdgeInsets.symmetric(vertical: 3, horizontal: 6),
+                  decoration: BoxDecoration(
+                      borderRadius: BorderRadius.circular(roundedOf(20)),
+                      color: colors.secondaryColor.withOpacity(0.2),
+                      border: Border.all(color: Colors.orange)),
+                  child: Text(
+                    "Unbacked",
+                    style: textTheme.bodySmall?.copyWith(
+                        color: Colors.orange.withOpacity(0.8),
+                        fontSize: fontSizeOf(10)),
+                  ),
+                )
             ],
           ),
-        ));
+          subtitle: subtitle,
+          trailing: ConstrainedBox(
+            constraints: BoxConstraints(maxWidth: 80),
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.end,
+              crossAxisAlignment: CrossAxisAlignment.center,
+              children: [
+                if (isCurrent)
+                  Container(
+                    padding: const EdgeInsets.symmetric(
+                        horizontal: 7, vertical: 3.5),
+                    decoration: BoxDecoration(
+                        borderRadius: BorderRadius.circular(roundedOf(20)),
+                        color: colors.greenColor.withValues(alpha: 0.2)),
+                    child: Icon(
+                      size: 15,
+                      Icons.check_circle,
+                      color: colors.greenColor,
+                    ),
+                  ),
+                if (showMore)
+                  IconButton(
+                      onPressed: onMoreTap,
+                      icon: Icon(
+                        Icons.more_vert,
+                        color: colors.textColor,
+                      ))
+              ],
+            ),
+          )),
+    );
   }
 }
 
@@ -179,16 +208,16 @@ class AccountTypeIconContainer extends StatelessWidget {
   Widget build(BuildContext context) {
     Color color;
     if (account.walletColor == null) {
-      color = colors.secondaryColor;
+      color = colors.grayColor.withValues(alpha: 0.3);
     } else if (account.walletColor?.value == 0x00000000) {
-      color = colors.secondaryColor;
+      color = colors.grayColor.withValues(alpha: 0.3);
     } else {
       color = account.walletColor!;
     }
 
     return Container(
-        width: imageSizeOf(40),
-        height: imageSizeOf(40),
+        width: imageSizeOf(35),
+        height: imageSizeOf(35),
         decoration: BoxDecoration(
             borderRadius: BorderRadius.circular(50), color: color),
         child: Center(

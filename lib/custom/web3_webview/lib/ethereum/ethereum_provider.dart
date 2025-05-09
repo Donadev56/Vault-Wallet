@@ -101,7 +101,7 @@ class EthereumProvider {
       _state = WalletState(
         chainId: defaultNetwork.chainId,
         address: account.evmAddress,
-        isConnected: account.evmAddress.isNotEmpty,
+        isConnected: account.evmAddress?.isNotEmpty == false,
       );
       log("The current state with address only is ${_state?.toJson()}");
     }
@@ -369,7 +369,7 @@ class EthereumProvider {
       }
 
       final result = await signingHandler
-          .signMessage(method, from, message, password)
+          .signMessage(method, from, message)
           .withLoading(_context!, colors, 'Waiting for signature');
       log("Data $method , from $from , message $message , password $password");
       log("result :  $result");

@@ -1,18 +1,15 @@
 import 'package:bip39/bip39.dart' as bip39;
 
-Future<bool> isValidateMnemonic(String mnemonic) async {
-  bool ischcek = await bip39.validateMnemonic(mnemonic);
-  return ischcek;
+bool isValidateMnemonic(String mnemonic) {
+  return bip39.validateMnemonic(mnemonic);
 }
 
-Future<String> getMnemonic() async {
-  String mnemonic = await bip39.generateMnemonic();
-  return mnemonic;
+String getMnemonic() {
+  return bip39.generateMnemonic();
 }
 
-
-  bool isValidSolanaAddress(String address) {
-    final pattern = r'^[1-9A-HJ-NP-Za-km-z]{32,44}$';
-    final regExp = RegExp(pattern);
-    return regExp.hasMatch(address);
-  }
+bool isValidSolanaAddress(String address) {
+  final pattern = r'^[1-9A-HJ-NP-Za-km-z]{32,44}$';
+  final regExp = RegExp(pattern);
+  return regExp.hasMatch(address);
+}

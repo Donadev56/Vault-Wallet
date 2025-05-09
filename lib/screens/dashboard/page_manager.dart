@@ -9,6 +9,7 @@ import 'package:moonwallet/screens/dashboard/swap.dart';
 import 'package:moonwallet/screens/dashboard/trending.dart';
 import 'package:moonwallet/service/vibration.dart';
 import 'package:moonwallet/types/account_related_types.dart' as types;
+import 'package:moonwallet/types/transaction.dart';
 import 'package:moonwallet/types/types.dart' as types;
 import 'package:moonwallet/utils/colors.dart';
 import 'package:moonwallet/utils/themes.dart';
@@ -19,7 +20,7 @@ class PagesManagerView extends StatefulHookConsumerWidget {
   final types.AppColors colors;
   final types.PublicAccount? currentAccount;
   final types.Crypto? crypto;
-  final types.TransactionDetails? transaction;
+  final Transaction? transaction;
 
   const PagesManagerView(
       {super.key,
@@ -39,7 +40,7 @@ class _PagesManagerViewState extends ConsumerState<PagesManagerView> {
   bool _isInitialized = false;
   types.PublicAccount? currentAccount;
   types.Crypto? crypto;
-  types.TransactionDetails? transaction;
+  Transaction? transaction;
   bool isDarkMode = false;
 
   types.AppColors colors = types.AppColors.defaultTheme;
@@ -101,7 +102,7 @@ class _PagesManagerViewState extends ConsumerState<PagesManagerView> {
               colors: colors,
               address: currentAccount?.addressByToken(crypto!) ?? "",
               tr: transaction!,
-              currentNetwork: crypto!);
+              token: crypto!);
         } else {
           logger.w("Transaction details data is missing");
         }

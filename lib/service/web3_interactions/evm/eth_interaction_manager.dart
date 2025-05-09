@@ -10,6 +10,7 @@ import 'package:moonwallet/service/internet_manager.dart';
 import 'package:moonwallet/service/web3_interactions/evm/addresses.dart';
 import 'package:moonwallet/service/web3_interactions/evm/token_manager.dart';
 import 'package:moonwallet/types/account_related_types.dart';
+import 'package:moonwallet/types/exception.dart';
 import 'package:moonwallet/types/types.dart';
 import 'package:moonwallet/widgets/func/security/ask_derivate_key.dart';
 import 'package:moonwallet/widgets/func/transactions/evm/ask_user_evm.dart';
@@ -34,13 +35,16 @@ class EthInteractionManager {
       final rpc = crypto.isNative
           ? crypto.rpcUrls?.firstOrNull
           : crypto.network?.rpcUrls?.firstOrNull;
+      if (address == null) {
+        throw ArgumentError("Address should not be null");
+      }
 
       if (!crypto.isNative) {
         final balance = await tokenManager.getTokenBalance(crypto, address);
         return balance;
       }
 
-      if (address.isEmpty || rpc == null || rpc.isEmpty) {
+      if (address.isEmpty == true || rpc == null || rpc.isEmpty) {
         log("address or rpc is empty");
         return "0";
       }
@@ -144,11 +148,13 @@ class EthInteractionManager {
       final credentials = access?.cred;
 
       if (credentials != null) {
-        final hash = await ethClient.sendTransaction(
-          credentials,
-          transaction,
-          chainId: chainId,
-        ).withLoading(context, colors,  "Sending...");
+        final hash = await ethClient
+            .sendTransaction(
+              credentials,
+              transaction,
+              chainId: chainId,
+            )
+            .withLoading(context, colors, "Sending...");
         if (hash.isNotEmpty) {
           showCustomSnackBar(
               type: MessageType.success,
@@ -244,7 +250,7 @@ class EthInteractionManager {
 
       final estimatedGas = ((await estimateGas(
                   rpcUrl: data.crypto.rpcUrls?.firstOrNull ?? "",
-                  sender: data.account.evmAddress,
+                  sender: data.account.evmAddress!,
                   to: to,
                   value: valueHex,
                   data: "") ??
@@ -317,8 +323,8 @@ class EthInteractionManager {
         rpcUrl: !crypto.isNative
             ? crypto.network?.rpcUrls?.firstOrNull ?? ""
             : crypto.rpcUrls?.firstOrNull ?? "",
-        sender: account.evmAddress,
-        to: account.evmAddress,
+        sender: account.evmAddress!,
+        to: account.evmAddress!,
         value: "0x0",
         data: "");
   }
@@ -382,7 +388,7 @@ class EthInteractionManager {
     }
   }
 
-  Future<String?> transferHandler(BasicTransactionData transaction,
+  Future<String?> handleTransfer(BasicTransactionData transaction,
       AppColors colors, BuildContext context) async {
     try {
       if (transaction.crypto.isNative) {
@@ -419,7 +425,7 @@ class EthInteractionManager {
       }
 
       final transaction = Transaction(
-        from: EthereumAddress.fromHex(data.account.evmAddress),
+        from: EthereumAddress.fromHex(data.account.evmAddress!),
         to: EthereumAddress.fromHex(data.addressTo),
         value: EtherAmount.inWei(data.valueBigInt),
         maxGas: confirmedResponse.gasLimit?.toInt() ?? data.gasBigint?.toInt(),
@@ -428,13 +434,12 @@ class EthInteractionManager {
       );
 
       final result = await sendTransaction(
-              colors: colors,
-              context: context,
-              transaction: transaction,
-              chainId: crypto.chainId ?? 1,
-              rpcUrl: crypto.rpcUrls?.firstOrNull ?? "",
-              account: data.account)
-         ;
+          colors: colors,
+          context: context,
+          transaction: transaction,
+          chainId: crypto.chainId ?? 1,
+          rpcUrl: crypto.rpcUrls?.firstOrNull ?? "",
+          account: data.account);
 
       return result;
     } catch (e) {

@@ -60,6 +60,9 @@ class HexUtils {
   }
 
   static BigInt hexToBigInt(String hex) {
+    if (hex == "0") {
+      return BigInt.parse('0x$hex'.substring(2), radix: 16);
+    }
     if (!hex.startsWith('0x')) {
       throw WalletException('Hex string must start with 0x');
     }

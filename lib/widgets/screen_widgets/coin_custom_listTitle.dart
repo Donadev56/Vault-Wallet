@@ -71,6 +71,7 @@ class CoinCustomListTitle extends StatelessWidget {
                 MaterialPageRoute(
                     builder: (context) => WalletViewScreen(
                             initData: WidgetInitialData(
+                          cryptoPrice: cryptoPrice,
                           account: currentAccount,
                           crypto: crypto,
                           colors: colors,

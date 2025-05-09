@@ -4,7 +4,6 @@ import 'package:flutter_hooks/flutter_hooks.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:moonwallet/custom/web3_webview/lib/utils/loading.dart';
-import 'package:moonwallet/custom/web3_webview/lib/widgets/alert.dart';
 import 'package:moonwallet/main.dart';
 import 'package:moonwallet/notifiers/providers.dart';
 import 'package:moonwallet/service/db/wallet_db.dart';
@@ -22,7 +21,6 @@ import 'package:moonwallet/widgets/func/tokens_config/show_add_token.dart';
 import 'package:moonwallet/widgets/func/snackbar.dart';
 import 'package:moonwallet/widgets/func/tokens_config/show_edit_network_modal.dart';
 import 'package:moonwallet/widgets/func/tokens_config/show_select_network_modal.dart';
-import 'package:moonwallet/widgets/solana_related/dialogs/show_first_solana_use_dialog.dart';
 import 'package:ulid/ulid.dart';
 
 import 'package:flutter/material.dart';
@@ -468,8 +466,14 @@ class _AddCryptoViewState extends ConsumerState<AddCryptoView> {
                       contentPadding: const EdgeInsets.symmetric(
                           vertical: 8, horizontal: 20),
                       onTap: () {
+                        Crypto cryptoToDisplay = crypto;
+                        if (targetCrypto != null) {
+                          cryptoToDisplay = targetCrypto;
+                        }
                         showTokenDetails(
-                            context: context, colors: colors, crypto: crypto);
+                            context: context,
+                            colors: colors,
+                            crypto: cryptoToDisplay);
                       },
                       leading: CryptoPicture(
                           crypto: crypto,

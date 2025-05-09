@@ -17,7 +17,7 @@ class SigningHandler {
   SigningHandler(this._credentials, this._key);
 
   Future<String> signMessage(
-      String method, String from, dynamic message, String password) async {
+      String method, String from, dynamic message) async {
     try {
       // Validate signer
       await _validateSigner(from);

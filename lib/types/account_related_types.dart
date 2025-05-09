@@ -78,13 +78,14 @@ class PublicAccount {
     return addresses.firstWhere((address) => address.type == type).address;
   }
 
-  String get evmAddress => addresses
-      .firstWhere((address) => address.type == NetworkType.evm)
-      .address;
-      
-   TokenEcosystem? getEcosystem ()  {
+  String? get evmAddress => addresses
+      .where((address) => address.type == NetworkType.evm)
+      .firstOrNull
+      ?.address;
+
+  TokenEcosystem? getEcosystem() {
     if (origin.isMnemonic) {
-      return null ;
+      return null;
     }
 
     return ecosystemInfo[supportedNetworks.first];
@@ -472,11 +473,12 @@ class Crypto {
   }
 
   bool get isNative => type == CryptoType.native;
-  String get getRpcUrl => this.isNative
-      ? (this.rpcUrls?.firstOrNull ?? "")
-      : (this.network?.rpcUrls?.firstOrNull ?? "");
+  String get getRpcUrl => isNative
+      ? (rpcUrls?.firstOrNull ?? "")
+      : (network?.rpcUrls?.firstOrNull ?? "");
   NetworkType get getNetworkType =>
-      this.isNative ? this.networkType! : this.network!.networkType!;
+      isNative ? networkType! : network!.networkType!;
+  Crypto? get tokenNetwork => isNative ? this : network;
 
   Crypto copyWith({
     String? name,
@@ -578,12 +580,4 @@ class EncryptionInfo {
       nonce: base64Decode(json['nonce'] as String),
     );
   }
-}
-
-class InvalidPasswordException implements Exception {
-  final String message;
-  InvalidPasswordException([this.message = "Invalid credentials."]);
-
-  @override
-  String toString() => message;
 }

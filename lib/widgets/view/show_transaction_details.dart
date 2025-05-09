@@ -3,13 +3,15 @@ import 'package:flutter/services.dart';
 import 'package:lucide_icons_flutter/lucide_icons.dart';
 import 'package:modal_bottom_sheet/modal_bottom_sheet.dart';
 import 'package:moonwallet/logger/logger.dart';
+import 'package:moonwallet/service/external_data/price_manager.dart';
 import 'package:moonwallet/types/account_related_types.dart';
+import 'package:moonwallet/types/transaction.dart';
 import 'package:moonwallet/types/types.dart';
 import 'package:moonwallet/utils/constant.dart';
 import 'package:moonwallet/utils/share_manager.dart';
-import 'package:moonwallet/widgets/screen_widgets/crypto_picture.dart';
-import 'package:moonwallet/widgets/view/details_container.dart';
-import 'package:timer_builder/timer_builder.dart';
+import 'package:moonwallet/widgets/buttons/elevated_low_opacity_button.dart';
+import 'package:moonwallet/widgets/dialogs/row_details.dart';
+import 'package:moonwallet/widgets/dialogs/standard_container.dart';
 import 'package:url_launcher/url_launcher.dart';
 
 void showTransactionDetails(
@@ -17,371 +19,159 @@ void showTransactionDetails(
     required AppColors colors,
     required String address,
     required bool isFrom,
-    required TransactionDetails tr,
-    required Crypto currentNetwork}) {
-  final textTheme = Theme.of(context).textTheme;
+    required Transaction tr,
+    required Crypto token}) {
 
-  showMaterialModalBottomSheet(
-      backgroundColor: colors.primaryColor,
-      context: context,
-      builder: (BuildContext ctx) {
-        final amount = tr.value;
-        return SafeArea(
-            child: Scaffold(
-          backgroundColor: colors.primaryColor,
-          appBar: AppBar(
-            leading: IconButton(
-              icon: Icon(
-                Icons.arrow_back,
-                color: colors.textColor.withOpacity(0.7),
-              ),
-              onPressed: () {
-                Navigator.pop(ctx);
-              },
-            ),
-            backgroundColor: colors.primaryColor,
-            centerTitle: true,
-            title: Text(
-              isFrom ? "Transfer" : "Receive",
-              style: textTheme.headlineSmall?.copyWith(
-                  color: colors.textColor.withOpacity(0.7), fontSize: 20),
-            ),
-          ),
-          body: ConstrainedBox(
-              constraints: BoxConstraints(
-                  minHeight: MediaQuery.of(context).size.height * 0.8),
-              child: Container(
-                padding: const EdgeInsets.all(20),
-                decoration: BoxDecoration(
-                  color: colors.primaryColor,
-                  borderRadius: BorderRadius.only(
-                      topLeft: Radius.circular(30),
-                      topRight: Radius.circular(30)),
-                ),
-                child: ListView(
+    Future<double> getPrice () async {
+      try {
+        final priceManager = PriceManager();
+        final marketData = await priceManager.getTokenMarketData(token.cgSymbol ?? "");
+        return marketData?.currentPrice ?? 0;
+        
+      } catch (e) {
+        logError(e.toString());
+        return 0 ;
+        
+      }
+    }
+
+    String concatenateAddress (String value) {
+      if (value.length < 42) {
+        return address;
+      }
+
+      return "${value.substring(0, 7)}...${address.substring(value.length - 7, value.length)}";
+    }
+    log("Transaction : ${tr.toJson()}");
+    log("Transaction type ${tr.runtimeType}");
+    final metadata = tr.metadata;
+    log(metadata.toString());
+    final metadataList = metadata.entries.toList();
+    log("Metadata $metadataList");
+    showMaterialModalBottomSheet(context: context, builder: (context) {
+          final textTheme = Theme.of(context).textTheme;
+
+      final defaultValueStyle = textTheme.bodyMedium?.copyWith(
+                  decorationColor: colors.textColor.withValues(alpha: 0.8),
+                  overflow: TextOverflow.ellipsis,
+                  fontSize: 13,
+                  color: colors.textColor,
+                  fontWeight: FontWeight.bold);
+      final defaultTitleStyle = textTheme.bodyMedium
+                ?.copyWith(fontSize: 13, color: colors.textColor);
+      return  Scaffold(
+        backgroundColor: colors.primaryColor,
+         appBar: AppBar(
+        backgroundColor: colors.primaryColor,
+          actions: [
+          IconButton(onPressed: () {
+                 final url = token.tokenNetwork?.explorers?.firstOrNull;
+                if (url == null) {
+                  return ;
+                }
+            ShareManager().shareUri(url: "$url/tx/${tr.transactionId}");
+          } , icon: Icon(Icons.share, color: colors.textColor,))  
+          ],
+          leading:IconButton(onPressed: ()=> Navigator.pop(context), icon: Icon(Icons.chevron_left, color: colors.textColor,)) ,
+          centerTitle: true,
+          title: Text(isFrom ? "Transfer" : "Receive", style: textTheme.bodyMedium?.copyWith(
+            fontSize: 16,
+            fontWeight: FontWeight.bold,
+            color: colors.textColor
+          ),),
+         ),
+         body: StandardContainer(
+          padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 10),
+          child: ListView(
+            children: [
+                Column(
+                  spacing: 10,
                   children: [
-                    DetailsContainer(
-                      colors: colors,
-                      child: ListTile(
-                        shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(20)),
-                        leading: SizedBox(
-                          child: CryptoPicture(
-                              crypto: currentNetwork, size: 50, colors: colors),
-                        ),
-                        title: Text(
-                          isFrom ? "- $amount" : "+ $amount",
-                          style: textTheme.bodyMedium?.copyWith(
-                              color: colors.textColor,
-                              fontWeight: FontWeight.bold,
-                              fontSize: 17),
-                        ),
-                        subtitle: Text(
-                          currentNetwork.symbol,
-                          style: textTheme.bodySmall?.copyWith(
-                              color: colors.textColor.withOpacity(0.3),
-                              fontSize: 15,
-                              fontWeight: FontWeight.normal),
-                        ),
-                      ),
-                    ),
-                    DetailsContainer(
-                      colors: colors,
-                      child: Column(
-                        children: [
-                          Row(
-                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                            children: [
-                              Text(
-                                "From",
-                                style: textTheme.bodyMedium?.copyWith(
-                                    color: colors.textColor, fontSize: 14),
-                              ),
-                              Row(
-                                children: [
-                                  Text(
-                                    tr.from.length > 6
-                                        ? "${tr.from.substring(0, 6)}...${tr.from.substring(tr.from.length - 6)}"
-                                        : "...",
-                                    style: textTheme.bodyMedium?.copyWith(
-                                        color: colors.textColor, fontSize: 14),
-                                  ),
-                                  SizedBox(
-                                    width: 10,
-                                  ),
-                                  IconButton(
-                                    onPressed: () {
-                                      Clipboard.setData(
-                                          ClipboardData(text: tr.from));
-                                    },
-                                    icon: Icon(
-                                      LucideIcons.copy,
-                                      color: colors.textColor,
-                                      size: 20,
-                                    ),
-                                    padding: const EdgeInsets.all(0),
-                                  )
-                                ],
-                              )
-                            ],
-                          ),
-                          Row(
-                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                            children: [
-                              Text(
-                                "To",
-                                style: textTheme.bodyMedium?.copyWith(
-                                    color: colors.textColor, fontSize: 14),
-                              ),
-                              Row(
-                                children: [
-                                  Text(
-                                    tr.to.length > 6
-                                        ? "${tr.to.substring(0, 6)}...${tr.to.substring(tr.to.length - 6)}"
-                                        : "...",
-                                    style: textTheme.bodyMedium?.copyWith(
-                                        color: colors.textColor, fontSize: 14),
-                                  ),
-                                  SizedBox(
-                                    width: 10,
-                                  ),
-                                  IconButton(
-                                    onPressed: () {
-                                      Clipboard.setData(
-                                          ClipboardData(text: tr.to));
-                                    },
-                                    icon: Icon(
-                                      LucideIcons.copy,
-                                      color: colors.textColor,
-                                      size: 20,
-                                    ),
-                                    padding: const EdgeInsets.all(0),
-                                  )
-                                ],
-                              )
-                            ],
-                          ),
-                          Row(
-                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                            children: [
-                              Text(
-                                "Time",
-                                style: textTheme.bodyMedium?.copyWith(
-                                    color: colors.textColor, fontSize: 14),
-                              ),
-                              Row(
-                                children: [
-                                  TimerBuilder.periodic(
-                                    Duration(seconds: 5),
-                                    builder: (ctx) {
-                                      return Text(
-                                        formatTimeElapsed(
-                                            int.parse(tr.timeStamp)),
-                                        style: textTheme.bodyMedium?.copyWith(
-                                            color: colors.textColor
-                                                .withOpacity(0.5),
-                                            fontSize: 12),
-                                      );
-                                    },
-                                  ),
-                                  SizedBox(
-                                    width: 10,
-                                  ),
-                                  IconButton(
-                                    onPressed: () {
-                                      Clipboard.setData(
-                                          ClipboardData(text: tr.timeStamp));
-                                    },
-                                    icon: Icon(
-                                      LucideIcons.copy,
-                                      color: colors.textColor,
-                                      size: 20,
-                                    ),
-                                    padding: const EdgeInsets.all(0),
-                                  )
-                                ],
-                              )
-                            ],
-                          )
-                        ],
-                      ),
-                    ),
-                    DetailsContainer(
-                      colors: colors,
-                      child: Column(
-                        children: [
-                          Row(
-                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                            children: [
-                              Text(
-                                "Hash",
-                                style: textTheme.bodyMedium?.copyWith(
-                                    color: colors.textColor, fontSize: 14),
-                              ),
-                              Row(
-                                children: [
-                                  Text(
-                                    tr.hash.length > 6
-                                        ? "${tr.hash.substring(0, 6)}...${tr.hash.substring(tr.hash.length - 6)}"
-                                        : "...",
-                                    style: textTheme.bodyMedium?.copyWith(
-                                        color: colors.textColor, fontSize: 14),
-                                  ),
-                                  SizedBox(
-                                    width: 10,
-                                  ),
-                                  IconButton(
-                                    onPressed: () {
-                                      Clipboard.setData(
-                                          ClipboardData(text: tr.hash));
-                                    },
-                                    icon: Icon(
-                                      LucideIcons.copy,
-                                      color: colors.textColor,
-                                      size: 20,
-                                    ),
-                                    padding: const EdgeInsets.all(0),
-                                  )
-                                ],
-                              )
-                            ],
-                          ),
-                          Row(
-                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                            children: [
-                              Text(
-                                "Block",
-                                style: textTheme.bodyMedium?.copyWith(
-                                    color: colors.textColor, fontSize: 14),
-                              ),
-                              Row(
-                                children: [
-                                  Text(
-                                    tr.blockNumber,
-                                    style: textTheme.bodyMedium?.copyWith(
-                                        color: colors.textColor, fontSize: 14),
-                                  ),
-                                  SizedBox(
-                                    width: 10,
-                                  ),
-                                  IconButton(
-                                    onPressed: () {
-                                      Clipboard.setData(
-                                          ClipboardData(text: tr.blockNumber));
-                                    },
-                                    icon: Icon(
-                                      LucideIcons.copy,
-                                      color: colors.textColor,
-                                      size: 20,
-                                    ),
-                                    padding: const EdgeInsets.all(0),
-                                  )
-                                ],
-                              ),
-                            ],
-                          ),
-                          Row(
-                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                            children: [
-                              Text(
-                                "Status",
-                                style: textTheme.bodyMedium?.copyWith(
-                                    color: colors.textColor, fontSize: 14),
-                              ),
-                              Row(
-                                children: [
-                                  Text(
-                                    tr.status,
-                                    style: textTheme.bodyMedium?.copyWith(
-                                        color: colors.textColor, fontSize: 14),
-                                  ),
-                                  SizedBox(
-                                    width: 10,
-                                  ),
-                                  IconButton(
-                                    onPressed: () {
-                                      Clipboard.setData(
-                                          ClipboardData(text: tr.status));
-                                    },
-                                    icon: Icon(
-                                      LucideIcons.copy,
-                                      color: colors.textColor,
-                                      size: 20,
-                                    ),
-                                    padding: const EdgeInsets.all(0),
-                                  )
-                                ],
-                              ),
-                            ],
-                          )
-                        ],
-                      ),
-                    ),
-                    SizedBox(
-                      height: 30,
-                    ),
-                    Material(
-                      color: Colors.transparent,
-                      child: InkWell(
-                        borderRadius: BorderRadius.circular(10),
-                        onTap: () async {
-                          final url =
-                              "${!currentNetwork.isNative ? currentNetwork.network?.explorers![0] : currentNetwork.explorers![0]}/tx/${tr.hash}";
-                          log("The url is $url");
-                          await launchUrl(Uri.parse(url));
-                        },
-                        child: Container(
-                          padding: const EdgeInsets.all(10),
-                          decoration: BoxDecoration(
-                              color: colors.secondaryColor,
-                              borderRadius: BorderRadius.circular(10)),
-                          child: Center(
-                            child: Text(
-                              "View on Blockchain explorer",
-                              style: textTheme.bodyMedium
-                                  ?.copyWith(color: colors.textColor),
-                            ),
-                          ),
-                        ),
-                      ),
-                    ),
-                    SizedBox(
-                      height: 20,
-                    ),
-                    Material(
-                      color: Colors.transparent,
-                      child: InkWell(
-                        borderRadius: BorderRadius.circular(10),
-                        onTap: () async {
-                          final text =
-                              "${!currentNetwork.isNative ? currentNetwork.network?.explorers![0] : currentNetwork.explorers![0]}/tx/${tr.hash}";
-                          ShareManager().shareText(
-                              text: text, subject: "Share Transaction Hash");
-                        },
-                        child: Container(
-                            padding: const EdgeInsets.all(10),
-                            decoration: BoxDecoration(
-                                color: colors.themeColor.withOpacity(0.05),
-                                borderRadius: BorderRadius.circular(10)),
-                            child: Row(
-                              mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                              children: [
-                                Icon(
-                                  LucideIcons.externalLink,
-                                  color: colors.themeColor,
-                                ),
-                                Text(
-                                  "Share transaction hash",
-                                  style: textTheme.bodyMedium
-                                      ?.copyWith(color: colors.themeColor),
-                                )
-                              ],
-                            )),
-                      ),
-                    )
+                    Text( "${isFrom ? "-" : "+"}${tr.uiAmount} ${tr.token.symbol}" ,
+                    textAlign: TextAlign.center,
+                    style: textTheme.headlineMedium?.copyWith(
+                      fontSize: 25,
+                      fontWeight: FontWeight.bold,
+                      color: colors.textColor,
+                    
+                    ), ),
+                    FutureBuilder(future: getPrice(), builder: (ctx , result) {
+                      if (result.hasData) {
+                        return Text("≈\$${((result.data ?? 0) * double.parse(tr.uiAmount)).toStringAsFixed(2)}",
+                        style: textTheme.bodyMedium?.copyWith(
+                          fontSize: 14,
+                          color: colors.textColor.withValues(alpha: 0.5),
+                          fontWeight: FontWeight.bold
+                        ),);
+                      }
+
+                      return Text("...", style: textTheme.bodyMedium?.copyWith(
+                          fontSize: 14,
+                          color: colors.textColor
+                        ),);
+                    })
                   ],
                 ),
-              )),
-        ));
-      });
+             SizedBox(height: 20,),
+             StandardContainer(
+              backgroundColor: colors.secondaryColor,
+              padding: const EdgeInsets.symmetric(vertical: 10, horizontal: 10),
+              child:Column(
+                spacing: 10,
+                children: [
+                  RowDetailsContent(colors: colors, name: "From", value: concatenateAddress(tr.from), valueStyle: defaultValueStyle , titleStyle: defaultTitleStyle,copyOnClick: true,),
+                  RowDetailsContent(colors: colors, name: "To", value:concatenateAddress(tr.to), valueStyle: defaultValueStyle , titleStyle: defaultTitleStyle, copyOnClick: true,),
+
+
+                ]
+              ) 
+             ),
+             SizedBox(height: 10,),
+               StandardContainer(
+              backgroundColor: colors.secondaryColor,
+              padding: const EdgeInsets.symmetric(vertical: 10, horizontal: 10),
+              child:Column(
+                spacing: 10,
+                children: [
+                  RowDetailsContent(colors: colors, name: "Date", value: formatTimeElapsed(tr.timeStamp) , valueStyle: defaultValueStyle , titleStyle: defaultTitleStyle),
+                  RowDetailsContent(colors: colors, name: "Status", value: (tr.status !=null && tr.status?.isNotEmpty == true ? tr.status : "...") ?? "..." , valueStyle: defaultValueStyle, titleStyle: defaultTitleStyle),
+
+
+                ]
+            
+             ),
+
+               ),
+               SizedBox(height: 10,),
+               StandardContainer(
+                backgroundColor: colors.secondaryColor,
+                child: Column(
+                  spacing: 10,
+                  children: metadataList.map((e) {
+                  return RowDetailsContent(colors: colors, name: e.key, value: e.value, copyOnClick: true,);
+                }).toList(),
+                ),
+               ),
+               SizedBox(height: 30,),
+               ElevatedLowOpacityButton(
+                icon:Icon (LucideIcons.box, color: colors.themeColor,),
+                onPressed: (){
+                final url = token.tokenNetwork?.explorers?.firstOrNull;
+                if (url == null) {
+                  return ;
+                }
+
+                launchUrl(Uri.parse("$url/tx/${tr.transactionId}"));
+
+
+               }, colors: colors, text: "View on Explorer",padding: const EdgeInsets.symmetric(vertical: 0, horizontal: 10), rounded: 10,)
+        
+
+            ],
+          ),
+         ),
+      );
+    });
+
+
 }

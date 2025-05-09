@@ -10,11 +10,14 @@ import 'package:moonwallet/notifiers/assets_notifier.dart';
 import 'package:moonwallet/notifiers/last_account_notifier.dart';
 import 'package:moonwallet/notifiers/profile_image_notifier.dart';
 import 'package:moonwallet/notifiers/saved_crypto.dart';
+import 'package:moonwallet/notifiers/saved_transaction.dart';
+import 'package:moonwallet/notifiers/transactions_notifier.dart';
 import 'package:moonwallet/notifiers/wallet_manager_notifier.dart';
 import 'package:moonwallet/service/db/crypto_storage_manager.dart';
 import 'package:moonwallet/service/external_data/price_manager.dart';
 import 'package:moonwallet/service/db/wallet_db.dart';
 import 'package:moonwallet/types/account_related_types.dart' as types;
+import 'package:moonwallet/types/transaction.dart';
 import 'package:moonwallet/types/types.dart' as types;
 import 'package:moonwallet/utils/colors.dart';
 import 'package:moonwallet/utils/encrypt_service.dart';
@@ -105,3 +108,14 @@ final appSecureConfigProvider =
     AsyncNotifierProvider<AppSecureConfigNotifier, types.AppSecureConfig>(
   AppSecureConfigNotifier.new,
 );
+/*
+final transactionsProviderNotifier = AsyncNotifierProvider.family<
+    TransactionsNotifier, List<Transaction>, AccountWithToken>(
+  TransactionsNotifier.new,
+);
+
+final savedTransactionProviderNotifier = AsyncNotifierProvider.family<
+    SavedTransactions, List<Transaction>, AccountWithToken>(
+  SavedTransactions.new,
+);
+*/

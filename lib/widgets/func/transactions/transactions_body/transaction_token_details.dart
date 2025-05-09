@@ -8,12 +8,17 @@ class TransactionTokenDetails extends StatelessWidget {
   final AppColors colors;
   final Crypto crypto;
   final String value;
-  const TransactionTokenDetails({
-    super.key,
-    required this.colors,
-    required this.crypto,
-    required this.value,
-  });
+  final VisualDensity? density;
+  final ShapeBorder? shape;
+  final double? fontSize;
+  const TransactionTokenDetails(
+      {super.key,
+      required this.colors,
+      required this.crypto,
+      required this.value,
+      this.density,
+      this.shape,
+      this.fontSize = 12});
 
   @override
   Widget build(BuildContext context) {
@@ -24,7 +29,8 @@ class TransactionTokenDetails extends StatelessWidget {
       child: Material(
         color: Colors.transparent,
         child: ListTile(
-          shape:
+          visualDensity: density,
+          shape: shape ??
               RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
           tileColor: colors.secondaryColor,
           leading: CryptoPicture(
@@ -48,7 +54,7 @@ class TransactionTokenDetails extends StatelessWidget {
               style: textTheme.bodyMedium?.copyWith(
                   color: colors.textColor.withOpacity(0.5),
                   fontWeight: FontWeight.w900,
-                  fontSize: 15)),
+                  fontSize: fontSize)),
         ),
       ),
     );

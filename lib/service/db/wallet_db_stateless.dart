@@ -1,7 +1,6 @@
 import 'dart:convert';
 
 import 'package:moonwallet/logger/logger.dart';
-import 'package:moonwallet/notifiers/saved_crypto.dart';
 import 'package:moonwallet/service/db/crypto_storage_manager.dart';
 import 'package:moonwallet/service/db/wallet_db.dart';
 import 'package:moonwallet/service/db/wallet_db_keys.dart';

@@ -72,7 +72,8 @@ Future<TokenEcosystem?> showSelectEcoSystem(
                           return ListTile(
                             shape: RoundedRectangleBorder(
                                 borderRadius: BorderRadius.circular(10)),
-                            leading:  StandardNetworkImage(colors: colors, imageUrl: ecosystem.iconUrl),
+                            leading: StandardNetworkImage(
+                                colors: colors, imageUrl: ecosystem.iconUrl),
                             title: Text(ecosystem.name,
                                 style: textTheme.bodyMedium
                                     ?.copyWith(color: colors.textColor)),
@@ -247,4 +248,3 @@ Future<TokenEcosystem?> showSelectEcoSystem(
 
   return response;
 }
-

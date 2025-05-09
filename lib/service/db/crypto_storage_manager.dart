@@ -4,7 +4,6 @@ import 'dart:convert';
 
 import 'package:moonwallet/logger/logger.dart';
 import 'package:moonwallet/service/db/wallet_db.dart';
-import 'package:moonwallet/service/external_data/crypto_request_manager.dart';
 import 'package:moonwallet/types/account_related_types.dart';
 
 class CryptoStorageManager {

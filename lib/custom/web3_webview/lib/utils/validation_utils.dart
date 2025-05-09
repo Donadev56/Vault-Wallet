@@ -17,6 +17,7 @@ class ValidationUtils {
   }
 
   static bool isValidHexValue(String value) {
+    if (value == "0") return true;
     if (!value.startsWith('0x')) return false;
 
     try {

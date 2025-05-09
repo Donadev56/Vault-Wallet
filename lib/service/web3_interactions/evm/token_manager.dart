@@ -238,6 +238,10 @@ class TokenManager {
         throw "Network not found";
       }
 
+      if (from == null) {
+        throw ArgumentError("From cannot be null");
+      }
+
       final EthereumAddress sender = EthereumAddress.fromHex(from);
       final EthereumAddress receiver = EthereumAddress.fromHex(to);
       final EthereumAddress tokenContract =
@@ -289,15 +293,13 @@ class TokenManager {
             EtherAmount.inWei(confirmedResponse.gasPrice ?? data.gasPrice),
       );
 
-      final result = await web3InteractionManager
-          .sendTransaction(
-              colors: colors,
-              context: context,
-              transaction: transaction,
-              chainId: network.chainId ?? 1,
-              rpcUrl: network.rpcUrls?.firstOrNull ?? "",
-              account: data.account)
-         ;
+      final result = await web3InteractionManager.sendTransaction(
+          colors: colors,
+          context: context,
+          transaction: transaction,
+          chainId: network.chainId ?? 1,
+          rpcUrl: network.rpcUrls?.firstOrNull ?? "",
+          account: data.account);
 
       return result;
     } catch (e) {

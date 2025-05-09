@@ -501,6 +501,10 @@ class _MainDashboardScreenState extends ConsumerState<MainDashboardScreen>
                               .where((as) => as.crypto.cryptoId == c.cryptoId)
                               .first
                               .balanceUsd,
+                          cryptoPrice: assets.value
+                              .where((as) => as.crypto.cryptoId == c.cryptoId)
+                              .first
+                              .cryptoPrice,
                           initialBalanceCrypto: assets.value
                               .where((as) => as.crypto.cryptoId == c.cryptoId)
                               .first
@@ -533,6 +537,10 @@ class _MainDashboardScreenState extends ConsumerState<MainDashboardScreen>
                               .where((as) => as.crypto.cryptoId == c.cryptoId)
                               .first
                               .balanceUsd,
+                          cryptoPrice: assets.value
+                              .where((as) => as.crypto.cryptoId == c.cryptoId)
+                              .first
+                              .cryptoPrice,
                           initialBalanceCrypto: assets.value
                               .where((as) => as.crypto.cryptoId == c.cryptoId)
                               .first

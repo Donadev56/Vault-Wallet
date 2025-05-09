@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_feather_icons/flutter_feather_icons.dart';
 import 'package:moonwallet/types/account_related_types.dart';
+import 'package:moonwallet/types/transaction.dart';
 import 'package:moonwallet/types/types.dart';
 import 'package:moonwallet/utils/constant.dart';
 import 'package:moonwallet/utils/number_formatter.dart';
@@ -14,11 +15,11 @@ class TransactionsListElement extends StatelessWidget {
   final Color surfaceTintColor;
 
   final bool isFrom;
-  final EsTransaction tr;
+  final Transaction tr;
   final AppColors colors;
   final Color textColor;
 
-  final Crypto currentCrypto;
+  final Crypto token;
   final DoubleFactor roundedOf;
   final DoubleFactor fontSizeOf;
 
@@ -28,16 +29,15 @@ class TransactionsListElement extends StatelessWidget {
       required this.isFrom,
       required this.tr,
       required this.textColor,
-      required this.currentCrypto,
+      required this.token,
       required this.colors,
       required this.fontSizeOf,
       required this.roundedOf});
 
   @override
   Widget build(BuildContext context) {
-    final formattedAmount = NumberFormatter().formatCrypto(
-        value: (BigInt.parse(tr.value) /
-            BigInt.from(10).pow(currentCrypto.decimals)));
+    final formattedAmount =
+        NumberFormatter().formatCrypto(value: double.parse(tr.uiAmount));
     final textTheme = TextTheme.of(context);
     return Material(
         color: Colors.transparent,
@@ -51,15 +51,8 @@ class TransactionsListElement extends StatelessWidget {
                   context: context,
                   colors: colors,
                   address: tr.from,
-                  tr: TransactionDetails(
-                      status: tr.txreceiptStatus ?? "",
-                      from: tr.from,
-                      to: tr.to,
-                      value: formattedAmount,
-                      timeStamp: tr.timeStamp,
-                      hash: tr.hash,
-                      blockNumber: tr.blockNumber),
-                  currentNetwork: currentCrypto);
+                  tr: tr,
+                  token: token);
             },
             leading: Container(
               height: 35,
@@ -79,7 +72,7 @@ class TransactionsListElement extends StatelessWidget {
               style: textTheme.bodyMedium?.copyWith(
                   color: textColor,
                   fontWeight: FontWeight.bold,
-                  fontSize: fontSizeOf(15)),
+                  fontSize: fontSizeOf(14)),
             ),
             subtitle: Text(
                 isFrom
@@ -107,7 +100,7 @@ class TransactionsListElement extends StatelessWidget {
                   Duration(seconds: 5),
                   builder: (ctx) {
                     return Text(
-                      formatTimeElapsed(int.parse(tr.timeStamp)),
+                      formatTimeElapsed(tr.timeStamp),
                       style: textTheme.bodyMedium?.copyWith(
                           color: textColor.withOpacity(0.5),
                           fontSize: fontSizeOf(12)),

@@ -12,6 +12,7 @@ class CustomElevatedButton extends StatelessWidget {
   final TextStyle? textStyle;
   final Color? textColor;
   final EdgeInsetsGeometry? padding;
+  final double rounded;
 
   const CustomElevatedButton(
       {super.key,
@@ -24,6 +25,7 @@ class CustomElevatedButton extends StatelessWidget {
       this.opacity = 1,
       this.textStyle,
       this.textColor,
+      this.rounded = 50,
       this.padding});
 
   @override
@@ -38,7 +40,7 @@ class CustomElevatedButton extends StatelessWidget {
       padding:
           padding ?? const EdgeInsets.symmetric(vertical: 12, horizontal: 20),
       shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.circular(50),
+        borderRadius: BorderRadius.circular(rounded),
       ),
     );
     final onPressedFunc = enabled ? onPressed : () => ();

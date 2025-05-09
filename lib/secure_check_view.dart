@@ -4,7 +4,7 @@ import 'package:moonwallet/logger/logger.dart';
 import 'package:moonwallet/notifiers/app_secure_config_notifier.dart';
 import 'package:moonwallet/screens/dashboard/page_manager.dart';
 import 'package:moonwallet/service/db/wallet_db_stateless.dart';
-import 'package:moonwallet/types/account_related_types.dart';
+import 'package:moonwallet/types/exception.dart' show InvalidPasswordException;
 import 'package:moonwallet/types/types.dart';
 import 'package:moonwallet/widgets/func/security/ask_derivate_key.dart';
 import 'package:moonwallet/widgets/func/snackbar.dart';

@@ -41,8 +41,8 @@ void showHomeOptionsDialog({
           onTap: () {
             switch (i) {
               case 0:
-                Navigator.push(context,
-                    MaterialPageRoute(builder: (ctx) => AccountDataView()));
+              //  Navigator.push(context,
+              //   MaterialPageRoute(builder: (ctx) => AccountDataView()));
               case 1:
                 toggleHidden();
               case 2:

@@ -7,8 +7,10 @@ import 'package:moonwallet/notifiers/providers.dart';
 import 'package:moonwallet/screens/dashboard/wallet_actions/private/private_key_screen.dart';
 import 'package:moonwallet/service/vibration.dart';
 import 'package:moonwallet/types/account_related_types.dart';
+import 'package:moonwallet/types/exception.dart';
 import 'package:moonwallet/types/types.dart';
 import 'package:moonwallet/widgets/buttons/elevated_low_opacity_button.dart';
+import 'package:moonwallet/widgets/dialogs/empy_list.dart';
 import 'package:moonwallet/widgets/func/security/ask_password.dart';
 import 'package:moonwallet/widgets/screen_widgets/account_list_title_widget.dart';
 import 'package:moonwallet/widgets/appBar/show_account_options.dart';
@@ -32,21 +34,12 @@ class _EditWalletsViewState extends ConsumerState<EditWalletsView> {
   AppColors colors = AppColors.defaultTheme;
   late PublicAccount account;
   List<PublicAccount> accounts = [];
-  String searchQuery = "";
+  final TextEditingController _searchController = TextEditingController();
   @override
   void initState() {
     super.initState();
     colors = widget.colors;
     account = widget.account;
-  }
-
-  List<PublicAccount> filteredList(
-      {String query = "", required List<PublicAccount> accts}) {
-    return accts
-        .where((account) =>
-            account.walletName.toLowerCase().contains(query.toLowerCase()) ||
-            account.evmAddress.toLowerCase().contains(query.toLowerCase()))
-        .toList();
   }
 
   notifySuccess(String message) => showCustomSnackBar(
@@ -234,6 +227,14 @@ class _EditWalletsViewState extends ConsumerState<EditWalletsView> {
       }
     }
 
+    List<PublicAccount> filteredList() {
+      final query = _searchController.text;
+      return accounts
+          .where((account) =>
+              account.walletName.toLowerCase().contains(query.toLowerCase()))
+          .toList();
+    }
+
     return Scaffold(
       backgroundColor: colors.primaryColor,
       appBar: AppBar(
@@ -251,7 +252,6 @@ class _EditWalletsViewState extends ConsumerState<EditWalletsView> {
             fontSize: fontSizeOf(20),
           ),
         ),
-     
         backgroundColor: colors.primaryColor,
         surfaceTintColor: colors.primaryColor,
       ),
@@ -270,14 +270,13 @@ class _EditWalletsViewState extends ConsumerState<EditWalletsView> {
                 padding: const EdgeInsets.only(
                     bottom: 15, left: 20, right: 20, top: 5),
                 child: TextField(
+                    controller: _searchController,
                     style: textTheme.bodyMedium?.copyWith(
                         color: colors.textColor,
                         fontSize: fontSizeOf(14),
                         fontWeight: FontWeight.w500),
-                    onChanged: (value) {
-                      setState(() {
-                        searchQuery = value;
-                      });
+                    onChanged: (v) {
+                      setState(() {});
                     },
                     cursorColor: colors.textColor.withOpacity(0.4),
                     decoration: InputDecoration(
@@ -288,7 +287,7 @@ class _EditWalletsViewState extends ConsumerState<EditWalletsView> {
                       contentPadding: const EdgeInsets.symmetric(
                           vertical: 0, horizontal: 20),
                       filled: true,
-                      fillColor: colors.textColor.withOpacity(0.05),
+                      fillColor: colors.secondaryColor,
                       enabledBorder: OutlineInputBorder(
                           borderSide:
                               BorderSide(color: Colors.transparent, width: 0),
@@ -313,6 +312,10 @@ class _EditWalletsViewState extends ConsumerState<EditWalletsView> {
               SingleChildScrollView(
                   physics: ClampingScrollPhysics(),
                   child: LayoutBuilder(builder: (ctx, c) {
+                    if (filteredList().isEmpty) {
+                      return EmptyList(colors: colors, "No Account Found");
+                    }
+
                     return ConstrainedBox(
                         constraints: BoxConstraints(maxHeight: height * 0.70),
                         child: GlowingOverscrollIndicator(
@@ -325,7 +328,7 @@ class _EditWalletsViewState extends ConsumerState<EditWalletsView> {
                                       boxShadow: [
                                         BoxShadow(
                                           color: colors.grayColor
-                                              .withValues(alpha: 0.5),
+                                              .withValues(alpha: 0.1),
                                           spreadRadius: 5,
                                           blurRadius: 7,
                                           offset: Offset(0,
@@ -335,25 +338,25 @@ class _EditWalletsViewState extends ConsumerState<EditWalletsView> {
                                     ),
                                     duration: Duration(seconds: 1),
                                     child: Transform.scale(
-                                      scale: 1.1,
-                                      child: Material(
-                                        shadowColor: Colors.transparent,
-                                        elevation: 0,
-                                        color: colors.primaryColor,
-                                        child: child,
+                                      scale: 1.05,
+                                      child: Padding(
+                                        padding: const EdgeInsets.symmetric(
+                                            horizontal: 0),
+                                        child: Material(
+                                          shadowColor: Colors.transparent,
+                                          elevation: 0,
+                                          color: colors.primaryColor,
+                                          child: child,
+                                        ),
                                       ),
                                     ),
                                   );
                                 },
                                 shrinkWrap: true,
                                 physics: ClampingScrollPhysics(),
-                                itemCount: filteredList(
-                                        query: searchQuery, accts: accounts)
-                                    .length,
+                                itemCount: filteredList().length,
                                 itemBuilder: (ctx, index) {
-                                  final wallet = filteredList(
-                                      query: searchQuery,
-                                      accts: accounts)[index];
+                                  final wallet = filteredList()[index];
 
                                   return SizedBox(
                                       key: Key("$index"),
@@ -361,7 +364,7 @@ class _EditWalletsViewState extends ConsumerState<EditWalletsView> {
                                           color: Colors.transparent,
                                           child: Padding(
                                             padding: EdgeInsets.symmetric(
-                                                vertical: 6, horizontal: 20),
+                                                vertical: 5, horizontal: 20),
                                             child: AccountListTitleWidget(
                                                 imageSizeOf: imageSizeOf,
                                                 iconSizeOf: iconSizeOf,
@@ -387,10 +390,7 @@ class _EditWalletsViewState extends ConsumerState<EditWalletsView> {
                                                       context: context,
                                                       colors: colors,
                                                       availableAccounts:
-                                                          filteredList(
-                                                              query:
-                                                                  searchQuery,
-                                                              accts: accounts),
+                                                          filteredList(),
                                                       wallet: wallet,
                                                       editWallet: editWallet,
                                                       deleteWallet:

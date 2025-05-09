@@ -4,7 +4,6 @@ import 'package:flutter/material.dart';
 import 'package:moonwallet/logger/logger.dart';
 
 import 'package:hive_ce/hive.dart';
-import 'package:moonwallet/notifiers/saved_crypto.dart';
 import 'package:moonwallet/service/address_manager.dart';
 import 'package:moonwallet/service/db/crypto_storage_manager.dart';
 
@@ -12,6 +11,7 @@ import 'package:moonwallet/service/db/secure_storage.dart';
 import 'package:moonwallet/service/db/wallet_db_keys.dart';
 import 'package:moonwallet/service/external_data/crypto_request_manager.dart';
 import 'package:moonwallet/types/account_related_types.dart';
+import 'package:moonwallet/types/exception.dart';
 import 'package:moonwallet/utils/encrypt_service.dart';
 import 'package:moonwallet/utils/prefs.dart';
 
@@ -48,8 +48,7 @@ class WalletDatabase {
 
       final rawKey = await secretKey.extractBytes();
       final keyBase64 = base64Encode(rawKey);
-      await saveDerivationInfo(
-          DerivateKeys(derivateKey: keyBase64, salt: salt));
+
       return DerivateKeys(derivateKey: keyBase64, salt: salt);
     } catch (e) {
       logError(e.toString());

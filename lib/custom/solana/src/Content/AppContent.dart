@@ -9,5 +9,5 @@ class Content {
   static String Mainnet_RPC = "https://api.mainnet-beta.solana.com";
 
   ///WebSocket url for Mainnet network of solana chain
-  static String Mainnet_WEBRPC = "ss://api.mainnet-beta.solana.com";
+  static String Mainnet_WEBRPC = "wss://api.mainnet-beta.solana.com";
 }

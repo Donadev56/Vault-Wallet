@@ -1,4 +1,4 @@
-import 'package:fl_chart/fl_chart.dart';
+/*import 'package:fl_chart/fl_chart.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_hooks/flutter_hooks.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -65,7 +65,7 @@ class _AccountDataViewState extends ConsumerState<AccountDataView>
           final transactionsReceived = transactions
               .where((trx) =>
                   trx.from.trim().toLowerCase() !=
-                  account?.evmAddress.trim().toLowerCase())
+                  account?.evmAddress?.trim().toLowerCase())
               .toList();
           log("Transactions received ${transactionsReceived.length}");
           final result = transactionsReceived.fold(
@@ -77,7 +77,7 @@ class _AccountDataViewState extends ConsumerState<AccountDataView>
           final transactionsReceived = transactions
               .where((trx) =>
                   trx.from.trim().toLowerCase() ==
-                  account?.evmAddress.trim().toLowerCase())
+                  account?.evmAddress?.trim().toLowerCase())
               .toList();
           log("Transactions received ${transactionsReceived.length}");
           final result = transactionsReceived.fold(
@@ -139,9 +139,11 @@ class _AccountDataViewState extends ConsumerState<AccountDataView>
           .then((st) => st == InternetStatus.disconnected))) {
         return;
       }
-
+      if (account?.addresses == null) {
+        throw ArgumentError("Eth address is null");
+      }
       final userTransactions = await TransactionRequestManager()
-          .getAllTransactions(crypto: crypto, address: account!.evmAddress);
+          .getAllTransactions(crypto: crypto, address: account!.evmAddress!);
 
       if (userTransactions.isNotEmpty) {
         userTransactions.sort((a, b) => b.timeStamp.compareTo(a.timeStamp));
@@ -186,10 +188,10 @@ class _AccountDataViewState extends ConsumerState<AccountDataView>
       final transactionsToReturn = action == 0
           ? transactions.where((trx) =>
               trx.from.trim().toLowerCase() !=
-              account?.evmAddress.trim().toLowerCase())
+              account?.evmAddress?.trim().toLowerCase())
           : transactions.where((trx) =>
               trx.from.trim().toLowerCase() ==
-              account?.evmAddress.trim().toLowerCase());
+              account?.evmAddress?.trim().toLowerCase());
       return transactionsToReturn.map((item) {
         return (
           DateTime.fromMillisecondsSinceEpoch(
@@ -491,7 +493,7 @@ class _AccountDataViewState extends ConsumerState<AccountDataView>
                                               .trim()
                                               .toLowerCase() ==
                                           account?.evmAddress
-                                              .trim()
+                                              ?.trim()
                                               .toLowerCase();
                                       return TransactionsListElement(
                                         roundedOf: roundedOf,
@@ -582,3 +584,4 @@ class TotalText extends StatelessWidget {
     );
   }
 }
+*/

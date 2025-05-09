@@ -17,6 +17,7 @@ import 'package:moonwallet/screens/dashboard/page_manager.dart';
 import 'package:moonwallet/service/db/list_address_dynamic_db.dart';
 import 'package:moonwallet/service/rpc_service.dart';
 import 'package:moonwallet/types/account_related_types.dart';
+import 'package:moonwallet/types/transaction.dart';
 import 'package:moonwallet/utils/number_formatter.dart';
 import 'package:moonwallet/service/external_data/price_manager.dart';
 import 'package:moonwallet/service/vibration.dart';
@@ -106,12 +107,9 @@ class _SendTransactionScreenState extends ConsumerState<SendTransactionScreen> {
       currentAccount = widget.initData.account;
       crypto = widget.initData.crypto;
       colors = widget.initData.colors;
-      if (widget.initData.cryptoPrice != null) {
-        cryptoPrice = widget.initData.cryptoPrice ?? 0;
-      }
-      if (widget.initData.initialBalanceCrypto != null) {
-        tokenBalance = widget.initData.initialBalanceCrypto ?? "0";
-      }
+      cryptoPrice = widget.initData.cryptoPrice;
+
+      tokenBalance = widget.initData.initialBalanceCrypto;
     });
 
     getInitialData();
@@ -206,24 +204,25 @@ class _SendTransactionScreenState extends ConsumerState<SendTransactionScreen> {
                         colors: colors,
                         currentAccount: currentAccount,
                         crypto: crypto,
-                        transaction: TransactionDetails(
-                            status: receipt?.status == null
-                                ? "Pending"
-                                : receipt?.status == true
-                                    ? "Success"
-                                    : "Failed",
-                            from: from,
-                            to: to,
-                            value: amount.toString(),
-                            timeStamp:
-                                (DateTime.now().millisecondsSinceEpoch / 1000)
-                                    .toStringAsFixed(0),
-                            hash: tx ?? "",
-                            blockNumber: receipt?.block ?? "..."),
+                        transaction: StandardTransaction(
+                          token: crypto!,
+                          status: receipt?.status == null
+                              ? "Pending"
+                              : receipt?.status == true
+                                  ? "Success"
+                                  : "Failed",
+                          from: from,
+                          to: to,
+                          uiAmount: NumberFormatter().formatValue(str: amount),
+                          timeStamp:
+                              (DateTime.now().millisecondsSinceEpoch / 1000)
+                                  .toInt(),
+                          transactionId: tx ?? "",
+                        ),
                       )));
         }
       } else {
-        log("Transaction failed");
+        throw Exception("Transaction Failed");
       }
     } catch (e) {
       logError(e.toString());
@@ -264,28 +263,14 @@ class _SendTransactionScreenState extends ConsumerState<SendTransactionScreen> {
 
       final addressKey =
           "${currentAccount.addressByToken(crypto!)}/lastUsedAddresses";
-
-      final results = await Future.wait([
-        priceManager.getTokenMarketData(crypto!.cgSymbol ?? ""), // 0
-        rpcService.getBalance(crypto!, currentAccount), // 1
-        PublicDataManager().getDataFromPrefs(key: addressKey), // 2
-      ]);
-
-      final price = (results[0] as CryptoMarketData).currentPrice;
-      final targetTokenBalance = results[1] as String;
-      final lastUsedAddressesRaw = results[2] as String?;
+      final lastAddress =
+          await PublicDataManager().getDataFromPrefs(key: addressKey);
 
       setState(() {
-        cryptoPrice = price;
-        if (!crypto!.isNative) {
-          tokenBalance = targetTokenBalance;
-        }
-        if (lastUsedAddressesRaw != null) {
-          lastEthUsedAddresses = json.decode(lastUsedAddressesRaw);
+        if (lastAddress != null) {
+          lastEthUsedAddresses = json.decode(lastAddress);
         }
       });
-
-      log("Crypto price: $cryptoPrice");
     } catch (e, st) {
       logError("getInitialData error: $e\n$st");
     }
@@ -633,6 +618,9 @@ class _SendTransactionScreenState extends ConsumerState<SendTransactionScreen> {
                       _addressController.text.isNotEmpty,
                   colors: colors,
                   onPressed: () async {
+                    if (FocusScope.of(context).hasFocus) {
+                      FocusScope.of(context).unfocus();
+                    }
                     if (_amountController.text.isEmpty) return;
 
                     if (_formKey.currentState!.validate()) {

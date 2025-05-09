@@ -469,7 +469,7 @@ class Option {
     return 'Option(title: $title, icon: $icon, trailing: $trailing, color: $color )';
   }
 }
-
+/*
 class TransactionDetails {
   final String from;
   final String to;
@@ -511,20 +511,22 @@ class TransactionDetails {
   }
 }
 
+*/
+
 class WidgetInitialData {
   final Crypto crypto;
   final AppColors colors;
   final String? initialBalanceUsd;
-  final String? initialBalanceCrypto;
+  final String initialBalanceCrypto;
   final PublicAccount account;
-  final double? cryptoPrice;
+  final double cryptoPrice;
 
   WidgetInitialData({
     required this.account,
     required this.crypto,
-    this.initialBalanceCrypto,
+    required this.initialBalanceCrypto,
     this.initialBalanceUsd,
-    this.cryptoPrice,
+    required this.cryptoPrice,
     required this.colors,
   });
 }

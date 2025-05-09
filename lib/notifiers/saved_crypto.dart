@@ -6,6 +6,7 @@ import 'package:moonwallet/service/db/wallet_db_stateless.dart';
 import 'package:moonwallet/service/external_data/crypto_request_manager.dart';
 import 'package:moonwallet/service/rpc_service.dart';
 import 'package:moonwallet/types/account_related_types.dart';
+import 'package:moonwallet/types/exception.dart';
 import 'package:moonwallet/types/types.dart';
 import 'package:moonwallet/widgets/func/security/ask_derivate_key.dart';
 

@@ -1,5 +1,6 @@
 // ignore_for_file: deprecated_member_use
 
+import 'dart:async';
 import 'dart:io';
 
 import 'package:fast_cached_network_image/fast_cached_network_image.dart';
@@ -26,18 +27,25 @@ import 'package:moonwallet/types/types.dart';
 import 'package:moonwallet/utils/colors.dart';
 import 'package:moonwallet/widgets/func/snackbar.dart';
 
-void main() async {
-  WidgetsFlutterBinding.ensureInitialized();
-  if (!kIsWeb && (Platform.isAndroid || Platform.isIOS)) {
-    await InAppWebViewController.setWebContentsDebuggingEnabled(true);
-  }
-
-  await Web3Webview.initJs();
+void main() {
   WidgetsFlutterBinding.ensureInitialized();
 
-  await FastCachedImageConfig.init(clearCacheAfter: const Duration(days: 15));
-  Future.delayed(Duration(seconds: 2), () {
+  FlutterError.onError = (FlutterErrorDetails details) {
+    FlutterError.presentError(details);
+    logError("FlutterError: ${details.exceptionAsString()}");
+  };
+
+  runZonedGuarded(() async {
+    if (!kIsWeb && (Platform.isAndroid || Platform.isIOS)) {
+      await InAppWebViewController.setWebContentsDebuggingEnabled(true);
+    }
+
+    await Web3Webview.initJs();
+    await FastCachedImageConfig.init(clearCacheAfter: const Duration(days: 15));
+
     runApp(ProviderScope(child: MyApp()));
+  }, (Object error, StackTrace stack) {
+    logError("Caught by runZonedGuarded: $error\n$stack");
   });
 }
 
@@ -283,7 +291,6 @@ class _MyAppState extends State<MyApp> {
                   Routes.secureCheckView: (context) => SecureCheckView(
                         colors: colors,
                       ),
-                  Routes.accountData: (context) => AccountDataView(),
                 });
           } else {
             return Center(

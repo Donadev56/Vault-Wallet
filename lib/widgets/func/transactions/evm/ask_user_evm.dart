@@ -89,7 +89,7 @@ Future<UserCustomGasRequestResponse?> askUserEvm({
                   TransactionDestinationDetails(
                       colors: colors,
                       crypto: crypto,
-                      from: txData.account.evmAddress,
+                      from: txData.account.evmAddress!,
                       to: txData.addressTo),
                   SizedBox(
                     height: 15,

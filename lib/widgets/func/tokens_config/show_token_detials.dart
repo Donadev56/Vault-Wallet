@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:moonwallet/types/account_related_types.dart';
 import 'package:moonwallet/types/types.dart';
+import 'package:moonwallet/widgets/dialogs/row_details.dart';
 import 'package:moonwallet/widgets/dialogs/show_standard_sheet.dart';
 import 'package:moonwallet/widgets/dialogs/standard_container.dart';
 import 'package:moonwallet/widgets/screen_widgets/crypto_picture.dart';
@@ -12,6 +13,10 @@ void showTokenDetails(
     {required BuildContext context,
     required AppColors colors,
     required Crypto crypto}) {
+  void copy(String text) {
+    Clipboard.setData(ClipboardData(text: text));
+  }
+
   showStandardModalBottomSheet(
     context: context,
     builder: (context) {
@@ -39,7 +44,7 @@ void showTokenDetails(
                   Align(
                     alignment: Alignment.center,
                     child: Text(
-                      crypto.name,
+                      crypto.symbol,
                       style: textTheme.bodyMedium?.copyWith(
                           fontSize: 16,
                           fontWeight: FontWeight.bold,
@@ -84,8 +89,7 @@ void showTokenDetails(
                         if (!crypto.isNative)
                           InkWell(
                               onTap: () {
-                                Clipboard.setData(ClipboardData(
-                                    text: crypto.contractAddress ?? ""));
+                                copy(crypto.contractAddress ?? "");
                               },
                               child: RowDetailsContent(
                                   colors: colors,
@@ -95,16 +99,42 @@ void showTokenDetails(
                         SizedBox(
                           height: 10,
                         ),
-                        RowDetailsContent(
-                            colors: colors,
-                            name: "Network",
-                            value: (crypto.isNative
-                                    ? crypto.name
-                                    : crypto.network?.name) ??
-                                "Not Found"),
+                        GestureDetector(
+                          onTap: () {
+                            if (crypto.isNative) {
+                              return;
+                            }
+                            final network = crypto.network;
+                            if (network == null) {
+                              return;
+                            }
+                            showTokenDetails(
+                                context: context,
+                                colors: colors,
+                                crypto: network);
+                          },
+                          child: RowDetailsContent(
+                              underline: !crypto.isNative ? true : false,
+                              colors: colors,
+                              name: "Network",
+                              value: (crypto.isNative
+                                      ? crypto.name
+                                      : crypto.network?.name) ??
+                                  "Not Found"),
+                        ),
                         SizedBox(
                           height: 10,
                         ),
+                        if (crypto.isNative)
+                          GestureDetector(
+                            onTap: () {
+                              copy(crypto.getRpcUrl);
+                            },
+                            child: RowDetailsContent(
+                                colors: colors,
+                                name: "Rpc Url",
+                                value: (crypto.getRpcUrl)),
+                          )
                       ],
                     ),
                   )
@@ -114,37 +144,4 @@ void showTokenDetails(
       );
     },
   );
-}
-
-class RowDetailsContent extends StatelessWidget {
-  final String name;
-  final String value;
-  final AppColors colors;
-  const RowDetailsContent(
-      {super.key,
-      required this.colors,
-      required this.name,
-      required this.value});
-
-  @override
-  Widget build(BuildContext context) {
-    final textTheme = TextTheme.of(context);
-    return Row(
-      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-      children: [
-        Text(
-          name,
-          style: textTheme.bodyMedium
-              ?.copyWith(fontSize: 14, color: colors.textColor),
-        ),
-        Text(
-          value,
-          style: textTheme.bodyMedium?.copyWith(
-              fontSize: 14,
-              color: colors.textColor,
-              fontWeight: FontWeight.bold),
-        ),
-      ],
-    );
-  }
 }
