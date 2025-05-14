@@ -13,7 +13,7 @@ class ElevatedLowOpacityButton extends StatelessWidget {
   final TextStyle? textStyle;
   final Color? textColor;
   final EdgeInsetsGeometry? padding;
-  final double rounded ;
+  final double rounded;
   const ElevatedLowOpacityButton(
       {super.key,
       this.enabled = true,

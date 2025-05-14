@@ -7,7 +7,7 @@ import 'package:moonwallet/types/account_related_types.dart';
 import 'package:moonwallet/types/types.dart';
 import 'package:moonwallet/utils/id_manager.dart';
 import 'package:moonwallet/widgets/custom_filled_text_field.dart';
-import 'package:moonwallet/widgets/func/snackbar.dart';
+import 'package:moonwallet/widgets/dialogs/show_custom_snackbar.dart';
 
 Future<Crypto?> showAddNetwork({
   required BuildContext context,
@@ -22,12 +22,6 @@ Future<Crypto?> showAddNetwork({
   final rpcUrlController = TextEditingController();
   final explorerController = TextEditingController();
   final chainIdController = TextEditingController();
-
-  notifyError(String message) => showCustomSnackBar(
-      context: context,
-      message: message,
-      colors: colors,
-      type: MessageType.error);
 
   final crypto = await showCupertinoModalBottomSheet<Crypto>(
       backgroundColor: colors.primaryColor,
@@ -56,11 +50,12 @@ Future<Crypto?> showAddNetwork({
                           .getChainId()
                           .withLoading(context, colors);
                       if (chainId == null) {
-                        notifyError("Invalid Rpc Url");
+                        notifyError("Invalid Rpc Url", context);
                       } else if (chainId !=
                           int.tryParse(chainIdController.text)) {
                         notifyError(
-                            "RPC URL points to $chainId not ${chainIdController.text} ");
+                            "RPC URL points to $chainId not ${chainIdController.text} ",
+                            context);
                       } else {
                         final newCrypto = Crypto(
                             name: nameController.text,

@@ -14,7 +14,7 @@ import 'package:moonwallet/types/types.dart' as types;
 import 'package:moonwallet/utils/colors.dart';
 import 'package:moonwallet/utils/themes.dart';
 import 'package:moonwallet/widgets/navBar.dart';
-import 'package:moonwallet/widgets/view/show_transaction_details.dart';
+import 'package:moonwallet/widgets/func/transactions/history/show_transaction_details.dart';
 
 class PagesManagerView extends StatefulHookConsumerWidget {
   final types.AppColors colors;
@@ -28,16 +28,12 @@ class PagesManagerView extends StatefulHookConsumerWidget {
       this.currentAccount,
       this.crypto,
       this.transaction});
-  final pageIndex = 0;
 
   @override
   ConsumerState<PagesManagerView> createState() => _PagesManagerViewState();
 }
 
 class _PagesManagerViewState extends ConsumerState<PagesManagerView> {
-  int currentIndex = 2;
-
-  bool _isInitialized = false;
   types.PublicAccount? currentAccount;
   types.Crypto? crypto;
   Transaction? transaction;
@@ -112,28 +108,16 @@ class _PagesManagerViewState extends ConsumerState<PagesManagerView> {
     });
 
     getSavedTheme();
-    setState(() {
-      currentIndex = widget.pageIndex;
-    });
-  }
-
-  @override
-  void didChangeDependencies() {
-    super.didChangeDependencies();
-    if (!_isInitialized) {
-      final data = ModalRoute.of(context)?.settings.arguments;
-      if (data != null && (data as Map<String, dynamic>)["pageIndex"] != null) {
-        final index = data["pageIndex"];
-        setState(() {
-          currentIndex = index;
-        });
-      }
-      _isInitialized = true;
-    }
   }
 
   @override
   Widget build(BuildContext context) {
+    final pageIndexProviderNotifier =
+        ref.watch(currentPageIndexNotifierProvider.notifier);
+
+    final pageIndexProvider = ref.watch(currentPageIndexNotifierProvider);
+    final currentIndexState = useState<int>(0);
+
     final uiConfig =
         useState<types.AppUIConfig>(types.AppUIConfig.defaultConfig);
     final appUIConfigAsync = ref.watch(appUIConfigProvider);
@@ -144,6 +128,13 @@ class _PagesManagerViewState extends ConsumerState<PagesManagerView> {
       });
       return null;
     }, [appUIConfigAsync]);
+
+    useEffect(() {
+      pageIndexProvider.whenData((index) {
+        currentIndexState.value = index;
+      });
+      return null;
+    }, [pageIndexProvider]);
 
     double fontSizeOf(double size) {
       return size * uiConfig.value.styles.fontSizeScaleFactor;
@@ -159,7 +150,7 @@ class _PagesManagerViewState extends ConsumerState<PagesManagerView> {
 
     return Scaffold(
       body: IndexedStack(
-        index: currentIndex,
+        index: currentIndexState.value,
         children: _pages(),
       ),
       bottomNavigationBar: BottomNav(
@@ -167,13 +158,10 @@ class _PagesManagerViewState extends ConsumerState<PagesManagerView> {
           fontSizeOf: fontSizeOf,
           iconSizeOf: iconSizeOf,
           onTap: (index) async {
-            await vibrate();
-
-            setState(() {
-              currentIndex = index;
-            });
+            vibrate();
+            await pageIndexProviderNotifier.savePageIndex(index);
           },
-          currentIndex: currentIndex,
+          currentIndex: currentIndexState.value,
           primaryColor: colors.primaryColor,
           textColor: colors.textColor,
           secondaryColor: colors.themeColor),

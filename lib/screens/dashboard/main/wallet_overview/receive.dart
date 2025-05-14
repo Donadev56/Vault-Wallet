@@ -210,38 +210,27 @@ class _ReceiveScreenState extends ConsumerState<ReceiveScreen> {
                     ],
                   ),
                   SizedBox(
-                    height: 10,
+                    height: 20,
                   ),
                   ConstrainedBox(
                       constraints: BoxConstraints(
                         maxWidth: 300,
                       ),
                       child: Container(
-                          padding: const EdgeInsets.all(5),
                           decoration: BoxDecoration(
                             borderRadius: BorderRadius.circular(roundedOf(10)),
                             color: Colors.white,
                           ),
                           child: LayoutBuilder(builder: (ctx, c) {
-                            return Center(
-                                child: Stack(
-                              alignment: Alignment.center,
-                              children: [
-                                ConstrainedBox(
-                                  constraints: BoxConstraints(),
-                                  child: PrettyQrView.data(
-                                    data:
-                                        currentAccount.addressByToken(crypto!),
-                                    decoration: const PrettyQrDecoration(
-                                      image: PrettyQrDecorationImage(
-                                          image: AssetImage(
-                                              "assets/logo/png/icon.png")),
-                                      quietZone: PrettyQrQuietZone.standart,
-                                    ),
-                                  ),
-                                ),
-                              ],
-                            ));
+                            return PrettyQrView.data(
+                              data: currentAccount.addressByToken(crypto!),
+                              decoration: const PrettyQrDecoration(
+                                image: PrettyQrDecorationImage(
+                                    image:
+                                        AssetImage("assets/logo/png/icon.png")),
+                                quietZone: PrettyQrQuietZone.standart,
+                              ),
+                            );
                           })))
                 ],
               ),

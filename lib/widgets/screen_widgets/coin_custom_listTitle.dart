@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:moonwallet/logger/logger.dart';
 import 'package:moonwallet/screens/dashboard/main/wallet_overview.dart';
 import 'package:moonwallet/types/account_related_types.dart';
 import 'package:moonwallet/types/types.dart';
@@ -50,22 +49,16 @@ class CoinCustomListTitle extends StatelessWidget {
     }
 
     final width = MediaQuery.of(context).size.width;
-    return Padding(
-      padding: const EdgeInsets.symmetric(vertical: 7, horizontal: 8),
-      child: Material(
-        color: Colors.transparent,
-        //color:  colors.secondaryColor,
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(50)),
-
+    return Material(
+      color: Colors.transparent,
+      child: Padding(
+        padding: const EdgeInsets.symmetric(vertical: 2),
         child: ListTile(
           textColor: colors.secondaryColor,
-          shape:
-              RoundedRectangleBorder(borderRadius: BorderRadius.circular(50)),
-          visualDensity: VisualDensity(vertical: -4, horizontal: -2),
-          contentPadding: const EdgeInsets.symmetric(horizontal: 8),
+          contentPadding: const EdgeInsets.symmetric(horizontal: 15),
+          visualDensity: VisualDensity(vertical: -2.5, horizontal: 2),
           splashColor: colors.textColor.withOpacity(0.05),
           onTap: () {
-            log("Crypto id ${crypto.cryptoId}");
             Navigator.push(
                 context,
                 MaterialPageRoute(

@@ -10,6 +10,8 @@ class RowDetailsContent extends StatelessWidget {
   final TextStyle? valueStyle;
   final TextStyle? titleStyle;
   final bool copyOnClick;
+  final void Function()? onClick;
+
   const RowDetailsContent(
       {super.key,
       required this.colors,
@@ -18,6 +20,7 @@ class RowDetailsContent extends StatelessWidget {
       this.valueStyle,
       this.titleStyle,
       this.copyOnClick = false,
+      this.onClick,
       required this.value});
 
   @override
@@ -34,9 +37,16 @@ class RowDetailsContent extends StatelessWidget {
                     ?.copyWith(fontSize: 14, color: colors.textColor),
           ),
           GestureDetector(
-            onTap: copyOnClick
-                ? () => Clipboard.setData(ClipboardData(text: value))
-                : null,
+            onTap: () {
+              if (onClick != null) {
+                onClick!();
+                return;
+              }
+              if (copyOnClick) {
+                Clipboard.setData(ClipboardData(text: value));
+                return;
+              }
+            },
             child: ConstrainedBox(
               constraints: BoxConstraints(maxWidth: c.maxWidth * 0.5),
               child: Text(
@@ -50,7 +60,7 @@ class RowDetailsContent extends StatelessWidget {
                         overflow: TextOverflow.ellipsis,
                         fontSize: 14,
                         color: colors.textColor,
-                        fontWeight: FontWeight.bold),
+                        fontWeight: FontWeight.w500),
               ),
             ),
           )

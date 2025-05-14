@@ -21,7 +21,7 @@ import 'package:moonwallet/widgets/backup/warning_static_message.dart';
 import 'package:moonwallet/widgets/buttons/elevated_low_opacity_button.dart';
 import 'package:moonwallet/widgets/buttons/outlined.dart';
 import 'package:moonwallet/widgets/func/security/ask_password.dart';
-import 'package:moonwallet/widgets/func/snackbar.dart';
+import 'package:moonwallet/widgets/dialogs/show_custom_snackbar.dart';
 import 'package:moonwallet/widgets/scanner/show_scanner.dart';
 import 'package:page_transition/page_transition.dart';
 
@@ -77,17 +77,6 @@ class _AddPrivateKeyState extends ConsumerState<AddObservationWallet> {
     super.initState();
   }
 
-  notifySuccess(String message) => showCustomSnackBar(
-      context: context,
-      message: message,
-      colors: colors,
-      type: MessageType.success);
-  notifyError(String message) => showCustomSnackBar(
-      context: context,
-      message: message,
-      colors: colors,
-      type: MessageType.error);
-
   final MobileScannerController _mobileScannerController =
       MobileScannerController();
 
@@ -97,7 +86,7 @@ class _AddPrivateKeyState extends ConsumerState<AddObservationWallet> {
       return _rpcService.validateAddressUsingType(address, ecosystem.type) ??
           false;
     } catch (e) {
-      notifyError(e.toString());
+      notifyError(e.toString(), context);
 
       return false;
     }
@@ -137,7 +126,7 @@ class _AddPrivateKeyState extends ConsumerState<AddObservationWallet> {
           lastAccountNotifier.updateKeyId(result.keyId);
 
           if (!mounted) return;
-          notifySuccess("Wallet added ");
+          notifySuccess("Wallet added ", context);
           Navigator.of(context).push(PageTransition(
               type: PageTransitionType.leftToRight,
               child: PagesManagerView(
@@ -148,7 +137,7 @@ class _AddPrivateKeyState extends ConsumerState<AddObservationWallet> {
         }
       } catch (e) {
         logError(e.toString());
-        notifyError("Failed to save the address.");
+        notifyError("Failed to save the address.", context);
         setState(() {
           userPassword = "";
         });
@@ -167,13 +156,7 @@ class _AddPrivateKeyState extends ConsumerState<AddObservationWallet> {
         }
       } catch (e) {
         logError(e.toString());
-        showCustomSnackBar(
-            colors: colors,
-            type: MessageType.error,
-            context: context,
-            message: "Error occurred while creating private key.",
-            icon: Icons.error,
-            iconColor: Colors.redAccent);
+        notifyError("An error has occurred", context);
       }
     }
 
@@ -346,7 +329,7 @@ class _AddPrivateKeyState extends ConsumerState<AddObservationWallet> {
                   colors: colors,
                   onPressed: () async {
                     if (!(keyTester(_textController.text.trim()))) {
-                      notifyError("Invalid Address");
+                      notifyError("Invalid Address", context);
                       return;
                     }
                     if (_formKey.currentState?.validate() ?? false) {

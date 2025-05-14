@@ -98,7 +98,7 @@ class Header extends StatelessWidget {
             style: titleStyle ??
                 textTheme.headlineMedium?.copyWith(
                   fontSize: 18,
-                  fontWeight: FontWeight.w900,
+                  fontWeight: FontWeight.w600,
                   color: colors.textColor.withValues(alpha: 0.7),
                 ),
           ),

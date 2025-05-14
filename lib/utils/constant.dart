@@ -39,7 +39,7 @@ String formatTimeElapsed(int timestamp) {
 final List<Map<String, dynamic>> actionsData = [
   {'icon': LucideIcons.moveUpRight, 'page': 'send', 'name': 'Send'},
   {'icon': LucideIcons.moveDownLeft, 'page': 'receive', 'name': 'Receive'},
-  {'icon': LucideIcons.plus, 'page': 'add_token', 'name': 'Add crypto'},
+  {'icon': Icons.swap_horiz, 'page': 'add_token', 'name': 'Swap'},
   {'icon': LucideIcons.ellipsis, 'page': 'more', 'name': 'More'},
 ];
 
@@ -250,3 +250,13 @@ final List<DApp> dapps = [
     }
   }
 */
+
+String truncatedValue(
+  String value,
+) {
+  if (value.length < 42) {
+    return value;
+  }
+
+  return "${value.substring(0, 7)}...${value.substring(value.length - 7, value.length)}";
+}

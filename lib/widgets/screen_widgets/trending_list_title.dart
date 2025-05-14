@@ -40,7 +40,7 @@ class TrendingListTitle extends StatelessWidget {
         style: textTheme.bodyMedium?.copyWith(
             fontSize: fontSizeOf(15),
             color: colors.textColor,
-            fontWeight: FontWeight.bold),
+            fontWeight: FontWeight.w600),
       ),
       subtitle: Text(
         volume,

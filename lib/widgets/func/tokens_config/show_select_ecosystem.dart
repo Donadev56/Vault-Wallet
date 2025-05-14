@@ -75,8 +75,9 @@ Future<TokenEcosystem?> showSelectEcoSystem(
                             leading: StandardNetworkImage(
                                 colors: colors, imageUrl: ecosystem.iconUrl),
                             title: Text(ecosystem.name,
-                                style: textTheme.bodyMedium
-                                    ?.copyWith(color: colors.textColor)),
+                                style: textTheme.bodyMedium?.copyWith(
+                                    color: colors.textColor,
+                                    fontWeight: FontWeight.w500)),
                             subtitle: ecosystemNetworks.length > 1
                                 ? Row(
                                     children: [
@@ -198,7 +199,7 @@ Future<TokenEcosystem?> showSelectEcoSystem(
                                                                                 0.9),
                                                                     fontWeight:
                                                                         FontWeight
-                                                                            .w900),
+                                                                            .w400),
                                                               ),
                                                             ),
                                                           );

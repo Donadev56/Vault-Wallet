@@ -2,7 +2,8 @@
 import 'dart:typed_data';
 import 'package:flutter/material.dart';
 import 'package:moonwallet/types/types.dart';
-import 'package:moonwallet/widgets/func/snackbar.dart';
+import 'package:moonwallet/utils/constant.dart';
+import 'package:moonwallet/widgets/dialogs/show_custom_snackbar.dart';
 import 'package:web3dart/web3dart.dart';
 import '../../../../logger/logger.dart';
 import '../utils/hex_utils.dart';
@@ -36,25 +37,14 @@ class TransactionHandler {
       // Monitor transaction
       await _monitorTransaction(txHash);
       if (txHash.isNotEmpty) {
-        showCustomSnackBar(
-            context: context,
-            message: "Hash : $txHash",
-            type: MessageType.success,
-            colors: colors,
-            iconColor: colors.greenColor,
-            icon: Icons.check_circle);
+        notifySuccess("Transaction Id : ${truncatedValue(txHash)}", context);
       }
 
       return txHash;
     } catch (e) {
       logError(e.toString());
-      showCustomSnackBar(
-          context: context,
-          message: "$e",
-          type: MessageType.error,
-          colors: colors,
-          iconColor: colors.redColor,
-          icon: Icons.error);
+      notifyError("$e", context);
+
       throw WalletException('Transaction failed: $e');
     }
   }

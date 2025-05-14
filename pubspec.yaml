@@ -180,11 +180,112 @@ flutter_native_splash:
 
 # The following section is specific to Flutter packages.
 flutter:
+
   fonts:
     - family: roboto_reg
       fonts:
         - asset: assets/fonts/roboto_regular.ttf
-        
+
+    - family: custom_inter
+      fonts:
+        - asset: assets/fonts/inter/otf/Inter-Black.otf
+        - asset: assets/fonts/inter/otf/Inter-BlackItalic.otf
+          style: italic
+        - asset: assets/fonts/inter/otf/Inter-Bold.otf
+          weight: 700
+        - asset: assets/fonts/inter/otf/Inter-BoldItalic.otf
+          weight: 700
+          style: italic
+        - asset: assets/fonts/inter/otf/Inter-ExtraBold.otf
+          weight: 800
+        - asset: assets/fonts/inter/otf/Inter-ExtraBoldItalic.otf
+          weight: 800
+          style: italic
+        - asset: assets/fonts/inter/otf/Inter-ExtraLight.otf
+          weight: 200
+        - asset: assets/fonts/inter/otf/Inter-ExtraLightItalic.otf
+          weight: 200
+          style: italic
+        - asset: assets/fonts/inter/otf/Inter-Italic.otf
+          style: italic
+        - asset: assets/fonts/inter/otf/Inter-Light.otf
+          weight: 300
+        - asset: assets/fonts/inter/otf/Inter-LightItalic.otf
+          weight: 300
+          style: italic
+        - asset: assets/fonts/inter/otf/Inter-Medium.otf
+          weight: 500
+        - asset: assets/fonts/inter/otf/Inter-MediumItalic.otf
+          weight: 500
+          style: italic
+        - asset: assets/fonts/inter/otf/Inter-Regular.otf
+          weight: 400
+        - asset: assets/fonts/inter/otf/Inter-SemiBold.otf
+          weight: 600
+        - asset: assets/fonts/inter/otf/Inter-SemiBoldItalic.otf
+          weight: 600
+          style: italic
+        - asset: assets/fonts/inter/otf/Inter-Thin.otf
+          weight: 100
+        - asset: assets/fonts/inter/otf/Inter-ThinItalic.otf
+          weight: 100
+          style: italic 
+    - family: grotesk
+      fonts:
+        - asset: assets/fonts/ClashGrotesk-Variable.ttf    
+
+    - family: clashGrotesk-otf
+      fonts:
+       - asset: assets/fonts/clashGrotesk-otf/ClashGrotesk-Extralight.otf
+         weight: 200
+       - asset: assets/fonts/clashGrotesk-otf/ClashGrotesk-Light.otf
+         weight: 300
+       - asset: assets/fonts/clashGrotesk-otf/ClashGrotesk-Regular.otf
+         weight: 400
+       - asset: assets/fonts/clashGrotesk-otf/ClashGrotesk-Medium.otf
+         weight: 500
+       - asset: assets/fonts/clashGrotesk-otf/ClashGrotesk-Semibold.otf
+         weight: 600
+       - asset: assets/fonts/clashGrotesk-otf/ClashGrotesk-Bold.otf
+         weight: 700
+
+
+    - family: general
+      fonts:
+        - asset: assets/fonts/GeneralSans-Variable.ttf
+
+    - family: general-otf
+      fonts:
+        - asset: assets/fonts/general-otf/OTF/GeneralSans-Regular.otf
+          weight: 400
+        - asset: assets/fonts/general-otf/OTF/GeneralSans-Italic.otf
+          weight: 400
+          style: italic
+        - asset: assets/fonts/general-otf/OTF/GeneralSans-Bold.otf
+          weight: 700
+        - asset: assets/fonts/general-otf/OTF/GeneralSans-BoldItalic.otf
+          weight: 700
+          style: italic
+        - asset: assets/fonts/general-otf/OTF/GeneralSans-Light.otf
+          weight: 300
+        - asset: assets/fonts/general-otf/OTF/GeneralSans-LightItalic.otf
+          weight: 300
+          style: italic
+        - asset: assets/fonts/general-otf/OTF/GeneralSans-Medium.otf
+          weight: 500
+        - asset: assets/fonts/general-otf/OTF/GeneralSans-MediumItalic.otf
+          weight: 500
+          style: italic
+        - asset: assets/fonts/general-otf/OTF/GeneralSans-Semibold.otf
+          weight: 600
+        - asset: assets/fonts/general-otf/OTF/GeneralSans-SemiboldItalic.otf
+          weight: 600
+          style: italic
+        - asset: assets/fonts/general-otf/OTF/GeneralSans-Extralight.otf
+          weight: 200
+        - asset: assets/fonts/general-otf/OTF/GeneralSans-ExtralightItalic.otf
+          weight: 200
+          style: italic
   assets:
  
   - assets/icon/icon4.png

@@ -7,17 +7,15 @@ import 'package:moonwallet/notifiers/accounts_notifier.dart';
 import 'package:moonwallet/notifiers/app_secure_config_notifier.dart';
 import 'package:moonwallet/notifiers/app_ui_config_notifier.dart';
 import 'package:moonwallet/notifiers/assets_notifier.dart';
+import 'package:moonwallet/notifiers/current_page_index_notifier.dart';
 import 'package:moonwallet/notifiers/last_account_notifier.dart';
 import 'package:moonwallet/notifiers/profile_image_notifier.dart';
 import 'package:moonwallet/notifiers/saved_crypto.dart';
-import 'package:moonwallet/notifiers/saved_transaction.dart';
-import 'package:moonwallet/notifiers/transactions_notifier.dart';
 import 'package:moonwallet/notifiers/wallet_manager_notifier.dart';
 import 'package:moonwallet/service/db/crypto_storage_manager.dart';
 import 'package:moonwallet/service/external_data/price_manager.dart';
 import 'package:moonwallet/service/db/wallet_db.dart';
 import 'package:moonwallet/types/account_related_types.dart' as types;
-import 'package:moonwallet/types/transaction.dart';
 import 'package:moonwallet/types/types.dart' as types;
 import 'package:moonwallet/utils/colors.dart';
 import 'package:moonwallet/utils/encrypt_service.dart';
@@ -94,6 +92,10 @@ final currentAccountProvider =
 final lastConnectedKeyIdNotifierProvider =
     AsyncNotifierProvider<LastConnectedKeyIdNotifier, String?>(
         LastConnectedKeyIdNotifier.new);
+
+final currentPageIndexNotifierProvider =
+    AsyncNotifierProvider<CurrentPageIndexNotifier, int>(
+        CurrentPageIndexNotifier.new);
 
 final web3ProviderNotifier = Provider<WalletManagerNotifier>((ref) {
   return WalletManagerNotifier(ref);

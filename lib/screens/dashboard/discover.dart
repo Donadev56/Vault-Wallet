@@ -19,7 +19,7 @@ import 'package:moonwallet/utils/constant.dart';
 import 'package:moonwallet/utils/prefs.dart';
 import 'package:moonwallet/utils/themes.dart';
 
-import 'package:moonwallet/widgets/func/snackbar.dart';
+import 'package:moonwallet/widgets/dialogs/show_custom_snackbar.dart';
 import 'package:moonwallet/widgets/func/tokens_config/show_select_network_modal.dart';
 
 class DiscoverScreen extends StatefulHookConsumerWidget {
@@ -299,19 +299,13 @@ class _DiscoverScreenState extends ConsumerState<DiscoverScreen>
         }
 
         if (url.isEmpty) {
-          showCustomSnackBar(
-              type: MessageType.error,
-              context: context,
-              message: "Url cannot be empty",
-              colors: colors);
+          notifyError("Url cannot be empty", context);
+
           return;
         }
         if (networks.isEmpty) {
-          showCustomSnackBar(
-              type: MessageType.error,
-              context: context,
-              message: "No saved cryptos found",
-              colors: colors);
+          notifyError("No saved cryptos found", context);
+
           return;
         }
         final selected = await showSelectNetworkModal(
@@ -340,11 +334,7 @@ class _DiscoverScreenState extends ConsumerState<DiscoverScreen>
         }
       } catch (e) {
         logError(e.toString());
-        showCustomSnackBar(
-            type: MessageType.error,
-            context: context,
-            message: "Error opening browser: $e",
-            colors: colors);
+        notifyError("Error opening browser: $e", context);
       }
     }
 
@@ -384,12 +374,7 @@ class _DiscoverScreenState extends ConsumerState<DiscoverScreen>
                           await openBrowser(data.trim());
                         } catch (e) {
                           logError(e.toString());
-                          showCustomSnackBar(
-                              type: MessageType.error,
-                              colors: colors,
-                              context: context,
-                              message: "Invalid Url",
-                              iconColor: Colors.pinkAccent);
+                          notifyError("Invalid Url", context);
                         }
                       },
                       focusNode: _focusNode,
@@ -560,21 +545,9 @@ class _DiscoverScreenState extends ConsumerState<DiscoverScreen>
                             onPressed: () async {
                               final res = await deleteHistoryItem(index);
                               if (res) {
-                                showCustomSnackBar(
-                                    type: MessageType.success,
-                                    colors: colors,
-                                    context: context,
-                                    message: "Deleted successfully",
-                                    iconColor: Colors.greenAccent,
-                                    icon: Icons.check);
+                                notifySuccess("Deleted successfully", context);
                               } else {
-                                showCustomSnackBar(
-                                    type: MessageType.error,
-                                    colors: colors,
-                                    context: context,
-                                    message: "Failed to delete",
-                                    iconColor: Colors.pinkAccent,
-                                    icon: Icons.error);
+                                notifyError("Failed to delete", context);
                               }
                             },
                             icon: Icon(

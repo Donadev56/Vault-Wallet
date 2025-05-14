@@ -10,11 +10,11 @@ import 'package:moonwallet/types/account_related_types.dart';
 import 'package:moonwallet/types/types.dart';
 import 'package:moonwallet/utils/colors.dart';
 import 'package:moonwallet/utils/number_formatter.dart';
-import 'package:moonwallet/widgets/func/snackbar.dart';
+import 'package:moonwallet/widgets/dialogs/show_custom_snackbar.dart';
 import 'package:moonwallet/widgets/screen_widgets/chips.dart';
 import 'package:moonwallet/widgets/screen_widgets/crypto_picture.dart';
 import 'package:moonwallet/widgets/custom_filled_text_field.dart';
-import 'package:moonwallet/widgets/screen_widgets/trending_list_view.dart';
+import 'package:moonwallet/widgets/screen_widgets/trending_list_title.dart';
 import 'package:numeral/numeral.dart';
 import 'package:page_transition/page_transition.dart';
 
@@ -96,12 +96,6 @@ class _TrendingScreenState extends ConsumerState<TrendingScreen> {
       getListCrypto();
       return null;
     }, []);
-
-    notifyError(String message) => showCustomSnackBar(
-        context: context,
-        message: message,
-        colors: colors,
-        type: MessageType.error);
 
     double fontSizeOf(double size) {
       return size * uiConfig.value.styles.fontSizeScaleFactor;
@@ -254,7 +248,8 @@ class _TrendingScreenState extends ConsumerState<TrendingScreen> {
                       roundedOf: roundedOf,
                       onTap: () {
                         if (marketData == null) {
-                          notifyError("No market data for ${crypto.symbol}");
+                          notifyError(
+                              "No market data for ${crypto.symbol}", context);
                           return;
                         }
                         Navigator.push(

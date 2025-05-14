@@ -10,7 +10,7 @@ import 'package:moonwallet/types/types.dart';
 import 'dart:math';
 
 import 'package:moonwallet/widgets/backup/backup_related.dart';
-import 'package:moonwallet/widgets/func/snackbar.dart';
+import 'package:moonwallet/widgets/dialogs/show_custom_snackbar.dart';
 import 'package:page_transition/page_transition.dart';
 
 class BackupTestScreen extends ConsumerStatefulWidget {
@@ -49,10 +49,6 @@ class _BackupTestScreenState extends ConsumerState<BackupTestScreen> {
     colors = widget.colors;
     publicAccount = widget.publicAccount;
     init();
-  }
-
-  void notify(String message) {
-    showCustomSnackBar(context: context, message: message, colors: colors);
   }
 
   void init() {
@@ -120,7 +116,7 @@ class _BackupTestScreenState extends ConsumerState<BackupTestScreen> {
         );
       } catch (e) {
         logError(e.toString());
-        notify(e.toString());
+        notifyError(e.toString(), context);
       }
     }
 

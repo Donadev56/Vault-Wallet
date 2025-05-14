@@ -16,7 +16,7 @@ import 'package:moonwallet/widgets/screen_widgets/account_list_title_widget.dart
 import 'package:moonwallet/widgets/appBar/show_account_options.dart';
 import 'package:moonwallet/widgets/appBar/show_wallet_actions.dart';
 import 'package:moonwallet/widgets/appBar/wallet_actions.dart';
-import 'package:moonwallet/widgets/func/snackbar.dart';
+import 'package:moonwallet/widgets/dialogs/show_custom_snackbar.dart';
 import 'package:page_transition/page_transition.dart';
 
 class EditWalletsView extends StatefulHookConsumerWidget {
@@ -41,17 +41,6 @@ class _EditWalletsViewState extends ConsumerState<EditWalletsView> {
     colors = widget.colors;
     account = widget.account;
   }
-
-  notifySuccess(String message) => showCustomSnackBar(
-      context: context,
-      message: message,
-      colors: colors,
-      type: MessageType.success);
-  notifyError(String message) => showCustomSnackBar(
-      context: context,
-      message: message,
-      colors: colors,
-      type: MessageType.error);
 
   @override
   Widget build(BuildContext context) {
@@ -143,7 +132,7 @@ class _EditWalletsViewState extends ConsumerState<EditWalletsView> {
       } catch (e) {
         logError(e.toString());
         if (mounted) {
-          notifyError(e.toString());
+          notifyError(e.toString(), context);
         }
       }
     }
@@ -157,7 +146,7 @@ class _EditWalletsViewState extends ConsumerState<EditWalletsView> {
       } catch (e) {
         logError(e.toString());
         if (mounted) {
-          notifyError(e.toString());
+          notifyError(e.toString(), context);
         }
       }
     }
@@ -176,7 +165,7 @@ class _EditWalletsViewState extends ConsumerState<EditWalletsView> {
         final deleteResult = await providerNotifier.deleteWallet(
             accountToRemove, colors, context);
         if (deleteResult) {
-          notifySuccess("Account deleted successfully");
+          notifySuccess("Account deleted successfully", context);
           close();
           return true;
         } else {
@@ -184,7 +173,7 @@ class _EditWalletsViewState extends ConsumerState<EditWalletsView> {
         }
       } catch (e) {
         logError(e.toString());
-        notifyError(e.toString());
+        notifyError(e.toString(), context);
         return false;
       }
     }
@@ -222,7 +211,7 @@ class _EditWalletsViewState extends ConsumerState<EditWalletsView> {
         }
       } catch (e) {
         logError(e.toString());
-        notifyError(e.toString());
+        notifyError(e.toString(), context);
         return false;
       }
     }

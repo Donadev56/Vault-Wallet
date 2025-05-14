@@ -3,7 +3,7 @@ import 'package:flutter_feather_icons/flutter_feather_icons.dart';
 import 'package:modal_bottom_sheet/modal_bottom_sheet.dart';
 import 'package:moonwallet/logger/logger.dart';
 import 'package:moonwallet/types/types.dart';
-import 'package:moonwallet/widgets/func/snackbar.dart';
+import 'package:moonwallet/widgets/dialogs/show_custom_snackbar.dart';
 import 'package:moonwallet/widgets/func/transactions/transactions_body/customization_parent_container.dart';
 import 'package:moonwallet/widgets/func/transactions/transactions_body/expended_button.dart';
 
@@ -35,10 +35,7 @@ Future<UserCustomGasRequestResponse?> showCustomGasModal(
             onPressed: () {
               if (gasLimitController.text.isEmpty ||
                   gasPriceController.text.isEmpty) {
-                showCustomSnackBar(
-                    context: context,
-                    message: "Fill all fields",
-                    colors: colors);
+                notifyError("Fill all fields", context);
                 return;
               }
 

@@ -7,7 +7,6 @@ import 'package:local_auth/local_auth.dart';
 import 'package:moonwallet/logger/logger.dart';
 import 'package:moonwallet/service/db/secure_storage.dart';
 import 'package:moonwallet/service/db/wallet_db_stateless.dart';
-import 'package:moonwallet/types/account_related_types.dart';
 import 'package:moonwallet/types/exception.dart';
 import 'package:moonwallet/types/types.dart';
 import 'package:moonwallet/widgets/func/security/ask_password.dart';

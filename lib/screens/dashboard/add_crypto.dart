@@ -18,7 +18,7 @@ import 'package:moonwallet/widgets/func/tokens_config/show_token_detials.dart';
 import 'package:moonwallet/widgets/screen_widgets/crypto_picture.dart';
 import 'package:moonwallet/widgets/func/tokens_config/show_add_network.dart';
 import 'package:moonwallet/widgets/func/tokens_config/show_add_token.dart';
-import 'package:moonwallet/widgets/func/snackbar.dart';
+import 'package:moonwallet/widgets/dialogs/show_custom_snackbar.dart';
 import 'package:moonwallet/widgets/func/tokens_config/show_edit_network_modal.dart';
 import 'package:moonwallet/widgets/func/tokens_config/show_select_network_modal.dart';
 import 'package:ulid/ulid.dart';
@@ -85,17 +85,6 @@ class _AddCryptoViewState extends ConsumerState<AddCryptoView> {
   String generateUUID() {
     return Ulid().toUuid();
   }
-
-  notifySuccess(String message) => showCustomSnackBar(
-      context: context,
-      message: message,
-      colors: colors,
-      type: MessageType.success);
-  notifyError(String message) => showCustomSnackBar(
-      context: context,
-      message: message,
-      colors: colors,
-      type: MessageType.error);
 
   @override
   Widget build(BuildContext context) {
@@ -198,17 +187,17 @@ class _AddCryptoViewState extends ConsumerState<AddCryptoView> {
           final saveResult = await savedCryptoProvider.addCrypto(newCrypto);
           if (saveResult) {
             hasSaved = true;
-            notifySuccess('Token added successfully.');
+            notifySuccess('Token added successfully.', context);
 
             Navigator.pop(context);
           } else {
-            notifyError('Error adding token.');
+            notifyError('Error adding token.', context);
             Navigator.pop(context);
           }
         }
       } catch (e) {
         logError(e.toString());
-        notifyError(e.toString());
+        notifyError(e.toString(), context);
       }
     }
 
@@ -218,17 +207,17 @@ class _AddCryptoViewState extends ConsumerState<AddCryptoView> {
           final saveResult = await savedCryptoProvider.addCrypto(newCrypto);
           if (saveResult) {
             hasSaved = true;
-            notifySuccess('Network added successfully.');
+            notifySuccess('Network added successfully.', context);
 
             Navigator.pop(context);
           } else {
-            notifyError('Error adding token.');
+            notifyError('Error adding token.', context);
             Navigator.pop(context);
           }
         }
       } catch (e) {
         logError(e.toString());
-        notifyError(e.toString());
+        notifyError(e.toString(), context);
       }
     }
 
@@ -251,13 +240,13 @@ class _AddCryptoViewState extends ConsumerState<AddCryptoView> {
             explorers: explorers,
             currentAccount: currentAccount!);
         if (result) {
-          notifySuccess("Network Edited");
+          notifySuccess("Network Edited", context);
         }
 
         return result;
       } catch (e) {
         logError(e.toString());
-        notifyError(e.toString());
+        notifyError(e.toString(), context);
         return false;
       }
     }
@@ -315,8 +304,6 @@ class _AddCryptoViewState extends ConsumerState<AddCryptoView> {
                                 fontSizeOf: fontSizeOf,
                                 iconSizeOf: iconSizeOf,
                                 reorganizedCrypto: savedCrypto.value,
-                                notifyError: notifyError,
-                                notifySuccess: notifySuccess,
                                 addCrypto: addCrypto,
                                 context: context,
                                 colors: colors,
@@ -340,7 +327,7 @@ class _AddCryptoViewState extends ConsumerState<AddCryptoView> {
                             if (newNetwork != null) {
                               if (savedCrypto.value.any(
                                   (c) => c.chainId == newNetwork.chainId)) {
-                                notifyError("Network already exist");
+                                notifyError("Network already exist", context);
                                 return;
                               }
                               addNetwork(newNetwork)
@@ -484,7 +471,7 @@ class _AddCryptoViewState extends ConsumerState<AddCryptoView> {
                         style: textTheme.bodyMedium?.copyWith(
                             color: colors.textColor,
                             fontSize: fontSizeOf(16),
-                            fontWeight: FontWeight.bold),
+                            fontWeight: FontWeight.w500),
                       ),
                       trailing: Switch(
                           value: isEnable,
@@ -501,11 +488,7 @@ class _AddCryptoViewState extends ConsumerState<AddCryptoView> {
                               }
                             } catch (e) {
                               logError(e.toString());
-                              showCustomSnackBar(
-                                  context: context,
-                                  message: e.toString(),
-                                  colors: colors,
-                                  type: MessageType.error);
+                              notifyError(e.toString(), context);
                             }
                           }),
                     ),

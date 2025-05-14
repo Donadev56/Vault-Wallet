@@ -7,7 +7,7 @@ import 'package:moonwallet/service/db/wallet_db_stateless.dart';
 import 'package:moonwallet/types/exception.dart' show InvalidPasswordException;
 import 'package:moonwallet/types/types.dart';
 import 'package:moonwallet/widgets/func/security/ask_derivate_key.dart';
-import 'package:moonwallet/widgets/func/snackbar.dart';
+import 'package:moonwallet/widgets/dialogs/show_custom_snackbar.dart';
 
 class SecureCheckView extends StatefulWidget {
   final AppColors colors;
@@ -21,17 +21,6 @@ class _SecureCheckViewState extends State<SecureCheckView> {
   AppColors colors = AppColors.defaultTheme;
   final AppSecureConfig secureConfig = AppSecureConfig();
   bool isLoading = true;
-
-  notifySuccess(String message) => showCustomSnackBar(
-      context: context,
-      message: message,
-      colors: colors,
-      type: MessageType.success);
-  notifyError(String message) => showCustomSnackBar(
-      context: context,
-      message: message,
-      colors: colors,
-      type: MessageType.error);
 
   @override
   void initState() {
@@ -58,10 +47,10 @@ class _SecureCheckViewState extends State<SecureCheckView> {
       goToDashboard();
     } on InvalidPasswordException catch (e) {
       logError(e.toString());
-      notifyError("Invalid password");
+      notifyError("Invalid password", context);
     } catch (e) {
       logError(e.toString());
-      notifyError(e.toString());
+      notifyError(e.toString(), context);
     }
   }
 
@@ -80,7 +69,7 @@ class _SecureCheckViewState extends State<SecureCheckView> {
       goToDashboard();
     } catch (e) {
       logError(e.toString());
-      notifyError(e.toString());
+      notifyError(e.toString(), context);
     }
   }
 

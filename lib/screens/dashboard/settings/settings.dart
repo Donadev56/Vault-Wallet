@@ -8,7 +8,7 @@ import 'package:moonwallet/screens/dashboard/settings/interface_size.dart';
 import 'package:moonwallet/types/types.dart';
 import 'package:moonwallet/widgets/custom_options.dart';
 import 'package:moonwallet/widgets/func/security/ask_password.dart';
-import 'package:moonwallet/widgets/func/snackbar.dart';
+import 'package:moonwallet/widgets/dialogs/show_custom_snackbar.dart';
 import 'package:page_transition/page_transition.dart';
 
 class SettingsPage extends StatefulHookConsumerWidget {
@@ -38,16 +38,6 @@ class _SettingsPageState extends ConsumerState<SettingsPage> {
     final uiConfig = useState<AppUIConfig>(AppUIConfig.defaultConfig);
     final secureConfig = useState<AppSecureConfig>(AppSecureConfig());
 
-    notifySuccess(String message) => showCustomSnackBar(
-        context: context,
-        message: message,
-        colors: colors,
-        type: MessageType.success);
-    notifyError(String message) => showCustomSnackBar(
-        context: context,
-        message: message,
-        colors: colors,
-        type: MessageType.error);
     useEffect(() {
       appUIConfigAsync.whenData((data) {
         uiConfig.value = data;
@@ -79,12 +69,12 @@ class _SettingsPageState extends ConsumerState<SettingsPage> {
         final result =
             await secureConfigNotifier.toggleCanUseBio(v, context, colors);
         if (result) {
-          notifySuccess(v ? "Enabled" : "Disabled");
+          notifySuccess(v ? "Enabled" : "Disabled", context);
 
           return;
         }
 
-        notifyError("An error has occurred");
+        notifyError("An error has occurred", context);
       } catch (e) {
         logError(e.toString());
       }
@@ -101,11 +91,11 @@ class _SettingsPageState extends ConsumerState<SettingsPage> {
         final result = await secureConfigNotifier.updateConfig(
             password: password, lockAtStartup: v);
         if (result) {
-          notifySuccess(v ? "Enabled" : "Disabled");
+          notifySuccess(v ? "Enabled" : "Disabled", context);
         }
       } catch (e) {
         logError(e.toString());
-        notifyError(e.toString());
+        notifyError(e.toString(), context);
       }
     }
 

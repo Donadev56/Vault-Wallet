@@ -22,7 +22,7 @@ import 'package:moonwallet/widgets/backup/warning_static_message.dart';
 import 'package:moonwallet/widgets/buttons/elevated_low_opacity_button.dart';
 import 'package:moonwallet/widgets/buttons/outlined.dart';
 import 'package:moonwallet/widgets/func/security/ask_password.dart';
-import 'package:moonwallet/widgets/func/snackbar.dart';
+import 'package:moonwallet/widgets/dialogs/show_custom_snackbar.dart';
 import 'package:moonwallet/widgets/scanner/show_scanner.dart';
 import 'package:page_transition/page_transition.dart';
 
@@ -81,22 +81,11 @@ class _AddPrivateKeyState extends ConsumerState<AddPrivateKeyMain> {
       return await _rpcService.validatePrivateKey(privateKey, ecosystem.type) ??
           false;
     } catch (e) {
-      notifyError(e.toString());
+      notifyError(e.toString(), context);
 
       return false;
     }
   }
-
-  notifySuccess(String message) => showCustomSnackBar(
-      context: context,
-      message: message,
-      colors: colors,
-      type: MessageType.success);
-  notifyError(String message) => showCustomSnackBar(
-      context: context,
-      message: message,
-      colors: colors,
-      type: MessageType.error);
 
   final MobileScannerController _mobileScannerController =
       MobileScannerController();
@@ -142,7 +131,7 @@ class _AddPrivateKeyState extends ConsumerState<AddPrivateKeyMain> {
           lastAccountNotifier.updateKeyId(result.keyId);
 
           if (!mounted) return;
-          notifySuccess("Wallet created successfully");
+          notifySuccess("Wallet created successfully", context);
           Navigator.of(context).push(PageTransition(
               type: PageTransitionType.leftToRight,
               child: PagesManagerView(
@@ -153,7 +142,7 @@ class _AddPrivateKeyState extends ConsumerState<AddPrivateKeyMain> {
         }
       } catch (e) {
         logError(e.toString());
-        notifyError("Failed to save the key.");
+        notifyError("Failed to save the key.", context);
         setState(() {
           userPassword = "";
         });
@@ -172,13 +161,7 @@ class _AddPrivateKeyState extends ConsumerState<AddPrivateKeyMain> {
         }
       } catch (e) {
         logError(e.toString());
-        showCustomSnackBar(
-            colors: colors,
-            type: MessageType.error,
-            context: context,
-            message: "Error occurred while creating private key.",
-            icon: Icons.error,
-            iconColor: Colors.redAccent);
+        notifyError("Error occurred while creating private key.", context);
       }
     }
 
@@ -341,7 +324,7 @@ class _AddPrivateKeyState extends ConsumerState<AddPrivateKeyMain> {
                   colors: colors,
                   onPressed: () async {
                     if (!(await keyTester(_textController.text.trim()))) {
-                      notifyError("Invalid Private Key");
+                      notifyError("Invalid Private Key", context);
                       return;
                     }
                     if (_formKey.currentState?.validate() ?? false) {

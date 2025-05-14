@@ -16,8 +16,9 @@ import 'package:moonwallet/widgets/func/security/ask_password.dart';
 import 'package:moonwallet/widgets/func/security/show_change_password_procedure.dart';
 import 'package:moonwallet/widgets/func/appearance/show_profile_image_picker.dart';
 import 'package:moonwallet/widgets/func/account_related/show_watch_only_warning.dart';
-import 'package:moonwallet/widgets/func/snackbar.dart';
+import 'package:moonwallet/widgets/dialogs/show_custom_snackbar.dart';
 import 'package:moonwallet/widgets/profile_placeholder.dart';
+import 'package:moonwallet/widgets/screen_widgets/positioned_icons.dart';
 import 'package:simple_gesture_detector/simple_gesture_detector.dart';
 
 typedef DoubleFactor = double Function(double size);
@@ -85,17 +86,6 @@ void showCustomDrawer({
       builder: (context) {
         final textTheme = Theme.of(context).textTheme;
 
-        notifySuccess(String message) => showCustomSnackBar(
-            context: context,
-            message: message,
-            colors: colors,
-            type: MessageType.success);
-        notifyError(String message) => showCustomSnackBar(
-            context: context,
-            message: message,
-            colors: colors,
-            type: MessageType.error);
-
         return StatefulBuilder(builder: (context, st) {
           return SimpleGestureDetector(
               onHorizontalSwipe: (direction) {
@@ -127,7 +117,7 @@ void showCustomDrawer({
                                         color:
                                             colors.textColor.withOpacity(0.7),
                                         fontSize: fontSizeOf(17),
-                                        fontWeight: FontWeight.bold),
+                                        fontWeight: FontWeight.w600),
                                   ),
                                   IconButton(
                                       onPressed: () {
@@ -174,12 +164,9 @@ void showCustomDrawer({
                                                     textController.text;
                                               });
                                             } else {
-                                              showCustomSnackBar(
-                                                  context: context,
-                                                  message:
-                                                      "Can't edit the wallet",
-                                                  type: MessageType.error,
-                                                  colors: colors);
+                                              notifyError(
+                                                  "Can't edit the wallet",
+                                                  context);
                                             }
                                           },
                                           icon: Icon(
@@ -218,7 +205,7 @@ void showCustomDrawer({
                                   style: textTheme.bodySmall?.copyWith(
                                       color: colors.textColor,
                                       fontSize: fontSizeOf(25),
-                                      fontWeight: FontWeight.bold),
+                                      fontWeight: FontWeight.w600),
                                 ),
                                 Text(
                                   "Balance",
@@ -236,35 +223,12 @@ void showCustomDrawer({
                           physics: BouncingScrollPhysics(),
                           scrollDirection: Axis.horizontal,
                           child: SizedBox(
-                            height: 50,
-                            width: MediaQuery.of(context).size.width,
-                            child: Stack(
-                              clipBehavior: Clip.none,
-                              children: availableCryptos
-                                  .asMap()
-                                  .entries
-                                  .map((entry) {
-                                    int index = entry.key;
-                                    var crypto = entry.value;
-                                    return Positioned(
-                                        left: index * 18.0,
-                                        child: Container(
-                                          padding: const EdgeInsets.all(3),
-                                          decoration: BoxDecoration(
-                                              color: colors.primaryColor,
-                                              borderRadius:
-                                                  BorderRadius.circular(20)),
-                                          child: CryptoPicture(
-                                              crypto: crypto,
-                                              size: imageSizeOf(24),
-                                              colors: colors),
-                                        ));
-                                  })
-                                  .toList()
-                                  .reversed
-                                  .toList(),
-                            ),
-                          ),
+                              height: 50,
+                              width: MediaQuery.of(context).size.width,
+                              child: PositionedIcons(
+                                  cryptos: availableCryptos,
+                                  colors: colors,
+                                  imageSizeOf: imageSizeOf)),
                         ),
                         SizedBox(
                           height: 10,
@@ -282,7 +246,7 @@ void showCustomDrawer({
                                 style: textTheme.bodySmall?.copyWith(
                                     color: colors.textColor.withOpacity(0.8),
                                     fontSize: fontSizeOf(20),
-                                    fontWeight: FontWeight.bold),
+                                    fontWeight: FontWeight.w600),
                               ),
                             ),
                           ],
@@ -443,6 +407,9 @@ void showCustomDrawer({
                                     context: context, colors: colors);
                               }
                             }),
+                        SizedBox(
+                          height: 10,
+                        ),
                         CustomOptionWidget(
                             colors: colors,
                             splashColor: colors.redColor.withOpacity(0.1),
@@ -454,7 +421,7 @@ void showCustomDrawer({
                                 borderRadius:
                                     BorderRadius.circular(roundedOf(10))),
                             backgroundColor: Colors.transparent,
-                            spaceNameStyle: textTheme.bodyMedium?.copyWith(
+                            spaceNameStyle: textTheme.bodySmall?.copyWith(
                                   color: colors.textColor,
                                 ) ??
                                 GoogleFonts.roboto(color: colors.textColor),
@@ -475,14 +442,16 @@ void showCustomDrawer({
 
                                         if (result) {
                                           notifySuccess(
-                                              v ? "Enabled" : "Disabled");
+                                              v ? "Enabled" : "Disabled",
+                                              context);
                                           st(() {
                                             useBio = v;
                                           });
                                           return;
                                         }
 
-                                        notifyError("An error has occurred");
+                                        notifyError(
+                                            "An error has occurred", context);
                                       }),
                                   color: colors.textColor,
                                   titleStyle: textTheme.bodySmall?.copyWith(

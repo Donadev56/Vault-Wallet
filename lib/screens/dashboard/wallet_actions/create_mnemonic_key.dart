@@ -15,7 +15,7 @@ import 'package:moonwallet/widgets/backup/backup_related.dart';
 import 'package:moonwallet/widgets/bottom_pin.dart';
 import 'package:moonwallet/widgets/buttons/elevated_low_opacity_button.dart';
 import 'package:moonwallet/widgets/func/security/ask_password.dart';
-import 'package:moonwallet/widgets/func/snackbar.dart';
+import 'package:moonwallet/widgets/dialogs/show_custom_snackbar.dart';
 import 'package:page_transition/page_transition.dart';
 
 class CreateMnemonicMain extends StatefulHookConsumerWidget {
@@ -75,20 +75,9 @@ class _CreateMnemonicKeyState extends ConsumerState<CreateMnemonicMain> {
         });
       }
     } catch (e) {
-      notifyError("Failed to create a wallet");
+      notifyError("Failed to create a wallet", context);
     }
   }
-
-  notifySuccess(String message) => showCustomSnackBar(
-      context: context,
-      message: message,
-      colors: colors,
-      type: MessageType.success);
-  notifyError(String message) => showCustomSnackBar(
-      context: context,
-      message: message,
-      colors: colors,
-      type: MessageType.error);
 
   @override
   Widget build(BuildContext context) {
@@ -142,13 +131,13 @@ class _CreateMnemonicKeyState extends ConsumerState<CreateMnemonicMain> {
           });
 
           if (!mounted) return;
-          notifySuccess("Wallet created successfully");
+          notifySuccess("Wallet created successfully", context);
         } else {
           throw Exception("Failed to save the key.");
         }
       } catch (e) {
         logError(e.toString());
-        notifyError("Failed to save the wallet.");
+        notifyError("Failed to save the wallet.", context);
         setState(() {
           userPassword = "";
         });
@@ -210,7 +199,7 @@ class _CreateMnemonicKeyState extends ConsumerState<CreateMnemonicMain> {
         }
       } catch (e) {
         logError(e.toString());
-        notifyError("Error occurred while creating private key.");
+        notifyError("Error occurred $e", context);
       }
     }
 

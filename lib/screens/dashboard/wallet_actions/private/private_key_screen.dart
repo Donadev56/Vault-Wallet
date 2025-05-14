@@ -14,7 +14,7 @@ import 'package:moonwallet/utils/themes.dart';
 import 'package:moonwallet/widgets/alerts/show_alert.dart';
 import 'package:moonwallet/widgets/backup/warning_static_message.dart';
 import 'package:moonwallet/widgets/custom_filled_text_field.dart';
-import 'package:moonwallet/widgets/func/snackbar.dart';
+import 'package:moonwallet/widgets/dialogs/show_custom_snackbar.dart';
 import 'package:page_transition/page_transition.dart';
 
 class PrivateKeyScreen extends StatefulHookConsumerWidget {
@@ -165,12 +165,6 @@ class _PrivateKeyScreenState extends ConsumerState<PrivateKeyScreen> {
     }
   }
 
-  notifyError(String message) => showCustomSnackBar(
-      context: context,
-      message: message,
-      colors: colors,
-      type: MessageType.error);
-
   double calcDouble(double value) {
     return value;
   }
@@ -242,7 +236,7 @@ class _PrivateKeyScreenState extends ConsumerState<PrivateKeyScreen> {
                           backgroundColor: colors.themeColor),
                       onPressed: () {
                         if (_mnemonicController.text.isEmpty) {
-                          notifyError("No Mnemonic found");
+                          notifyError("No Mnemonic found", context);
                           return;
                         }
                         Clipboard.setData(
@@ -266,7 +260,7 @@ class _PrivateKeyScreenState extends ConsumerState<PrivateKeyScreen> {
                           backgroundColor: colors.themeColor),
                       onPressed: () {
                         if (_privateKeyController.text.isEmpty) {
-                          notifyError("No Private Key found");
+                          notifyError("No Private Key found", context);
                           return;
                         }
                         Clipboard.setData(

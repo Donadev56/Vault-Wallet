@@ -4,7 +4,7 @@ import 'package:moonwallet/main.dart';
 import 'package:moonwallet/types/types.dart';
 import 'package:moonwallet/utils/colors.dart';
 import 'package:moonwallet/utils/themes.dart';
-import 'package:moonwallet/widgets/func/snackbar.dart';
+import 'package:moonwallet/widgets/dialogs/show_custom_snackbar.dart';
 import 'package:moonwallet/widgets/app_bar_title.dart';
 
 class ChangeThemeView extends StatefulWidget {
@@ -44,24 +44,12 @@ class _ChangeThemeViewState extends State<ChangeThemeView> {
       final save = await manager.saveDefaultTheme(theme: themeName);
       if (save) {
         saved = true;
-
-        showCustomSnackBar(
-            context: context,
-            message: "Theme saved successfully",
-            colors: colors,
-            type: MessageType.success,
-            iconColor: colors.greenColor,
-            icon: Icons.check);
       } else {
         throw Exception("An error occurred");
       }
     } catch (e) {
       logError(e.toString());
-      showCustomSnackBar(
-          context: context,
-          message: "${e.toString()}",
-          colors: colors,
-          type: MessageType.error);
+      notifyError(e.toString(), context);
     }
   }
 

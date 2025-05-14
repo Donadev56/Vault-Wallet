@@ -25,7 +25,7 @@ import 'package:moonwallet/screens/dashboard/wallet_actions/create_mnemonic_key.
 import 'package:moonwallet/secure_check_view.dart';
 import 'package:moonwallet/types/types.dart';
 import 'package:moonwallet/utils/colors.dart';
-import 'package:moonwallet/widgets/func/snackbar.dart';
+import 'package:moonwallet/widgets/dialogs/show_custom_snackbar.dart';
 
 void main() {
   WidgetsFlutterBinding.ensureInitialized();
@@ -114,11 +114,7 @@ class _MyAppState extends State<MyApp> {
       return accounts.isNotEmpty;
     } catch (e) {
       logError(e.toString());
-      showCustomSnackBar(
-          type: MessageType.error,
-          context: context,
-          message: e.toString(),
-          colors: colors);
+      notifyError(e.toString(), context);
 
       return false;
     }
@@ -154,78 +150,93 @@ class _MyAppState extends State<MyApp> {
                     backgroundColor: colors.primaryColor,
                   ),
                   textTheme: TextTheme(
-                    displayLarge: GoogleFonts.inter(
+                    displayLarge: TextStyle(
+                      fontFamily: "custom_inter",
                       fontSize: 57,
                       fontWeight: FontWeight.bold,
                       color: colors.textColor,
                       letterSpacing: -0.25,
                     ),
-                    displayMedium: GoogleFonts.inter(
+                    displayMedium: TextStyle(
+                      fontFamily: "custom_inter",
                       fontSize: 45,
                       fontWeight: FontWeight.bold,
                       color: colors.textColor,
                     ),
-                    displaySmall: GoogleFonts.inter(
+                    displaySmall: TextStyle(
+                      fontFamily: "custom_inter",
                       fontSize: 36,
                       fontWeight: FontWeight.w600,
                       color: colors.textColor,
                     ),
-                    headlineLarge: GoogleFonts.inter(
+                    headlineLarge: TextStyle(
+                      fontFamily: "custom_inter",
                       fontSize: 32,
                       fontWeight: FontWeight.w600,
                       color: colors.textColor,
                     ),
-                    headlineMedium: GoogleFonts.inter(
+                    headlineMedium: TextStyle(
+                      fontFamily: "custom_inter",
                       fontSize: 28,
                       fontWeight: FontWeight.w500,
                       color: colors.textColor,
                     ),
-                    headlineSmall: GoogleFonts.inter(
+                    headlineSmall: TextStyle(
+                      fontFamily: "custom_inter",
                       fontSize: 24,
                       fontWeight: FontWeight.w500,
                       color: colors.textColor,
                     ),
-                    titleLarge: GoogleFonts.inter(
+                    titleLarge: TextStyle(
+                      fontFamily: "custom_inter",
                       fontSize: 22,
                       fontWeight: FontWeight.bold,
                       color: colors.textColor,
                     ),
-                    titleMedium: GoogleFonts.inter(
+                    titleMedium: TextStyle(
+                      fontFamily: "custom_inter",
                       fontSize: 16,
                       fontWeight: FontWeight.w500,
                       color: colors.textColor.withOpacity(0.9),
                     ),
-                    titleSmall: GoogleFonts.inter(
+                    titleSmall: TextStyle(
+                      fontFamily: "custom_inter",
                       fontSize: 14,
                       fontWeight: FontWeight.w500,
                       color: colors.textColor.withOpacity(0.85),
                     ),
-                    bodyLarge: GoogleFonts.inter(
+                    bodyLarge: TextStyle(
+                      fontFamily: "custom_inter",
                       fontSize: 16,
                       fontWeight: FontWeight.normal,
                       color: colors.textColor,
                     ),
-                    bodyMedium: GoogleFonts.inter(
+                    bodyMedium: TextStyle(
+                      fontFamily: "custom_inter",
                       fontSize: 14,
                       fontWeight: FontWeight.normal,
                       color: colors.textColor.withOpacity(0.9),
                     ),
-                    bodySmall: GoogleFonts.inter(
+                    bodySmall: TextStyle(
+                      fontFamily: "custom_inter",
                       fontSize: 12,
                       fontWeight: FontWeight.normal,
                       color: colors.textColor.withOpacity(0.7),
                     ),
-                    labelLarge: GoogleFonts.inter(
+                    labelLarge: TextStyle(
+                      fontFamily: "custom_inter",
                       fontSize: 14,
                       fontWeight: FontWeight.w600,
                       color: colors.textColor,
                     ),
-                    labelMedium: GoogleFonts.inter(
+                    labelMedium: TextStyle(
                       fontSize: 12,
+                      fontFamily: "custom_inter",
                       fontWeight: FontWeight.w500,
                       color: colors.textColor.withOpacity(0.8),
                     ),
-                    labelSmall: GoogleFonts.inter(
+                    labelSmall: TextStyle(
+                      fontFamily: "custom_inter",
                       fontSize: 11,
                       fontWeight: FontWeight.w400,
                       color: colors.textColor.withOpacity(0.6),

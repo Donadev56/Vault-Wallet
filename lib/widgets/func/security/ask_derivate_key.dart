@@ -5,7 +5,7 @@ import 'package:moonwallet/notifiers/app_secure_config_notifier.dart';
 import 'package:moonwallet/service/db/wallet_db_stateless.dart';
 import 'package:moonwallet/types/types.dart';
 import 'package:moonwallet/widgets/bottom_pin.dart';
-import 'package:moonwallet/widgets/func/snackbar.dart';
+import 'package:moonwallet/widgets/dialogs/show_custom_snackbar.dart';
 
 Future<String?> askDerivateKey(
     {required BuildContext context,
@@ -51,11 +51,8 @@ Future<String?> askDerivateKey(
       handleSubmit: (password) async {
         final isValid = await manager.isPasswordValid(password);
         if (attempt >= 3) {
-          showCustomSnackBar(
-              context: context,
-              message: "Too Many attempts",
-              type: MessageType.error,
-              colors: colors);
+          notifyError("Too Many attempts", context);
+
           return PinSubmitResult(
             success: false,
             repeat: false,

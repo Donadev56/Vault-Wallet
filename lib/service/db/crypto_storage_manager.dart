@@ -1,7 +1,6 @@
 // ignore_for_file: deprecated_member_use
 
 import 'dart:convert';
-
 import 'package:moonwallet/logger/logger.dart';
 import 'package:moonwallet/service/db/wallet_db.dart';
 import 'package:moonwallet/types/account_related_types.dart';
@@ -11,7 +10,7 @@ class CryptoStorageManager {
 
   Future<List<Crypto>?> getSavedCryptos({required PublicAccount wallet}) async {
     try {
-      final name = "savedCrypto/test26/${wallet.keyId}";
+      final name = "savedCrypto/test27/${wallet.keyId}";
       log("Getting crypto for address ${wallet.keyId}");
 
       final String? cryptoDataString = await saver.getDynamicData(name: name);
@@ -44,7 +43,7 @@ class CryptoStorageManager {
   Future<bool> saveListCrypto(
       {required List<Crypto> cryptos, required PublicAccount wallet}) async {
     try {
-      final name = "savedCrypto/test26/${wallet.keyId}";
+      final name = "savedCrypto/test27/${wallet.keyId}";
       log("Saving crypto for address ${wallet.keyId}");
 
       List<dynamic> cryptoJson = cryptos.map((c) => c.toJson()).toList();

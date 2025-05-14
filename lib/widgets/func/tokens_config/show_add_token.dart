@@ -8,6 +8,7 @@ import 'package:moonwallet/main.dart';
 import 'package:moonwallet/service/web3_interactions/evm/token_manager.dart';
 import 'package:moonwallet/types/account_related_types.dart';
 import 'package:moonwallet/types/types.dart';
+import 'package:moonwallet/widgets/dialogs/show_custom_snackbar.dart';
 import 'package:moonwallet/widgets/func/tokens_config/show_confirm_add_token.dart';
 import 'package:moonwallet/widgets/func/tokens_config/show_select_network_modal.dart';
 
@@ -21,8 +22,6 @@ void showAddToken(
     required DoubleFactor roundedOf,
     required DoubleFactor fontSizeOf,
     required DoubleFactor iconSizeOf,
-    required void Function(String message) notifyError,
-    required void Function(String message) notifySuccess,
     required void Function(SearchingContractInfo?, String, Crypto?) addCrypto,
     required List<Crypto> reorganizedCrypto,
     required bool hasSaved}) {
@@ -47,10 +46,11 @@ void showAddToken(
                 IconButton(
                     onPressed: () async {
                       if (selectedNetwork == null) {
-                        notifyError("Please select a network.");
+                        notifyError("Please select a network.", context);
                       }
                       if (contractAddressController.text.isEmpty) {
-                        notifyError('Please enter a contract address.');
+                        notifyError(
+                            'Please enter a contract address.', context);
                       }
                       final tokenFoundedData = await tokenManager
                           .getCryptoInfo(
@@ -73,7 +73,7 @@ void showAddToken(
                               contractAddressController.text, selectedNetwork);
                         }
                       } else {
-                        notifyError('Token not found.');
+                        notifyError('Token not found.', context);
                       }
                     },
                     icon: Icon(

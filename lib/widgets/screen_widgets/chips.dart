@@ -87,7 +87,7 @@ class IconChip extends StatelessWidget {
                         text,
                         style: textTheme.bodyMedium?.copyWith(
                             fontSize: 14,
-                            fontWeight: FontWeight.bold,
+                            fontWeight: FontWeight.w500,
                             color: textColor ?? colors.textColor),
                         overflow: TextOverflow.ellipsis,
                         maxLines: 1,

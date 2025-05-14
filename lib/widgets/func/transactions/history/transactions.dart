@@ -1,14 +1,13 @@
 // ignore_for_file: deprecated_member_use
 
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
 import 'package:flutter_feather_icons/flutter_feather_icons.dart';
 import 'package:moonwallet/types/account_related_types.dart';
 import 'package:moonwallet/types/transaction.dart';
 import 'package:moonwallet/types/types.dart';
 import 'package:moonwallet/utils/constant.dart';
 import 'package:moonwallet/utils/number_formatter.dart';
-import 'package:moonwallet/widgets/view/show_transaction_details.dart';
+import 'package:moonwallet/widgets/func/transactions/history/show_transaction_details.dart';
 import 'package:timer_builder/timer_builder.dart';
 
 class TransactionsListElement extends StatelessWidget {
@@ -42,7 +41,7 @@ class TransactionsListElement extends StatelessWidget {
     return Material(
         color: Colors.transparent,
         child: Padding(
-          padding: const EdgeInsets.symmetric(vertical: 2),
+          padding: const EdgeInsets.symmetric(vertical: 0),
           child: ListTile(
             visualDensity: VisualDensity(horizontal: -2, vertical: -2),
             onTap: () {
@@ -55,15 +54,15 @@ class TransactionsListElement extends StatelessWidget {
                   token: token);
             },
             leading: Container(
-              height: 35,
-              width: 35,
+              height: 40,
+              width: 40,
               padding: const EdgeInsets.all(10),
               decoration: BoxDecoration(
                   color: surfaceTintColor.withOpacity(0.3),
                   borderRadius: BorderRadius.circular(50)),
               child: Icon(
                 isFrom ? FeatherIcons.arrowUpRight : FeatherIcons.arrowDown,
-                size: 15,
+                size: 17,
                 color: isFrom ? textColor.withOpacity(0.4) : colors.themeColor,
               ),
             ),

@@ -70,8 +70,9 @@ Future<Crypto?> showSelectNetworkModal(
                                 size: iconSizeOf(30),
                                 colors: colors),
                             title: Text(crypto.name,
-                                style: textTheme.bodyMedium
-                                    ?.copyWith(color: colors.textColor)),
+                                style: textTheme.bodyMedium?.copyWith(
+                                    color: colors.textColor,
+                                    fontWeight: FontWeight.w400)),
                             onTap: () {
                               Navigator.pop(context, crypto);
                             },

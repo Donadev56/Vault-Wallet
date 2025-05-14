@@ -5,7 +5,6 @@ void showCustomSnackBar(
     {required BuildContext context,
     required String message,
     IconData icon = Icons.info,
-    required AppColors colors,
     MessageType? type,
     Color? iconColor}) {
   final title = Text(message, style: TextStyle(color: Colors.black87));
@@ -21,3 +20,8 @@ void showCustomSnackBar(
     dismissDirection: DismissDirection.horizontal,
   ));
 }
+
+notifySuccess(String message, BuildContext context) => showCustomSnackBar(
+    context: context, message: message, type: MessageType.success);
+notifyError(String message, BuildContext context) => showCustomSnackBar(
+    context: context, message: message, type: MessageType.error);

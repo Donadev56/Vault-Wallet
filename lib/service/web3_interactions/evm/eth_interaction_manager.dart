@@ -14,7 +14,7 @@ import 'package:moonwallet/types/exception.dart';
 import 'package:moonwallet/types/types.dart';
 import 'package:moonwallet/widgets/func/security/ask_derivate_key.dart';
 import 'package:moonwallet/widgets/func/transactions/evm/ask_user_evm.dart';
-import 'package:moonwallet/widgets/func/snackbar.dart';
+import 'package:moonwallet/widgets/dialogs/show_custom_snackbar.dart';
 import 'package:web3dart/web3dart.dart';
 import 'package:http/http.dart';
 
@@ -156,13 +156,7 @@ class EthInteractionManager {
             )
             .withLoading(context, colors, "Sending...");
         if (hash.isNotEmpty) {
-          showCustomSnackBar(
-              type: MessageType.success,
-              context: context,
-              message: "Transfer Sent",
-              colors: colors,
-              icon: Icons.check_circle,
-              iconColor: colors.greenColor);
+          notifySuccess("Transfer Sent", context);
         }
 
         return hash;
@@ -173,13 +167,8 @@ class EthInteractionManager {
     } catch (e) {
       logError(e.toString());
       // show error
-      showCustomSnackBar(
-          type: MessageType.error,
-          context: context,
-          message: e.toString(),
-          colors: colors,
-          icon: Icons.error,
-          iconColor: Colors.red);
+      notifyError("Internal error $e", context);
+
       throw ("Internal error : $e");
     }
   }

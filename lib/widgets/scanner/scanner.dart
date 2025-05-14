@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:mobile_scanner/mobile_scanner.dart';
 import 'package:moonwallet/types/types.dart';
-import 'package:moonwallet/widgets/func/snackbar.dart';
+import 'package:moonwallet/widgets/dialogs/show_custom_snackbar.dart';
 
 class CustomScanner extends StatelessWidget {
   final MobileScannerController controller;
@@ -36,11 +36,7 @@ class CustomScanner extends StatelessWidget {
             ));
       },
       onDetectError: (object, error) {
-        showCustomSnackBar(
-            context: context,
-            message: error.toString(),
-            colors: colors,
-            type: MessageType.error);
+        notifyError(error.toString(), context);
       },
       controller: controller,
       onDetect: (barcode) {

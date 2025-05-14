@@ -5,8 +5,9 @@ import 'package:moonwallet/types/account_related_types.dart';
 import 'package:moonwallet/types/types.dart';
 import 'package:moonwallet/utils/number_formatter.dart';
 import 'package:moonwallet/widgets/charts_/line_chart.dart';
-import 'package:moonwallet/widgets/func/snackbar.dart';
+import 'package:moonwallet/widgets/dialogs/show_custom_snackbar.dart';
 import 'package:moonwallet/widgets/screen_widgets/crypto_picture.dart';
+import 'package:moonwallet/widgets/screen_widgets/standard_app_bar.dart';
 import 'package:numeral/numeral.dart';
 import 'package:url_launcher/url_launcher.dart';
 
@@ -76,12 +77,6 @@ class _CryptoTrendViewState extends State<CryptoTrendView> {
     });
   }
 
-  notifyError(String message) => showCustomSnackBar(
-      context: context,
-      message: message,
-      colors: colors,
-      type: MessageType.error);
-
   Future<void> loadData(String interval) async {
     try {
       final data = await PriceManager().getPriceDataUsingCg(coin, interval);
@@ -109,26 +104,10 @@ class _CryptoTrendViewState extends State<CryptoTrendView> {
 
     return Scaffold(
       backgroundColor: colors.primaryColor,
-      appBar: AppBar(
-        backgroundColor: colors.primaryColor,
-        surfaceTintColor: colors.primaryColor,
-        leading: IconButton(
-            onPressed: () => Navigator.pop(context),
-            icon: Icon(
-              Icons.chevron_left,
-              color: colors.textColor.withValues(alpha: 0.7),
-            )),
-        centerTitle: true,
-        title: Text(
-          coin.symbol,
-          style: textTheme.bodyMedium?.copyWith(
-              fontSize: fontSizeOf(20),
-              fontWeight: FontWeight.bold,
-              color: colors.textColor),
-        ),
-      ),
+      appBar: StandardAppBar(
+          title: coin.symbol, colors: colors, fontSizeOf: fontSizeOf),
       body: Padding(
-        padding: const EdgeInsets.all(15),
+        padding: const EdgeInsets.symmetric(horizontal: 15),
         child: ListView(
           children: [
             Align(
@@ -145,10 +124,10 @@ class _CryptoTrendViewState extends State<CryptoTrendView> {
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
                           Text(
-                            coin.name,
+                            coin.name.toUpperCase(),
                             style: textTheme.bodyLarge?.copyWith(
-                                fontSize: fontSizeOf(18),
-                                fontWeight: FontWeight.w900,
+                                fontSize: fontSizeOf(16),
+                                fontWeight: FontWeight.w800,
                                 color: colors.textColor),
                           ),
                           Text(
@@ -291,7 +270,7 @@ class _CryptoTrendViewState extends State<CryptoTrendView> {
                             final baseUrl =
                                 coin.network?.explorers?.firstOrNull;
                             if (baseUrl == null) {
-                              notifyError("No explorer found");
+                              notifyError("No explorer found", context);
                               return;
                             }
                             await launchUrl(Uri.parse(

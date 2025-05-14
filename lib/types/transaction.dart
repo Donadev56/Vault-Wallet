@@ -117,17 +117,17 @@ class EthereumTransaction extends Transaction {
   final String hash;
   final String blockNumber;
 
-  EthereumTransaction({
-    required super.transactionId,
-    required super.token,
-    required super.from,
-    required super.networkFees,
-    required super.timeStamp,
-    required super.to,
-    required super.uiAmount,
-    required this.hash,
-    required this.blockNumber,
-  });
+  EthereumTransaction(
+      {required super.transactionId,
+      required super.token,
+      required super.from,
+      required super.networkFees,
+      required super.timeStamp,
+      required super.to,
+      required super.uiAmount,
+      required this.hash,
+      required this.blockNumber,
+      required super.status});
 
   @override
   Map<String, dynamic> get metadata => {
@@ -147,7 +147,8 @@ class EthereumTransaction extends Transaction {
       "nonce": blockNumber,
       "token": token.toJson(),
       "transactionId": transactionId,
-      "blockNumber" : blockNumber
+      "blockNumber": blockNumber,
+      "status": status
     };
   }
 
@@ -166,6 +167,7 @@ class EthereumTransaction extends Transaction {
         hash: json["hash"] ?? "",
         blockNumber: json["blockNumber"] ?? "",
         transactionId: json["hash"],
+        status: json["status"],
         token: token);
   }
   factory EthereumTransaction.fromJson(Map<dynamic, dynamic> json,
@@ -177,9 +179,22 @@ class EthereumTransaction extends Transaction {
       final decimals = Decimal.fromInt(10).pow(token.decimals);
       final amountEth = (decimalAmount / decimals.toDecimal());
       uiAmount = amountEth.toDecimal().toString();
-      log("Amount $uiAmount");
     }
+    final txReceipt = json["txreceipt_status"];
+    String status = "";
+    switch (txReceipt) {
+      case null:
+        status = "...";
+      case "1":
+        status = "success";
+      case "0":
+        status = "Fail";
+      default:
+        status = "unknown";
+    }
+
     return EthereumTransaction(
+        status: status,
         from: json["from"] ?? "",
         to: json["to"] ?? "",
         networkFees: null,

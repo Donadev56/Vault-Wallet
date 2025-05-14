@@ -20,7 +20,7 @@ import 'package:moonwallet/widgets/bottom_pin.dart';
 import 'package:moonwallet/widgets/buttons/elevated_low_opacity_button.dart';
 import 'package:moonwallet/widgets/buttons/outlined.dart';
 import 'package:moonwallet/widgets/func/security/ask_password.dart';
-import 'package:moonwallet/widgets/func/snackbar.dart';
+import 'package:moonwallet/widgets/dialogs/show_custom_snackbar.dart';
 import 'package:moonwallet/widgets/scanner/show_scanner.dart';
 import 'package:page_transition/page_transition.dart';
 
@@ -90,16 +90,6 @@ class _AddPrivateKeyState extends ConsumerState<AddMnemonicScreen> {
     }
   }
 
-  notifySuccess(String message) => showCustomSnackBar(
-      context: context,
-      message: message,
-      colors: colors,
-      type: MessageType.success);
-  notifyError(String message) => showCustomSnackBar(
-      context: context,
-      message: message,
-      colors: colors,
-      type: MessageType.error);
   @override
   Widget build(BuildContext context) {
     final textTheme = Theme.of(context).textTheme;
@@ -146,7 +136,7 @@ class _AddPrivateKeyState extends ConsumerState<AddMnemonicScreen> {
 
         if (result != null) {
           await lastAccountNotifier.updateKeyId(result.keyId);
-          notifySuccess("Wallet created successfully");
+          notifySuccess("Wallet created successfully", context);
           await Future.delayed(Duration(seconds: 3))
               .withLoading(context, colors)
               .then((_) {
@@ -159,7 +149,7 @@ class _AddPrivateKeyState extends ConsumerState<AddMnemonicScreen> {
         }
       } catch (e) {
         logError(e.toString());
-        notifyError("Failed to save the key.");
+        notifyError("Failed to save the key.", context);
         setState(() {
           userPassword = "";
         });
@@ -221,13 +211,7 @@ class _AddPrivateKeyState extends ConsumerState<AddMnemonicScreen> {
         }
       } catch (e) {
         logError(e.toString());
-        showCustomSnackBar(
-            colors: colors,
-            type: MessageType.error,
-            context: context,
-            message: "Error occurred while creating private key.",
-            icon: Icons.error,
-            iconColor: Colors.redAccent);
+        notifyError("Error occurred $e.", context);
       }
     }
 

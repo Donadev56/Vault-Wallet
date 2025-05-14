@@ -47,7 +47,7 @@ void showTokenDetails(
                       crypto.symbol,
                       style: textTheme.bodyMedium?.copyWith(
                           fontSize: 16,
-                          fontWeight: FontWeight.bold,
+                          fontWeight: FontWeight.w700,
                           color: colors.textColor),
                     ),
                   ),
@@ -99,29 +99,27 @@ void showTokenDetails(
                         SizedBox(
                           height: 10,
                         ),
-                        GestureDetector(
-                          onTap: () {
-                            if (crypto.isNative) {
-                              return;
-                            }
-                            final network = crypto.network;
-                            if (network == null) {
-                              return;
-                            }
-                            showTokenDetails(
-                                context: context,
-                                colors: colors,
-                                crypto: network);
-                          },
-                          child: RowDetailsContent(
-                              underline: !crypto.isNative ? true : false,
-                              colors: colors,
-                              name: "Network",
-                              value: (crypto.isNative
-                                      ? crypto.name
-                                      : crypto.network?.name) ??
-                                  "Not Found"),
-                        ),
+                        RowDetailsContent(
+                            underline: !crypto.isNative ? true : false,
+                            colors: colors,
+                            onClick: () {
+                              if (crypto.isNative) {
+                                return;
+                              }
+                              final network = crypto.network;
+                              if (network == null) {
+                                return;
+                              }
+                              showTokenDetails(
+                                  context: context,
+                                  colors: colors,
+                                  crypto: network);
+                            },
+                            name: "Network",
+                            value: (crypto.isNative
+                                    ? crypto.name
+                                    : crypto.network?.name) ??
+                                "Not Found"),
                         SizedBox(
                           height: 10,
                         ),

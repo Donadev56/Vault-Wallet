@@ -4,7 +4,7 @@ import 'package:modal_bottom_sheet/modal_bottom_sheet.dart';
 import 'package:moonwallet/types/account_related_types.dart';
 import 'package:moonwallet/types/types.dart';
 import 'package:moonwallet/widgets/custom_filled_text_field.dart';
-import 'package:moonwallet/widgets/func/snackbar.dart';
+import 'package:moonwallet/widgets/dialogs/show_custom_snackbar.dart';
 
 Future<Crypto?> showEditNetwork(
     {required Crypto network,
@@ -33,12 +33,6 @@ Future<Crypto?> showEditNetwork(
   explorerController.text = network.explorers?.firstOrNull ?? "";
   rpcUrlController.text = network.rpcUrls?.firstOrNull ?? "";
 
-  notifyError(String message) => showCustomSnackBar(
-      context: context,
-      message: message,
-      colors: colors,
-      type: MessageType.error);
-
   final crypto = await showCupertinoModalBottomSheet<Crypto>(
       backgroundColor: colors.primaryColor,
       context: context,
@@ -62,7 +56,7 @@ Future<Crypto?> showEditNetwork(
                     if (formKey.currentState?.validate() == true) {
                       final chainId = network.chainId;
                       if (chainId == null) {
-                        notifyError("Invalid Chain ID");
+                        notifyError("Invalid Chain ID", context);
                         return;
                       }
                       final response = await onSubmitted(

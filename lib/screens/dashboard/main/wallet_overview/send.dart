@@ -33,7 +33,7 @@ import 'package:moonwallet/widgets/buttons/elevated.dart';
 import 'package:moonwallet/widgets/custom_outlined_filled_textField.dart';
 import 'package:moonwallet/widgets/screen_widgets/crypto_picture.dart';
 import 'package:moonwallet/widgets/func/account_related/show_select_last_addr.dart';
-import 'package:moonwallet/widgets/func/snackbar.dart';
+import 'package:moonwallet/widgets/dialogs/show_custom_snackbar.dart';
 import 'package:moonwallet/widgets/scanner/show_scanner.dart';
 import 'package:moonwallet/widgets/send_widgets/account_chip.dart';
 import 'package:moonwallet/widgets/send_widgets/address_chip.dart';
@@ -162,17 +162,6 @@ class _SendTransactionScreenState extends ConsumerState<SendTransactionScreen> {
     }
   }
 
-  notifySuccess(String message) => showCustomSnackBar(
-      context: context,
-      message: message,
-      colors: colors,
-      type: MessageType.success);
-  notifyError(String message) => showCustomSnackBar(
-      context: context,
-      message: message,
-      colors: colors,
-      type: MessageType.error);
-
   Future<void> sendTransaction() async {
     try {
       if (crypto == null) {
@@ -213,7 +202,7 @@ class _SendTransactionScreenState extends ConsumerState<SendTransactionScreen> {
                                   : "Failed",
                           from: from,
                           to: to,
-                          uiAmount: NumberFormatter().formatValue(str: amount),
+                          uiAmount: amount,
                           timeStamp:
                               (DateTime.now().millisecondsSinceEpoch / 1000)
                                   .toInt(),
@@ -226,7 +215,7 @@ class _SendTransactionScreenState extends ConsumerState<SendTransactionScreen> {
       }
     } catch (e) {
       logError(e.toString());
-      notifyError(e.toString());
+      notifyError(e.toString(), context);
     }
   }
 
@@ -243,13 +232,17 @@ class _SendTransactionScreenState extends ConsumerState<SendTransactionScreen> {
 
       log("last address $lastUsedAddresses");
       if (lastUsedAddresses.isEmpty) {
-        List<String> lastAddr = [newAddress];
+        final lastAddr = [newAddress];
         await db.saveData(lastAddr);
-      } else {
-        lastUsedAddresses.toSet().toList().insert(0, newAddress);
-        await db.saveData(lastUsedAddresses.toSet().toList() as List<String>);
-        log("last address $lastUsedAddresses");
+        return;
       }
+      List<String> savedListAddressSet =
+          lastUsedAddresses.toSet().toList() as List<String>;
+      log("Address  $savedListAddressSet");
+
+      savedListAddressSet = [newAddress, ...savedListAddressSet];
+      await db.saveData(savedListAddressSet.toSet().toList());
+      log("last addresses $savedListAddressSet");
     } catch (e) {
       logError(e.toString());
     }

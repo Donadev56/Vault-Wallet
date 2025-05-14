@@ -826,7 +826,7 @@ class AppStyle {
 
   const AppStyle({
     this.radiusScaleFactor = 1,
-    this.borderOpacity = 0,
+    this.borderOpacity = 0.3,
     this.fontSizeScaleFactor = 1,
     this.iconSizeScaleFactor = 1,
     this.imageSizeScaleFactor = 1,

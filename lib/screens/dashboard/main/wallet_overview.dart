@@ -29,7 +29,7 @@ import 'package:moonwallet/widgets/app_bar_title.dart';
 import 'package:moonwallet/widgets/screen_widgets/crypto_picture.dart';
 import 'package:moonwallet/widgets/view/other_options.dart';
 import 'package:moonwallet/widgets/view/show_crypto_candle_data.dart';
-import 'package:moonwallet/widgets/view/transactions.dart';
+import 'package:moonwallet/widgets/func/transactions/history/transactions.dart';
 import 'package:skeletonizer/skeletonizer.dart';
 import 'package:url_launcher/url_launcher.dart';
 
@@ -180,21 +180,22 @@ class _WalletViewScreenState extends ConsumerState<WalletViewScreen>
       return transactions..sort((a, b) => b.timeStamp.compareTo(a.timeStamp));
     }
 
-    useEffect(() {
-      Future<void> fetchRecentTransactions() async {
-        try {
-          final manager =
-              TransactionManager(account: currentAccount, token: currentCrypto);
-          final transactions = await manager.getTransactions();
-          if (transactions.isNotEmpty) {
-            transactionList.value = getFilteredTransactions(transactions);
-            isInitialized.value = true;
-          }
-        } catch (e) {
-          logError(e.toString());
+    Future<void> fetchRecentTransactions() async {
+      try {
+        final manager =
+            TransactionManager(account: currentAccount, token: currentCrypto);
+        final transactions = await manager.getTransactions();
+        if (transactions.isNotEmpty) {
+          transactionList.value = getFilteredTransactions(transactions);
         }
+      } catch (e) {
+        logError(e.toString());
+      } finally {
+        isInitialized.value = true;
       }
+    }
 
+    useEffect(() {
       fetchRecentTransactions();
       return null;
     }, [currentAccount, currentCrypto]);
@@ -314,201 +315,174 @@ class _WalletViewScreenState extends ConsumerState<WalletViewScreen>
             )
           ],
         ),
-        body: NestedScrollView(
-          headerSliverBuilder: (BuildContext context, bool innerBoxIsScrolled) {
-            return [
-              SliverToBoxAdapter(
-                child: Column(
-                  children: [
-                    Align(
-                        alignment: Alignment.center,
-                        child: Column(
-                          children: [
-                            Container(
-                              margin: const EdgeInsets.all(10),
-                              decoration: BoxDecoration(
-                                borderRadius: BorderRadius.circular(50),
-                              ),
-                              child: CryptoPicture(
-                                  crypto: currentCrypto,
-                                  size: imageSizeOf(65),
-                                  colors: colors),
-                            ),
-                            SizedBox(
-                              height: 10,
-                            ),
-                            Skeletonizer(
-                                enabled: isBalanceLoading,
-                                child: SizedBox(
-                                    child: Center(
-                                        child: Text(
-                                  (formatter.formatValue(str: tokenBalance)),
-                                  overflow: TextOverflow.clip,
-                                  maxLines: 1,
-                                  style: textTheme.bodyMedium?.copyWith(
-                                      color: colors.textColor,
-                                      fontWeight: FontWeight.bold,
-                                      fontSize: fontSizeOf(24)),
-                                )))),
-                            SizedBox(
-                              height: 5,
-                            ),
-                            Skeletonizer(
-                                enabled: isBalanceLoading,
-                                child: Text(
-                                  "= \$ ${formatter.formatDecimal(
-                                    (totalBalanceUsd),
-                                    maxDecimals: 2,
-                                  )}",
-                                  style: textTheme.bodySmall?.copyWith(
-                                      color: colors.textColor.withOpacity(0.5),
-                                      fontSize: fontSizeOf(14)),
-                                )),
-                            SizedBox(
-                              height: 15,
-                            ),
-                            Row(
-                              mainAxisAlignment: MainAxisAlignment.spaceAround,
-                              crossAxisAlignment: CrossAxisAlignment.center,
-                              children: [
-                                ActionsWidgets(
-                                    radius: roundedOf(10),
-                                    fontSize: fontSizeOf(12),
-                                    size: (50),
-                                    iconSize: iconSizeOf(22),
-                                    color: colors.secondaryColor,
-                                    actIcon: Icons.arrow_upward,
-                                    textColor: colors.textColor,
-                                    text: "Send",
-                                    onTap: () => Navigator.push(
-                                        context,
-                                        MaterialPageRoute(
-                                            builder: (ctx) =>
-                                                SendTransactionScreen(
-                                                  initData: WidgetInitialData(
-                                                      cryptoPrice: cryptoPrice,
-                                                      account: currentAccount,
-                                                      crypto: currentCrypto,
-                                                      colors: colors,
-                                                      initialBalanceCrypto:
-                                                          tokenBalance,
-                                                      initialBalanceUsd:
-                                                          totalBalanceUsd),
-                                                )))),
-                                ActionsWidgets(
-                                    radius: roundedOf(10),
-                                    fontSize: fontSizeOf(12),
-                                    size: (50),
-                                    iconSize: iconSizeOf(22),
-                                    color: colors.secondaryColor,
-                                    actIcon: Icons.arrow_downward,
-                                    textColor: colors.textColor,
-                                    text: "Receive",
-                                    onTap: () => Navigator.push(
-                                        context,
-                                        MaterialPageRoute(
-                                            builder: (ctx) => ReceiveScreen(
-                                                  initData: WidgetInitialData(
-                                                      cryptoPrice: 0,
-                                                      account: currentAccount,
-                                                      crypto: currentCrypto,
-                                                      colors: colors,
-                                                      initialBalanceCrypto:
-                                                          tokenBalance,
-                                                      initialBalanceUsd:
-                                                          totalBalanceUsd),
-                                                )))),
-                              ],
-                            ),
-                          ],
-                        )),
-                  ],
-                ),
-              ),
-              SliverPersistentHeader(
-                key: ValueKey(colors.primaryColor),
-                pinned: true,
-                delegate: _SliverAppBarDelegate(
-                  TabBar(
-                    dividerColor: Colors.transparent,
-                    controller: _tabController,
-                    labelColor: colors.textColor,
-                    unselectedLabelColor: colors.grayColor,
-                    indicatorColor: colors.themeColor,
-                    tabs: [
-                      Tab(text: 'All'),
-                      Tab(
-                        text: 'In',
-                      ),
-                      Tab(
-                        text: 'Out',
-                      ),
-                    ],
-                  ),
-                  primaryColor: colors.primaryColor,
-                ),
-              ),
-            ];
-          },
-          body: TabBarView(
-            controller: _tabController,
-            children: List.generate(3, (i) {
-              if (transactionList.value.isEmpty && !isInitialized.value) {
-                return SizedBox(
-                  child: Center(
-                    child: SizedBox(
-                        width: 40,
-                        height: 40,
-                        child: LoadingAnimationWidget.discreteCircle(
-                            color: colors.themeColor,
-                            size:
-                                40) //LoadingAnimationWidget.flickr(leftDotColor: colors.greenColor, rightDotColor: colors.redColor, size: 40),
-                        ),
-                  ),
-                );
-              }
-
-              return transactionList.value.isEmpty
-                  ? Align(
-                      alignment: Alignment.topCenter,
-                      child: Container(
-                        height: 70,
-                        margin: const EdgeInsets.only(top: 30),
-                        decoration: BoxDecoration(
-                          borderRadius: BorderRadius.circular(roundedOf(15)),
-                        ),
-                        child: Align(
+        body: GlowingOverscrollIndicator(
+            axisDirection: AxisDirection.down,
+            color: colors.themeColor,
+            child: NestedScrollView(
+              headerSliverBuilder:
+                  (BuildContext context, bool innerBoxIsScrolled) {
+                return [
+                  SliverToBoxAdapter(
+                    child: Column(
+                      children: [
+                        Align(
                             alignment: Alignment.center,
-                            child: Row(
-                              mainAxisAlignment: MainAxisAlignment.center,
+                            child: Column(
                               children: [
-                                Text(
-                                  "Cannot find your transaction ? ",
-                                  style: textTheme.bodyMedium?.copyWith(
-                                      color: colors.textColor.withOpacity(0.7)),
-                                ),
-                                InkWell(
-                                  onTap: () async {
-                                    if (currentCrypto.isNative) {
-                                      await launchUrl(Uri.parse(
-                                          "${currentCrypto.explorers![0]}/address/${currentAccount.addressByToken(currentCrypto)}"));
-                                    } else {
-                                      await launchUrl(Uri.parse(
-                                          "${currentCrypto.network?.explorers![0]}/address/${currentAccount.addressByToken(currentCrypto)}"));
-                                    }
-                                  },
-                                  child: Text(
-                                    "Check explorer",
-                                    style: textTheme.bodyMedium?.copyWith(
-                                        color: colors.themeColor,
-                                        fontSize: fontSizeOf(14)),
+                                Container(
+                                  margin: const EdgeInsets.all(10),
+                                  decoration: BoxDecoration(
+                                    borderRadius: BorderRadius.circular(50),
                                   ),
-                                )
+                                  child: CryptoPicture(
+                                      crypto: currentCrypto,
+                                      size: imageSizeOf(65),
+                                      colors: colors),
+                                ),
+                                SizedBox(
+                                  height: 10,
+                                ),
+                                Skeletonizer(
+                                    enabled: isBalanceLoading,
+                                    child: SizedBox(
+                                        child: Center(
+                                            child: Text(
+                                      (formatter.formatValue(
+                                          str: tokenBalance)),
+                                      overflow: TextOverflow.clip,
+                                      maxLines: 1,
+                                      style: textTheme.bodyMedium?.copyWith(
+                                          color: colors.textColor,
+                                          fontWeight: FontWeight.bold,
+                                          fontSize: fontSizeOf(24)),
+                                    )))),
+                                SizedBox(
+                                  height: 5,
+                                ),
+                                Skeletonizer(
+                                    enabled: isBalanceLoading,
+                                    child: Text(
+                                      "= \$ ${formatter.formatDecimal(
+                                        (totalBalanceUsd),
+                                        maxDecimals: 2,
+                                      )}",
+                                      style: textTheme.bodySmall?.copyWith(
+                                          color:
+                                              colors.textColor.withOpacity(0.5),
+                                          fontSize: fontSizeOf(14)),
+                                    )),
+                                SizedBox(
+                                  height: 15,
+                                ),
+                                Row(
+                                  mainAxisAlignment:
+                                      MainAxisAlignment.spaceAround,
+                                  crossAxisAlignment: CrossAxisAlignment.center,
+                                  children: [
+                                    ActionsWidgets(
+                                        radius: roundedOf(10),
+                                        fontSize: fontSizeOf(12),
+                                        size: (50),
+                                        iconSize: iconSizeOf(22),
+                                        color: colors.secondaryColor,
+                                        actIcon: Icons.arrow_upward,
+                                        textColor: colors.textColor,
+                                        text: "Send",
+                                        onTap: () => Navigator.push(
+                                            context,
+                                            MaterialPageRoute(
+                                                builder: (ctx) =>
+                                                    SendTransactionScreen(
+                                                      initData: WidgetInitialData(
+                                                          cryptoPrice:
+                                                              cryptoPrice,
+                                                          account:
+                                                              currentAccount,
+                                                          crypto: currentCrypto,
+                                                          colors: colors,
+                                                          initialBalanceCrypto:
+                                                              tokenBalance,
+                                                          initialBalanceUsd:
+                                                              totalBalanceUsd),
+                                                    )))),
+                                    ActionsWidgets(
+                                        radius: roundedOf(10),
+                                        fontSize: fontSizeOf(12),
+                                        size: (50),
+                                        iconSize: iconSizeOf(22),
+                                        color: colors.secondaryColor,
+                                        actIcon: Icons.arrow_downward,
+                                        textColor: colors.textColor,
+                                        text: "Receive",
+                                        onTap: () => Navigator.push(
+                                            context,
+                                            MaterialPageRoute(
+                                                builder: (ctx) => ReceiveScreen(
+                                                      initData: WidgetInitialData(
+                                                          cryptoPrice: 0,
+                                                          account:
+                                                              currentAccount,
+                                                          crypto: currentCrypto,
+                                                          colors: colors,
+                                                          initialBalanceCrypto:
+                                                              tokenBalance,
+                                                          initialBalanceUsd:
+                                                              totalBalanceUsd),
+                                                    )))),
+                                  ],
+                                ),
                               ],
                             )),
+                      ],
+                    ),
+                  ),
+                  SliverPersistentHeader(
+                    key: ValueKey(colors.primaryColor),
+                    pinned: true,
+                    delegate: _SliverAppBarDelegate(
+                      TabBar(
+                        dividerColor: Colors.transparent,
+                        controller: _tabController,
+                        labelColor: colors.themeColor,
+                        unselectedLabelColor: colors.textColor,
+                        indicatorColor: colors.themeColor,
+                        tabs: [
+                          Tab(text: 'All'),
+                          Tab(
+                            text: 'In',
+                          ),
+                          Tab(
+                            text: 'Out',
+                          ),
+                        ],
                       ),
-                    )
-                  : CheckMarkIndicator(
+                      primaryColor: colors.primaryColor,
+                    ),
+                  ),
+                ];
+              },
+              body: TabBarView(
+                controller: _tabController,
+                children: List.generate(3, (i) {
+                  final isInit = isInitialized.value;
+                  log("is Initialized : $isInit");
+
+                  if (transactionList.value.isEmpty && !isInit) {
+                    return SizedBox(
+                      child: Center(
+                        child: SizedBox(
+                            width: 40,
+                            height: 40,
+                            child: LoadingAnimationWidget.discreteCircle(
+                                color: colors.themeColor,
+                                size:
+                                    40) //LoadingAnimationWidget.flickr(leftDotColor: colors.greenColor, rightDotColor: colors.redColor, size: 40),
+                            ),
+                      ),
+                    );
+                  }
+
+                  return CheckMarkIndicator(
                       style: CheckMarkStyle(
                           loading: CheckMarkColors(
                               content: colors.primaryColor,
@@ -519,33 +493,92 @@ class _WalletViewScreenState extends ConsumerState<WalletViewScreen>
                           error: CheckMarkColors(
                               content: colors.textColor,
                               background: colors.redColor)),
-                      onRefresh: () async {},
-                      child: ListView.builder(
-                          shrinkWrap: true,
-                          itemCount: transactionsList(i).length,
-                          itemBuilder: (BuildContext listCtx, index) {
-                            final transaction = transactionsList(i)[index];
+                      onRefresh: fetchRecentTransactions,
+                      child: Padding(
+                        padding: const EdgeInsets.only(top: 30),
+                        child: ListView.separated(
+                            separatorBuilder: (context, index) => Padding(
+                                  padding: const EdgeInsets.only(left: 70),
+                                  child: Divider(
+                                    color: colors.primaryColor,
+                                    thickness: 1,
+                                  ),
+                                ),
+                            shrinkWrap: true,
+                            itemCount: transactionsList(i).length + 1,
+                            itemBuilder: (BuildContext listCtx, index) {
+                              if (index == transactionsList(i).length) {
+                                return Align(
+                                  alignment: Alignment.topCenter,
+                                  child: Container(
+                                    height: 70,
+                                    margin: const EdgeInsets.only(top: 30),
+                                    decoration: BoxDecoration(
+                                      borderRadius:
+                                          BorderRadius.circular(roundedOf(15)),
+                                    ),
+                                    child: Align(
+                                        alignment: Alignment.center,
+                                        child: Row(
+                                          mainAxisAlignment:
+                                              MainAxisAlignment.center,
+                                          children: [
+                                            Text(
+                                              "Cannot find your transaction ? ",
+                                              style: textTheme.bodyMedium
+                                                  ?.copyWith(
+                                                      color: colors.textColor
+                                                          .withOpacity(0.7)),
+                                            ),
+                                            InkWell(
+                                              onTap: () async {
+                                                if (currentCrypto.isNative) {
+                                                  await launchUrl(Uri.parse(
+                                                      "${currentCrypto.explorers![0]}/address/${currentAccount.addressByToken(currentCrypto)}"));
+                                                } else {
+                                                  await launchUrl(Uri.parse(
+                                                      "${currentCrypto.network?.explorers![0]}/address/${currentAccount.addressByToken(currentCrypto)}"));
+                                                }
+                                              },
+                                              child: Text(
+                                                "Check explorer",
+                                                style: textTheme.bodyMedium
+                                                    ?.copyWith(
+                                                        color:
+                                                            colors.themeColor,
+                                                        fontSize:
+                                                            fontSizeOf(14)),
+                                              ),
+                                            )
+                                          ],
+                                        )),
+                                  ),
+                                );
+                              }
 
-                            final isFrom =
-                                transaction.from.trim().toLowerCase() ==
-                                    currentAccount
-                                        .addressByToken(currentCrypto)
-                                        .trim()
-                                        .toLowerCase();
-                            return TransactionsListElement(
-                              roundedOf: roundedOf,
-                              fontSizeOf: fontSizeOf,
-                              colors: colors,
-                              surfaceTintColor: colors.grayColor,
-                              isFrom: isFrom,
-                              tr: transaction,
-                              textColor: colors.textColor,
-                              token: currentCrypto,
-                            );
-                          }));
-            }),
-          ),
-        ));
+                              final transaction = transactionsList(i)[index];
+
+                              final isFrom =
+                                  transaction.from.trim().toLowerCase() ==
+                                      currentAccount
+                                          .addressByToken(currentCrypto)
+                                          .trim()
+                                          .toLowerCase();
+                              return TransactionsListElement(
+                                roundedOf: roundedOf,
+                                fontSizeOf: fontSizeOf,
+                                colors: colors,
+                                surfaceTintColor: colors.grayColor,
+                                isFrom: isFrom,
+                                tr: transaction,
+                                textColor: colors.textColor,
+                                token: currentCrypto,
+                              );
+                            }),
+                      ));
+                }),
+              ),
+            )));
   }
 }
 

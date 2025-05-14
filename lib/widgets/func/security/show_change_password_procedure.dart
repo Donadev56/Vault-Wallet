@@ -3,14 +3,10 @@ import 'package:moonwallet/service/db/wallet_db.dart';
 import 'package:moonwallet/types/types.dart';
 import 'package:moonwallet/widgets/bottom_pin.dart';
 import 'package:moonwallet/widgets/func/security/ask_password.dart';
-import 'package:moonwallet/widgets/func/snackbar.dart';
+import 'package:moonwallet/widgets/dialogs/show_custom_snackbar.dart';
 
 void showChangePasswordProcedure(
     {required BuildContext context, required AppColors colors}) async {
-  void notifyError(String message) {
-    showCustomSnackBar(context: context, message: message, colors: colors);
-  }
-
   String newPassword = "";
   String confirmedPassword = "";
 
@@ -18,7 +14,7 @@ void showChangePasswordProcedure(
       context: context, colors: colors, title: "Old Password");
 
   if (password == null || password.isEmpty) {
-    notifyError("Incorrect password");
+    notifyError("Incorrect password", context);
     return;
   }
 
@@ -49,7 +45,7 @@ void showChangePasswordProcedure(
 
   if (res) {
     if (password == confirmedPassword) {
-      notifyError("The old password and the new one are the same");
+      notifyError("The old password and the new one are the same", context);
       newPassword = "";
       confirmedPassword = "";
     } else {
@@ -57,16 +53,11 @@ void showChangePasswordProcedure(
       final result =
           await walletManager.changePassword(password, confirmedPassword);
       if (!result) {
-        notifyError("Failed to change password");
+        notifyError("Failed to change password", context);
         newPassword = "";
         confirmedPassword = "";
       } else {
-        showCustomSnackBar(
-            icon: Icons.check,
-            iconColor: colors.greenColor,
-            context: context,
-            message: "Password changed successfully",
-            colors: colors);
+        notifySuccess("Password changed successfully", context);
       }
     }
   }

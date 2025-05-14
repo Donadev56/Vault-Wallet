@@ -7,6 +7,7 @@ import 'package:loading_animation_widget/loading_animation_widget.dart';
 import 'package:moonwallet/custom/refresh/check_mark.dart';
 import 'package:moonwallet/notifiers/providers.dart';
 import 'package:moonwallet/screens/auth/home.dart';
+import 'package:moonwallet/screens/dashboard/add_crypto.dart';
 import 'package:moonwallet/screens/dashboard/main/wallet_overview/receive.dart';
 import 'package:moonwallet/screens/dashboard/main/wallet_overview/send.dart';
 import 'package:moonwallet/screens/dashboard/wallet_actions/private/private_key_screen.dart';
@@ -32,7 +33,7 @@ import 'package:moonwallet/types/types.dart';
 import 'package:moonwallet/utils/constant.dart';
 import 'package:moonwallet/widgets/actions.dart';
 import 'package:moonwallet/widgets/appBar.dart';
-import 'package:moonwallet/widgets/func/snackbar.dart';
+import 'package:moonwallet/widgets/dialogs/show_custom_snackbar.dart';
 import 'package:page_transition/page_transition.dart';
 import 'package:simple_gesture_detector/simple_gesture_detector.dart';
 import 'package:flutter_hooks/flutter_hooks.dart';
@@ -49,8 +50,6 @@ class MainDashboardScreen extends StatefulHookConsumerWidget {
 
 class _MainDashboardScreenState extends ConsumerState<MainDashboardScreen>
     with SingleTickerProviderStateMixin {
-  bool isLoading = false;
-
   final GlobalKey<RefreshIndicatorState> _refreshIndicatorKey =
       GlobalKey<RefreshIndicatorState>();
   final GlobalKey<ScaffoldState> _scaffoldKey = GlobalKey<ScaffoldState>();
@@ -91,17 +90,6 @@ class _MainDashboardScreenState extends ConsumerState<MainDashboardScreen>
     return NumberFormatter().formatCrypto(value: value);
   }
 
-  notifySuccess(String message) => showCustomSnackBar(
-      context: context,
-      message: message,
-      colors: colors,
-      type: MessageType.success);
-  notifyError(String message) => showCustomSnackBar(
-      context: context,
-      message: message,
-      colors: colors,
-      type: MessageType.error);
-
   @override
   Widget build(BuildContext context) {
     final textTheme = Theme.of(context).textTheme;
@@ -116,6 +104,8 @@ class _MainDashboardScreenState extends ConsumerState<MainDashboardScreen>
     final appUIConfigNotifierProvider = ref.watch(appUIConfigProvider.notifier);
     final secureConfigAsync = ref.watch(appSecureConfigProvider);
     final secureConfigNotifier = ref.watch(appSecureConfigProvider.notifier);
+    final pageIndexNotifierProvider =
+        ref.watch(currentPageIndexNotifierProvider.notifier);
     final profileImageProvider =
         ref.watch(profileImageProviderNotifier.notifier);
 
@@ -126,6 +116,7 @@ class _MainDashboardScreenState extends ConsumerState<MainDashboardScreen>
     final profileImage = useState<File?>(null);
     final uiConfig = useState<AppUIConfig>(AppUIConfig.defaultConfig);
     final secureConfig = useState<AppSecureConfig>(AppSecureConfig());
+    final isInitialized = useState<bool>(false);
 
     useEffect(() {
       secureConfigAsync.whenData((config) {
@@ -157,45 +148,29 @@ class _MainDashboardScreenState extends ConsumerState<MainDashboardScreen>
     }
 
     useEffect(() {
-      savedAssetsProvider.when(
-        data: (data) {
+      savedAssetsProvider.whenData(
+        (data) {
           if (data != null && data.isNotEmpty) {
             initialAssets.value = [...data];
             assets.value = [...data];
-            isLoading = false;
             updateTotalBalance(assets.value);
-          } else {
-            setState(() {
-              isLoading = true;
-            });
           }
-        },
-        loading: () {},
-        error: (error, stackTrace) {
-          notifyError(error.toString());
+          isInitialized.value = true;
         },
       );
       return null;
     }, [savedAssetsProvider]);
 
     useEffect(() {
-      assetsNotifier.when(
-        data: (data) {
-          if (data.isEmpty) {
-            return;
-          }
-
+      assetsNotifier.whenData((data) {
+        if (data.isNotEmpty) {
           initialAssets.value = [...data];
           assets.value = [...data];
+        }
+        updateTotalBalance(assets.value);
+        isInitialized.value = true;
+      });
 
-          isLoading = false;
-          updateTotalBalance(assets.value);
-        },
-        loading: () {},
-        error: (error, stackTrace) {
-          notifyError(error.toString());
-        },
-      );
       return null;
     }, [assetsNotifier]);
 
@@ -289,14 +264,14 @@ class _MainDashboardScreenState extends ConsumerState<MainDashboardScreen>
         final deleteResult = await providerNotifier.deleteWallet(
             accountToRemove, colors, context);
         if (deleteResult) {
-          notifySuccess("Account deleted successfully");
+          notifySuccess("Account deleted successfully", context);
           return true;
         } else {
           throw ("Failed to delete account");
         }
       } catch (e) {
         logError(e.toString());
-        notifyError(e.toString());
+        notifyError(e.toString(), context);
         return false;
       }
     }
@@ -317,7 +292,7 @@ class _MainDashboardScreenState extends ConsumerState<MainDashboardScreen>
           color: color,
         );
         if (result) {
-          notifySuccess("Account updated successfully");
+          notifySuccess("Account updated successfully", context);
 
           return true;
         } else {
@@ -325,7 +300,7 @@ class _MainDashboardScreenState extends ConsumerState<MainDashboardScreen>
         }
       } catch (e) {
         logError(e.toString());
-        notifyError(e.toString());
+        notifyError(e.toString(), context);
         return false;
       }
     }
@@ -373,7 +348,7 @@ class _MainDashboardScreenState extends ConsumerState<MainDashboardScreen>
       try {
         final result = await providerNotifier.reorderList(oldIndex, newIndex);
         if (result) {
-          notifySuccess("List reordered successfully");
+          notifySuccess("List reordered successfully", context);
         } else {
           throw ("Failed to reorder list");
         }
@@ -412,7 +387,7 @@ class _MainDashboardScreenState extends ConsumerState<MainDashboardScreen>
       } catch (e) {
         logError(e.toString());
         if (mounted) {
-          notifyError(e.toString());
+          notifyError(e.toString(), context);
         }
       }
     }
@@ -431,7 +406,7 @@ class _MainDashboardScreenState extends ConsumerState<MainDashboardScreen>
       } catch (e) {
         logError(e.toString());
         if (mounted) {
-          notifyError(e.toString());
+          notifyError(e.toString(), context);
         }
       }
     }
@@ -666,7 +641,7 @@ class _MainDashboardScreenState extends ConsumerState<MainDashboardScreen>
                                         children: [
                                           //   Icon(FeatherIcons.dollarSign, color: colors.textColor, size: textTheme.headlineLarge?.fontSize,),
                                           Skeletonizer(
-                                            enabled: isLoading,
+                                            enabled: !isInitialized.value,
                                             containersColor:
                                                 colors.secondaryColor,
                                             child: Text(
@@ -701,7 +676,7 @@ class _MainDashboardScreenState extends ConsumerState<MainDashboardScreen>
                                               actionsData.length, (index) {
                                             final action = actionsData[index];
                                             return ActionsWidgets(
-                                                onTap: () {
+                                                onTap: () async {
                                                   if (index == 1) {
                                                     showReceiveModal();
                                                   } else if (index == 0) {
@@ -709,8 +684,8 @@ class _MainDashboardScreenState extends ConsumerState<MainDashboardScreen>
                                                   } else if (index == 3) {
                                                     showOptionsModal();
                                                   } else if (index == 2) {
-                                                    Navigator.pushNamed(context,
-                                                        Routes.addCrypto);
+                                                    await pageIndexNotifierProvider
+                                                        .savePageIndex(1);
                                                   }
                                                 },
                                                 text: action["name"],
@@ -860,7 +835,7 @@ class _MainDashboardScreenState extends ConsumerState<MainDashboardScreen>
                                     ])
                           ],
                         ),
-                        isLoading
+                        !isInitialized.value
                             ? SliverToBoxAdapter(
                                 child: Container(
                                 height: 300,
@@ -879,6 +854,57 @@ class _MainDashboardScreenState extends ConsumerState<MainDashboardScreen>
                             : SliverList(
                                 delegate: SliverChildBuilderDelegate(
                                   (BuildContext context, int index) {
+                                    if (index == getFilteredCryptos().length) {
+                                      return Align(
+                                        alignment: Alignment.center,
+                                        child: Padding(
+                                          padding: const EdgeInsets.symmetric(
+                                              vertical: 20),
+                                          child: InkWell(
+                                              onTap: () {
+                                                Navigator.push(
+                                                    context,
+                                                    MaterialPageRoute(
+                                                        builder: (_) =>
+                                                            AddCryptoView()));
+                                              },
+                                              child: Padding(
+                                                padding:
+                                                    const EdgeInsets.symmetric(
+                                                        vertical: 10),
+                                                child: Row(
+                                                    mainAxisAlignment:
+                                                        MainAxisAlignment
+                                                            .center,
+                                                    spacing: 10,
+                                                    children: [
+                                                      Icon(
+                                                        LucideIcons.bolt,
+                                                        color: colors.textColor
+                                                            .withValues(
+                                                                alpha: 0.8),
+                                                        size: 20,
+                                                      ),
+                                                      Text(
+                                                        "Manage Coins",
+                                                        style: textTheme
+                                                            .bodyMedium
+                                                            ?.copyWith(
+                                                                fontSize:
+                                                                    fontSizeOf(
+                                                                        14),
+                                                                color: colors
+                                                                    .textColor
+                                                                    .withValues(
+                                                                        alpha:
+                                                                            0.8)),
+                                                      )
+                                                    ]),
+                                              )),
+                                        ),
+                                      );
+                                    }
+
                                     final assetsFilteredList =
                                         getFilteredCryptos()[index];
                                     final crypto = assetsFilteredList.crypto;
@@ -911,7 +937,7 @@ class _MainDashboardScreenState extends ConsumerState<MainDashboardScreen>
                                         tokenBalance: tokenBalance,
                                         usdBalance: usdBalance);
                                   },
-                                  childCount: getFilteredCryptos().length,
+                                  childCount: getFilteredCryptos().length + 1,
                                 ),
                               ),
                       ],
