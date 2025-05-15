@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:moonwallet/custom/solana/src/bip39.dart';
 import 'package:moonwallet/custom/solana/src/enums.dart' show SolNetworkType;
 import 'package:moonwallet/custom/solana/src/types.dart';
@@ -37,14 +39,19 @@ class Solana {
   Future<String?> sendSolCoin(
       {required String receiverAddress,
       required Ed25519HDKeyPair wallet,
+      required FutureOr<void> Function(String) onSigned,
       required int amount,
       SolNetworkType networkType = SolNetworkType.Mainnet,
       String? memo}) async {
     try {
       final destination = Ed25519HDPublicKey.fromBase58(receiverAddress);
 
-      return await _client.transferLamports(
-          source: wallet, destination: destination, lamports: amount);
+      final signature = await _client.transferLamports(
+          onSigned: onSigned,
+          source: wallet,
+          destination: destination,
+          lamports: amount);
+      return signature;
     } catch (e) {
       logError(e.toString());
       return null;
@@ -57,6 +64,7 @@ class Solana {
       required int amount,
       required Ed25519HDKeyPair wallet,
       SolNetworkType networkType = SolNetworkType.Mainnet,
+      required FutureOr<void> Function(String) onSigned,
       String? memo}) async {
     try {
       if (!isValidSolanaAddress(receiverAddress)) {
@@ -76,6 +84,7 @@ class Solana {
       }
       await Future.delayed(Duration(seconds: 2));
       var hash = await _client.transferSplToken(
+          onSigned: onSigned,
           memo: memo,
           amount: amount,
           destination: destination,

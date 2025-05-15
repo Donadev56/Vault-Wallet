@@ -13,6 +13,7 @@ import 'package:moonwallet/utils/share_manager.dart';
 import 'package:moonwallet/widgets/buttons/elevated_low_opacity_button.dart';
 import 'package:moonwallet/widgets/dialogs/row_details.dart';
 import 'package:moonwallet/widgets/dialogs/standard_container.dart';
+import 'package:timer_builder/timer_builder.dart';
 import 'package:url_launcher/url_launcher.dart';
 
 void showTransactionDetails(
@@ -98,7 +99,7 @@ void showTransactionDetails(
                   spacing: 10,
                   children: [
                     Text(
-                      "${isFrom ? "-" : "+"}${NumberFormatter().formatValue(str: tr.uiAmount)} ${tr.token.symbol}",
+                      "${isFrom ? "-" : "+"}${NumberFormatter().formatValue(str: tr.uiAmount)} ${token.symbol}",
                       textAlign: TextAlign.center,
                       style: textTheme.headlineMedium?.copyWith(
                         fontSize: 25,
@@ -161,18 +162,23 @@ void showTransactionDetails(
                   padding:
                       const EdgeInsets.symmetric(vertical: 10, horizontal: 10),
                   child: Column(spacing: 10, children: [
-                    RowDetailsContent(
-                        colors: colors,
-                        name: "Date",
-                        value: formatTimeElapsed(tr.timeStamp),
-                        valueStyle: defaultValueStyle,
-                        titleStyle: defaultTitleStyle),
+                    TimerBuilder.periodic(
+                      Duration(seconds: 5),
+                      builder: (ctx) {
+                        return RowDetailsContent(
+                            colors: colors,
+                            name: "Date",
+                            value: formatTimeElapsed(tr.timeStamp),
+                            valueStyle: defaultValueStyle,
+                            titleStyle: defaultTitleStyle);
+                      },
+                    ),
                     RowDetailsContent(
                         colors: colors,
                         name: "Status",
-                        value: (tr.status ?? "..."),
+                        value: (tr.status?.toLowerCase() ?? "..."),
                         valueStyle: defaultValueStyle?.copyWith(
-                            color: tr.status == "success"
+                            color: tr.status?.toLowerCase() == "success"
                                 ? colors.themeColor
                                 : colors.textColor),
                         titleStyle: defaultTitleStyle),
@@ -190,7 +196,9 @@ void showTransactionDetails(
                         return RowDetailsContent(
                           colors: colors,
                           name: e.key,
-                          value: e.value,
+                          value: e.value is String
+                              ? e.value
+                              : (e.value).toString(),
                           copyOnClick: true,
                         );
                       }).toList(),

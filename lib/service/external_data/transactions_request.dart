@@ -1,6 +1,7 @@
 import 'package:dio/dio.dart';
 import 'package:moonwallet/logger/logger.dart';
 import 'package:moonwallet/service/db/transactions_db.dart';
+import 'package:moonwallet/service/external_data/solana_request_manager.dart';
 import 'package:moonwallet/service/internet_manager.dart';
 import 'package:moonwallet/types/account_related_types.dart';
 import 'package:moonwallet/types/transaction.dart';
@@ -23,7 +24,11 @@ class TransactionsRequest {
           if (!(await internet.isConnected())) {
             return await storage.getSavedTransactions();
           }
-          final result = await _getEvmTransactions();
+          final result = await getEvmTransactions();
+          log("Result ${result.length}");
+          return result;
+        case NetworkType.svm:
+          final result = await getSvmTransactions();
           log("Result ${result.length}");
           return result;
 
@@ -36,7 +41,7 @@ class TransactionsRequest {
     }
   }
 
-  Future<List<Transaction>> _getEvmTransactions() async {
+  Future<List<Transaction>> getEvmTransactions() async {
     try {
       final contractAddress = token.contractAddress;
       final address = account.addressByToken(token);
@@ -67,6 +72,15 @@ class TransactionsRequest {
         return transactions;
       }
       return [];
+    } catch (e) {
+      logError(e.toString());
+      rethrow;
+    }
+  }
+
+  Future<List<Transaction>> getSvmTransactions() async {
+    try {
+      return await SolanaRequestManager().fetchTransactions(account, token);
     } catch (e) {
       logError(e.toString());
       rethrow;

@@ -24,6 +24,7 @@ class Themes {
         "noirTheme": noirTheme,
         "industrialTheme": industrialTheme,
         "classicTheme": classicTheme,
+        "redAccentBlack": redAccentBlack
       };
   AppColors darkGrayColor = AppColors(
       primaryColor: Color(0XFF1B1B1B),
@@ -235,6 +236,16 @@ class Themes {
       redColor: Colors.redAccent,
       type: ColorType.dark);
 }
+
+AppColors redAccentBlack = AppColors(
+    primaryColor: Color(0XFF000000),
+    themeColor: Colors.redAccent,
+    greenColor: Colors.green,
+    secondaryColor: Color(0XFF101010),
+    grayColor: Color(0XFF1C1C1C),
+    textColor: Colors.white,
+    redColor: Colors.deepOrange,
+    type: ColorType.other);
 
 /* AppColors lightColors = AppColors(
       primaryColor: Colors.white,

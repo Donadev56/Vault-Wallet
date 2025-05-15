@@ -10,7 +10,6 @@ import 'package:moonwallet/types/account_related_types.dart';
 import 'package:moonwallet/utils/number_formatter.dart';
 import 'package:moonwallet/types/types.dart';
 import 'package:moonwallet/widgets/avatar_modal.dart';
-import 'package:moonwallet/widgets/screen_widgets/crypto_picture.dart';
 import 'package:moonwallet/widgets/custom_options.dart';
 import 'package:moonwallet/widgets/func/security/ask_password.dart';
 import 'package:moonwallet/widgets/func/security/show_change_password_procedure.dart';

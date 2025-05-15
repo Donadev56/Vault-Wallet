@@ -1,8 +1,17 @@
 import 'dart:convert';
 
 import 'package:decimal/decimal.dart';
-import 'package:moonwallet/logger/logger.dart';
 import 'package:moonwallet/types/account_related_types.dart';
+
+enum SolInstruction { lamports, token, memo, unknown }
+
+extension SolInstructionExtension on SolInstruction {
+  String toShortString() => toString().split('.').last;
+
+  static SolInstruction fromString(String value) {
+    return SolInstruction.values.firstWhere((e) => e.toShortString() == value);
+  }
+}
 
 abstract class Transaction {
   final String uiAmount;
@@ -11,7 +20,7 @@ abstract class Transaction {
   final String to;
   final String? status;
   final int timeStamp;
-  final Crypto token;
+  final Crypto? token;
   final String transactionId;
 
   Transaction(
@@ -21,11 +30,11 @@ abstract class Transaction {
       required this.timeStamp,
       required this.to,
       required this.uiAmount,
-      required this.token,
+      this.token,
       required this.transactionId});
 
-  Map<String, dynamic> get metadata;
-  Map<String, dynamic> toJson();
+  Map<dynamic, dynamic> get metadata;
+  Map<dynamic, dynamic> toJson();
 }
 
 class StandardTransaction extends Transaction {
@@ -41,10 +50,10 @@ class StandardTransaction extends Transaction {
   });
 
   @override
-  Map<String, dynamic> get metadata => {};
+  Map<dynamic, dynamic> get metadata => {};
 
   @override
-  Map<String, dynamic> toJson() => {
+  Map<dynamic, dynamic> toJson() => {
         "from": from,
         "to": to,
         "networkFees": networkFees,
@@ -52,7 +61,7 @@ class StandardTransaction extends Transaction {
         "uiAmount": uiAmount,
         "status": status,
         "transactionId": transactionId,
-        "token": token.toJson()
+        "token": token?.toJson()
       };
 
   factory StandardTransaction.fromJson(Map<String, dynamic> json) {
@@ -70,6 +79,7 @@ class StandardTransaction extends Transaction {
 
 class SolanaTransaction extends Transaction {
   final String txId;
+  final int slot;
 
   SolanaTransaction(
       {required super.from,
@@ -79,15 +89,15 @@ class SolanaTransaction extends Transaction {
       required super.uiAmount,
       required this.txId,
       required super.transactionId,
-      required super.token});
+      required super.status,
+      required this.slot,
+      super.token});
 
   @override
-  Map<String, dynamic> get metadata => {
-        "txId": txId,
-      };
+  Map<String, dynamic> get metadata => {"TxId": txId, "Slot": slot};
 
   @override
-  Map<String, dynamic> toJson() {
+  Map<dynamic, dynamic> toJson() {
     return {
       "from": from,
       "to": to,
@@ -95,21 +105,25 @@ class SolanaTransaction extends Transaction {
       "timeStamp": timeStamp,
       "uiAmount": uiAmount,
       "txId": txId,
-      "token": token.toJson(),
+      "token": token?.toJson(),
       "transactionId": transactionId,
+      "slot": slot,
+      "status": status,
     };
   }
 
-  factory SolanaTransaction.fromJson(Map<String, dynamic> json) {
+  factory SolanaTransaction.fromJson(Map<dynamic, dynamic> json) {
     return SolanaTransaction(
-        from: json["from"],
-        to: json["to"],
-        networkFees: json["networkFees"],
-        timeStamp: json["timeStamp"],
-        uiAmount: json["uiAmount"],
-        txId: json["txId"],
-        transactionId: json["transactionId"],
-        token: Crypto.fromJson(json["token"]));
+      status: json["status"],
+      slot: json["slot"],
+      from: json["from"],
+      to: json["to"],
+      networkFees: json["networkFees"],
+      timeStamp: json["timeStamp"],
+      uiAmount: json["uiAmount"],
+      txId: json["txId"],
+      transactionId: json["transactionId"],
+    );
   }
 }
 
@@ -145,7 +159,7 @@ class EthereumTransaction extends Transaction {
       "uiAmount": uiAmount,
       "hash": hash,
       "nonce": blockNumber,
-      "token": token.toJson(),
+      "token": token?.toJson(),
       "transactionId": transactionId,
       "blockNumber": blockNumber,
       "status": status
@@ -216,7 +230,7 @@ extension TransactionJson on List<Transaction> {
     return json.encode(toJson());
   }
 
-  List<Map<String, dynamic>> toJson() {
+  List<Map<dynamic, dynamic>> toJson() {
     return map((e) => e.toJson()).toList();
   }
 }

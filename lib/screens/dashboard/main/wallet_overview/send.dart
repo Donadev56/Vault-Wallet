@@ -11,10 +11,12 @@ import 'package:flutter_hooks/flutter_hooks.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:lucide_icons_flutter/lucide_icons.dart';
 import 'package:mobile_scanner/mobile_scanner.dart';
+import 'package:moonwallet/custom/web3_webview/lib/utils/loading.dart';
 import 'package:moonwallet/logger/logger.dart';
 import 'package:moonwallet/notifiers/providers.dart';
 import 'package:moonwallet/screens/dashboard/page_manager.dart';
 import 'package:moonwallet/service/db/list_address_dynamic_db.dart';
+import 'package:moonwallet/service/external_data/transaction_manager.dart';
 import 'package:moonwallet/service/rpc_service.dart';
 import 'package:moonwallet/types/account_related_types.dart';
 import 'package:moonwallet/types/transaction.dart';
@@ -183,8 +185,10 @@ class _SendTransactionScreenState extends ConsumerState<SendTransactionScreen> {
         log("Transaction tx : $tx");
         if (mounted) {
           saveLastUsedAddresses(to);
-          final receipt =
-              await rpcService.getTransactionReceipt(tx ?? "", crypto!);
+          final targetTransaction =
+              await TransactionManager(account: currentAccount, token: crypto!)
+                  .addTransactionAfterTransfer(tx ?? "Not Found", amount, to)
+                  .withLoading(context, colors, "Updating...");
 
           Navigator.push(
               context,
@@ -195,11 +199,7 @@ class _SendTransactionScreenState extends ConsumerState<SendTransactionScreen> {
                         crypto: crypto,
                         transaction: StandardTransaction(
                           token: crypto!,
-                          status: receipt?.status == null
-                              ? "Pending"
-                              : receipt?.status == true
-                                  ? "Success"
-                                  : "Failed",
+                          status: targetTransaction?.status,
                           from: from,
                           to: to,
                           uiAmount: amount,

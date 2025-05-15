@@ -495,15 +495,8 @@ class _WalletViewScreenState extends ConsumerState<WalletViewScreen>
                               background: colors.redColor)),
                       onRefresh: fetchRecentTransactions,
                       child: Padding(
-                        padding: const EdgeInsets.only(top: 30),
-                        child: ListView.separated(
-                            separatorBuilder: (context, index) => Padding(
-                                  padding: const EdgeInsets.only(left: 70),
-                                  child: Divider(
-                                    color: colors.primaryColor,
-                                    thickness: 1,
-                                  ),
-                                ),
+                        padding: const EdgeInsets.only(top: 10),
+                        child: ListView.builder(
                             shrinkWrap: true,
                             itemCount: transactionsList(i).length + 1,
                             itemBuilder: (BuildContext listCtx, index) {
@@ -511,8 +504,12 @@ class _WalletViewScreenState extends ConsumerState<WalletViewScreen>
                                 return Align(
                                   alignment: Alignment.topCenter,
                                   child: Container(
-                                    height: 70,
-                                    margin: const EdgeInsets.only(top: 30),
+                                    height:
+                                        (MediaQuery.of(context).size.height /
+                                                2) -
+                                            100,
+                                    margin: const EdgeInsets.symmetric(
+                                        vertical: 30),
                                     decoration: BoxDecoration(
                                       borderRadius:
                                           BorderRadius.circular(roundedOf(15)),

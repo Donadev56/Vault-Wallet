@@ -35,7 +35,7 @@ class TransactionStorage {
         ..sort((a, b) => b.timeStamp.compareTo(a.timeStamp));
 
       transactionsToSave = [...filteredTransaction];
-      log("Transactions ${transactionsToSave.sublist(0, 3)}");
+      log("Transactions ${transactionsToSave.firstOrNull}");
 
       if (transactionsToSave.isNotEmpty) {
         final lastUpdateDate = transactionsToSave.first.timeStamp;
@@ -76,7 +76,10 @@ class TransactionStorage {
                 .map((e) =>
                     EthereumTransaction.fromInternalJson(e, token: token))
                 .toList();
-
+          case NetworkType.svm:
+            return (savedData as List<dynamic>)
+                .map((e) => SolanaTransaction.fromJson(e))
+                .toList();
           default:
         }
       }

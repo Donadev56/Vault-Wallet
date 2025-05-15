@@ -1,4 +1,6 @@
 // ignore_for_file: use_build_context_synchronously
+import 'dart:async';
+
 import 'package:flutter/widgets.dart';
 import 'package:moonwallet/custom/solana/src/solana.dart';
 import 'package:moonwallet/custom/web3_webview/lib/utils/loading.dart';
@@ -209,17 +211,20 @@ class SolanaInteractionManager {
       required AppColors colors}) async {
     try {
       final solana = Solana(crypto.getRpcUrl);
-
-      final transactionId = await solana
+      final completer = Completer<String>();
+      await solana
           .sendSolCoin(
+              onSigned: (sig) {
+                completer.complete(sig);
+              },
               receiverAddress: to,
               amount: int.parse(amountLamports),
               wallet: wallet,
               memo: memo)
           .withLoading(context, colors, "Sending...");
-      log("Message signed $transactionId");
+      log("Message signed ${await completer.future}");
 
-      return transactionId;
+      return await completer.future;
     } catch (e) {
       logError(e.toString());
       rethrow;
@@ -239,15 +244,19 @@ class SolanaInteractionManager {
       required AppColors colors}) async {
     try {
       final solana = Solana(crypto.getRpcUrl);
+      final completer = Completer<String>();
 
-      final transactionId = await solana.sendToken(
+      await solana.sendToken(
+          onSigned: (sig) {
+            completer.complete(sig);
+          },
           receiverAddress: to,
           tokenAddress: tokenAddress,
           amount: int.parse(amountLamports),
           wallet: wallet,
           memo: memo);
-      log("Transaction id $transactionId");
-      return transactionId;
+      log("Transaction id ${await completer.future}");
+      return await completer.future;
     } catch (e) {
       logError(e.toString());
       rethrow;
