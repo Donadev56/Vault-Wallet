@@ -166,12 +166,7 @@ class _SessionHistoryViewState extends ConsumerState<SessionHistoryView> {
                                       SizedBox(
                                         height: 10,
                                       ),
-                                      RowDetailsContent(
-                                          copyOnClick: true,
-                                          colors: colors,
-                                          name: "Session Salt",
-                                          value: base64Encode(
-                                              session.sessionKey.salt)),
+                                   
                                       SizedBox(
                                         height: 10,
                                       ),
