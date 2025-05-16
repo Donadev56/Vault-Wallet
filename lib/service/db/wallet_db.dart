@@ -78,21 +78,6 @@ class WalletDatabase {
     }
   }
 
-  Future<DerivateKeys> _generateNewSecretKey(String password) async {
-    try {
-      final salt = _encryptService.generateSalt();
-
-      final secretKey =
-          await _encryptService.deriveEncryptionKey(password, salt);
-
-      final derivateKey = base64Encode((await secretKey.extractBytes()));
-      return DerivateKeys(derivateKey: derivateKey, salt: salt);
-    } catch (e) {
-      logError(e.toString());
-      rethrow;
-    }
-  }
-
   Future<List<PrivateAccount>> _getListPrivateAccount(
       List<dynamic> listPublicAccount, String deriveKeyBase64) async {
     final encryptedPrivateData =
@@ -265,7 +250,8 @@ class WalletDatabase {
   Future<bool> changePassword(String oldPassword, String newPassword) async {
     try {
       final oldDerive = await deriveEncryptionKeyStateless(oldPassword);
-      final newDerivateKey = await _generateNewSecretKey(newPassword);
+      final newDerivateKey =
+          await _encryptService.generateNewSecretKey(newPassword);
 
       final alreadySavedData =
           await getAlreadySavedListPrivateAccount(oldDerive.derivateKey);

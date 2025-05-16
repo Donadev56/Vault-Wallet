@@ -4,11 +4,12 @@ import 'package:flutter_hooks/flutter_hooks.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:moonwallet/custom/web3_webview/lib/utils/loading.dart';
-import 'package:moonwallet/main.dart';
 import 'package:moonwallet/notifiers/providers.dart';
+import 'package:moonwallet/routes.dart';
 import 'package:moonwallet/service/db/wallet_db.dart';
 import 'package:moonwallet/service/external_data/crypto_request_manager.dart';
 import 'package:moonwallet/types/account_related_types.dart';
+import 'package:moonwallet/types/ecosystem_config.dart';
 import 'package:moonwallet/utils/colors.dart';
 import 'package:moonwallet/utils/encrypt_service.dart';
 import 'package:moonwallet/utils/themes.dart';
@@ -291,49 +292,56 @@ class _AddCryptoViewState extends ConsumerState<AddCryptoView> {
                   Column(
                     spacing: 10,
                     children: [
-                      CustomListTitleButton(
-                          roundedOf: roundedOf,
-                          fontSizeOf: fontSizeOf,
-                          iconSizeOf: iconSizeOf,
-                          textColor: colors.textColor,
-                          text: "Add custom token",
-                          icon: Icons.add,
-                          onTap: () {
-                            showAddToken(
-                                roundedOf: roundedOf,
-                                fontSizeOf: fontSizeOf,
-                                iconSizeOf: iconSizeOf,
-                                reorganizedCrypto: savedCrypto.value,
-                                addCrypto: addCrypto,
-                                context: context,
-                                colors: colors,
-                                width: width,
-                                hasSaved: hasSaved);
-                          }),
-                      CustomListTitleButton(
-                          roundedOf: roundedOf,
-                          fontSizeOf: fontSizeOf,
-                          iconSizeOf: iconSizeOf,
-                          textColor: colors.textColor,
-                          text: "Add custom network",
-                          icon: Icons.construction,
-                          onTap: () async {
-                            final newNetwork = await showAddNetwork(
-                                roundedOf: roundedOf,
-                                fontSizeOf: fontSizeOf,
-                                iconSizeOf: iconSizeOf,
-                                context: context,
-                                colors: colors);
-                            if (newNetwork != null) {
-                              if (savedCrypto.value.any(
-                                  (c) => c.chainId == newNetwork.chainId)) {
-                                notifyError("Network already exist", context);
-                                return;
+                      if (currentAccount?.supportedNetworks.any((e) =>
+                              ecosystemInfo[e]?.supportSmartContracts ==
+                              true) ==
+                          true)
+                        CustomListTitleButton(
+                            roundedOf: roundedOf,
+                            fontSizeOf: fontSizeOf,
+                            iconSizeOf: iconSizeOf,
+                            textColor: colors.textColor,
+                            text: "Add custom token",
+                            icon: Icons.add,
+                            onTap: () {
+                              showAddToken(
+                                  roundedOf: roundedOf,
+                                  fontSizeOf: fontSizeOf,
+                                  iconSizeOf: iconSizeOf,
+                                  reorganizedCrypto: savedCrypto.value,
+                                  addCrypto: addCrypto,
+                                  context: context,
+                                  colors: colors,
+                                  width: width,
+                                  hasSaved: hasSaved);
+                            }),
+                      if (currentAccount?.origin.isMnemonic == true ||
+                          currentAccount?.supportedNetworks.firstOrNull ==
+                              NetworkType.evm)
+                        CustomListTitleButton(
+                            roundedOf: roundedOf,
+                            fontSizeOf: fontSizeOf,
+                            iconSizeOf: iconSizeOf,
+                            textColor: colors.textColor,
+                            text: "Add EVM network",
+                            icon: Icons.construction,
+                            onTap: () async {
+                              final newNetwork = await showAddNetwork(
+                                  roundedOf: roundedOf,
+                                  fontSizeOf: fontSizeOf,
+                                  iconSizeOf: iconSizeOf,
+                                  context: context,
+                                  colors: colors);
+                              if (newNetwork != null) {
+                                if (savedCrypto.value.any(
+                                    (c) => c.chainId == newNetwork.chainId)) {
+                                  notifyError("Network already exist", context);
+                                  return;
+                                }
+                                addNetwork(newNetwork)
+                                    .withLoading(context, colors);
                               }
-                              addNetwork(newNetwork)
-                                  .withLoading(context, colors);
-                            }
-                          }),
+                            }),
                       CustomListTitleButton(
                           roundedOf: roundedOf,
                           fontSizeOf: fontSizeOf,

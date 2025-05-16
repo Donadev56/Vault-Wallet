@@ -1,11 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:moonwallet/logger/logger.dart';
-import 'package:moonwallet/main.dart';
+import 'package:moonwallet/routes.dart';
 import 'package:moonwallet/types/types.dart';
 import 'package:moonwallet/utils/colors.dart';
 import 'package:moonwallet/utils/themes.dart';
 import 'package:moonwallet/widgets/dialogs/show_custom_snackbar.dart';
-import 'package:moonwallet/widgets/app_bar_title.dart';
 
 class ChangeThemeView extends StatefulWidget {
   final AppColors? colors;
@@ -83,9 +82,10 @@ class _ChangeThemeViewState extends State<ChangeThemeView> {
                   color: colors.textColor,
                 )),
             centerTitle: true,
-            title: AppBarTitle(
-              title: "Change Theme",
-              colors: colors,
+            title: Text(
+              "Change Theme",
+              style: textTheme.bodyMedium
+                  ?.copyWith(fontSize: 18, fontWeight: FontWeight.w400),
             )),
         body: GlowingOverscrollIndicator(
           axisDirection: AxisDirection.down,

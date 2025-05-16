@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:lucide_icons_flutter/lucide_icons.dart';
 import 'package:moonwallet/logger/logger.dart';
-import 'package:moonwallet/main.dart';
+import 'package:moonwallet/routes.dart';
 import 'package:moonwallet/screens/dashboard/wallet_actions/add_private_key.dart';
 import 'package:moonwallet/screens/dashboard/wallet_actions/add_w_o.dart';
 import 'package:moonwallet/service/external_data/crypto_request_manager.dart';
@@ -26,7 +26,7 @@ class WalletActions extends HookConsumerWidget {
 
   @override
   Widget build(BuildContext context, ref) {
-    Future<TokenEcosystem?> selectEcosystem() async {
+    Future<TokenEcosystem?> selectEcosystem(String keyName) async {
       final cryptos = await CryptoRequestManager().getAllCryptos();
 
       if (cryptos.isEmpty) {
@@ -36,6 +36,7 @@ class WalletActions extends HookConsumerWidget {
       final networks = cryptos.where((c) => c.isNative).toList();
 
       final ecosystem = await showSelectEcoSystem(
+          keyName: keyName,
           context: context,
           colors: colors,
           roundedOf: roundedOf,
@@ -80,7 +81,7 @@ class WalletActions extends HookConsumerWidget {
             text: "Import private key",
             icon: LucideIcons.key,
             onTap: () async {
-              final ecosystem = await selectEcosystem();
+              final ecosystem = await selectEcosystem("private key");
               if (ecosystem == null) {
                 return;
               }
@@ -98,7 +99,7 @@ class WalletActions extends HookConsumerWidget {
             text: "Observation wallet",
             icon: LucideIcons.eye,
             onTap: () async {
-              final ecosystem = await selectEcosystem();
+              final ecosystem = await selectEcosystem("wallet");
               if (ecosystem == null) {
                 return;
               }

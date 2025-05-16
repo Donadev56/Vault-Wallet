@@ -541,12 +541,13 @@ class DerivateKeys {
   String derivateKey;
 
   DerivateKeys({required this.derivateKey, required this.salt});
+
   Map<String, dynamic> toJson() => {
         'salt': base64Encode(salt),
         'derivateKey': derivateKey,
       };
 
-  factory DerivateKeys.fromJson(Map<String, dynamic> json) {
+  factory DerivateKeys.fromJson(Map<dynamic, dynamic> json) {
     return DerivateKeys(
       derivateKey: json['derivateKey'] as String,
       salt: base64Decode(json['salt'] as String),
@@ -558,9 +559,13 @@ class TokenEcosystem {
   final String name;
   final NetworkType type;
   final String iconUrl;
+  final bool supportSmartContracts;
 
   TokenEcosystem(
-      {required this.name, required this.type, required this.iconUrl});
+      {required this.name,
+      required this.type,
+      required this.iconUrl,
+      required this.supportSmartContracts});
 }
 
 class EncryptionInfo {

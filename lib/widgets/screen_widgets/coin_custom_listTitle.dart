@@ -52,11 +52,13 @@ class CoinCustomListTitle extends StatelessWidget {
     return Material(
       color: Colors.transparent,
       child: Padding(
-        padding: const EdgeInsets.symmetric(vertical: 2),
+        padding: const EdgeInsets.symmetric(
+          vertical: 4,
+        ),
         child: ListTile(
           textColor: colors.secondaryColor,
+          visualDensity: VisualDensity(vertical: -4, horizontal: 2),
           contentPadding: const EdgeInsets.symmetric(horizontal: 15),
-          visualDensity: VisualDensity(vertical: -2.5, horizontal: 2),
           splashColor: colors.textColor.withOpacity(0.05),
           onTap: () {
             Navigator.push(

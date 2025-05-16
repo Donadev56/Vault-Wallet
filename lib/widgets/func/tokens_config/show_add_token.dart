@@ -4,9 +4,10 @@ import 'package:flutter/material.dart';
 import 'package:lucide_icons_flutter/lucide_icons.dart';
 import 'package:modal_bottom_sheet/modal_bottom_sheet.dart';
 import 'package:moonwallet/custom/web3_webview/lib/utils/loading.dart';
-import 'package:moonwallet/main.dart';
+import 'package:moonwallet/routes.dart';
 import 'package:moonwallet/service/web3_interactions/evm/token_manager.dart';
 import 'package:moonwallet/types/account_related_types.dart';
+import 'package:moonwallet/types/ecosystem_config.dart';
 import 'package:moonwallet/types/types.dart';
 import 'package:moonwallet/widgets/dialogs/show_custom_snackbar.dart';
 import 'package:moonwallet/widgets/func/tokens_config/show_confirm_add_token.dart';
@@ -107,7 +108,12 @@ void showAddToken(
                           iconSizeOf: iconSizeOf,
                           context: context,
                           colors: colors,
-                          networks: reorganizedCrypto);
+                          networks: reorganizedCrypto
+                              .where((e) =>
+                                  ecosystemInfo[e.getNetworkType]
+                                      ?.supportSmartContracts ==
+                                  true)
+                              .toList());
                       if (selectedCrypto != null) {
                         setModalState(() {
                           selectedNetwork = selectedCrypto;

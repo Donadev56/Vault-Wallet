@@ -1,3 +1,5 @@
+import 'dart:ui';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_hooks/flutter_hooks.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
@@ -13,6 +15,7 @@ import 'package:moonwallet/types/transaction.dart';
 import 'package:moonwallet/types/types.dart' as types;
 import 'package:moonwallet/utils/colors.dart';
 import 'package:moonwallet/utils/themes.dart';
+import 'package:moonwallet/widgets/func/security/show_passkey_prompt.dart';
 import 'package:moonwallet/widgets/navBar.dart';
 import 'package:moonwallet/widgets/func/transactions/history/show_transaction_details.dart';
 
@@ -121,6 +124,10 @@ class _PagesManagerViewState extends ConsumerState<PagesManagerView> {
     final uiConfig =
         useState<types.AppUIConfig>(types.AppUIConfig.defaultConfig);
     final appUIConfigAsync = ref.watch(appUIConfigProvider);
+    final secureConfigAsync = ref.watch(appSecureConfigProvider);
+    final hasRunCheck = useState<bool>(false);
+    final sessionAsync = ref.watch(sessionProviderNotifier);
+    final sessionNotifier = ref.watch(sessionProviderNotifier.notifier);
 
     useEffect(() {
       appUIConfigAsync.whenData((data) {
@@ -148,23 +155,71 @@ class _PagesManagerViewState extends ConsumerState<PagesManagerView> {
       return size * uiConfig.value.styles.radiusScaleFactor;
     }
 
-    return Scaffold(
-      body: IndexedStack(
-        index: currentIndexState.value,
-        children: _pages(),
+    final pageManagerBody = PopScope(
+      onPopInvokedWithResult: (didPop, result) async {
+        await sessionNotifier.endSession();
+      },
+      child: Scaffold(
+        body: IndexedStack(
+          index: currentIndexState.value,
+          children: _pages(),
+        ),
+        bottomNavigationBar: BottomNav(
+            roundedOf: roundedOf,
+            fontSizeOf: fontSizeOf,
+            iconSizeOf: iconSizeOf,
+            onTap: (index) async {
+              vibrate();
+              await pageIndexProviderNotifier.savePageIndex(index);
+            },
+            currentIndex: currentIndexState.value,
+            primaryColor: colors.primaryColor,
+            textColor: colors.textColor,
+            secondaryColor: colors.themeColor),
       ),
-      bottomNavigationBar: BottomNav(
-          roundedOf: roundedOf,
-          fontSizeOf: fontSizeOf,
-          iconSizeOf: iconSizeOf,
-          onTap: (index) async {
-            vibrate();
-            await pageIndexProviderNotifier.savePageIndex(index);
-          },
-          currentIndex: currentIndexState.value,
-          primaryColor: colors.primaryColor,
-          textColor: colors.textColor,
-          secondaryColor: colors.themeColor),
+    );
+
+    final loadingView = Material(
+      color: colors.primaryColor,
+      child: Center(child: CircularProgressIndicator(color: colors.themeColor)),
+    );
+    return sessionAsync.when(
+      data: (data) {
+        final secureData = secureConfigAsync.value;
+
+        if (secureData?.lockAtStartup == true &&
+                data == null &&
+                !hasRunCheck.value ||
+            data != null && data.hasExpired) {
+          hasRunCheck.value = true;
+
+          // Schedule the async logic to run after the frame
+          WidgetsBinding.instance.addPostFrameCallback((_) async {
+            final key = await showPassKeyPromptScreen(context, colors);
+            if (key != null) {
+              await sessionNotifier.startSession(key);
+            }
+          });
+
+          return loadingView;
+        } else if (secureData?.lockAtStartup == true &&
+            data != null &&
+            (data.endTime == 0 || data.hasExpired == false)) {
+          return pageManagerBody;
+        } else if (secureData?.lockAtStartup == false) {
+          return pageManagerBody;
+        }
+
+        return loadingView;
+      },
+      loading: () {
+        return loadingView;
+      },
+      error: (obj, trace) {
+        return Center(
+          child: Text("Error : $trace"),
+        );
+      },
     );
   }
 }

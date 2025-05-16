@@ -58,6 +58,7 @@ Future<Crypto?> showAddNetwork({
                             context);
                       } else {
                         final newCrypto = Crypto(
+                            networkType: NetworkType.evm,
                             name: nameController.text,
                             color: Colors.grey,
                             type: CryptoType.native,

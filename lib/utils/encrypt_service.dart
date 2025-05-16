@@ -1,11 +1,26 @@
 import 'dart:convert';
 import 'dart:math';
 import 'package:moonwallet/logger/logger.dart';
+import 'package:moonwallet/types/account_related_types.dart';
 import 'package:ulid/ulid.dart';
 import 'package:cryptography/cryptography.dart';
 
 class EncryptService {
   final algorithm = AesGcm.with256bits();
+
+  Future<DerivateKeys> generateNewSecretKey(String password) async {
+    try {
+      final salt = generateSalt();
+
+      final secretKey = await deriveEncryptionKey(password, salt);
+
+      final derivateKey = base64Encode((await secretKey.extractBytes()));
+      return DerivateKeys(derivateKey: derivateKey, salt: salt);
+    } catch (e) {
+      logError(e.toString());
+      rethrow;
+    }
+  }
 
   Future<SecretKey> deriveEncryptionKey(String password, List<int> salt) async {
     final pbkdf2 = Pbkdf2(

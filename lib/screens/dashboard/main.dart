@@ -6,6 +6,7 @@ import 'package:decimal/decimal.dart';
 import 'package:loading_animation_widget/loading_animation_widget.dart';
 import 'package:moonwallet/custom/refresh/check_mark.dart';
 import 'package:moonwallet/notifiers/providers.dart';
+import 'package:moonwallet/routes.dart';
 import 'package:moonwallet/screens/auth/home.dart';
 import 'package:moonwallet/screens/dashboard/add_crypto.dart';
 import 'package:moonwallet/screens/dashboard/main/wallet_overview/receive.dart';
@@ -27,7 +28,6 @@ import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:lucide_icons_flutter/lucide_icons.dart';
 import 'package:moonwallet/logger/logger.dart';
-import 'package:moonwallet/main.dart';
 import 'package:moonwallet/service/vibration.dart';
 import 'package:moonwallet/types/types.dart';
 import 'package:moonwallet/utils/constant.dart';
@@ -522,6 +522,19 @@ class _MainDashboardScreenState extends ConsumerState<MainDashboardScreen>
                               .balanceCrypto)))));
     }
 
+    if (currentAccount == null) {
+      return Material(
+          color: colors.primaryColor,
+          child: Center(
+            child: SizedBox(
+              height: 70,
+              width: 70,
+              child: CircularProgressIndicator(
+                color: colors.themeColor,
+              ),
+            ),
+          ));
+    }
     return Scaffold(
         key: _scaffoldKey,
         backgroundColor: colors.primaryColor,
@@ -533,7 +546,7 @@ class _MainDashboardScreenState extends ConsumerState<MainDashboardScreen>
             listTitleHorizontalOf: listTitleHorizontalOf,
             listTitleVerticalOf: listTitleVerticalOf,
             changeProfileImage: changeProfileImage,
-            currentAccount: currentAccount!,
+            currentAccount: currentAccount,
             editWallet: editWallet,
             deleteWallet: deleteWallet,
             accounts: accounts.value,

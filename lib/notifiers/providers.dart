@@ -11,6 +11,7 @@ import 'package:moonwallet/notifiers/current_page_index_notifier.dart';
 import 'package:moonwallet/notifiers/last_account_notifier.dart';
 import 'package:moonwallet/notifiers/profile_image_notifier.dart';
 import 'package:moonwallet/notifiers/saved_crypto.dart';
+import 'package:moonwallet/notifiers/session_provider.dart';
 import 'package:moonwallet/notifiers/wallet_manager_notifier.dart';
 import 'package:moonwallet/service/db/crypto_storage_manager.dart';
 import 'package:moonwallet/service/external_data/price_manager.dart';
@@ -104,6 +105,11 @@ final web3ProviderNotifier = Provider<WalletManagerNotifier>((ref) {
 final appUIConfigProvider =
     AsyncNotifierProvider<AppUIConfigNotifier, types.AppUIConfig>(() {
   return AppUIConfigNotifier();
+});
+
+final sessionProviderNotifier =
+    AsyncNotifierProvider<SessionProvider, types.LocalSession?>(() {
+  return SessionProvider();
 });
 
 final appSecureConfigProvider =

@@ -2,6 +2,7 @@
 
 import 'package:decimal/decimal.dart';
 import 'package:flutter/material.dart';
+import 'package:moonwallet/logger/logger.dart';
 import 'package:moonwallet/types/account_related_types.dart';
 
 enum ColorType { dark, light, other }
@@ -1024,4 +1025,60 @@ class SolanaRequestResponse {
     required this.ok,
     this.memo,
   });
+}
+
+class LocalSession {
+  final int startTime;
+  final int endTime;
+  final String sessionId;
+  final DerivateKeys sessionKey;
+  final bool isAuthenticated;
+  final bool hasExpired;
+
+  LocalSession(
+      {required this.startTime,
+      required this.endTime,
+      required this.sessionId,
+      required this.sessionKey,
+      required this.isAuthenticated,
+      required this.hasExpired});
+
+  Map<dynamic, dynamic> toJson() {
+    return {
+      'startTime': startTime,
+      'endTime': endTime,
+      'sessionId': sessionId,
+      'sessionKey': sessionKey.toJson(),
+      'isAuthenticated': isAuthenticated,
+      "hasExpired": hasExpired
+    };
+  }
+
+  factory LocalSession.fromJson(Map<dynamic, dynamic> json) {
+    return LocalSession(
+        startTime: json['startTime'] as int,
+        endTime: json['endTime'] as int,
+        sessionId: json['sessionId'] as String,
+        sessionKey: DerivateKeys.fromJson(json['sessionKey']),
+        isAuthenticated: json['isAuthenticated'] ?? false,
+        hasExpired: json["hasExpired"] ?? true);
+  }
+
+  LocalSession copyWith({
+    int? startTime,
+    int? endTime,
+    String? sessionId,
+    DerivateKeys? sessionKey,
+    bool? isAuthenticated,
+    bool? hasExpired,
+  }) {
+    return LocalSession(
+      startTime: startTime ?? this.startTime,
+      endTime: endTime ?? this.endTime,
+      sessionId: sessionId ?? this.sessionId,
+      sessionKey: sessionKey ?? this.sessionKey,
+      isAuthenticated: isAuthenticated ?? this.isAuthenticated,
+      hasExpired: hasExpired ?? this.hasExpired,
+    );
+  }
 }

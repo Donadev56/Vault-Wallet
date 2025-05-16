@@ -9,10 +9,12 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_web3_webview/flutter_web3_webview.dart';
-import 'package:google_fonts/google_fonts.dart';
+import 'package:hooks_riverpod/hooks_riverpod.dart';
+import 'package:moonwallet/custom_textTheme.dart';
 import 'package:moonwallet/logger/logger.dart';
 import 'package:moonwallet/notifiers/accounts_notifier.dart';
-import 'package:moonwallet/screens/dashboard/main/account_data.dart';
+import 'package:moonwallet/notifiers/providers.dart';
+import 'package:moonwallet/routes.dart';
 import 'package:moonwallet/screens/dashboard/add_crypto.dart';
 import 'package:moonwallet/screens/auth/home.dart';
 import 'package:moonwallet/screens/dashboard/discover.dart';
@@ -22,20 +24,19 @@ import 'package:moonwallet/screens/dashboard/settings/change_colors.dart';
 import 'package:moonwallet/screens/dashboard/settings/settings.dart';
 import 'package:moonwallet/screens/dashboard/wallet_actions/add_mnemonic.dart';
 import 'package:moonwallet/screens/dashboard/wallet_actions/create_mnemonic_key.dart';
-import 'package:moonwallet/secure_check_view.dart';
 import 'package:moonwallet/types/types.dart';
 import 'package:moonwallet/utils/colors.dart';
 import 'package:moonwallet/widgets/dialogs/show_custom_snackbar.dart';
 
 void main() {
-  WidgetsFlutterBinding.ensureInitialized();
-
-  FlutterError.onError = (FlutterErrorDetails details) {
-    FlutterError.presentError(details);
-    logError("FlutterError: ${details.exceptionAsString()}");
-  };
-
   runZonedGuarded(() async {
+    WidgetsFlutterBinding.ensureInitialized();
+
+    FlutterError.onError = (FlutterErrorDetails details) {
+      FlutterError.presentError(details);
+      logError("FlutterError: ${details.exceptionAsString()}");
+    };
+
     if (!kIsWeb && (Platform.isAndroid || Platform.isIOS)) {
       await InAppWebViewController.setWebContentsDebuggingEnabled(true);
     }
@@ -49,34 +50,14 @@ void main() {
   });
 }
 
-class Routes {
-  static const String main = '/dashboard';
-  static const String createPrivateKeyMain = '/createPrivateKeyMain';
-  static const String createAccountFromSed = '/createAccountFromSed';
-
-  static const String discover = '/discover';
-  static const String home = '/home';
-  static const String pinAuth = '/pinAuth';
-  static const String addObservationWallet = '/addObservationWallet';
-  static const String settings = '/settings';
-  static const String secureCheckView = '/secureCheckView';
-
-  static const String addCrypto = '/main/addCrypto';
-  static const String pageManager = '/main/pageManager';
-  static const String changeTheme = '/settings/changeColor';
-  static const String test = '/tets';
-  static const String accountData = '/account_data';
-  static const String editWallet = '/editWallet';
-}
-
-class MyApp extends StatefulWidget {
+class MyApp extends StatefulHookConsumerWidget {
   const MyApp({super.key});
 
   @override
   _MyAppState createState() => _MyAppState();
 }
 
-class _MyAppState extends State<MyApp> {
+class _MyAppState extends ConsumerState<MyApp> with WidgetsBindingObserver {
   Color themeColor = Colors.greenAccent;
   AppColors colors = AppColors.defaultTheme;
   String savedThemeName = "";
@@ -85,6 +66,13 @@ class _MyAppState extends State<MyApp> {
   void initState() {
     super.initState();
     getSavedTheme();
+    WidgetsBinding.instance.addObserver(this);
+  }
+
+  @override
+  void dispose() {
+    super.dispose();
+    WidgetsBinding.instance.removeObserver(this);
   }
 
   Future<void> getSavedTheme() async {
@@ -121,6 +109,14 @@ class _MyAppState extends State<MyApp> {
   }
 
   @override
+  void didChangeAppLifecycleState(AppLifecycleState state) {
+    if (state == AppLifecycleState.paused ||
+        state == AppLifecycleState.detached) {
+      ref.read(sessionProviderNotifier.notifier).endSession();
+    }
+  }
+
+  @override
   Widget build(BuildContext context) {
     return FutureBuilder<bool>(
         future: hasAtLastOneAccount(),
@@ -142,106 +138,14 @@ class _MyAppState extends State<MyApp> {
           } else if (snapshot.hasData) {
             return MaterialApp(
                 debugShowCheckedModeBanner: false,
-                title: 'Moon Wallet',
+                title: 'Vault Wallet',
                 theme: ThemeData(
                   dialogTheme: DialogTheme(
                     shape: RoundedRectangleBorder(
                         borderRadius: BorderRadius.circular(8)),
                     backgroundColor: colors.primaryColor,
                   ),
-                  textTheme: TextTheme(
-                    displayLarge: TextStyle(
-                      fontFamily: "custom_inter",
-                      fontSize: 57,
-                      fontWeight: FontWeight.bold,
-                      color: colors.textColor,
-                      letterSpacing: -0.25,
-                    ),
-                    displayMedium: TextStyle(
-                      fontFamily: "custom_inter",
-                      fontSize: 45,
-                      fontWeight: FontWeight.bold,
-                      color: colors.textColor,
-                    ),
-                    displaySmall: TextStyle(
-                      fontFamily: "custom_inter",
-                      fontSize: 36,
-                      fontWeight: FontWeight.w600,
-                      color: colors.textColor,
-                    ),
-                    headlineLarge: TextStyle(
-                      fontFamily: "custom_inter",
-                      fontSize: 32,
-                      fontWeight: FontWeight.w600,
-                      color: colors.textColor,
-                    ),
-                    headlineMedium: TextStyle(
-                      fontFamily: "custom_inter",
-                      fontSize: 28,
-                      fontWeight: FontWeight.w500,
-                      color: colors.textColor,
-                    ),
-                    headlineSmall: TextStyle(
-                      fontFamily: "custom_inter",
-                      fontSize: 24,
-                      fontWeight: FontWeight.w500,
-                      color: colors.textColor,
-                    ),
-                    titleLarge: TextStyle(
-                      fontFamily: "custom_inter",
-                      fontSize: 22,
-                      fontWeight: FontWeight.bold,
-                      color: colors.textColor,
-                    ),
-                    titleMedium: TextStyle(
-                      fontFamily: "custom_inter",
-                      fontSize: 16,
-                      fontWeight: FontWeight.w500,
-                      color: colors.textColor.withOpacity(0.9),
-                    ),
-                    titleSmall: TextStyle(
-                      fontFamily: "custom_inter",
-                      fontSize: 14,
-                      fontWeight: FontWeight.w500,
-                      color: colors.textColor.withOpacity(0.85),
-                    ),
-                    bodyLarge: TextStyle(
-                      fontFamily: "custom_inter",
-                      fontSize: 16,
-                      fontWeight: FontWeight.normal,
-                      color: colors.textColor,
-                    ),
-                    bodyMedium: TextStyle(
-                      fontFamily: "custom_inter",
-                      fontSize: 14,
-                      fontWeight: FontWeight.normal,
-                      color: colors.textColor.withOpacity(0.9),
-                    ),
-                    bodySmall: TextStyle(
-                      fontFamily: "custom_inter",
-                      fontSize: 12,
-                      fontWeight: FontWeight.normal,
-                      color: colors.textColor.withOpacity(0.7),
-                    ),
-                    labelLarge: TextStyle(
-                      fontFamily: "custom_inter",
-                      fontSize: 14,
-                      fontWeight: FontWeight.w600,
-                      color: colors.textColor,
-                    ),
-                    labelMedium: TextStyle(
-                      fontSize: 12,
-                      fontFamily: "custom_inter",
-                      fontWeight: FontWeight.w500,
-                      color: colors.textColor.withOpacity(0.8),
-                    ),
-                    labelSmall: TextStyle(
-                      fontFamily: "custom_inter",
-                      fontSize: 11,
-                      fontWeight: FontWeight.w400,
-                      color: colors.textColor.withOpacity(0.6),
-                    ),
-                  ),
+                  textTheme: customTextTheme(colors),
                   splashFactory: InkRipple.splashFactory,
                   primaryColor: colors.primaryColor,
                   dividerColor: colors.textColor,
@@ -274,8 +178,7 @@ class _MyAppState extends State<MyApp> {
                         side: BorderSide(color: colors.themeColor)),
                   ),
                 ),
-                initialRoute:
-                    snapshot.data! ? Routes.secureCheckView : Routes.home,
+                initialRoute: snapshot.data! ? Routes.pageManager : Routes.home,
                 routes: {
                   Routes.main: (context) => MainDashboardScreen(
                         colors: colors,
@@ -297,9 +200,6 @@ class _MyAppState extends State<MyApp> {
                         colors: colors,
                       ),
                   Routes.changeTheme: (context) => ChangeThemeView(
-                        colors: colors,
-                      ),
-                  Routes.secureCheckView: (context) => SecureCheckView(
                         colors: colors,
                       ),
                 });

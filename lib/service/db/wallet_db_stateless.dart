@@ -147,6 +147,16 @@ class WalletDbStateLess extends WalletDatabase {
     }
   }
 
+  Future<bool> isDerivateKeyValid(String derivateKey) async {
+    try {
+      final data = await getDecryptedDataUsingKey(derivateKey);
+      return data != null && data.isNotEmpty;
+    } catch (e) {
+      logError(e.toString());
+      return false;
+    }
+  }
+
   Future<PrivateAccount?> getPrivateAccountUsingKey(
       {required String deriveKey, required PublicAccount account}) async {
     try {

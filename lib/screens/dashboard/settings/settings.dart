@@ -5,6 +5,7 @@ import 'package:moonwallet/logger/logger.dart';
 import 'package:moonwallet/notifiers/providers.dart';
 import 'package:moonwallet/screens/dashboard/settings/change_colors.dart';
 import 'package:moonwallet/screens/dashboard/settings/interface_size.dart';
+import 'package:moonwallet/screens/dashboard/settings/session_history.dart';
 import 'package:moonwallet/types/types.dart';
 import 'package:moonwallet/widgets/custom_options.dart';
 import 'package:moonwallet/widgets/func/security/ask_password.dart';
@@ -166,6 +167,21 @@ class _SettingsPageState extends ConsumerState<SettingsPage> {
               onChanged: updateLockAtStartup,
             )
           },
+        ]
+      },
+      {
+        "title": "Activity",
+        "elements": [
+          {
+            "name": "Secure Session History",
+            "icon": Icon(
+              Icons.timelapse,
+              color: colors.textColor,
+              size: iconSizeOf(30),
+            ),
+            "onPressed": () => Navigator.of(context).push(MaterialPageRoute(
+                builder: (ctx) => SessionHistoryView(colors: colors))),
+          }
         ]
       }
     ];

@@ -54,88 +54,95 @@ void showTokenDetails(
                   SizedBox(
                     height: 30,
                   ),
-                  StandardContainer(
-                    padding: const EdgeInsets.symmetric(
-                        vertical: 10, horizontal: 20),
-                    backgroundColor: colors.secondaryColor,
-                    child: Column(
-                      children: [
-                        RowDetailsContent(
-                            colors: colors, name: "Name", value: crypto.name),
-                        SizedBox(
-                          height: 10,
-                        ),
-                        RowDetailsContent(
-                            colors: colors,
-                            name: "Symbol",
-                            value: crypto.symbol),
-                        SizedBox(
-                          height: 10,
-                        ),
-                        RowDetailsContent(
-                            colors: colors,
-                            name: "Decimals",
-                            value: crypto.decimals.toString()),
-                        SizedBox(
-                          height: 10,
-                        ),
-                        RowDetailsContent(
-                            colors: colors,
-                            name: "Type",
-                            value: crypto.isNative ? "Native" : "Token"),
-                        SizedBox(
-                          height: 10,
-                        ),
-                        if (!crypto.isNative)
-                          InkWell(
-                              onTap: () {
-                                copy(crypto.contractAddress ?? "");
-                              },
-                              child: RowDetailsContent(
+                  Column(
+                    children: [
+                      StandardContainer(
+                          padding: const EdgeInsets.symmetric(
+                              vertical: 10, horizontal: 20),
+                          backgroundColor: colors.secondaryColor,
+                          child: Column(
+                            children: [
+                              RowDetailsContent(
                                   colors: colors,
-                                  name: "Token Address",
-                                  value:
-                                      "${crypto.contractAddress?.substring(0, 10)}...")),
-                        SizedBox(
-                          height: 10,
-                        ),
-                        RowDetailsContent(
-                            underline: !crypto.isNative ? true : false,
-                            colors: colors,
-                            onClick: () {
-                              if (crypto.isNative) {
-                                return;
-                              }
-                              final network = crypto.network;
-                              if (network == null) {
-                                return;
-                              }
-                              showTokenDetails(
-                                  context: context,
+                                  name: "Name",
+                                  value: crypto.name),
+                              SizedBox(
+                                height: 10,
+                              ),
+                              RowDetailsContent(
                                   colors: colors,
-                                  crypto: network);
-                            },
-                            name: "Network",
-                            value: (crypto.isNative
-                                    ? crypto.name
-                                    : crypto.network?.name) ??
-                                "Not Found"),
-                        SizedBox(
-                          height: 10,
-                        ),
-                        if (crypto.isNative)
-                          GestureDetector(
-                            onTap: () {
-                              copy(crypto.getRpcUrl);
-                            },
-                            child: RowDetailsContent(
-                                colors: colors,
-                                name: "Rpc Url",
-                                value: (crypto.getRpcUrl)),
-                          )
-                      ],
-                    ),
-                  )
+                                  name: "Symbol",
+                                  value: crypto.symbol),
+                              SizedBox(
+                                height: 10,
+                              ),
+                              RowDetailsContent(
+                                  colors: colors,
+                                  name: "Decimals",
+                                  value: crypto.decimals.toString()),
+                              SizedBox(
+                                height: 10,
+                              ),
+                              RowDetailsContent(
+                                  colors: colors,
+                                  name: "Type",
+                                  value: crypto.isNative ? "Native" : "Token"),
+                              SizedBox(
+                                height: 10,
+                              ),
+                            ],
+                          )),
+                      SizedBox(
+                        height: 15,
+                      ),
+                      StandardContainer(
+                          padding: const EdgeInsets.symmetric(
+                              vertical: 10, horizontal: 20),
+                          backgroundColor: colors.secondaryColor,
+                          child: Column(
+                            children: [
+                              if (crypto.isNative)
+                                RowDetailsContent(
+                                    onClick: () => copy(crypto.getRpcUrl),
+                                    colors: colors,
+                                    name: "Rpc Url",
+                                    value: (crypto.getRpcUrl)),
+                              if (!crypto.isNative)
+                                RowDetailsContent(
+                                    onClick: () =>
+                                        copy(crypto.contractAddress ?? ""),
+                                    colors: colors,
+                                    name: "Token Address",
+                                    value:
+                                        "${crypto.contractAddress?.substring(0, 10)}..."),
+                              SizedBox(
+                                height: 10,
+                              ),
+                              RowDetailsContent(
+                                  underline: !crypto.isNative ? true : false,
+                                  colors: colors,
+                                  onClick: () {
+                                    if (crypto.isNative) {
+                                      return;
+                                    }
+                                    final network = crypto.network;
+                                    if (network == null) {
+                                      return;
+                                    }
+                                    showTokenDetails(
+                                        context: context,
+                                        colors: colors,
+                                        crypto: network);
+                                  },
+                                  name: "Network",
+                                  value: (crypto.isNative
+                                          ? crypto.name
+                                          : crypto.network?.name) ??
+                                      "Not Found"),
+                            ],
+                          ))
+                    ],
+                  ),
                 ],
               ),
             )),

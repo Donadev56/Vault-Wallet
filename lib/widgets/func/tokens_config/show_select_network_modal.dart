@@ -21,6 +21,8 @@ Future<Crypto?> showSelectNetworkModal(
         .where((e) =>
             e.name.toLowerCase().contains(controller.text.toLowerCase()) ||
             e.symbol.toLowerCase().contains(controller.text.toLowerCase()))
+        .toList()
+        .where((e) => e.isNative)
         .toList();
   }
 
@@ -55,13 +57,9 @@ Future<Crypto?> showSelectNetworkModal(
                       color: colors.themeColor,
                       child: ListView.builder(
                         shrinkWrap: true,
-                        itemCount: getListCrypto()
-                            .where((crypto) => crypto.isNative)
-                            .length,
+                        itemCount: getListCrypto().length,
                         itemBuilder: (ctx, i) {
-                          final crypto = getListCrypto()
-                              .where((crypto) => crypto.isNative)
-                              .toList()[i];
+                          final crypto = getListCrypto().toList()[i];
                           return ListTile(
                             shape: RoundedRectangleBorder(
                                 borderRadius: BorderRadius.circular(10)),
