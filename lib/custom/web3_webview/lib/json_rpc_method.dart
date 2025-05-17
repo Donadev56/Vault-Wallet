@@ -1,3 +1,5 @@
+// ignore_for_file: constant_identifier_names
+
 enum JsonRpcMethod {
   ETH_REQUEST_ACCOUNTS('eth_requestaccounts'),
   ETH_ACCOUNTS('eth_accounts'),

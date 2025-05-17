@@ -17,7 +17,8 @@ class BottomSheetDialog {
     required Widget child,
     required AppColors colors,
   }) async {
-    return showBarModalBottomSheet<dynamic>(
+    return showCupertinoModalBottomSheet<dynamic>(
+      barrierColor: Colors.black54,
       context: context,
       isDismissible: isDismissible,
       duration: const Duration(
@@ -28,7 +29,7 @@ class BottomSheetDialog {
               topLeft: Radius.circular(30), topRight: Radius.circular(30))),
       backgroundColor: colors.primaryColor,
       enableDrag: enableDrag,
-      builder: (context) => child,
+      builder: (context) => Material(color: Colors.transparent, child: child),
       closeProgressThreshold: 0.2,
       useRootNavigator: useRootNavigator,
     );

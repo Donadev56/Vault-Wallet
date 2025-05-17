@@ -12,7 +12,7 @@ import 'package:moonwallet/utils/id_manager.dart';
 import 'package:moonwallet/utils/prefs.dart';
 
 class SessionProvider extends AsyncNotifier<LocalSession?> {
-  final unsavedSessionKey = "user/unsaved/local-session" ;
+  final unsavedSessionKey = "user/unsaved/local-session";
   @override
   Future<LocalSession?> build() async => null;
 
@@ -30,9 +30,10 @@ class SessionProvider extends AsyncNotifier<LocalSession?> {
       if (!isKeyValid) {
         throw InvalidPasswordException();
       }
-      final lastTrace =  await getTrace();
+      final lastTrace = await getTrace();
       if (lastTrace != null) {
-        await SessionDb().saveSession(lastTrace.copyWith(endTime: now , hasExpired: true));
+        await SessionDb()
+            .saveSession(lastTrace.copyWith(endTime: now, hasExpired: true));
       }
 
       LocalSession newSession = LocalSession(
@@ -52,45 +53,44 @@ class SessionProvider extends AsyncNotifier<LocalSession?> {
     }
   }
 
-  Future<bool> keepTrace (LocalSession session) async {
+  Future<bool> keepTrace(LocalSession session) async {
     try {
-     return  await PublicDataManager().saveDataInPrefs(data: jsonEncode(session.toJson()), key: unsavedSessionKey );
-
+      return await PublicDataManager().saveDataInPrefs(
+          data: jsonEncode(session.toJson()), key: unsavedSessionKey);
     } catch (e) {
       logError(e.toString());
-      return false  ;
-      
+      return false;
     }
   }
 
-  Future<LocalSession?> getTrace () async {
+  Future<LocalSession?> getTrace() async {
     try {
-      final unsavedSession = await PublicDataManager().getDataFromPrefs(key: unsavedSessionKey);
+      final unsavedSession =
+          await PublicDataManager().getDataFromPrefs(key: unsavedSessionKey);
       if (unsavedSession == null) {
         throw "No unsaved session";
       }
       return LocalSession.fromJson(jsonDecode(unsavedSession));
     } catch (e) {
       logError(e.toString());
-      return null ;
-      
+      return null;
     }
   }
 
-  Future<bool> removeTrace () async {
+  Future<bool> removeTrace() async {
     try {
-      return await PublicDataManager().removeDataFromPrefs(key: unsavedSessionKey);
+      return await PublicDataManager()
+          .removeDataFromPrefs(key: unsavedSessionKey);
     } catch (e) {
       logError(e.toString());
-      return false ;
-      
+      return false;
     }
   }
 
   Future<void> endSession() async {
     try {
       final lastSession = state.value;
-      if (lastSession == null) {
+      if (lastSession == null || lastSession.hasExpired) {
         throw Exception("Session not found");
       }
       final now = (DateTime.now().millisecondsSinceEpoch / 1000).toInt();

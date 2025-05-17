@@ -146,20 +146,6 @@ class CustomAppBar extends ConsumerWidget implements PreferredSizeWidget {
                     colors: colors,
                     account: currentAccount,
                   )));
-              /*  showAccountList(
-                colors: colors,
-                context: context,
-                accounts: accounts,
-                currentAccount: currentAccount,
-                editWallet: editWallet,
-                deleteWallet: (id) async {
-                  final res = await deleteWallet(id);
-                  return res;
-                },
-                changeAccount: changeAccount,
-                showPrivateData: showPrivateData,
-                reorderList: reorderList,
-              ); */
             },
             child: Container(
               padding: const EdgeInsets.all(2),
@@ -168,7 +154,7 @@ class CustomAppBar extends ConsumerWidget implements PreferredSizeWidget {
                 children: [
                   Text(currentAccount.walletName,
                       style: textTheme.bodyMedium?.copyWith(
-                          fontSize: fontSizeOf(16),
+                          fontSize: fontSizeOf(14),
                           color: textColor.withOpacity(0.8))),
                   SizedBox(
                     width: 5,

@@ -1,5 +1,3 @@
-import 'dart:convert';
-
 import 'package:flutter/material.dart';
 import 'package:flutter_hooks/flutter_hooks.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
@@ -88,7 +86,8 @@ class _SessionHistoryViewState extends ConsumerState<SessionHistoryView> {
             ),
             Column(
               children: List.generate(sessionsState.value.length, (index) {
-                final sortedSessions  = sessionsState.value..sort((a , b)=> b.startTime.compareTo(a.startTime));
+                final sortedSessions = sessionsState.value
+                  ..sort((a, b) => b.startTime.compareTo(a.startTime));
                 final session = sortedSessions[index];
                 final sessionDate = DateTime.fromMillisecondsSinceEpoch(
                     session.startTime * 1000);
@@ -107,7 +106,6 @@ class _SessionHistoryViewState extends ConsumerState<SessionHistoryView> {
                         tileColor: colors.secondaryColor.withValues(alpha: 0.9),
                         onTap: () {
                           showDialog(
-                            
                               context: context,
                               builder: (context) {
                                 return AlertDialog(
@@ -166,7 +164,6 @@ class _SessionHistoryViewState extends ConsumerState<SessionHistoryView> {
                                       SizedBox(
                                         height: 10,
                                       ),
-                                   
                                       SizedBox(
                                         height: 10,
                                       ),

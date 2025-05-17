@@ -1,5 +1,3 @@
-import 'dart:ui';
-
 import 'package:flutter/material.dart';
 import 'package:flutter_hooks/flutter_hooks.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
@@ -155,30 +153,24 @@ class _PagesManagerViewState extends ConsumerState<PagesManagerView> {
       return size * uiConfig.value.styles.radiusScaleFactor;
     }
 
-    final pageManagerBody = PopScope(
-      onPopInvokedWithResult: (didPop, result) async {
-        await sessionNotifier.endSession();
-      },
-      child: Scaffold(
-        body: IndexedStack(
-          index: currentIndexState.value,
-          children: _pages(),
-        ),
-        bottomNavigationBar: BottomNav(
-            roundedOf: roundedOf,
-            fontSizeOf: fontSizeOf,
-            iconSizeOf: iconSizeOf,
-            onTap: (index) async {
-              vibrate();
-              await pageIndexProviderNotifier.savePageIndex(index);
-            },
-            currentIndex: currentIndexState.value,
-            primaryColor: colors.primaryColor,
-            textColor: colors.textColor,
-            secondaryColor: colors.themeColor),
+    final pageManagerBody = Scaffold(
+      body: IndexedStack(
+        index: currentIndexState.value,
+        children: _pages(),
       ),
+      bottomNavigationBar: BottomNav(
+          roundedOf: roundedOf,
+          fontSizeOf: fontSizeOf,
+          iconSizeOf: iconSizeOf,
+          onTap: (index) async {
+            vibrate();
+            await pageIndexProviderNotifier.savePageIndex(index);
+          },
+          currentIndex: currentIndexState.value,
+          primaryColor: colors.primaryColor,
+          textColor: colors.textColor,
+          secondaryColor: colors.themeColor),
     );
-
     final loadingView = Material(
       color: colors.primaryColor,
       child: Center(child: CircularProgressIndicator(color: colors.themeColor)),

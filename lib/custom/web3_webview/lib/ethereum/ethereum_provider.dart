@@ -1,10 +1,12 @@
 // lib/ethereum/ethereum_provider.dart
+// ignore_for_file: unnecessary_null_comparison
+
 import 'dart:async';
 import 'dart:convert';
 
 import 'package:flutter/material.dart';
-import 'package:flutter/widgets.dart';
 import 'package:flutter_inappwebview/flutter_inappwebview.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:http/http.dart';
 import 'package:moonwallet/logger/logger.dart';
 import 'package:moonwallet/service/db/crypto_storage_manager.dart';
@@ -27,25 +29,16 @@ import '../transaction/transaction_handler.dart';
 import '../utils/hex_utils.dart';
 import 'wallet_dialog_service.dart';
 
-class EthereumProvider {
+class EthereumProvider extends StateNotifier<WalletState> {
   // Singleton pattern
-  static final EthereumProvider _instance = EthereumProvider._internal();
-  factory EthereumProvider() => _instance;
-  EthereumProvider._internal();
+  EthereumProvider(this.ref) : super(WalletState.initial());
 
-  // Context
-  BuildContext? _context;
-
+  final Ref ref;
   // Dialog service
   final WalletDialogService _dialogService = WalletDialogService.instance;
 
   // Core components
   late Web3Client _web3client;
-  PublicAccount? currentAccount;
-
-  // State
-  WalletState? _state;
-  final Map<String, NetworkConfig> _networks = {};
   InAppWebViewController? _webViewController;
   EIP6963ProviderInfo? _eip6963ProviderInfo;
 
@@ -54,18 +47,14 @@ class EthereumProvider {
   String? _cachedBlockNumber;
   static const _blockNumberCacheDuration = Duration(seconds: 12);
 
-  void setContext(BuildContext context) {
-    _context = context;
-  }
 
   void setWebViewController(InAppWebViewController controller) {
     _webViewController = controller;
   }
 
   Future<void> initialize({
-    required NetworkConfig defaultNetwork,
+    required NetworkConfig? defaultNetwork,
     required String address,
-    String? privateKey,
     required EIP6963ProviderInfo providerInfo,
     List<NetworkConfig> additionalNetworks = const [],
     WalletDialogTheme? theme,
@@ -73,6 +62,15 @@ class EthereumProvider {
   }) async {
     // Configure dialog service theme
     _dialogService.configureTheme(theme ?? WalletDialogTheme());
+    if (defaultNetwork == null) {
+      throw WalletException("The default network is required");
+    }
+
+    Map<String , NetworkConfig> networks = {};
+    networks[defaultNetwork.chainId] = defaultNetwork;
+    for (final net in additionalNetworks) {
+      networks[net.chainId] = net ;
+    }
 
     // Configure provider info
     _eip6963ProviderInfo = providerInfo;
@@ -84,69 +82,42 @@ class EthereumProvider {
       defaultNetwork.rpcUrls.first,
       Client(),
     );
-
-    // Initialize credentials
-
-    // Initialize handlers
-
-    // Setup initial state
-    if (privateKey != null && privateKey.isNotEmpty) {
-      _state = WalletState(
-        chainId: defaultNetwork.chainId,
-        address: getAddressFromPrivateKey(privateKey),
-        isConnected: getAddressFromPrivateKey(privateKey) != null,
-      );
-      log("The current state with privatekey is ${_state?.toJson()}");
-    } else {
-      _state = WalletState(
+   
+      state = WalletState(
+        account: account,
+        networks: networks,
         chainId: defaultNetwork.chainId,
         address: account.evmAddress,
         isConnected: account.evmAddress?.isNotEmpty == false,
       );
-      log("The current state with address only is ${_state?.toJson()}");
-    }
-    currentAccount = account;
-    // Add networks
-    log("Additional networks ${additionalNetworks.map((n) => n.toJson()).toList()}");
-    _internalAddNetwork(defaultNetwork);
-    for (var network in additionalNetworks) {
-      _internalAddNetwork(network);
-    }
-  }
-
-  getAddressFromPrivateKey(String privateKey) {
-    final credentials = EthPrivateKey.fromHex(privateKey);
-    final address = credentials.address;
-    return address.hexEip55;
+      log("The current state with address only is ${state.toJson()}");
+    
   }
 
   Future<dynamic> handleRequest(String method, List<dynamic>? params,
-      AppColors colors, NetworkConfig network, BuildContext context) async {
-    if (_context == null) {
-      throw WalletException('Provider context not set');
+      AppColors colors, NetworkConfig? network, BuildContext context) async {
+    if (network == null) {
+      throw WalletException("Network is required");
     }
+
     log("Method : $method");
     try {
       switch (JsonRpcMethod.fromString(method)) {
         case JsonRpcMethod.ETH_REQUEST_ACCOUNTS:
-          return await _handleConnect(colors);
+          return await _handleConnect(colors, context);
         case JsonRpcMethod.ETH_ACCOUNTS:
           return _getConnectedAccounts();
         case JsonRpcMethod.ETH_BLOCK_NUMBER:
           return await _handleBlockNumber();
         case JsonRpcMethod.ETH_CHAIN_ID:
-          if (_state == null) {
-            throw WalletException('Wallet state not initialized');
-          }
-          return _state?.chainId;
+         
+          return state.chainId;
         case JsonRpcMethod.NET_VERSION:
-          if (_state == null) {
-            throw WalletException('Wallet state not initialized');
-          }
-          return _state?.chainId;
+         
+          return state.chainId;
         // from this point
         case JsonRpcMethod.ETH_CALL:
-          if (currentAccount != null && currentAccount!.isWatchOnly) {
+          if (state.account.isWatchOnly) {
             sendWatchOnlyAlert(context, colors);
             throw WalletException('Watch-only wallet');
           }
@@ -155,7 +126,7 @@ class EthereumProvider {
               colors: colors,
               web3client: _web3client,
               network: network,
-              state: _state);
+              state: state);
           if (txHandler == null) {
             logError("Unable to get transaction handler");
             throw WalletException('Transaction handler error');
@@ -165,7 +136,7 @@ class EthereumProvider {
               params?.first, context, colors);
 
         case JsonRpcMethod.ETH_SEND_TRANSACTION:
-          if (currentAccount != null && currentAccount!.isWatchOnly) {
+          if (state.account != null && state.account.isWatchOnly) {
             sendWatchOnlyAlert(context, colors);
             throw WalletException('Watch-only wallet');
           }
@@ -190,7 +161,7 @@ class EthereumProvider {
           if (params == null || params.isEmpty) {
             throw WalletException('Missing transaction parameters');
           }
-          if (currentAccount != null && currentAccount!.isWatchOnly) {
+          if (state.account != null && state.account.isWatchOnly) {
             sendWatchOnlyAlert(context, colors);
             throw WalletException('Watch-only wallet');
           }
@@ -200,7 +171,7 @@ class EthereumProvider {
               colors: colors,
               web3client: _web3client,
               network: network,
-              state: _state);
+              state: state);
           if (txHandler == null) {
             logError("Unable to get transaction handler");
             throw WalletException('Transaction handler error');
@@ -217,7 +188,7 @@ class EthereumProvider {
           if (params == null || params.isEmpty) {
             throw WalletException('Missing sign parameters');
           }
-          if (currentAccount != null && currentAccount!.isWatchOnly) {
+          if (state.account != null && state.account.isWatchOnly) {
             sendWatchOnlyAlert(context, colors);
             throw WalletException('Watch-only wallet');
           }
@@ -227,13 +198,13 @@ class EthereumProvider {
           if (params == null || params.isEmpty) {
             throw WalletException('Missing sign parameters');
           }
-          if (currentAccount != null && currentAccount!.isWatchOnly) {
+          if (state.account != null && state.account.isWatchOnly) {
             sendWatchOnlyAlert(context, colors);
             throw WalletException('Watch-only wallet');
           }
 
           final signingHandler = await getSigningHandler(
-              context: context, colors: colors, state: _state);
+              context: context, colors: colors, state: state);
           if (signingHandler == null) {
             logError("Unable to get signing handler");
             throw WalletException('Credentials error');
@@ -244,19 +215,19 @@ class EthereumProvider {
         case JsonRpcMethod.WALLET_SWITCH_ETHEREUM_CHAIN:
           if (params?.isNotEmpty == true) {
             final newChainId = params?.first['chainId'];
-            return await _handleSwitchNetwork(newChainId, colors, context);
+            return await handleSwitchNetwork(newChainId, colors, context);
           }
           throw WalletException('Invalid chain ID');
         case JsonRpcMethod.WALLET_ADD_ETHEREUM_CHAIN:
           if (params?.isNotEmpty == true) {
-            return await _handleAddEthereumChain(params?.first, colors);
+            return await _handleAddEthereumChain(params?.first, colors, context);
           }
           throw WalletException('Invalid network parameters');
         case JsonRpcMethod.WALLET_GET_PERMISSIONS:
           return [
             'eth_accounts',
             'eth_chainId',
-            currentAccount?.isWatchOnly == null ? "" : 'personal_sign'
+            state.account.isWatchOnly == null ? "" : 'personal_sign'
           ];
         case JsonRpcMethod.WALLET_REVOKE_PERMISSIONS:
           return true;
@@ -272,40 +243,40 @@ class EthereumProvider {
 
   String getProviderScript() {
     return ProviderScriptGenerator.generate(
-      chainId: _state?.chainId ?? "0x1",
+      chainId: state.chainId,
       accounts: _getConnectedAccounts(),
-      isConnected: _state?.isConnected ?? false,
+      isConnected: state.isConnected,
       providerInfo: _eip6963ProviderInfo!,
     );
   }
-
+/*
   void dispose() {
     _web3client.dispose();
-  }
+  }*/
 
   // Method handlers
-  Future<List<String>> _handleConnect(AppColors colors) async {
+  Future<List<String>> _handleConnect(AppColors colors, BuildContext context) async {
     try {
       final hostManager = KnownHostManager();
       bool? confirmed = false;
       final host = (await _webViewController?.getUrl())?.host ?? '';
       final savedHosts =
-          await hostManager.getKnownHost(address: _state?.address ?? "");
+          await hostManager.getKnownHost(address: state.address ?? "");
       if (savedHosts.isNotEmpty) {
         if (savedHosts.contains(host)) {
           log("Saved host already exists");
           confirmed = true;
         } else {
           log("Saved host dont exists");
-          confirmed = await _dialogService.showConnectWallet(_context!,
-              address: _state?.address! ?? "",
+          confirmed = await _dialogService.showConnectWallet(context,
+              address: state.address!,
               ctrl: _webViewController!,
               appName: _eip6963ProviderInfo!.name,
               colors: colors);
         }
       } else {
-        confirmed = await _dialogService.showConnectWallet(_context!,
-            address: _state?.address! ?? "",
+        confirmed = await _dialogService.showConnectWallet( context,
+            address: state.address!,
             ctrl: _webViewController!,
             appName: _eip6963ProviderInfo!.name,
             colors: colors);
@@ -315,14 +286,14 @@ class EthereumProvider {
         throw WalletException('User rejected connection');
       }
       await hostManager.addSingleKnownHost(
-          address: _state?.address ?? "", host: host);
+          address: state.address ?? "", host: host);
 
       _updateState(
-        address: _state?.address,
+        address: state.address,
         isConnected: true,
       );
 
-      return [_state?.address! ?? ""];
+      return [state.address!];
     } catch (e) {
       _updateState(
         address: null,
@@ -350,9 +321,9 @@ class EthereumProvider {
       }
       final confirmed = await _dialogService.showSignMessage(
         colors: colors,
-        _context!,
+        context,
         message: message.toString(),
-        address: _state?.address ?? "",
+        address: state.address ?? "",
         ctrl: _webViewController!,
       );
 
@@ -361,7 +332,7 @@ class EthereumProvider {
       }
 
       final signingHandler = await getSigningHandler(
-          context: context, colors: colors, state: _state);
+          context: context, colors: colors, state: state);
       if (signingHandler == null) {
         logError("credentials error");
 
@@ -370,7 +341,7 @@ class EthereumProvider {
 
       final result = await signingHandler
           .signMessage(method, from, message)
-          .withLoading(_context!, colors, 'Waiting for signature');
+          .withLoading(context, colors, 'Waiting for signature');
       log("Data $method , from $from , message $message , password $password");
       log("result :  $result");
       return result;
@@ -382,8 +353,8 @@ class EthereumProvider {
   Future _handleSignTransaction(Map<String, dynamic> params, AppColors colors,
       NetworkConfig network, BuildContext context) async {
     try {
-      log("current account name : ${currentAccount?.walletName}");
-      if (currentAccount != null && currentAccount!.isWatchOnly) {
+      log("current account name : ${state.account.walletName}");
+      if (state.account != null && state.account.isWatchOnly) {
         sendWatchOnlyAlert(context, colors);
         throw WalletException('Watch-only wallet cannot send transactions');
       } else {
@@ -393,7 +364,7 @@ class EthereumProvider {
       final confirmed = await _dialogService.showTransactionConfirm(
         network: network,
         colors: colors,
-        _context!,
+        context,
         txParams: params,
         ctrl: _webViewController!,
       );
@@ -401,7 +372,7 @@ class EthereumProvider {
       if (confirmed == true) {
         TransactionHandler? txHandler = await getTxHandler(
             context: context,
-            state: _state,
+            state: state,
             colors: colors,
             web3client: _web3client,
             network: network);
@@ -410,7 +381,7 @@ class EthereumProvider {
         if (txHandler != null) {
           return await txHandler
               .handleTransaction(params, context, colors)
-              .withLoading(_context!, colors, 'Waiting for transaction');
+              .withLoading(context, colors, 'Waiting for transaction');
         }
         log("Invalid credentials");
         throw WalletException("credentials error");
@@ -422,48 +393,20 @@ class EthereumProvider {
     }
   }
 
-  Future<bool> _handleSwitchNetwork(
-      String newChainId, AppColors colors, BuildContext context) async {
-    if (!_networks.containsKey(newChainId)) {
-      throw WalletException('Network not supported: $newChainId');
-    }
-    try {
-      final network = _networks[newChainId]!;
-
-      final confirmed = await _dialogService.showSwitchNetwork(
-        colors: colors,
-        _context!,
-        chain: network,
-      );
-
-      if (confirmed != true) {
-        throw WalletException('User rejected network switch');
-      }
-
-      _updateState(chainId: newChainId);
-      await _emitToWebView('chainChanged', newChainId);
-
-      await _updateNetwork(network)
-          .withLoading(_context!, colors, 'Switching network');
-      return true;
-    } catch (e) {
-      throw WalletException('Network switch failed: $e');
-    }
-  }
 
   Future<bool> handleSwitchNetwork(
       String newChainId, AppColors colors, BuildContext context) async {
-    if (!_networks.containsKey(newChainId)) {
+    if (!state.networks.containsKey(newChainId)) {
       throw WalletException('Network not supported: $newChainId');
     }
     try {
-      final network = _networks[newChainId]!;
+      final network = state.networks[newChainId]!;
 
       _updateState(chainId: newChainId);
       await _emitToWebView('chainChanged', newChainId);
 
       await _updateNetwork(network)
-          .withLoading(_context!, colors, 'Switching network');
+          .withLoading(context, colors, 'Switching network');
       return true;
     } catch (e) {
       throw WalletException('Network switch failed: $e');
@@ -471,16 +414,25 @@ class EthereumProvider {
   }
 
   Future<bool> _handleAddEthereumChain(
-      Map<String, dynamic> networkParams, AppColors colors) async {
+      Map<String, dynamic> networkParams, AppColors colors ,  BuildContext context) async {
     try {
       final config = NetworkConfig(
         chainId: networkParams['chainId'],
         chainName: networkParams['chainName'],
-        nativeCurrency: NativeCurrency(
-          name: networkParams['nativeCurrency']['name'],
-          symbol: networkParams['nativeCurrency']['symbol'],
-          decimals: networkParams['nativeCurrency']['decimals'],
-        ),
+        nativeCurrency: Crypto(
+            name: networkParams['nativeCurrency']['name'],
+            color: Colors.grey,
+            type: CryptoType.native,
+            decimals: networkParams['nativeCurrency']['decimals'],
+            cryptoId: IdManager().generateUUID(),
+            canDisplay: true,
+            symbol: networkParams['nativeCurrency']['symbol'],
+            rpcUrls: List<String>.from(networkParams['rpcUrls']),
+            networkType: NetworkType.evm,
+            chainId: int.parse(networkParams['chainId']),
+            explorers: networkParams['blockExplorerUrls'] != null
+                ? List<String>.from(networkParams['blockExplorerUrls'])
+                : []),
         rpcUrls: List<String>.from(networkParams['rpcUrls']),
         blockExplorerUrls: networkParams['blockExplorerUrls'] != null
             ? List<String>.from(networkParams['blockExplorerUrls'])
@@ -489,7 +441,7 @@ class EthereumProvider {
       // Show add network confirmation
       final confirmed = await _dialogService.showAddNetwork(
         colors: colors,
-        _context!,
+        context,
         network: config,
       );
 
@@ -504,7 +456,7 @@ class EthereumProvider {
   }
 
   List<String> _getConnectedAccounts() {
-    return _state?.address != null ? [_state?.address! ?? ""] : [];
+    return state.address != null ? [state.address!] : [];
   }
 
   Future<String> _handleBlockNumber() async {
@@ -522,67 +474,39 @@ class EthereumProvider {
   }
 
   // Methods helpers
-  Future<void> _addNetwork(NetworkConfig network) async {
+  Future<void> _addNetwork(NetworkConfig targetNetwork) async {
     try {
-      if (currentAccount == null) {
+      if (state.account == null) {
         throw WalletException('No current account');
       }
-      if (currentAccount != null) {
+
+      if (state.account != null) {
         final manager = CryptoStorageManager();
         final savedCrypto =
-            await manager.getSavedCryptos(wallet: currentAccount!);
+            await manager.getSavedCryptos(wallet: state.account);
+
         if (savedCrypto != null) {
           final networks =
               savedCrypto.where((c) => c.type == CryptoType.native).toList();
-          if (networks.isNotEmpty) {
-            for (final net in networks) {
-              if (int.parse(network.chainId) == net.chainId) {
-                logError("Network already exists");
-                throw WalletException('Network already exists');
-              }
-            }
-            final newId = IdManager().generateUUID();
-            final Crypto newCrypto = Crypto(
-              decimals: 18,
-              name: network.chainName,
-              color: Colors.grey,
-              type: CryptoType.native,
-              cryptoId: newId,
-              canDisplay: true,
-              symbol: network.chainName,
-              explorers: network.blockExplorerUrls,
-              rpcUrls: network.rpcUrls,
-              chainId: int.parse(network.chainId),
-              icon: network.iconUrls?[0],
-            );
-            await manager.addCrypto(crypto: newCrypto, wallet: currentAccount!);
-            log("Added wallet");
+
+          if (networks
+              .any((e) => e.chainId == targetNetwork.nativeCurrency.chainId)) {
+            throw WalletException("Network already exist");
           }
+          // add the network to the browser current network list
+          state.networks[targetNetwork.chainId] = targetNetwork;
+          // save the network
+          await manager.addCrypto(
+              crypto: targetNetwork.nativeCurrency, wallet: state.account);
+          log("Added wallet");
         }
-        for (final net in _networks.values.toList()) {
-          if (net.chainId == network.chainId) {
-            logError("Network already exists");
-            throw WalletException('Network already exists');
-          }
-        }
-        _networks[network.chainId] = network;
-      } else {
-        logError("No current account");
-        throw WalletException('No current account');
       }
     } catch (e) {
       throw WalletException('Failed to add network: $e');
     }
   }
 
-  // Methods helpers
-  Future<void> _internalAddNetwork(NetworkConfig network) async {
-    try {
-      _networks[network.chainId] = network;
-    } catch (e) {
-      throw WalletException('Failed to add network: $e');
-    }
-  }
+
 
   bool _isBlockNumberCacheValid() {
     if (_lastBlockFetch == null || _cachedBlockNumber == null) {
@@ -612,15 +536,10 @@ class EthereumProvider {
       network.rpcUrls.first,
       Client(),
     );
-    /* _txHandler = TransactionHandler(
-      _web3client,
-      _credentials!,
-      int.parse(network.chainId.substring(2), radix: 16),
-    ); */
   }
 
   void _updateState({String? address, bool? isConnected, String? chainId}) {
-    _state = _state?.copyWith(
+    state = state.copyWith(
       address: address,
       isConnected: isConnected,
       chainId: chainId,
@@ -644,7 +563,7 @@ class EthereumProvider {
       WalletState? state}) async {
     try {
       final access =
-          await getAccess(context: context, colors: colors, state: state);
+          await getAccess(context: context, colors: colors,);
       if (access != null) {
         return SigningHandler(access.cred, access.key);
       } else {
@@ -667,7 +586,7 @@ class EthereumProvider {
   }) async {
     try {
       final access =
-          await getAccess(context: context, colors: colors, state: state);
+          await getAccess(context: context, colors: colors);
       if (access != null) {
         final handler = TransactionHandler(
           web3client,
@@ -690,21 +609,19 @@ class EthereumProvider {
   Future<AccountAccess?> getAccess(
       {required BuildContext context,
       required AppColors colors,
-      WalletState? state}) async {
+    }) async {
     try {
       final deriveKey = await askDerivateKey(context: context, colors: colors);
-      final address = state?.address;
+      final address = state.address;
       if (address == null) {
         throw WalletException("Invalid State : address is null");
       }
-      if (currentAccount == null) {
-        throw "No Account Found";
-      }
+    
       if (deriveKey == null) {
         throw WalletException("Invalid Password");
       }
       final cred = await EthInteractionManager()
-          .getAccessUsingKey(deriveKey: deriveKey, account: currentAccount!);
+          .getAccessUsingKey(deriveKey: deriveKey, account: state.account);
       if (cred == null) {
         throw WalletException("Invalid Password");
       }
@@ -716,3 +633,8 @@ class EthereumProvider {
     }
   }
 }
+
+final ethereumProviderNotifier =
+    StateNotifierProvider<EthereumProvider, WalletState>((ref) {
+  return EthereumProvider(ref);
+});

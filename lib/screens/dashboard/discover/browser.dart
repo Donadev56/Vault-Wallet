@@ -1,6 +1,8 @@
 // ignore_for_file: deprecated_member_use
 
+import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:http/http.dart' as http;
+import 'package:moonwallet/screens/dashboard/discover/image_url.dart';
 import 'package:moonwallet/service/db/crypto_storage_manager.dart';
 import 'package:moonwallet/service/external_data/price_manager.dart';
 
@@ -19,7 +21,7 @@ import 'package:moonwallet/utils/themes.dart';
 import 'package:moonwallet/custom/web3_webview/lib/web3_webview.dart';
 import 'package:moonwallet/widgets/func/browser/show_bottom_options.dart';
 
-class Web3BrowserScreen extends StatefulWidget {
+class Web3BrowserScreen extends StatefulHookConsumerWidget {
   final String url;
   final Crypto network;
   final List<Crypto> networks;
@@ -35,10 +37,10 @@ class Web3BrowserScreen extends StatefulWidget {
       this.colors});
 
   @override
-  Web3BrowserScreenState createState() => Web3BrowserScreenState();
+  ConsumerState createState() => Web3BrowserScreenState();
 }
 
-class Web3BrowserScreenState extends State<Web3BrowserScreen> {
+class Web3BrowserScreenState extends ConsumerState<Web3BrowserScreen> {
   Color darkNavigatorColor = Color(0XFF0D0D0D);
   Color darkNavigatorColorMainValue = Color(0XFF0D0D0D);
   final GlobalKey<InAppWebViewEIP1193State> webViewKey = GlobalKey();
@@ -141,30 +143,6 @@ class Web3BrowserScreenState extends State<Web3BrowserScreen> {
     return _chainId == requestedChainId;
   }
 
-  Future<void> manualChangeNetwork(Crypto network) async {
-    try {
-      int requestedChainId = network.chainId ?? 1;
-
-      for (final net in networks) {
-        if (net.chainId == requestedChainId) {
-          setState(() {
-            currentCrypto = net;
-            _chainId = requestedChainId;
-          });
-          webViewKey.currentState?.changeNetwork(
-              chainId: '0x${requestedChainId.toRadixString(16)}',
-              context: context,
-              colors: colors);
-          Navigator.pop(context);
-        } else {
-          continue;
-        }
-      }
-    } catch (e) {
-      logError(e.toString());
-    }
-  }
-
   Future<void> getBgColor() async {
     try {
       if (_webViewController != null) {
@@ -265,6 +243,34 @@ class Web3BrowserScreenState extends State<Web3BrowserScreen> {
   Widget build(BuildContext context) {
     final width = MediaQuery.of(context).size.width;
     final textTheme = Theme.of(context).textTheme;
+    final providerAsync = ref.watch(ethereumProviderNotifier);
+    final ethProviderNotifier = ref.watch(ethereumProviderNotifier.notifier);
+
+    Future<void> manualChangeNetwork(Crypto network) async {
+      try {
+        int requestedChainId = network.chainId ?? 1;
+
+        for (final net in networks) {
+          if (net.chainId == requestedChainId) {
+            setState(() {
+              currentCrypto = net;
+              _chainId = requestedChainId;
+            });
+            ethProviderNotifier.handleSwitchNetwork(
+              '0x${requestedChainId.toRadixString(16)}',
+              colors,
+              context,
+            );
+            Navigator.pop(context);
+          } else {
+            continue;
+          }
+        }
+      } catch (e) {
+        logError(e.toString());
+      }
+    }
+
     if (isLoading) {
       return Center(
         child: SizedBox(
@@ -445,10 +451,11 @@ class Web3BrowserScreenState extends State<Web3BrowserScreen> {
                         },
                         web3WalletConfig: Web3WalletConfig(
                             currentAccount: currentAccount!,
-                            name: "Moon Wallet",
-                            icon: "https://moonbnb.pro/moon.png",
+                            name: "Vault Wallet",
+                            icon: vaultLogo,
                             address: currentAccount?.evmAddress,
                             currentNetwork: NetworkConfig(
+                                nativeCurrency: currentCrypto!,
                                 blockExplorerUrls: currentCrypto?.explorers,
                                 chainId:
                                     "0x${(currentCrypto!.chainId ?? 1).toRadixString(16)}",
@@ -458,10 +465,7 @@ class Web3BrowserScreenState extends State<Web3BrowserScreen> {
                                 List.generate(networks.length, (i) {
                               final network = networks[i];
                               return NetworkConfig(
-                                  nativeCurrency: NativeCurrency(
-                                      name: network.name,
-                                      symbol: network.symbol,
-                                      decimals: network.decimals),
+                                  nativeCurrency: network,
                                   chainId:
                                       "0x${networks[i].chainId?.toRadixString(16)}",
                                   chainName: network.name,

@@ -364,9 +364,7 @@ class WalletDialogService {
                           fontSize: 21,
                           fontWeight: FontWeight.bold),
                     ),
-                    Text(
-                        network.nativeCurrency?.symbol ??
-                            network.chainName.toUpperCase().split(" ").first,
+                    Text(network.nativeCurrency.symbol,
                         style: GoogleFonts.roboto(
                             color: colors.textColor.withOpacity(0.3),
                             fontSize: 21,
@@ -452,14 +450,14 @@ class WalletDialogService {
           _buildInfoRow('Chain ID', chain.chainId.toString(), false, colors),
           SizedBox(height: _theme.itemSpacing),
           _buildInfoRow('Chain Name', chain.chainName, false, colors),
-          if (chain.nativeCurrency?.symbol != null) ...[
+          ...[
             SizedBox(height: _theme.itemSpacing),
             _buildInfoRow(
-                'Currency', chain.nativeCurrency!.symbol, false, colors),
+                'Currency', chain.nativeCurrency.symbol, false, colors),
           ],
-          if (chain.nativeCurrency?.decimals != null) ...[
+          ...[
             SizedBox(height: _theme.itemSpacing),
-            _buildInfoRow('Decimals', chain.nativeCurrency!.decimals.toString(),
+            _buildInfoRow('Decimals', chain.nativeCurrency.decimals.toString(),
                 false, colors),
           ],
           SizedBox(height: _theme.itemSpacing * 2),
@@ -491,15 +489,15 @@ class WalletDialogService {
           _buildInfoRow('Chain ID', network.chainId.toString(), false, colors),
           SizedBox(height: _theme.itemSpacing),
           _buildInfoRow('Chain Name', network.chainName, false, colors),
-          if (network.nativeCurrency?.symbol != null) ...[
+          ...[
             SizedBox(height: _theme.itemSpacing),
             _buildInfoRow(
-                'Currency', network.nativeCurrency!.symbol, false, colors),
+                'Currency', network.nativeCurrency.symbol, false, colors),
           ],
-          if (network.nativeCurrency?.decimals != null) ...[
+          ...[
             SizedBox(height: _theme.itemSpacing),
             _buildInfoRow('Decimals',
-                network.nativeCurrency!.decimals.toString(), false, colors),
+                network.nativeCurrency.decimals.toString(), false, colors),
           ],
           SizedBox(height: _theme.itemSpacing * 2),
           _buildActionButtons(
