@@ -83,11 +83,8 @@ class TokenManager {
       }
       final client =
           Web3Client(token.network?.rpcUrls?.first ?? "", httpClient);
-      log("Token : ${token.toJson()}");
       final result =
           await tryGetBalance(client: client, token: token, address: address);
-
-      log("result $result");
       if (result == null) {
         throw "No result found";
       }

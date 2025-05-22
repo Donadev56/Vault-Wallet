@@ -9,6 +9,7 @@ import 'package:flutter_inappwebview/flutter_inappwebview.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:http/http.dart';
 import 'package:moonwallet/logger/logger.dart';
+import 'package:moonwallet/notifiers/providers.dart';
 import 'package:moonwallet/service/db/crypto_storage_manager.dart';
 import 'package:moonwallet/service/db/known_host_manager.dart';
 import 'package:moonwallet/service/web3_interactions/evm/eth_interaction_manager.dart';
@@ -47,7 +48,6 @@ class EthereumProvider extends StateNotifier<WalletState> {
   String? _cachedBlockNumber;
   static const _blockNumberCacheDuration = Duration(seconds: 12);
 
-
   void setWebViewController(InAppWebViewController controller) {
     _webViewController = controller;
   }
@@ -66,10 +66,10 @@ class EthereumProvider extends StateNotifier<WalletState> {
       throw WalletException("The default network is required");
     }
 
-    Map<String , NetworkConfig> networks = {};
+    Map<String, NetworkConfig> networks = {};
     networks[defaultNetwork.chainId] = defaultNetwork;
     for (final net in additionalNetworks) {
-      networks[net.chainId] = net ;
+      networks[net.chainId] = net;
     }
 
     // Configure provider info
@@ -82,16 +82,15 @@ class EthereumProvider extends StateNotifier<WalletState> {
       defaultNetwork.rpcUrls.first,
       Client(),
     );
-   
-      state = WalletState(
-        account: account,
-        networks: networks,
-        chainId: defaultNetwork.chainId,
-        address: account.evmAddress,
-        isConnected: account.evmAddress?.isNotEmpty == false,
-      );
-      log("The current state with address only is ${state.toJson()}");
-    
+
+    state = WalletState(
+      account: account,
+      networks: networks,
+      chainId: defaultNetwork.chainId,
+      address: account.evmAddress,
+      isConnected: account.evmAddress?.isNotEmpty == false,
+    );
+    log("The current state with address only is ${state.toJson()}");
   }
 
   Future<dynamic> handleRequest(String method, List<dynamic>? params,
@@ -110,10 +109,8 @@ class EthereumProvider extends StateNotifier<WalletState> {
         case JsonRpcMethod.ETH_BLOCK_NUMBER:
           return await _handleBlockNumber();
         case JsonRpcMethod.ETH_CHAIN_ID:
-         
           return state.chainId;
         case JsonRpcMethod.NET_VERSION:
-         
           return state.chainId;
         // from this point
         case JsonRpcMethod.ETH_CALL:
@@ -220,7 +217,8 @@ class EthereumProvider extends StateNotifier<WalletState> {
           throw WalletException('Invalid chain ID');
         case JsonRpcMethod.WALLET_ADD_ETHEREUM_CHAIN:
           if (params?.isNotEmpty == true) {
-            return await _handleAddEthereumChain(params?.first, colors, context);
+            return await _handleAddEthereumChain(
+                params?.first, colors, context);
           }
           throw WalletException('Invalid network parameters');
         case JsonRpcMethod.WALLET_GET_PERMISSIONS:
@@ -231,6 +229,12 @@ class EthereumProvider extends StateNotifier<WalletState> {
           ];
         case JsonRpcMethod.WALLET_REVOKE_PERMISSIONS:
           return true;
+        case JsonRpcMethod.WALLET_WATCH_ASSET:
+          log("----------- Params ------------\n");
+          log("$params");
+        case JsonRpcMethod.ETH_GET_TRANSACTION_RECEIPT:
+          return await getEthTransactionReceipt(params?.firstOrNull ?? "");
+
         default:
           print('=======================> Method $method not supported');
           return null;
@@ -238,6 +242,35 @@ class EthereumProvider extends StateNotifier<WalletState> {
       }
     } catch (e) {
       throw WalletException(e.toString());
+    }
+  }
+
+  Future<Map<dynamic, dynamic>> getEthTransactionReceipt(String hash) async {
+    try {
+      final response = await _web3client.getTransactionReceipt(hash);
+      if (response == null) {
+        throw Exception("Invalid response");
+      }
+      return {
+        "jsonrpc": "2.0",
+        "id": "1",
+        "transactionHash": HexUtils.bytesToHex(response.transactionHash),
+        "transactionIndex": HexUtils.numberToHex(response.transactionIndex),
+        "blockHash": HexUtils.bytesToHex(response.blockHash),
+        "blockNumber": HexUtils.numberToHex(response.blockNumber.blockNum),
+        "logs": [],
+        "from": response.from?.hex,
+        "to": response.to?.hex,
+        "cumulativeGasUsed": HexUtils.numberToHex(response.cumulativeGasUsed),
+        "gasUsed": HexUtils.numberToHex(response.gasUsed),
+        "status": response.status != null
+            ? HexUtils.numberToHex(response.status == true ? 1 : 0)
+            : null,
+        "type": null,
+      };
+    } catch (e) {
+      logError(e.toString());
+      throw WalletException('Error while getting eth receipt');
     }
   }
 
@@ -255,32 +288,27 @@ class EthereumProvider extends StateNotifier<WalletState> {
   }*/
 
   // Method handlers
-  Future<List<String>> _handleConnect(AppColors colors, BuildContext context) async {
+  Future<List<String>> _handleConnect(
+      AppColors colors, BuildContext context) async {
     try {
       final hostManager = KnownHostManager();
       bool? confirmed = false;
       final host = (await _webViewController?.getUrl())?.host ?? '';
       final savedHosts =
           await hostManager.getKnownHost(address: state.address ?? "");
+
       if (savedHosts.isNotEmpty) {
         if (savedHosts.contains(host)) {
           log("Saved host already exists");
-          confirmed = true;
-        } else {
-          log("Saved host dont exists");
-          confirmed = await _dialogService.showConnectWallet(context,
-              address: state.address!,
-              ctrl: _webViewController!,
-              appName: _eip6963ProviderInfo!.name,
-              colors: colors);
+          return [state.address!];
         }
-      } else {
-        confirmed = await _dialogService.showConnectWallet( context,
-            address: state.address!,
-            ctrl: _webViewController!,
-            appName: _eip6963ProviderInfo!.name,
-            colors: colors);
       }
+
+      confirmed = await _dialogService.showConnectWallet(context,
+          address: state.address!,
+          ctrl: _webViewController!,
+          appName: _eip6963ProviderInfo!.name,
+          colors: colors);
 
       if (confirmed != true) {
         throw WalletException('User rejected connection');
@@ -393,7 +421,6 @@ class EthereumProvider extends StateNotifier<WalletState> {
     }
   }
 
-
   Future<bool> handleSwitchNetwork(
       String newChainId, AppColors colors, BuildContext context) async {
     if (!state.networks.containsKey(newChainId)) {
@@ -413,8 +440,8 @@ class EthereumProvider extends StateNotifier<WalletState> {
     }
   }
 
-  Future<bool> _handleAddEthereumChain(
-      Map<String, dynamic> networkParams, AppColors colors ,  BuildContext context) async {
+  Future<bool> _handleAddEthereumChain(Map<String, dynamic> networkParams,
+      AppColors colors, BuildContext context) async {
     try {
       final config = NetworkConfig(
         chainId: networkParams['chainId'],
@@ -476,6 +503,7 @@ class EthereumProvider extends StateNotifier<WalletState> {
   // Methods helpers
   Future<void> _addNetwork(NetworkConfig targetNetwork) async {
     try {
+      final storage = ref.watch(savedCryptosProviderNotifier.notifier);
       if (state.account == null) {
         throw WalletException('No current account');
       }
@@ -496,8 +524,7 @@ class EthereumProvider extends StateNotifier<WalletState> {
           // add the network to the browser current network list
           state.networks[targetNetwork.chainId] = targetNetwork;
           // save the network
-          await manager.addCrypto(
-              crypto: targetNetwork.nativeCurrency, wallet: state.account);
+          await storage.addCrypto(targetNetwork.nativeCurrency);
           log("Added wallet");
         }
       }
@@ -505,8 +532,6 @@ class EthereumProvider extends StateNotifier<WalletState> {
       throw WalletException('Failed to add network: $e');
     }
   }
-
-
 
   bool _isBlockNumberCacheValid() {
     if (_lastBlockFetch == null || _cachedBlockNumber == null) {
@@ -562,8 +587,10 @@ class EthereumProvider extends StateNotifier<WalletState> {
       required AppColors colors,
       WalletState? state}) async {
     try {
-      final access =
-          await getAccess(context: context, colors: colors,);
+      final access = await getAccess(
+        context: context,
+        colors: colors,
+      );
       if (access != null) {
         return SigningHandler(access.cred, access.key);
       } else {
@@ -585,8 +612,7 @@ class EthereumProvider extends StateNotifier<WalletState> {
     WalletState? state,
   }) async {
     try {
-      final access =
-          await getAccess(context: context, colors: colors);
+      final access = await getAccess(context: context, colors: colors);
       if (access != null) {
         final handler = TransactionHandler(
           web3client,
@@ -606,17 +632,17 @@ class EthereumProvider extends StateNotifier<WalletState> {
     }
   }
 
-  Future<AccountAccess?> getAccess(
-      {required BuildContext context,
-      required AppColors colors,
-    }) async {
+  Future<AccountAccess?> getAccess({
+    required BuildContext context,
+    required AppColors colors,
+  }) async {
     try {
       final deriveKey = await askDerivateKey(context: context, colors: colors);
       final address = state.address;
       if (address == null) {
         throw WalletException("Invalid State : address is null");
       }
-    
+
       if (deriveKey == null) {
         throw WalletException("Invalid Password");
       }

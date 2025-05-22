@@ -13,7 +13,7 @@ class Routes {
   static const String addCrypto = '/main/addCrypto';
   static const String pageManager = '/main/pageManager';
   static const String changeTheme = '/settings/changeColor';
-  static const String test = '/tets';
+  static const String test = '/test';
   static const String accountData = '/account_data';
   static const String editWallet = '/editWallet';
 }

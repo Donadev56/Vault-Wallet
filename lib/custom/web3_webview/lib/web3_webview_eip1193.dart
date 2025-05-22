@@ -14,7 +14,7 @@ import 'package:flutter_hooks/flutter_hooks.dart';
 import 'package:flutter_inappwebview/flutter_inappwebview.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:moonwallet/logger/logger.dart';
-import 'package:moonwallet/screens/dashboard/discover/image_url.dart';
+import 'package:moonwallet/screens/dashboard/discover/image_base64.dart';
 import 'package:moonwallet/types/types.dart';
 import 'package:uuid/uuid.dart';
 

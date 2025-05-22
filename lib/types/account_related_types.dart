@@ -1,5 +1,4 @@
 import 'dart:convert';
-
 import 'package:flutter/material.dart';
 import 'package:lucide_icons_flutter/lucide_icons.dart';
 import 'package:moonwallet/custom/web3_webview/lib/web3_webview.dart';
@@ -38,6 +37,13 @@ extension NetworkTypeExtension on NetworkType {
   static NetworkType fromString(String value) {
     return NetworkType.values.firstWhere((e) => e.toShortString() == value);
   }
+}
+
+extension TokensExtension on List<Crypto> {
+  // return a list of crypto without natives
+  List<Crypto> get onlyTokens => where((e) => !e.isNative).toList();
+  // return a list of crypto without tokens
+  List<Crypto> get onlyNative => where((e) => e.isNative).toList();
 }
 
 class PublicAccount {
@@ -268,29 +274,26 @@ class Asset {
   final Crypto crypto;
   final String balanceUsd;
   final String balanceCrypto;
-  final double cryptoTrendPercent;
-  final double cryptoPrice;
-  final CryptoMarketData? marketData;
+  final String cryptoTrendPercent;
+  final String cryptoPrice;
 
-  Asset(
-      {required this.crypto,
-      required this.balanceUsd,
-      required this.balanceCrypto,
-      required this.cryptoTrendPercent,
-      required this.cryptoPrice,
-      this.marketData});
+  Asset({
+    required this.crypto,
+    required this.balanceUsd,
+    required this.balanceCrypto,
+    required this.cryptoTrendPercent,
+    required this.cryptoPrice,
+  });
 
   // Convert a JSON Map to a HistoryItem instance
   factory Asset.fromJson(Map<String, dynamic> json) {
     return Asset(
-        crypto: Crypto.fromJson(json['crypto']),
-        balanceUsd: json['balanceUsd'] ?? "0",
-        balanceCrypto: json['balanceCrypto'] ?? "0",
-        cryptoTrendPercent: json['cryptoTrendPercent'] ?? 0,
-        cryptoPrice: json['cryptoPrice'] ?? 0,
-        marketData: json["marketData"] != null
-            ? CryptoMarketData.fromJson(json["marketData"])
-            : null);
+      crypto: Crypto.fromJson(json['crypto']),
+      balanceUsd: json['balanceUsd'] ?? "0",
+      balanceCrypto: json['balanceCrypto'] ?? "0",
+      cryptoTrendPercent: json['cryptoTrendPercent'] ?? "0",
+      cryptoPrice: json['cryptoPrice'] ?? "0",
+    );
   }
 
   // Convert a HistoryItem instance to a JSON Map
@@ -301,7 +304,6 @@ class Asset {
       'balanceCrypto': balanceCrypto,
       'cryptoTrendPercent': cryptoTrendPercent,
       'cryptoPrice': cryptoPrice,
-      "marketData": marketData?.toJson()
     };
   }
 }
@@ -346,18 +348,23 @@ class Crypto {
   final Crypto? network;
   final Color? color;
   final List<String>? rpcUrls;
+  final String? cgSymbol;
   final List<String>? explorers;
   final CryptoType type;
   final String? contractAddress;
   final int decimals;
+  final double? valueUsd;
   final String cryptoId;
   final bool canDisplay;
   final String symbol;
-  final String? cgSymbol;
   final NetworkType? networkType;
+  final String? refToken;
+  final int? refTokenChainId;
+  final String? tagIndex;
 
   Crypto(
       {required this.name,
+      this.tagIndex,
       this.icon,
       this.chainId,
       required this.color,
@@ -371,6 +378,9 @@ class Crypto {
       required this.canDisplay,
       required this.symbol,
       this.networkType,
+      this.refTokenChainId,
+      this.valueUsd,
+      this.refToken,
       this.cgSymbol}) {
     if (type == CryptoType.token) {
       if (contractAddress == null || network == null) {
@@ -416,10 +426,13 @@ class Crypto {
                 .toList()
             : null,
         symbol: cryptoJson["symbol"],
-        cgSymbol: cryptoJson["cgSymbol"] ?? "");
+        cgSymbol: cryptoJson["cgSymbol"] ?? "",
+        refToken: cryptoJson["refToken"],
+        refTokenChainId: cryptoJson["refTokenChainId"],
+        valueUsd: cryptoJson["valueUsd"]);
   }
 
-  factory Crypto.fromJson(Map<String, dynamic> cryptoJson) {
+  factory Crypto.fromJson(Map<dynamic, dynamic> cryptoJson) {
     return Crypto(
         canDisplay: cryptoJson["canDisplay"],
         cryptoId: cryptoJson["cryptoId"],
@@ -449,7 +462,10 @@ class Crypto {
         networkType: cryptoJson["networkType"] != null
             ? NetworkType.values[cryptoJson["networkType"]]
             : null,
-        cgSymbol: cryptoJson["cgSymbol"] ?? "");
+        cgSymbol: cryptoJson["cgSymbol"] ?? "",
+        refToken: cryptoJson["refToken"],
+        refTokenChainId: cryptoJson["refTokenChainId"],
+        valueUsd: cryptoJson["valueUsd"]);
   }
 
   Map<String, dynamic> toJson() {
@@ -469,6 +485,9 @@ class Crypto {
       "symbol": symbol,
       "cgSymbol": cgSymbol,
       "networkType": networkType?.index,
+      "refToken": refToken,
+      "refTokenChainId": refTokenChainId,
+      "valueUsd": valueUsd
     };
   }
 
@@ -479,6 +498,21 @@ class Crypto {
   NetworkType get getNetworkType =>
       isNative ? networkType! : network!.networkType!;
   Crypto? get tokenNetwork => isNative ? this : network;
+  int get getChainId => (isNative ? chainId : network?.chainId) ?? 0;
+
+  static Crypto get nullToken => Crypto(
+      name: "null",
+      networkType: NetworkType.evm,
+      color: Color(0),
+      type: CryptoType.native,
+      decimals: 0,
+      cryptoId: "null",
+      canDisplay: false,
+      symbol: "Null",
+      contractAddress: "",
+      chainId: 0,
+      rpcUrls: [""],
+      explorers: [""]);
 
   Crypto copyWith({
     String? name,
@@ -497,24 +531,27 @@ class Crypto {
     String? symbol,
     String? cgSymbol,
     NetworkType? networkType,
+    String? refToken,
+    int? refTokenChainId,
   }) {
     return Crypto(
-      name: name ?? this.name,
-      icon: icon ?? this.icon,
-      chainId: chainId ?? this.chainId,
-      network: network ?? this.network,
-      color: color ?? this.color,
-      rpcUrls: rpcUrls ?? this.rpcUrls,
-      explorers: explorers ?? this.explorers,
-      type: type ?? this.type,
-      contractAddress: contractAddress ?? this.contractAddress,
-      decimals: decimals ?? this.decimals,
-      cryptoId: cryptoId ?? this.cryptoId,
-      canDisplay: canDisplay ?? this.canDisplay,
-      symbol: symbol ?? this.symbol,
-      cgSymbol: cgSymbol ?? this.cgSymbol,
-      networkType: networkType ?? this.networkType,
-    );
+        name: name ?? this.name,
+        icon: icon ?? this.icon,
+        chainId: chainId ?? this.chainId,
+        network: network ?? this.network,
+        color: color ?? this.color,
+        rpcUrls: rpcUrls ?? this.rpcUrls,
+        explorers: explorers ?? this.explorers,
+        type: type ?? this.type,
+        contractAddress: contractAddress ?? this.contractAddress,
+        decimals: decimals ?? this.decimals,
+        cryptoId: cryptoId ?? this.cryptoId,
+        canDisplay: canDisplay ?? this.canDisplay,
+        symbol: symbol ?? this.symbol,
+        cgSymbol: cgSymbol ?? this.cgSymbol,
+        networkType: networkType ?? this.networkType,
+        refToken: refToken ?? this.refToken,
+        refTokenChainId: refTokenChainId ?? this.refTokenChainId);
   }
 }
 

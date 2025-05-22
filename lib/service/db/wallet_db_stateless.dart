@@ -86,7 +86,6 @@ class WalletDbStateLess extends WalletDatabase {
           savedData, deriveKey, encryptInfo.nonce, encryptInfo.mac);
 
       if (decryptData != null) {
-        log("Decrypted data $decryptData");
         return json.decode(decryptData);
       }
       throw "Invalid Key";

@@ -124,14 +124,15 @@ dependencies:
   ed25519_hd_key: ^2.3.0
   cryptography: ^2.7.0
   solana_utils: ^0.0.1
-
-
-
-
-
-
-
-
+  fluttertoast: ^8.2.12
+  avatar_stack: ^3.0.0
+  flutter_svg: ^2.1.0
+  cached_network_svg_image: ^1.2.0
+  sentry: ^8.14.2
+  infinite_scroll: ^1.1.1
+  lpinyin: ^2.0.3
+  scrollable_positioned_list: ^0.3.8
+  
   
 dependency_overrides:
   intl: ^0.20.1
@@ -289,6 +290,10 @@ flutter:
   assets:
  
   - assets/icon/icon4.png
+  - assets/icon/filled/icon1.png
+  - assets/icon/filled/icon2.png
+  - assets/data/china.json
+
   - assets/logo/png/vault2.png
   - assets/logo/png/v_png.png
   - assets/logo/png/icon.png  

@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:moonwallet/logger/logger.dart';
 import 'package:moonwallet/notifiers/providers.dart';
+import 'package:moonwallet/service/crypto_manager.dart';
 import 'package:moonwallet/service/db/wallet_db_stateless.dart';
 import 'package:moonwallet/service/external_data/crypto_request_manager.dart';
 import 'package:moonwallet/service/rpc_service.dart';
@@ -14,6 +15,7 @@ class SavedCryptoProvider extends AsyncNotifier<List<Crypto>> {
   late final cryptoStorage = ref.read(cryptoStorageProvider);
   final walletStorage = WalletDbStateLess();
   final rpcService = RpcService();
+  final manager = CryptoManager();
 
   @override
   Future<List<Crypto>> build() => getSavedCrypto();
@@ -26,9 +28,10 @@ class SavedCryptoProvider extends AsyncNotifier<List<Crypto>> {
         logError("No active account");
         return [];
       }
-      List<Crypto> listCrypto = [];
 
       List<Crypto> savedCryptos = [];
+      List<Crypto> standardCrypto = [];
+
       try {
         savedCryptos =
             await cryptoStorage.getSavedCryptos(wallet: account) ?? [];
@@ -37,25 +40,18 @@ class SavedCryptoProvider extends AsyncNotifier<List<Crypto>> {
       }
 
       if (savedCryptos.isNotEmpty) {
-        return compatibleCryptos(account, savedCryptos);
+        return manager.compatibleCryptos(account, savedCryptos);
       }
 
-      List<Crypto> standardCrypto = [];
-
       try {
-        standardCrypto = await CryptoRequestManager().getAllCryptos();
-        log("All Crypto ${standardCrypto.map((c) => c.toJson()).toList()}");
+        standardCrypto = await CryptoRequestManager().getDefaultTokens() ?? [];
       } catch (e) {
         logError(e.toString());
       }
 
       if (standardCrypto.isNotEmpty) {
-        listCrypto = standardCrypto;
-      }
-
-      if (listCrypto.isNotEmpty) {
-        await saveListCrypto(listCrypto, account);
-        return compatibleCryptos(account, listCrypto);
+        await saveListCrypto(standardCrypto, account);
+        return manager.compatibleCryptos(account, standardCrypto);
       }
       return [];
     } catch (e) {
@@ -64,19 +60,13 @@ class SavedCryptoProvider extends AsyncNotifier<List<Crypto>> {
     }
   }
 
-  List<Crypto> compatibleCryptos(
-      PublicAccount account, List<Crypto> listCrypto) {
-    if (account.origin.isMnemonic) {
-      return listCrypto;
+  Future<List<Crypto>> getDefaultTokens() async {
+    try {
+      return CryptoManager().getDefaultTokens();
+    } catch (e) {
+      logError(e.toString());
+      return [];
     }
-
-    if (account.origin.isPrivateKey || account.origin.isPublicAddress) {
-      return listCrypto
-          .where(
-              (e) => e.getNetworkType == account.supportedNetworks.firstOrNull)
-          .toList();
-    }
-    return [];
   }
 
   Future<bool> saveListCrypto(

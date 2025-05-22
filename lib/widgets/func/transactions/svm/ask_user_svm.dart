@@ -1,16 +1,15 @@
 // ignore_for_file: deprecated_member_use
 
 import 'package:flutter/material.dart';
-import 'package:flutter_feather_icons/flutter_feather_icons.dart';
 import 'package:moonwallet/logger/logger.dart';
 import 'package:moonwallet/types/account_related_types.dart';
 import 'package:moonwallet/types/types.dart';
-import 'package:moonwallet/widgets/buttons/elevated.dart';
 import 'package:moonwallet/widgets/custom_filled_text_field.dart';
 import 'package:moonwallet/widgets/func/transactions/svm/show_memo_input.dart';
 import 'package:moonwallet/widgets/func/transactions/transactions_body/label_text.dart';
 import 'package:moonwallet/widgets/func/transactions/transactions_body/show_transaction_request.dart';
-import 'package:moonwallet/widgets/func/transactions/transactions_body/transaction_app_bar.dart';
+import 'package:moonwallet/widgets/func/transactions/transactions_body/standard_send_app_bar.dart';
+import 'package:moonwallet/widgets/func/transactions/transactions_body/standard_send_bottom_button.dart';
 import 'package:moonwallet/widgets/func/transactions/transactions_body/transaction_destination_details.dart';
 import 'package:moonwallet/widgets/func/transactions/transactions_body/transaction_parent_container.dart';
 import 'package:moonwallet/widgets/func/transactions/transactions_body/transaction_token_details.dart';
@@ -35,21 +34,7 @@ Future<SolanaRequestResponse?> askUserSvm({
               child: ListView(
                 shrinkWrap: true,
                 children: [
-                  TransactionAppBar(
-                      padding: const EdgeInsets.only(bottom: 10),
-                      colors: colors,
-                      title: "Transfer",
-                      actions: [
-                        IconButton(
-                          onPressed: () {
-                            Navigator.pop(
-                              context,
-                            );
-                          },
-                          icon: Icon(FeatherIcons.xCircle,
-                              color: Colors.pinkAccent),
-                        )
-                      ]),
+                  StandardSendAppBar(colors: colors),
                   TransactionTokenDetails(
                       colors: colors, crypto: crypto, value: value),
                   SizedBox(
@@ -91,19 +76,17 @@ Future<SolanaRequestResponse?> askUserSvm({
                   SizedBox(
                     height: 40,
                   ),
-                  CustomElevatedButton(
-                    onPressed: () {
-                      Navigator.pop(
-                          context,
-                          SolanaRequestResponse(
-                              ok: true,
-                              memo: memoController.text.isEmpty
-                                  ? null
-                                  : memoController.text));
-                    },
-                    colors: colors,
-                    text: "Confirm",
-                  ),
+                  StandardSendBottomButton(
+                      colors: colors,
+                      onConfirmPress: () {
+                        Navigator.pop(
+                            context,
+                            SolanaRequestResponse(
+                                ok: true,
+                                memo: memoController.text.isEmpty
+                                    ? null
+                                    : memoController.text));
+                      }),
                   SizedBox(
                     height: 20,
                   ),

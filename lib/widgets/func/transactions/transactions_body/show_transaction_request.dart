@@ -5,8 +5,8 @@ Future<T?> showTransactionRequest<T>({
   required Widget Function(BuildContext) builder,
   required BuildContext context,
 }) async {
-  final T result =
-      await showStandardModalBottomSheet(context: context, builder: builder);
+  final T result = await showStandardModalBottomSheet(
+      context: context, builder: builder, rounded: 10);
 
   return result;
 }

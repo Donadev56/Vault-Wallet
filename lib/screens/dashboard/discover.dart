@@ -2,9 +2,7 @@
 
 import 'dart:convert';
 
-import 'package:fast_cached_network_image/fast_cached_network_image.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter_feather_icons/flutter_feather_icons.dart';
 import 'package:flutter_hooks/flutter_hooks.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
@@ -12,15 +10,20 @@ import 'package:lucide_icons_flutter/lucide_icons.dart';
 import 'package:moonwallet/logger/logger.dart';
 import 'package:moonwallet/notifiers/providers.dart';
 import 'package:moonwallet/screens/dashboard/discover/browser.dart';
+import 'package:moonwallet/service/external_data/browser_data_request_manager.dart';
 import 'package:moonwallet/types/account_related_types.dart';
+import 'package:moonwallet/types/browser.dart';
 import 'package:moonwallet/types/types.dart';
 import 'package:moonwallet/utils/colors.dart';
-import 'package:moonwallet/utils/constant.dart';
 import 'package:moonwallet/utils/prefs.dart';
 import 'package:moonwallet/utils/themes.dart';
 
 import 'package:moonwallet/widgets/dialogs/show_custom_snackbar.dart';
+import 'package:moonwallet/widgets/func/discover/dapps_view.dart';
+import 'package:moonwallet/widgets/func/discover/history_listTitle.dart';
+import 'package:moonwallet/widgets/func/discover/show_dapp_details.dart';
 import 'package:moonwallet/widgets/func/tokens_config/show_select_network_modal.dart';
+import 'package:moonwallet/widgets/screen_widgets/chips.dart';
 
 class DiscoverScreen extends StatefulHookConsumerWidget {
   final AppColors? colors;
@@ -248,6 +251,41 @@ class _DiscoverScreenState extends ConsumerState<DiscoverScreen>
     final savedCryptoAsync = ref.watch(savedCryptosProviderNotifier);
     final uiConfig = useState<AppUIConfig>(AppUIConfig.defaultConfig);
     final appUIConfigAsync = ref.watch(appUIConfigProvider);
+    final browserData = useState<(List<DApp>, List<Category>)>(([], []));
+    final selectedIndex = useState<int>(0);
+
+    Future<void> getBrowserData() async {
+      try {
+        final manager = BrowserDataRequestManager();
+        final data = await manager.getBrowserData();
+        if (data == null) {
+          throw Exception("Failed  to fetch dapps info");
+        }
+        browserData.value = data;
+      } catch (e) {
+        logError(e.toString());
+        notifyError(e.toString(), context);
+      }
+    }
+
+    Future<void> getSavedBrowserData() async {
+      try {
+        final manager = BrowserDataRequestManager();
+        final data = await manager.getSavedDataToDart();
+        browserData.value = data;
+      } catch (e) {
+        logError(e.toString());
+        notifyError(e.toString(), context);
+      }
+    }
+
+    useEffect(() {
+      getSavedBrowserData();
+
+      getBrowserData();
+
+      return null;
+    }, []);
 
     useEffect(() {
       appUIConfigAsync.whenData((data) {
@@ -338,6 +376,33 @@ class _DiscoverScreenState extends ConsumerState<DiscoverScreen>
       }
     }
 
+    List<Category> getCategory() {
+      if (selectedIndex.value == 0) {
+        return browserData.value.$2;
+      }
+      final targetCategory = browserData.value.$2[selectedIndex.value - 1];
+      return [targetCategory];
+    }
+
+    Future<void> onDAppClick(DApp app) async {
+      final doNotShow = await PublicDataManager().getDataFromPrefs(
+          key: "Do-not-show-again-dapp-modal-for/${app.websiteUrl}");
+      if (doNotShow != null && doNotShow == "true") {
+        openBrowser(app.websiteUrl);
+
+        return;
+      }
+      final enter = await showDappDetails(
+          app: app,
+          context: context,
+          colors: colors,
+          imageSizeOf: imageSizeOf,
+          fontSizeOf: fontSizeOf);
+      if (enter) {
+        openBrowser(app.websiteUrl);
+      }
+    }
+
     return Scaffold(
         backgroundColor: colors.primaryColor,
         appBar: AppBar(
@@ -416,7 +481,7 @@ class _DiscoverScreenState extends ConsumerState<DiscoverScreen>
               ),
               SliverPersistentHeader(
                 key: ValueKey(colors.primaryColor),
-                pinned: true,
+                pinned: false,
                 delegate: _SliverAppBarDelegate(
                   TabBar(
                     dividerColor: Colors.transparent,
@@ -439,68 +504,79 @@ class _DiscoverScreenState extends ConsumerState<DiscoverScreen>
           body: TabBarView(controller: _tabController, children: [
             Container(
               decoration: BoxDecoration(),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Container(
-                    padding: const EdgeInsets.all(20),
-                    child: Text(
-                      "Best DApps",
-                      style: textTheme.bodyMedium?.copyWith(
-                        fontSize: 20,
-                        fontWeight: FontWeight.bold,
-                        color: colors.textColor,
+              child: Padding(
+                padding: const EdgeInsets.all(20),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    SingleChildScrollView(
+                      scrollDirection: Axis.horizontal,
+                      child: Padding(
+                        padding: const EdgeInsets.only(top: 10, bottom: 20),
+                        child: Row(
+                          children: List.generate(
+                              browserData.value.$2.length + 1, (index) {
+                            if (index == 0) {
+                              return IconChip(
+                                colors: colors,
+                                icon: Icon(
+                                  LucideIcons.globe,
+                                  color: colors.textColor,
+                                ),
+                                text: "All",
+                                useBorder: selectedIndex.value == index,
+                                borderColor: colors.themeColor,
+                                onTap: () => selectedIndex.value = index,
+                              );
+                            }
+                            final category = browserData.value.$2[index - 1];
+                            return Container(
+                              margin: const EdgeInsets.symmetric(horizontal: 5),
+                              child: IconChip(
+                                colors: colors,
+                                icon: Image.network(
+                                  category.iconUrl,
+                                  width: 25,
+                                  height: 25,
+                                ),
+                                text: category.name,
+                                useBorder: selectedIndex.value == index,
+                                borderColor: colors.themeColor,
+                                onTap: () => selectedIndex.value = index,
+                              ),
+                            );
+                          }),
+                        ),
                       ),
                     ),
-                  ),
-                  Expanded(
-                      child: ListView.builder(
-                          itemCount: dapps.length,
-                          itemBuilder: (ctx, index) {
-                            final dapp = dapps[index];
-                            return ListTile(
-                                leading: ClipRRect(
-                                  borderRadius:
-                                      BorderRadius.circular(roundedOf(50)),
-                                  child: dapp.isNetworkImage
-                                      ? FastCachedImage(
-                                          url: dapp.icon,
-                                          width: imageSizeOf(50),
-                                          height: imageSizeOf(50),
-                                        )
-                                      : Image.asset(
-                                          dapp.icon,
-                                          width: imageSizeOf(50),
-                                          height: imageSizeOf(50),
-                                        ),
-                                ),
-                                title: Text(
-                                  dapp.name,
-                                  style: textTheme.bodyMedium?.copyWith(
-                                    fontSize: fontSizeOf(14),
-                                    fontWeight: FontWeight.bold,
-                                    color: colors.textColor,
-                                  ),
-                                  overflow: TextOverflow.ellipsis,
-                                  maxLines: 1,
-                                ),
-                                subtitle: Text(
-                                  dapp.description,
-                                  style: textTheme.bodyMedium?.copyWith(
-                                    fontSize: fontSizeOf(14),
-                                    color: colors.textColor.withOpacity(0.6),
-                                  ),
-                                  overflow: TextOverflow.ellipsis,
-                                  maxLines: 1,
-                                ),
-                                onTap: () async {
-                                  await updateSavedHistory(
-                                      formateUrl(dapp.link.trim()));
+                    Expanded(
+                        child: ListView.builder(
+                            itemCount: getCategory().length,
+                            itemBuilder: (ctx, index) {
+                              final category = getCategory()[index];
+                              final dapps = browserData.value.$1.where((e) =>
+                                  e.categories.any((cat) =>
+                                      cat.id.trim().toLowerCase() ==
+                                      category.name.trim().toLowerCase()));
 
-                                  await openBrowser(dapp.link);
-                                });
-                          }))
-                ],
+                              final primaryDapps =
+                                  dapps.where((e) => e.isPrimary).toList();
+                              final nonPrimaryDapps =
+                                  dapps.where((e) => !e.isPrimary).toList();
+
+                              return DappsViewList(
+                                  onSelect: (value) {
+                                    onDAppClick(value);
+                                  },
+                                  category: category,
+                                  colors: colors,
+                                  fontSizeOf: fontSizeOf,
+                                  imageSizeOf: imageSizeOf,
+                                  nonPrimaryDapps: nonPrimaryDapps,
+                                  primaryDapps: primaryDapps);
+                            }))
+                  ],
+                ),
               ),
             ),
             Container(
@@ -510,50 +586,21 @@ class _DiscoverScreenState extends ConsumerState<DiscoverScreen>
                   itemBuilder: (ctx, index) {
                     final hist = history[index];
 
-                    return ListTile(
-                        visualDensity: VisualDensity.compact,
-                        leading: ClipRRect(
-                            borderRadius: BorderRadius.circular(roundedOf(50)),
-                            child: Container(
-                                decoration: BoxDecoration(
-                                    color: colors.grayColor.withOpacity(0.5)),
-                                child: Image.network(
-                                  errorBuilder: (ctx, widget, error) {
-                                    return SizedBox(
-                                      width: imageSizeOf(30),
-                                      height: imageSizeOf(30),
-                                      child:
-                                          ColoredBox(color: colors.themeColor),
-                                    );
-                                  },
-                                  "https://www.google.com/s2/favicons?domain_url=${hist.link}",
-                                  width: 30,
-                                  height: 30,
-                                  fit: BoxFit.cover,
-                                ))),
-                        title: Text(
-                          hist.title,
-                          style: textTheme.bodyMedium?.copyWith(
-                            fontSize: fontSizeOf(14),
-                            fontWeight: FontWeight.bold,
-                            color: colors.textColor,
-                          ),
-                          overflow: TextOverflow.ellipsis,
-                          maxLines: 1,
-                        ),
-                        trailing: IconButton(
-                            onPressed: () async {
-                              final res = await deleteHistoryItem(index);
-                              if (res) {
-                                notifySuccess("Deleted successfully", context);
-                              } else {
-                                notifyError("Failed to delete", context);
-                              }
-                            },
-                            icon: Icon(
-                              FeatherIcons.trash,
-                              color: colors.textColor.withOpacity(0.7),
-                            )),
+                    return HistoryListTitle(
+                        colors: colors,
+                        fontSizeOf: fontSizeOf,
+                        imageSizeOf: imageSizeOf,
+                        roundedOf: roundedOf,
+                        link: hist.link,
+                        title: hist.title,
+                        onDeleteClick: () async {
+                          final res = await deleteHistoryItem(index);
+                          if (res) {
+                            notifySuccess("Deleted successfully", context);
+                          } else {
+                            notifyError("Failed to delete", context);
+                          }
+                        },
                         onTap: () async {
                           await changeHistoryIndex(index);
                           await openBrowser(hist.link);

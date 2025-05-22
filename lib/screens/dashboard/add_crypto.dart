@@ -1,13 +1,11 @@
 // ignore_for_file: deprecated_member_use, use_build_context_synchronously
 
 import 'package:flutter_hooks/flutter_hooks.dart';
-import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:moonwallet/custom/web3_webview/lib/utils/loading.dart';
 import 'package:moonwallet/notifiers/providers.dart';
-import 'package:moonwallet/routes.dart';
+import 'package:moonwallet/service/crypto_manager.dart';
 import 'package:moonwallet/service/db/wallet_db.dart';
-import 'package:moonwallet/service/external_data/crypto_request_manager.dart';
 import 'package:moonwallet/types/account_related_types.dart';
 import 'package:moonwallet/types/ecosystem_config.dart';
 import 'package:moonwallet/utils/colors.dart';
@@ -15,6 +13,7 @@ import 'package:moonwallet/utils/encrypt_service.dart';
 import 'package:moonwallet/utils/themes.dart';
 import 'package:moonwallet/widgets/appBar/button.dart';
 import 'package:moonwallet/widgets/appBar/show_wallet_actions.dart';
+import 'package:moonwallet/widgets/func/tokens_config/show_additional_tokens.dart';
 import 'package:moonwallet/widgets/func/tokens_config/show_token_detials.dart';
 import 'package:moonwallet/widgets/screen_widgets/crypto_picture.dart';
 import 'package:moonwallet/widgets/func/tokens_config/show_add_network.dart';
@@ -22,6 +21,8 @@ import 'package:moonwallet/widgets/func/tokens_config/show_add_token.dart';
 import 'package:moonwallet/widgets/dialogs/show_custom_snackbar.dart';
 import 'package:moonwallet/widgets/func/tokens_config/show_edit_network_modal.dart';
 import 'package:moonwallet/widgets/func/tokens_config/show_select_network_modal.dart';
+import 'package:moonwallet/widgets/screen_widgets/custom_switch_list_title.dart';
+import 'package:moonwallet/widgets/screen_widgets/standard_app_bar.dart';
 import 'package:ulid/ulid.dart';
 
 import 'package:flutter/material.dart';
@@ -92,31 +93,33 @@ class _AddCryptoViewState extends ConsumerState<AddCryptoView> {
     final textTheme = Theme.of(context).textTheme;
     final width = MediaQuery.of(context).size.width;
     final currentAccountAsync = ref.watch(currentAccountProvider);
-    final savedCryptoAsync = ref.watch(savedCryptosProviderNotifier);
     final savedCryptoProvider =
         ref.watch(savedCryptosProviderNotifier.notifier);
+    final savedCryptoAsync = ref.watch(savedCryptosProviderNotifier);
     final accountsProvider = ref.watch(accountsNotifierProvider);
     final appUIConfigAsync = ref.watch(appUIConfigProvider);
 
     final uiConfig = useState<AppUIConfig>(AppUIConfig.defaultConfig);
     final allCryptos = useState<List<Crypto>>([]);
-    final savedCrypto = useState<List<Crypto>>([]);
 
     useEffect(() {
-      Future<void> getListCrypto() async {
+      Future<void> getListDefaultTokens() async {
         try {
-          final listCrypto = await CryptoRequestManager().getSavedCrypto();
-          if (listCrypto.isNotEmpty) {
-            allCryptos.value = listCrypto;
-          }
+          final manager = CryptoManager();
+          final defaultTokens = await manager.getDefaultTokens();
+          final savedTokens = await savedCryptoProvider.getSavedCrypto();
+          final uniqueTokens = manager.addOnlyNewTokens(
+              localList: savedTokens, externalList: defaultTokens);
+          allCryptos.value = uniqueTokens;
         } catch (e) {
           logError(e.toString());
         }
       }
 
-      getListCrypto();
+      getListDefaultTokens();
       return null;
-    }, []);
+    }, [savedCryptoAsync]);
+
     useEffect(() {
       appUIConfigAsync.whenData((data) {
         uiConfig.value = data;
@@ -124,14 +127,6 @@ class _AddCryptoViewState extends ConsumerState<AddCryptoView> {
       return null;
     }, [appUIConfigAsync]);
 
-    /* double listTitleVerticalOf(double size) {
-      return size * uiConfig.value.styles.listTitleVisualDensityVerticalFactor;
-    }
-
-    double listTitleHorizontalOf(double size) {
-      return size *
-          uiConfig.value.styles.listTitleVisualDensityHorizontalFactor;
-    } */
     double fontSizeOf(double size) {
       return size * uiConfig.value.styles.fontSizeScaleFactor;
     }
@@ -147,18 +142,6 @@ class _AddCryptoViewState extends ConsumerState<AddCryptoView> {
     double roundedOf(double size) {
       return size * uiConfig.value.styles.radiusScaleFactor;
     }
-
-    savedCryptoAsync.whenData((data) => {
-          setState(() {
-            final cryptos = data;
-            if (cryptos.isNotEmpty) {
-              cryptos.sort((a, b) => a.symbol.compareTo(b.symbol));
-              setState(() {
-                savedCrypto.value = cryptos;
-              });
-            }
-          })
-        });
 
     accountsProvider.whenData((data) => {
           setState(() {
@@ -277,103 +260,114 @@ class _AddCryptoViewState extends ConsumerState<AddCryptoView> {
       return listTokens;
     }
 
-    return Scaffold(
-      backgroundColor: colors.primaryColor,
-      appBar: AppBar(
-        surfaceTintColor: colors.primaryColor,
-        backgroundColor: colors.primaryColor,
-        actions: [
-          IconButton(
-            onPressed: () {
-              showAppBarWalletActions(
-                context: context,
-                colors: colors,
-                children: [
-                  Column(
-                    spacing: 10,
-                    children: [
-                      if (currentAccount?.supportedNetworks.any((e) =>
-                              ecosystemInfo[e]?.supportSmartContracts ==
-                              true) ==
-                          true)
-                        CustomListTitleButton(
-                            roundedOf: roundedOf,
-                            fontSizeOf: fontSizeOf,
-                            iconSizeOf: iconSizeOf,
-                            textColor: colors.textColor,
-                            text: "Add custom token",
-                            icon: Icons.add,
-                            onTap: () {
-                              showAddToken(
-                                  roundedOf: roundedOf,
-                                  fontSizeOf: fontSizeOf,
-                                  iconSizeOf: iconSizeOf,
-                                  reorganizedCrypto: savedCrypto.value,
-                                  addCrypto: addCrypto,
-                                  context: context,
-                                  colors: colors,
-                                  width: width,
-                                  hasSaved: hasSaved);
-                            }),
-                      if (currentAccount?.origin.isMnemonic == true ||
-                          currentAccount?.supportedNetworks.firstOrNull ==
-                              NetworkType.evm)
-                        CustomListTitleButton(
-                            roundedOf: roundedOf,
-                            fontSizeOf: fontSizeOf,
-                            iconSizeOf: iconSizeOf,
-                            textColor: colors.textColor,
-                            text: "Add EVM network",
-                            icon: Icons.construction,
-                            onTap: () async {
-                              final newNetwork = await showAddNetwork(
-                                  roundedOf: roundedOf,
-                                  fontSizeOf: fontSizeOf,
-                                  iconSizeOf: iconSizeOf,
-                                  context: context,
-                                  colors: colors);
-                              if (newNetwork != null) {
-                                if (savedCrypto.value.any(
-                                    (c) => c.chainId == newNetwork.chainId)) {
-                                  notifyError("Network already exist", context);
-                                  return;
-                                }
-                                addNetwork(newNetwork)
-                                    .withLoading(context, colors);
-                              }
-                            }),
-                      CustomListTitleButton(
+    void showWalletActions() {
+      showAppBarWalletActions(
+        context: context,
+        colors: colors,
+        children: [
+          Column(
+            spacing: 10,
+            children: [
+              if (currentAccount?.supportedNetworks.any(
+                      (e) => ecosystemInfo[e]?.supportSmartContracts == true) ==
+                  true)
+                CustomListTitleButton(
+                    roundedOf: roundedOf,
+                    fontSizeOf: fontSizeOf,
+                    iconSizeOf: iconSizeOf,
+                    textColor: colors.textColor,
+                    text: "Add custom token",
+                    icon: Icons.add,
+                    onTap: () {
+                      showAddToken(
                           roundedOf: roundedOf,
                           fontSizeOf: fontSizeOf,
                           iconSizeOf: iconSizeOf,
-                          textColor: colors.textColor,
-                          text: "Edit network",
-                          icon: Icons.border_color,
-                          onTap: () async {
-                            final selectedNetwork =
-                                await showSelectNetworkModal(
-                                    roundedOf: roundedOf,
-                                    fontSizeOf: fontSizeOf,
-                                    iconSizeOf: iconSizeOf,
-                                    context: context,
-                                    colors: colors,
-                                    networks: savedCrypto.value);
-                            if (selectedNetwork != null) {
-                              showEditNetwork(
-                                  roundedOf: roundedOf,
-                                  fontSizeOf: fontSizeOf,
-                                  iconSizeOf: iconSizeOf,
-                                  context: context,
-                                  network: selectedNetwork,
-                                  onSubmitted: editNetwork,
-                                  colors: colors);
-                            }
-                          })
-                    ],
-                  )
-                ],
-              );
-            },
+                          reorganizedCrypto: allCryptos.value,
+                          addCrypto: addCrypto,
+                          context: context,
+                          colors: colors,
+                          width: width,
+                          hasSaved: hasSaved);
+                    }),
+              if (currentAccount?.origin.isMnemonic == true ||
+                  currentAccount?.supportedNetworks.firstOrNull ==
+                      NetworkType.evm)
+                CustomListTitleButton(
+                    roundedOf: roundedOf,
+                    fontSizeOf: fontSizeOf,
+                    iconSizeOf: iconSizeOf,
+                    textColor: colors.textColor,
+                    text: "Add EVM network",
+                    icon: Icons.construction,
+                    onTap: () async {
+                      final newNetwork = await showAddNetwork(
+                          roundedOf: roundedOf,
+                          fontSizeOf: fontSizeOf,
+                          iconSizeOf: iconSizeOf,
+                          context: context,
+                          colors: colors);
+                      if (newNetwork != null) {
+                        if (allCryptos.value
+                            .any((c) => c.chainId == newNetwork.chainId)) {
+                          notifyError("Network already exist", context);
+                          return;
+                        }
+                        addNetwork(newNetwork).withLoading(context, colors);
+                      }
+                    }),
+              CustomListTitleButton(
+                  roundedOf: roundedOf,
+                  fontSizeOf: fontSizeOf,
+                  iconSizeOf: iconSizeOf,
+                  textColor: colors.textColor,
+                  text: "Edit network",
+                  icon: Icons.border_color,
+                  onTap: () async {
+                    final selectedNetwork = await showSelectNetworkModal(
+                        roundedOf: roundedOf,
+                        fontSizeOf: fontSizeOf,
+                        iconSizeOf: iconSizeOf,
+                        context: context,
+                        colors: colors,
+                        networks: allCryptos.value);
+                    if (selectedNetwork != null) {
+                      showEditNetwork(
+                          roundedOf: roundedOf,
+                          fontSizeOf: fontSizeOf,
+                          iconSizeOf: iconSizeOf,
+                          context: context,
+                          network: selectedNetwork,
+                          onSubmitted: editNetwork,
+                          colors: colors);
+                    }
+                  })
+            ],
+          )
+        ],
+      );
+    }
+
+    return Scaffold(
+      backgroundColor: colors.primaryColor,
+      appBar: StandardAppBar(
+        title: "Manage Coins ",
+        colors: colors,
+        fontSizeOf: fontSizeOf,
+        actions: [
+          IconButton(
+              onPressed: () => showAdditionalTokens(
+                  context: context,
+                  colors: colors,
+                  roundedOf: roundedOf,
+                  fontSizeOf: fontSizeOf,
+                  iconSizeOf: iconSizeOf),
+              icon: Icon(
+                Icons.travel_explore,
+                color: colors.textColor,
+              )),
+          IconButton(
+            onPressed: () => showWalletActions(),
             icon: Icon(
               LucideIcons.plus,
               color: colors.textColor,
@@ -381,33 +375,21 @@ class _AddCryptoViewState extends ConsumerState<AddCryptoView> {
             ),
           ),
         ],
-        leading: IconButton(
-            onPressed: () {
-              Navigator.pushNamed(context, Routes.pageManager);
-            },
-            icon: Icon(
-              LucideIcons.chevronLeft,
-              color: colors.textColor,
-            )),
-        title: Text(
-          "Manage Coins ",
-          style: textTheme.bodyMedium
-              ?.copyWith(color: colors.textColor, fontSize: fontSizeOf(20)),
-        ),
       ),
       body: Column(
         spacing: 15,
         children: [
-          SizedBox(
-            height: 10,
-          ),
           Align(
             alignment: Alignment.center,
             child: SizedBox(
               width: width * 0.92,
+              height: 50,
               child: TextField(
                 onChanged: (v) {
                   setState(() {
+                    if (v.trim().isEmpty) {
+                      return;
+                    }
                     _searchController.text = v;
                   });
                 },
@@ -419,7 +401,7 @@ class _AddCryptoViewState extends ConsumerState<AddCryptoView> {
                     hintStyle: textTheme.bodyMedium
                         ?.copyWith(color: colors.textColor.withOpacity(0.4)),
                     contentPadding:
-                        const EdgeInsets.symmetric(vertical: 8, horizontal: 8),
+                        const EdgeInsets.symmetric(vertical: 5, horizontal: 8),
                     prefixIcon: Icon(
                       Icons.search,
                       color: colors.textColor.withOpacity(0.3),
@@ -437,72 +419,60 @@ class _AddCryptoViewState extends ConsumerState<AddCryptoView> {
               ),
             ),
           ),
-          Expanded(
-              child: GlowingOverscrollIndicator(
-            axisDirection: AxisDirection.down,
-            color: colors.themeColor,
-            child: ListView.builder(
-                itemCount: getCryptoList().length,
-                itemBuilder: (ctx, i) {
-                  final reorganized = getCryptoList()
-                    ..sort((a, b) => a.symbol.compareTo(b.symbol));
-                  final crypto = reorganized[i];
-                  final targetCrypto = (savedCrypto.value
-                      .where((c) =>
-                          c.cryptoId.trim().toLowerCase() ==
-                          crypto.cryptoId.trim().toLowerCase())
-                      .toList()
-                      .firstOrNull);
-                  final isEnable = targetCrypto?.canDisplay == true;
+          if (allCryptos.value.isEmpty)
+            Expanded(
+                child: Center(
+              child: CircularProgressIndicator(
+                color: colors.themeColor,
+              ),
+            ))
+          else
+            Expanded(
+                child: GlowingOverscrollIndicator(
+              axisDirection: AxisDirection.down,
+              color: colors.themeColor,
+              child: ListView.builder(
+                  itemCount: getCryptoList().length,
+                  itemBuilder: (ctx, i) {
+                    final reorganized = getCryptoList()
+                      ..sort((a, b) => a.symbol.compareTo(b.symbol));
 
-                  return Material(
-                    color: Colors.transparent,
-                    child: ListTile(
-                      contentPadding: const EdgeInsets.symmetric(
-                          vertical: 8, horizontal: 20),
-                      onTap: () {
-                        Crypto cryptoToDisplay = crypto;
-                        if (targetCrypto != null) {
-                          cryptoToDisplay = targetCrypto;
-                        }
-                        showTokenDetails(
-                            context: context,
-                            colors: colors,
-                            crypto: cryptoToDisplay);
-                      },
-                      leading: CryptoPicture(
-                          crypto: crypto,
-                          size: imageSizeOf(40),
-                          colors: colors),
-                      title: Text(
-                        crypto.symbol,
-                        style: textTheme.bodyMedium?.copyWith(
-                            color: colors.textColor,
-                            fontSize: fontSizeOf(16),
-                            fontWeight: FontWeight.w500),
-                      ),
-                      trailing: Switch(
-                          value: isEnable,
-                          onChanged: (newVal) async {
-                            try {
-                              final result =
-                                  await savedCryptoProvider.toggleCanDisplay(
-                                      targetCrypto ?? crypto, newVal);
+                    final crypto = reorganized[i];
 
-                              if (result) {
-                                log("State changed successfully");
-                              } else {
-                                log("Error changing state");
-                              }
-                            } catch (e) {
-                              logError(e.toString());
-                              notifyError(e.toString(), context);
+                    return Material(
+                      color: Colors.transparent,
+                      child: CustomSwitchListTitle(
+                        fontSizeOf: fontSizeOf,
+                        colors: colors,
+                        onTap: () {
+                          showTokenDetails(
+                              context: context, colors: colors, crypto: crypto);
+                        },
+                        leading: CryptoPicture(
+                            crypto: crypto,
+                            size: imageSizeOf(40),
+                            colors: colors),
+                        title: crypto.symbol,
+                        value: crypto.canDisplay,
+                        onChanged: (newVal) async {
+                          try {
+                            final result = await savedCryptoProvider
+                                .toggleCanDisplay(crypto, newVal);
+
+                            if (result) {
+                              log("State changed successfully");
+                            } else {
+                              log("Error changing state");
                             }
-                          }),
-                    ),
-                  );
-                }),
-          ))
+                          } catch (e) {
+                            logError(e.toString());
+                            notifyError(e.toString(), context);
+                          }
+                        },
+                      ),
+                    );
+                  }),
+            ))
         ],
       ),
     );

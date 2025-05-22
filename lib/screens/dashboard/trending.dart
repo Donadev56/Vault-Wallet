@@ -4,7 +4,6 @@ import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:moonwallet/logger/logger.dart';
 import 'package:moonwallet/notifiers/providers.dart';
 import 'package:moonwallet/screens/dashboard/trending/crypto_trend_view.dart';
-import 'package:moonwallet/service/external_data/crypto_request_manager.dart';
 import 'package:moonwallet/service/external_data/price_manager.dart';
 import 'package:moonwallet/types/account_related_types.dart';
 import 'package:moonwallet/types/types.dart';
@@ -82,7 +81,7 @@ class _TrendingScreenState extends ConsumerState<TrendingScreen> {
     }, [appUIConfigAsync]);
 
     useEffect(() {
-      Future<void> getListCrypto() async {
+      /* Future<void> getListCrypto() async {
         try {
           final listCrypto = await CryptoRequestManager().getSavedCrypto();
           if (listCrypto.isNotEmpty) {
@@ -91,9 +90,7 @@ class _TrendingScreenState extends ConsumerState<TrendingScreen> {
         } catch (e) {
           logError(e.toString());
         }
-      }
-
-      getListCrypto();
+      } */
       return null;
     }, []);
 

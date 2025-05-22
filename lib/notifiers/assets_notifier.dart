@@ -2,14 +2,15 @@ import 'package:decimal/decimal.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:moonwallet/logger/logger.dart';
 import 'package:moonwallet/notifiers/providers.dart';
+import 'package:moonwallet/service/external_data/price_manager.dart';
 import 'package:moonwallet/service/rpc_service.dart';
 import 'package:moonwallet/types/account_related_types.dart';
-import 'package:moonwallet/types/types.dart';
+import 'package:moonwallet/types/notifications_types.dart';
 
 class AssetsNotifier extends AsyncNotifier<List<Asset>> {
   late final cryptoStorage = ref.read(cryptoStorageProvider);
-  late final priceManager = ref.read(priceProvider);
   late final internetChecker = ref.read(internetConnectionProvider);
+  late final assetState = ref.watch(assetsLoadStateProvider.notifier);
 
   @override
   Future<List<Asset>> build() async {
@@ -19,12 +20,19 @@ class AssetsNotifier extends AsyncNotifier<List<Asset>> {
         logError("The account is null");
         return [];
       }
+      updateState(AssetNotificationState.loading);
       final userAssets = await getUserAssets(account: account);
+      updateState(AssetNotificationState.completed);
       return userAssets;
     } catch (e) {
       logError(e.toString());
+      updateState(AssetNotificationState.error);
       return [];
     }
+  }
+
+  void updateState(AssetNotificationState newState) {
+    assetState.updateState(newState);
   }
 
   Future<PublicAccount?> getAccount() async {
@@ -76,81 +84,72 @@ class AssetsNotifier extends AsyncNotifier<List<Asset>> {
     }
   }
 
-  Future<Map<String, dynamic>> getAssetData(Crypto crypto,
-      PublicAccount account, List<CryptoMarketData> listTokenData) async {
+  Future<Asset> getAssetData(
+      Crypto crypto, PublicAccount account, int waitTime) async {
     try {
+      final priceManager = PriceManager();
       final cryptoBalance = await RpcService().getBalance(
         crypto,
         account,
       );
-
-      final tokenData = listTokenData
-          .where((d) =>
-              d.id.toLowerCase().trim() ==
-              crypto.cgSymbol?.toLowerCase().trim())
-          .firstOrNull;
-
       final balance = cryptoBalance;
-      log("Balance $balance");
-
-      final trend = tokenData?.priceChangePercentage24h ?? 0;
-
-      final cryptoPrice = tokenData?.currentPrice ?? 0;
-
+      final priceDataResult = await Future.wait([
+        priceManager.getPriceChange24h(crypto),
+        priceManager.getTokenPriceUsd(crypto),
+      ]);
+      final trend = priceDataResult[0];
+      final cryptoPrice = priceDataResult[1];
       final balanceUsd =
           Decimal.parse(balance) * Decimal.parse(cryptoPrice.toString());
 
-      return {
-        "cryptoBalance": Asset(
-            crypto: crypto,
-            balanceUsd: balanceUsd.toString(),
-            balanceCrypto: balance,
-            cryptoTrendPercent: trend,
-            cryptoPrice: cryptoPrice,
-            marketData: tokenData),
-        "availableCrypto": crypto,
-        "balanceUsd": balanceUsd,
-        "marketData": tokenData
-      };
+      return Asset(
+        crypto: crypto,
+        balanceUsd: balanceUsd.toString(),
+        balanceCrypto: balance,
+        cryptoTrendPercent: trend,
+        cryptoPrice: cryptoPrice,
+      );
     } catch (e) {
       logError(e.toString());
-      return <String, dynamic>{};
+      rethrow;
     }
   }
 
   Future<List<Asset>> getUserAssets({required PublicAccount account}) async {
     try {
-      log("Updating assets");
-      final savedCrypto = await ref.read(savedCryptosProviderNotifier.future);
-      log("Saved crypto ${savedCrypto.length}");
+      updateState(AssetNotificationState.loading);
 
+      final savedCrypto = await ref.read(savedCryptosProviderNotifier.future);
       List<Crypto> enabledCryptos = [];
-      List<Asset> cryptoBalance = [];
+      List<Asset> assets = [];
 
       if (savedCrypto.isNotEmpty) {
         enabledCryptos =
             savedCrypto.where((c) => c.canDisplay == true).toList();
 
-        List<Map<String, dynamic>> results = [];
-        final listTokenData = await priceManager.getListTokensMarketData();
-        results = await Future.wait(enabledCryptos.map((crypto) async {
-          return await getAssetData(crypto, account, listTokenData);
+        final assetsFuture =
+            await Future.wait(List.generate(enabledCryptos.length, (i) {
+          final element = enabledCryptos[i];
+          return getAssetData(element, account, i * 100);
         }));
 
-        cryptoBalance.addAll(results.map((r) => r["cryptoBalance"] as Asset));
-
-        cryptoBalance.sort((a, b) =>
+        assets.addAll(assetsFuture);
+        assets.sort((a, b) =>
             (double.parse(b.balanceUsd)).compareTo(double.parse(a.balanceUsd)));
 
-        final userAssets = cryptoBalance;
-        await saveListAssets(cryptoBalance, account);
+        final userAssets = assets;
+        await saveListAssets(assets, account);
         // await saveListAssetsResponse(userAssets, account);
+        updateState(AssetNotificationState.completed);
+
         return userAssets;
       }
 
       throw ("No crypto found");
     } catch (e) {
       logError(e.toString());
+      updateState(AssetNotificationState.error);
+
       return [];
     }
   }

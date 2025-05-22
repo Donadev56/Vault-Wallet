@@ -10,7 +10,6 @@ class SolanaRequestManager {
 
   Future<List<Transaction>> fetchTransactions(
       PublicAccount account, Crypto token) async {
-    log("Getting transactions");
     try {
       final url = "$byAddressUrl${account.addressByToken(token)}";
       final response = await http.get(Uri.parse(url));

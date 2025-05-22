@@ -224,7 +224,7 @@ void showCustomDrawer({
                           child: SizedBox(
                               height: 50,
                               width: MediaQuery.of(context).size.width,
-                              child: PositionedIcons(
+                              child: PositionedCryptos(
                                   cryptos: availableCryptos,
                                   colors: colors,
                                   imageSizeOf: imageSizeOf)),

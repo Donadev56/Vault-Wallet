@@ -23,7 +23,7 @@ class PrimaryButton extends StatelessWidget {
   static const defaultTextColor = Colors.white;
   static const defaultBorderColor = Colors.transparent;
   static const defaultBorderWidth = 0.0;
-  static const defaultBorderRadius = 10.0;
+  static const defaultBorderRadius = 5.0;
   static const defaultPadding = EdgeInsets.all(10);
 
   const PrimaryButton(

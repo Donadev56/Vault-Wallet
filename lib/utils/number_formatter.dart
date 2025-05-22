@@ -40,15 +40,32 @@ class NumberFormatter {
     return formatted.trim();
   }
 
-  String formatDecimal(String numberStr, {int maxDecimals = 18}) {
+  String formatDecimal(String numberStr, {int maxDecimals = 13}) {
+    final dec = Decimal.parse(numberStr);
+    final integerPart = dec.truncate();
+    final isLargeValue = integerPart >= Decimal.one;
+
+    final decimalsToUse = isLargeValue ? 2 : maxDecimals;
+
+    final fixed = dec.toStringAsFixed(decimalsToUse);
+    return fixed
+        .replaceFirst(RegExp(r'0+$'), '')
+        .replaceFirst(RegExp(r'\.$'), '');
+  }
+
+  /*
+
+  String formatDecimal(String numberStr, {int maxDecimals = 13}) {
     final dec = Decimal.parse(numberStr);
     final fixed = dec.toStringAsFixed(maxDecimals);
     return fixed
         .replaceFirst(RegExp(r'0+$'), '')
         .replaceFirst(RegExp(r'\.$'), '');
   }
+ */
 
-  String formatSmallDecimal(String numberStr, {int maxDecimals = 14}) {
+/*
+  String formatSmallDecimal(String numberStr, {int maxDecimals = 13}) {
     final dec = Decimal.parse(numberStr);
     final fixed = dec.toStringAsFixed(maxDecimals);
 
@@ -65,7 +82,7 @@ class NumberFormatter {
 
     return fixed;
   }
-
+*/
   String formatUsd({required double value}) {
     String formatted =
         CurrencyFormatter.format(value, formatterSettingsCrypto, decimal: 2);

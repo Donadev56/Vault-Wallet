@@ -9,6 +9,7 @@ import 'package:moonwallet/notifiers/app_ui_config_notifier.dart';
 import 'package:moonwallet/notifiers/assets_notifier.dart';
 import 'package:moonwallet/notifiers/current_page_index_notifier.dart';
 import 'package:moonwallet/notifiers/last_account_notifier.dart';
+import 'package:moonwallet/notifiers/notification_states/assets_load_state.dart';
 import 'package:moonwallet/notifiers/profile_image_notifier.dart';
 import 'package:moonwallet/notifiers/saved_crypto.dart';
 import 'package:moonwallet/notifiers/session_provider.dart';
@@ -17,6 +18,7 @@ import 'package:moonwallet/service/db/crypto_storage_manager.dart';
 import 'package:moonwallet/service/external_data/price_manager.dart';
 import 'package:moonwallet/service/db/wallet_db.dart';
 import 'package:moonwallet/types/account_related_types.dart' as types;
+import 'package:moonwallet/types/notifications_types.dart';
 import 'package:moonwallet/types/types.dart' as types;
 import 'package:moonwallet/utils/colors.dart';
 import 'package:moonwallet/utils/encrypt_service.dart';
@@ -127,3 +129,8 @@ final savedTransactionProviderNotifier = AsyncNotifierProvider.family<
   SavedTransactions.new,
 );
 */
+
+final assetsLoadStateProvider =
+    StateNotifierProvider<AssetsLoadState, AssetNotification>(
+  (ref) => AssetsLoadState(),
+);

@@ -23,15 +23,13 @@ void showTransactionDetails(
     required bool isFrom,
     required Transaction tr,
     required Crypto token}) {
-  Future<double> getPrice() async {
+  Future<String> getPrice() async {
     try {
       final priceManager = PriceManager();
-      final marketData =
-          await priceManager.getTokenMarketData(token.cgSymbol ?? "");
-      return marketData?.currentPrice ?? 0;
+      return await priceManager.getTokenPriceUsd(token);
     } catch (e) {
       logError(e.toString());
-      return 0;
+      return "0";
     }
   }
 
@@ -112,7 +110,7 @@ void showTransactionDetails(
                         builder: (ctx, result) {
                           if (result.hasData) {
                             return Text(
-                              "≈\$${((result.data ?? 0) * (double.tryParse(tr.uiAmount) ?? 0)).toStringAsFixed(2)}",
+                              "≈\$${((double.tryParse(result.data ?? "") ?? 0) * (double.tryParse(tr.uiAmount) ?? 0)).toStringAsFixed(2)}",
                               style: textTheme.bodyMedium?.copyWith(
                                   fontSize: 14,
                                   color:

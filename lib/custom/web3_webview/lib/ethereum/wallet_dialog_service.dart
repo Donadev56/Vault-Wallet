@@ -1,9 +1,14 @@
 // ignore_for_file: deprecated_member_use
 
 import 'package:flutter/material.dart';
+import 'package:flutter_feather_icons/flutter_feather_icons.dart';
 import 'package:flutter_inappwebview/flutter_inappwebview.dart';
-import 'package:google_fonts/google_fonts.dart';
 import 'package:moonwallet/types/types.dart';
+import 'package:moonwallet/widgets/dialogs/row_details.dart';
+import 'package:moonwallet/widgets/dialogs/standard_container.dart';
+import 'package:moonwallet/widgets/func/discover/network_image.dart';
+import 'package:moonwallet/widgets/func/transactions/transactions_body/transaction_app_bar.dart';
+import 'package:moonwallet/widgets/screen_widgets/positioned_icon_container.dart';
 import '../utils/app_utils.dart';
 import '../widgets/bottom_sheet_dialog.dart';
 import '../models/button_config.dart';
@@ -45,7 +50,8 @@ class WalletDialogTheme {
     ),
     ButtonConfig? buttonConfirmStyle,
     ButtonConfig? buttonRejectStyle,
-    this.dialogPadding = const EdgeInsets.all(20.0),
+    this.dialogPadding =
+        const EdgeInsets.symmetric(vertical: 10, horizontal: 15.0),
     this.contentPadding = const EdgeInsets.symmetric(horizontal: 20.0),
     this.itemSpacing = 10.0,
   })  : buttonConfirmStyle = buttonConfirmStyle ?? const ButtonConfig(),
@@ -100,56 +106,120 @@ class WalletDialogService {
     _theme = theme;
   }
 
-  Widget _buildDialogHeader(String title, AppColors colors) {
-    return Text(
-      title,
-      style: GoogleFonts.roboto(
-          color: colors.textColor, fontSize: 20, fontWeight: FontWeight.bold),
-      textAlign: TextAlign.center,
-    );
+  Widget _buildDialogHeader(
+      String title, AppColors colors, BuildContext context) {
+    return TransactionAppBar(
+        padding: const EdgeInsets.only(bottom: 10),
+        colors: colors,
+        title: title,
+        actions: [
+          IconButton(
+            onPressed: () {
+              Navigator.pop(
+                context,
+              );
+            },
+            icon: Icon(FeatherIcons.x, color: colors.textColor),
+          )
+        ]);
+  }
+
+  Widget buildConnectionImage(
+      String dappUrl, AppColors colors, BuildContext context) {
+    final textTheme = TextTheme.of(context);
+
+    return LayoutBuilder(builder: (ctx, c) {
+      final elements = [
+        ClipRRect(
+          key: ValueKey("vault"),
+          borderRadius: BorderRadius.circular(50),
+          child: Image.asset(
+            ("assets/icon/filled/icon1.png"),
+            width: 70,
+            height: 70,
+          ),
+        ),
+        ClipRRect(
+            key: ValueKey(dappUrl),
+            borderRadius: BorderRadius.circular(50),
+            child: CustomNetworkImage(
+              url: "https://www.google.com/s2/favicons?sz=64&domain=$dappUrl",
+              size: 70,
+              colors: colors,
+              imageSizeOf: (v) => v,
+              cover: true,
+              placeholderSize: 70,
+            )),
+      ];
+      return Container(
+        padding: const EdgeInsets.symmetric(vertical: 10, horizontal: 15),
+        alignment: AlignmentDirectional.center,
+        child: Column(
+          spacing: 10,
+          mainAxisAlignment: MainAxisAlignment.center,
+          crossAxisAlignment: CrossAxisAlignment.center,
+          children: [
+            SizedBox(
+              width: 140,
+              height: 80,
+              child: PositionedIcons(
+                colors: colors,
+                imageSizeOf: (v) => v,
+                gap: 50,
+                children: elements,
+              ),
+            ),
+            Text(
+              "Connect to Website",
+              style: textTheme.bodyMedium
+                  ?.copyWith(fontSize: 15, fontWeight: FontWeight.w400),
+            ),
+            SizedBox(
+              height: 5,
+            )
+          ],
+        ),
+      );
+    });
   }
 
   Widget _buildInfoRow(
-      String label, String value, bool isRequestFrom, AppColors colors) {
-    return Wrap(
-      alignment: WrapAlignment.spaceBetween,
-      crossAxisAlignment: WrapCrossAlignment.center,
-      children: [
-        Text("$label: ",
-            style: GoogleFonts.roboto(
-                color: colors.textColor, fontWeight: FontWeight.bold)),
-        Text(value,
-            style: GoogleFonts.roboto(
-                color: isRequestFrom
-                    ? Colors.orange
-                    : colors.textColor.withOpacity(0.8))),
-      ],
+      String label, String value, bool isImportant, AppColors colors) {
+    return RowDetailsContent(
+      colors: colors,
+      name: label,
+      value: value,
+      copyOnClick: isImportant,
+      valueColor: isImportant ? Colors.orange : null,
     );
   }
 
-  Widget _buildActionButtons({
-    required BuildContext context,
-    required String cancelText,
-    required String confirmText,
-    required AppColors colors,
-  }) {
+  Widget buildActionButtons(
+      {required BuildContext context,
+      required String cancelText,
+      required String confirmText,
+      required AppColors colors,
+      void Function()? onConfirmPress,
+      void Function()? onCancelPress}) {
     return LayoutBuilder(builder: (ctx, c) {
       final width = c.maxWidth;
       return Row(
         mainAxisAlignment: MainAxisAlignment.spaceAround,
         children: [
           PrimaryButton(
-            width: width * 0.58,
+            width: width * 0.60,
             colors: colors,
-            onPressed: () async => Navigator.pop(context, true),
+            onPressed:
+                onConfirmPress ?? () async => Navigator.pop(context, true),
             text: confirmText,
             mode: ButtonMode.confirm,
             style: _theme.buttonConfirmStyle,
           ),
           PrimaryButton(
-            width: width * 0.38,
+            width: width * 0.36,
             colors: colors,
-            onPressed: () async => Navigator.pop(context, false),
+            onPressed:
+                onCancelPress ?? () async => Navigator.pop(context, false),
             text: cancelText,
             mode: ButtonMode.reject,
             style: _theme.buttonRejectStyle,
@@ -168,7 +238,7 @@ class WalletDialogService {
     return GestureDetector(
       child: ConstrainedBox(
         constraints:
-            BoxConstraints(maxHeight: MediaQuery.of(context).size.width * 0.3),
+            BoxConstraints(maxHeight: MediaQuery.of(context).size.height * 0.3),
         child: Container(
           padding: padding ?? _theme.dialogPadding,
           decoration: BoxDecoration(
@@ -201,8 +271,7 @@ class WalletDialogService {
         shrinkWrap: true,
         padding: _theme.contentPadding,
         children: [
-          _buildDialogHeader(
-              '$appName request to connect to your wallet?', colors),
+          buildConnectionImage(requestFrom, colors, context),
           SizedBox(height: _theme.itemSpacing),
           _buildInfoRow('Request from', requestFrom, true, colors),
           SizedBox(height: _theme.itemSpacing),
@@ -211,7 +280,7 @@ class WalletDialogService {
           Divider(color: colors.secondaryColor.withOpacity(0.3)),
           _buildPermissionsSection(colors, context),
           SizedBox(height: _theme.itemSpacing * 2),
-          _buildActionButtons(
+          buildActionButtons(
             colors: colors,
             context: context,
             cancelText: 'Reject',
@@ -223,41 +292,92 @@ class WalletDialogService {
   }
 
   Widget _buildPermissionsSection(AppColors colors, BuildContext context) {
+    final textTheme = TextTheme.of(context);
     return Column(
       children: [
-        Text('Permission',
-            style: GoogleFonts.roboto(
-                color: colors.textColor,
-                fontSize: 16,
-                fontWeight: FontWeight.bold)),
-        SizedBox(height: _theme.itemSpacing),
-        Text(
-          'Do you want this site to do the following?',
-          style: GoogleFonts.roboto(color: colors.textColor.withOpacity(0.5)),
-        ),
-        SizedBox(height: _theme.itemSpacing),
-        _buildContainer(
-          context: context,
-          colors: colors,
-          child: Wrap(
-            alignment: WrapAlignment.start,
-            crossAxisAlignment: WrapCrossAlignment.center,
-            children: [
-              Text(
-                  'See address, account balance, activity and suggest transactions to approve',
-                  style: GoogleFonts.roboto(
-                      color: colors.textColor.withOpacity(0.8)))
-            ],
+        SizedBox(height: 15),
+        Align(
+          alignment: Alignment.center,
+          child: Text(
+            'Do you want this site to do the following?',
+            textAlign: TextAlign.start,
+            style: textTheme.bodyMedium?.copyWith(
+                color: colors.textColor.withOpacity(0.5), fontSize: 12),
           ),
         ),
-        SizedBox(height: _theme.itemSpacing),
-        Text(
-          'Only connect with sites you trust.',
-          textAlign: TextAlign.center,
-          style: GoogleFonts.roboto(color: colors.textColor.withOpacity(0.8)),
+        SizedBox(height: 15),
+        Column(
+          spacing: 15,
+          children: [
+            buildRowWithIconDetails(
+                icon: Icons.account_balance,
+                color: colors.themeColor,
+                text: "See your wallet balance and activity",
+                textTheme: textTheme,
+                colors: colors),
+            buildRowWithIconDetails(
+                icon: Icons.account_balance,
+                color: colors.themeColor,
+                text: "Send you request for transactions",
+                textTheme: textTheme,
+                colors: colors),
+            buildRowWithIconDetails(
+                icon: Icons.close,
+                color: colors.redColor,
+                text: "Cannot move funds without your permission",
+                textTheme: textTheme,
+                colors: colors)
+          ],
         ),
+        SizedBox(height: 25),
       ],
     );
+  }
+
+  Widget buildRowWithIconDetails(
+      {required IconData icon,
+      required Color color,
+      double rounded = 50,
+      double spacing = 20,
+      required String text,
+      TextStyle? textStyle,
+      required TextTheme textTheme,
+      required AppColors colors}) {
+    return LayoutBuilder(builder: (ctx, c) {
+      return Row(
+        spacing: spacing,
+        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+        crossAxisAlignment: CrossAxisAlignment.center,
+        children: [
+          Container(
+            width: 35,
+            height: 35,
+            padding: const EdgeInsets.all(5),
+            decoration: BoxDecoration(
+                color: color.withValues(alpha: 0.2),
+                borderRadius: BorderRadius.circular(rounded)),
+            child: Icon(
+              icon,
+              color: color,
+              size: 20,
+            ),
+          ),
+          Expanded(
+              child: ConstrainedBox(
+            constraints: BoxConstraints(maxWidth: c.maxWidth),
+            child: Text(
+              text,
+              overflow: TextOverflow.clip,
+              style: textStyle ??
+                  textTheme.bodyMedium?.copyWith(
+                      color: colors.textColor.withValues(alpha: 0.9),
+                      fontSize: 13,
+                      fontWeight: FontWeight.w400),
+            ),
+          ))
+        ],
+      );
+    });
   }
 
   Future _showDialog({
@@ -271,7 +391,7 @@ class WalletDialogService {
       useRootNavigator: true,
       backgroundColor: colors.primaryColor,
       child: Container(
-        padding: _theme.dialogPadding,
+        padding: const EdgeInsets.only(top: 5, left: 5, right: 5, bottom: 20),
         child: builder(context),
       ),
     );
@@ -283,6 +403,7 @@ class WalletDialogService {
       required InAppWebViewController ctrl,
       required AppColors colors}) async {
     final requestFrom = (await ctrl.getUrl())?.host ?? '';
+    final textTheme = TextTheme.of(context);
 
     return await _showDialog(
       colors: colors,
@@ -291,13 +412,13 @@ class WalletDialogService {
         shrinkWrap: true,
         padding: _theme.contentPadding,
         children: [
-          _buildDialogHeader('Sign Message', colors),
+          _buildDialogHeader('Sign Message', colors, context),
           SizedBox(height: _theme.itemSpacing),
           _buildInfoRow('Request from', requestFrom, true, colors),
           Divider(color: _theme.borderColor),
           Text('Message to sign:',
-              style:
-                  GoogleFonts.roboto(color: colors.textColor.withOpacity(0.8))),
+              style: textTheme.bodyMedium
+                  ?.copyWith(color: colors.textColor.withOpacity(0.8))),
           SizedBox(height: _theme.itemSpacing),
           GestureDetector(
             onTap: () => AppUtils.copyToClipboard(message),
@@ -305,12 +426,12 @@ class WalletDialogService {
               context: context,
               colors: colors,
               child: Text(message,
-                  style: GoogleFonts.roboto(
-                      color: colors.textColor.withOpacity(0.8))),
+                  style: textTheme.bodyMedium
+                      ?.copyWith(color: colors.textColor.withOpacity(0.8))),
             ),
           ),
           SizedBox(height: _theme.itemSpacing * 2),
-          _buildActionButtons(
+          buildActionButtons(
             colors: colors,
             context: context,
             cancelText: 'Reject',
@@ -334,7 +455,7 @@ class WalletDialogService {
     final value = txParams['value'];
     final data = txParams['data'];
     final gas = txParams['gas'];
-
+    final textTheme = TextTheme.of(context);
     return await _showDialog(
       colors: colors,
       context: context,
@@ -342,43 +463,33 @@ class WalletDialogService {
         shrinkWrap: true,
         padding: _theme.contentPadding,
         children: [
-          _buildDialogHeader('Transaction Request', colors),
+          _buildDialogHeader('Transaction Request', colors, context),
           if (value != null) ...[
-            SizedBox(height: _theme.itemSpacing),
-            _buildContainer(
-                context: context,
-                colors: colors,
-                backgroundColor: colors.secondaryColor,
-                child: Row(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  spacing: 10,
-                  children: [
-                    Text(
-                      AppUtils.formatCoin(
-                        BigInt.parse(value).parseEther(),
-                        symbol: "",
-                        decimalDigits: 9,
-                      ),
-                      style: GoogleFonts.roboto(
-                          color: colors.textColor.withOpacity(0.8),
-                          fontSize: 21,
-                          fontWeight: FontWeight.bold),
+            StandardContainer(
+              padding: const EdgeInsets.symmetric(vertical: 5, horizontal: 0),
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.start,
+                spacing: 10,
+                children: [
+                  Text(
+                    AppUtils.formatCoin(
+                      BigInt.parse(value).parseEther(),
+                      symbol: "",
+                      decimalDigits: 9,
                     ),
-                    Text(network.nativeCurrency.symbol,
-                        style: GoogleFonts.roboto(
-                            color: colors.textColor.withOpacity(0.3),
-                            fontSize: 21,
-                            fontWeight: FontWeight.bold))
-                  ],
-                ) /*_buildInfoRow(
-                'Value',
-                AppUtils.formatCoin(
-                  BigInt.parse(value).parseGwei(),
-                  symbol: "",
-                  decimalDigits: 9,
-                ),
-              ),*/
-                ),
+                    style: textTheme.bodyMedium?.copyWith(
+                        color: colors.textColor.withOpacity(0.8),
+                        fontSize: 25,
+                        fontWeight: FontWeight.w800),
+                  ),
+                  Text(network.nativeCurrency.symbol,
+                      style: textTheme.bodyMedium?.copyWith(
+                          color: colors.textColor.withOpacity(0.3),
+                          fontSize: 25,
+                          fontWeight: FontWeight.w800))
+                ],
+              ),
+            )
           ],
           SizedBox(height: _theme.itemSpacing),
           _buildInfoRow('Request from', requestFrom, true, colors),
@@ -388,8 +499,8 @@ class WalletDialogService {
           _buildInfoRow('To', to.ellipsisMidWalletAddress(), false, colors),
           SizedBox(height: _theme.itemSpacing),
           Text('Details',
-              style:
-                  GoogleFonts.roboto(color: colors.textColor.withOpacity(0.8))),
+              style: textTheme.bodyMedium
+                  ?.copyWith(color: colors.textColor.withOpacity(0.8))),
           SizedBox(height: _theme.itemSpacing),
           if (gas != null)
             _buildContainer(
@@ -409,20 +520,20 @@ class WalletDialogService {
             SizedBox(height: _theme.itemSpacing),
             Text(
               'Hex Data',
-              style:
-                  GoogleFonts.roboto(color: colors.textColor.withOpacity(0.8)),
+              style: textTheme.bodyMedium
+                  ?.copyWith(color: colors.textColor.withOpacity(0.8)),
             ),
             SizedBox(height: _theme.itemSpacing),
             _buildContainer(
               context: context,
               colors: colors,
               child: Text(data.toString(),
-                  style: GoogleFonts.roboto(
-                      color: colors.textColor.withOpacity(0.8))),
+                  style: textTheme.bodyMedium
+                      ?.copyWith(color: colors.textColor.withOpacity(0.8))),
             ),
           ],
           SizedBox(height: _theme.itemSpacing * 2),
-          _buildActionButtons(
+          buildActionButtons(
             colors: colors,
             context: context,
             cancelText: 'Reject',
@@ -445,7 +556,7 @@ class WalletDialogService {
         shrinkWrap: true,
         padding: _theme.contentPadding,
         children: [
-          _buildDialogHeader('Switch Network?', colors),
+          _buildDialogHeader('Switch Network?', colors, context),
           SizedBox(height: _theme.itemSpacing),
           _buildInfoRow('Chain ID', chain.chainId.toString(), false, colors),
           SizedBox(height: _theme.itemSpacing),
@@ -461,7 +572,7 @@ class WalletDialogService {
                 false, colors),
           ],
           SizedBox(height: _theme.itemSpacing * 2),
-          _buildActionButtons(
+          buildActionButtons(
             colors: colors,
             context: context,
             cancelText: 'Cancel',
@@ -484,7 +595,7 @@ class WalletDialogService {
         shrinkWrap: true,
         padding: _theme.contentPadding,
         children: [
-          _buildDialogHeader('Add Network?', colors),
+          _buildDialogHeader('Add Network?', colors, context),
           SizedBox(height: _theme.itemSpacing),
           _buildInfoRow('Chain ID', network.chainId.toString(), false, colors),
           SizedBox(height: _theme.itemSpacing),
@@ -500,7 +611,7 @@ class WalletDialogService {
                 network.nativeCurrency.decimals.toString(), false, colors),
           ],
           SizedBox(height: _theme.itemSpacing * 2),
-          _buildActionButtons(
+          buildActionButtons(
             colors: colors,
             context: context,
             cancelText: 'Cancel',

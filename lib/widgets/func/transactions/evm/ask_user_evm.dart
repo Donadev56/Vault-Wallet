@@ -1,14 +1,14 @@
 // ignore_for_file: deprecated_member_use
 
+import 'package:decimal/decimal.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter_feather_icons/flutter_feather_icons.dart';
 import 'package:moonwallet/logger/logger.dart';
 import 'package:moonwallet/types/account_related_types.dart';
 import 'package:moonwallet/types/types.dart';
-import 'package:moonwallet/widgets/buttons/elevated.dart';
 import 'package:moonwallet/widgets/func/transactions/evm/show_custom_gas_modal.dart';
 import 'package:moonwallet/widgets/func/transactions/transactions_body/show_transaction_request.dart';
-import 'package:moonwallet/widgets/func/transactions/transactions_body/transaction_app_bar.dart';
+import 'package:moonwallet/widgets/func/transactions/transactions_body/standard_send_app_bar.dart';
+import 'package:moonwallet/widgets/func/transactions/transactions_body/standard_send_bottom_button.dart';
 import 'package:moonwallet/widgets/func/transactions/transactions_body/transaction_destination_details.dart';
 import 'package:moonwallet/widgets/func/transactions/transactions_body/transaction_parent_container.dart';
 import 'package:moonwallet/widgets/func/transactions/transactions_body/transaction_token_details.dart';
@@ -65,21 +65,7 @@ Future<UserCustomGasRequestResponse?> askUserEvm({
               child: ListView(
                 shrinkWrap: true,
                 children: [
-                  TransactionAppBar(
-                      padding: const EdgeInsets.only(bottom: 10),
-                      colors: colors,
-                      title: "Transfer",
-                      actions: [
-                        IconButton(
-                          onPressed: () {
-                            Navigator.pop(
-                              confirmationCtx,
-                            );
-                          },
-                          icon: Icon(FeatherIcons.xCircle,
-                              color: Colors.pinkAccent),
-                        )
-                      ]),
+                  StandardSendAppBar(colors: colors),
                   TransactionTokenDetails(
                       colors: colors, crypto: crypto, value: txData.valueEth),
                   SizedBox(
@@ -178,7 +164,7 @@ Future<UserCustomGasRequestResponse?> askUserEvm({
                                   ),
                                   SizedBox(height: 2),
                                   Text(
-                                    "\$ ${(txData.cryptoPrice * ((gas["wei"] as BigInt) / BigInt.from(10).pow(txData.crypto.decimals))).toStringAsFixed(4)}",
+                                    "\$ ${(Decimal.parse(txData.cryptoPrice) * Decimal.fromBigInt(gas["wei"]) / Decimal.fromInt(10).pow(txData.crypto.decimals).toDecimal()).toDecimal().toStringAsFixed(2)}",
                                     style: textTheme.bodyMedium?.copyWith(
                                         color: colors.textColor, fontSize: 10),
                                   ),
@@ -195,21 +181,22 @@ Future<UserCustomGasRequestResponse?> askUserEvm({
                     height: 40,
                   ),
 
-                  CustomElevatedButton(
-                    colors: colors,
-                    onPressed: () {
-                      if (canUseCustomGas) {
-                        Navigator.pop(context, gasConfig);
-                      } else {
-                        Navigator.pop(
-                            context,
-                            UserCustomGasRequestResponse(
-                              ok: true,
-                            ));
-                      }
-                    },
-                    text: "Continue",
-                  )
+                  StandardSendBottomButton(
+                      colors: colors,
+                      onConfirmPress: () {
+                        if (canUseCustomGas) {
+                          Navigator.pop(context, gasConfig);
+                        } else {
+                          Navigator.pop(
+                              context,
+                              UserCustomGasRequestResponse(
+                                ok: true,
+                              ));
+                        }
+                      }),
+                  SizedBox(
+                    height: 20,
+                  ),
                 ],
               ),
             );

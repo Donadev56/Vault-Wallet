@@ -12,7 +12,6 @@ import 'package:moonwallet/logger/logger.dart';
 import 'package:moonwallet/notifiers/providers.dart';
 import 'package:moonwallet/screens/dashboard/main/wallet_overview/receive.dart';
 import 'package:moonwallet/screens/dashboard/main/wallet_overview/send.dart';
-import 'package:moonwallet/service/external_data/crypto_request_manager.dart';
 import 'package:moonwallet/service/db/crypto_storage_manager.dart';
 import 'package:moonwallet/service/external_data/transaction_manager.dart';
 import 'package:moonwallet/service/rpc_service.dart';
@@ -49,7 +48,6 @@ class _WalletViewScreenState extends ConsumerState<WalletViewScreen>
   late PublicAccount currentAccount;
 
   List<PublicAccount> accounts = [];
-  List<Crypto> reorganizedCrypto = [];
   String cryptoId = "";
 
   bool isScrollingToTheBottom = false;
@@ -66,7 +64,7 @@ class _WalletViewScreenState extends ConsumerState<WalletViewScreen>
   String totalBalanceUsd = "0";
 
   bool isBalanceLoading = true;
-  double cryptoPrice = 0;
+  String cryptoPrice = "0";
 
   AppColors colors = AppColors.defaultTheme;
   Themes themes = Themes();
@@ -94,7 +92,6 @@ class _WalletViewScreenState extends ConsumerState<WalletViewScreen>
     super.initState();
 
     getSavedTheme();
-    reorganizeCrypto();
     _tabController = TabController(length: 3, vsync: this);
     _scrollController.addListener(_onScroll);
     init();
@@ -146,25 +143,6 @@ class _WalletViewScreenState extends ConsumerState<WalletViewScreen>
         isScrollingToTheBottom = true;
       });
       log("scroll direction is reverse");
-    }
-  }
-
-  Future<void> reorganizeCrypto() async {
-    final List<Crypto> standardCrypto =
-        await CryptoRequestManager().getAllCryptos();
-    final savedCrypto =
-        await cryptoStorageManager.getSavedCryptos(wallet: currentAccount);
-    if (savedCrypto == null || savedCrypto.isEmpty) {
-      if (!mounted) return;
-
-      setState(() {
-        reorganizedCrypto = standardCrypto;
-      });
-    } else {
-      if (!mounted) return;
-      setState(() {
-        reorganizedCrypto = savedCrypto;
-      });
     }
   }
 
@@ -419,7 +397,7 @@ class _WalletViewScreenState extends ConsumerState<WalletViewScreen>
                                             MaterialPageRoute(
                                                 builder: (ctx) => ReceiveScreen(
                                                       initData: WidgetInitialData(
-                                                          cryptoPrice: 0,
+                                                          cryptoPrice: "0",
                                                           account:
                                                               currentAccount,
                                                           crypto: currentCrypto,

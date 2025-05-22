@@ -35,7 +35,6 @@ class TransactionStorage {
         ..sort((a, b) => b.timeStamp.compareTo(a.timeStamp));
 
       transactionsToSave = [...filteredTransaction];
-      log("Transactions ${transactionsToSave.firstOrNull}");
 
       if (transactionsToSave.isNotEmpty) {
         final lastUpdateDate = transactionsToSave.first.timeStamp;

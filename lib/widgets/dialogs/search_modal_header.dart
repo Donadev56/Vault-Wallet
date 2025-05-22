@@ -57,7 +57,7 @@ class SearchModalAppBar extends StatelessWidget {
         controller: controller,
         prefixIcon: Icon(
           Icons.search,
-          color: colors.grayColor,
+          color: colors.textColor.withValues(alpha: 0.4),
         ),
         colors: colors,
         fontSizeOf: fontSizeOf,

@@ -17,8 +17,8 @@ class CoinCustomListTitle extends StatelessWidget {
   final DoubleFactor imageSizeOf;
   final DoubleFactor listTitleHorizontalOf;
   final DoubleFactor listTitleVerticalOf;
-  final double cryptoPrice;
-  final double trend;
+  final String cryptoPrice;
+  final String trend;
   final bool isCryptoHidden;
   final String tokenBalance;
   final String usdBalance;
@@ -122,9 +122,11 @@ class CoinCustomListTitle extends StatelessWidget {
                   )),
               if (trend != 0)
                 Text(
-                  " ${(trend).toStringAsFixed(2)}%",
+                  " ${double.parse(trend).toStringAsFixed(2)}%",
                   style: textTheme.bodySmall?.copyWith(
-                    color: trend > 0 ? colors.greenColor : colors.redColor,
+                    color: double.parse(trend) > 0
+                        ? colors.greenColor
+                        : colors.redColor,
                     fontSize: fontSizeOf(12.88),
                   ),
                 ),

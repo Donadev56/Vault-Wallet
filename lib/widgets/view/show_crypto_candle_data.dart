@@ -1,4 +1,5 @@
 import 'dart:ui';
+import 'package:decimal/decimal.dart';
 import 'package:fl_chart/fl_chart.dart';
 import 'package:flutter/material.dart';
 
@@ -20,7 +21,7 @@ void showCryptoCandleModal(
   final priceManager = PriceManager();
   int currentIndex = 0;
   final Offset offset = Offset(-500.0, 0.0);
-  double price = 0.0;
+  String price = "0.0";
   bool isPriceLoading = true;
   double trend = 0.0;
   final double scale = 4.0;
@@ -53,16 +54,17 @@ void showCryptoCandleModal(
           Future<void> checkCryptoTrend() async {
             try {
               log("Loading price");
-              final data = await priceManager
-                  .getTokenMarketData(currentCrypto.cgSymbol ?? "");
 
-              final percent = data?.priceChangePercentage24h ?? 0;
-              final cryptoPrice = data?.currentPrice ?? 0;
+              final percent =
+                  await priceManager.getPriceChange24h(currentCrypto);
+
+              final cryptoPrice =
+                  await priceManager.getTokenPriceUsd(currentCrypto);
 
               setModalState(() {
-                isPositive = percent > 0 ? true : false;
+                isPositive = double.parse(percent) > 0 ? true : false;
                 price = cryptoPrice;
-                trend = percent;
+                trend = double.parse(percent);
                 initialTrend = trend;
                 isPriceLoading = false;
               });
@@ -201,10 +203,14 @@ void showCryptoCandleModal(
                                           final currentPrice = price;
                                           final priceSince = double.parse(
                                               y.toStringAsFixed(2));
-                                          final newTrend =
-                                              ((priceSince - currentPrice) /
-                                                      priceSince) *
-                                                  100;
+                                          final newTrend = ((Decimal.parse(
+                                                              priceSince
+                                                                  .toString()) -
+                                                          Decimal.parse(
+                                                              currentPrice))
+                                                      .toDouble() /
+                                                  priceSince) *
+                                              100;
                                           setModalState(() {
                                             trend = newTrend;
                                             isPositive = newTrend > 0;

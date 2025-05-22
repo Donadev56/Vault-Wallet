@@ -15,12 +15,12 @@ class TransactionParentContainer extends StatelessWidget {
     return Material(
       color: Colors.transparent,
       child: Container(
-          padding: const EdgeInsets.all(25),
+          padding: const EdgeInsets.symmetric(vertical: 5, horizontal: 25),
           decoration: BoxDecoration(
             color: colors.primaryColor,
             borderRadius: BorderRadius.only(
-              topLeft: Radius.circular(30),
-              topRight: Radius.circular(30),
+              topLeft: Radius.circular(10),
+              topRight: Radius.circular(10),
             ),
           ),
           child: child),

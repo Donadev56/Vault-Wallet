@@ -60,7 +60,7 @@ class _SendTransactionScreenState extends ConsumerState<SendTransactionScreen> {
 
   final formatter = NumberFormatter();
 
-  double cryptoPrice = 0;
+  String cryptoPrice = "0";
   String tokenBalance = "0";
   bool isAndroid = false;
   double networkBalance = 0;
@@ -500,11 +500,12 @@ class _SendTransactionScreenState extends ConsumerState<SendTransactionScreen> {
                           _amountUsdController.text = "";
                         });
                       }
-                      final double cryptoAmount = double.parse(value);
+                      final cryptoAmount = Decimal.parse(value);
                       setState(() {
                         _amountUsdController.text = NumberFormatter()
                             .formatDecimal(
-                                (cryptoAmount * cryptoPrice).toString());
+                                (cryptoAmount * Decimal.parse(cryptoPrice))
+                                    .toString());
                       });
                     },
                     suffixIcon: Container(
@@ -577,9 +578,11 @@ class _SendTransactionScreenState extends ConsumerState<SendTransactionScreen> {
                           });
                           return;
                         }
-                        final usdAmount = double.parse(value);
+                        final usdAmount = value;
 
-                        final amountCrypto = (usdAmount / cryptoPrice);
+                        final amountCrypto = (double.parse(usdAmount) /
+                                double.parse(cryptoPrice))
+                            .toString();
 
                         setState(() {
                           _amountController.text = NumberFormatter()

@@ -15,6 +15,7 @@ class CurrentPageIndexNotifier extends AsyncNotifier<int> {
 
       return int.parse(savedPageIndex);
     } catch (e) {
+      logError(e.toString());
       return 0;
     }
   }
@@ -23,6 +24,7 @@ class CurrentPageIndexNotifier extends AsyncNotifier<int> {
     try {
       state = AsyncData(index);
       await _prefs.saveDataInPrefs(data: index.toString(), key: _key);
+      log("Page index changed");
       return true;
     } catch (e) {
       logError(e.toString());

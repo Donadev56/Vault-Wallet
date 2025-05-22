@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:moonwallet/types/types.dart';
+import 'package:moonwallet/widgets/dialogs/standard_circular_progress_indicator.dart';
 
 class LoadingHelper {
   static OverlayEntry? _overlay;
@@ -16,15 +17,18 @@ class LoadingHelper {
         color: Colors.black87,
         child: Center(
           child: Container(
-            padding: const EdgeInsets.all(16),
+            padding: const EdgeInsets.all(14),
             decoration: BoxDecoration(
               color: colors.secondaryColor,
-              borderRadius: BorderRadius.circular(8),
+              borderRadius: BorderRadius.circular(4),
             ),
-            child: Column(
+            child: Row(
+              spacing: 10,
+              mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+              crossAxisAlignment: CrossAxisAlignment.center,
               mainAxisSize: MainAxisSize.min,
               children: [
-                const CircularProgressIndicator(),
+                standardCircularProgressIndicator(colors: colors),
                 if (message != null) ...[
                   const SizedBox(height: 16),
                   Text(

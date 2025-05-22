@@ -7,12 +7,14 @@ class StandardAppBar extends StatelessWidget implements PreferredSizeWidget {
   final DoubleFactor fontSizeOf;
   final void Function()? onBackPressed;
   final List<Widget>? actions;
+  final bool centerTitle;
   const StandardAppBar(
       {super.key,
       required this.title,
       this.onBackPressed,
       required this.colors,
       required this.fontSizeOf,
+      this.centerTitle = true,
       this.actions});
 
   @override
@@ -27,7 +29,7 @@ class StandardAppBar extends StatelessWidget implements PreferredSizeWidget {
             Icons.chevron_left,
             color: colors.textColor.withValues(alpha: 0.7),
           )),
-      centerTitle: true,
+      centerTitle: centerTitle,
       title: Text(
         title,
         style: textTheme.bodyMedium?.copyWith(

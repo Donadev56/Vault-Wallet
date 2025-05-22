@@ -119,7 +119,7 @@ class WalletDatabase {
 
   Future<List<Crypto>> getCompatibleCryptos(PublicAccount account) async {
     try {
-      final listCrypto = await cryptoRequestManager.getAllCryptos();
+      final listCrypto = await cryptoRequestManager.getDefaultTokens() ?? [];
       List<Crypto> compatibleCrypto = [];
       if (account.origin.isMnemonic) {
         return listCrypto;
@@ -165,8 +165,6 @@ class WalletDatabase {
 
       // this _derivateEncryptionKeyStateFull will automatically update the state if necessary
       final derive = await _deriveEncryptionKey(password);
-      log("Derive Key ${derive.derivateKey}");
-
       // create a new  private wallet
 
       final PrivateAccount privateWallet = PrivateAccount(
@@ -433,7 +431,6 @@ class WalletDatabase {
       if (box == null) {
         throw "Box Not Initialized";
       }
-      log("Data : $data");
       await box.put(boxName, data);
       return true;
     } catch (e) {

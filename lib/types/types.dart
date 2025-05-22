@@ -89,46 +89,6 @@ class PinSubmitResult {
   }
 }
 
-class DApp {
-  int id;
-  final String name;
-  final String icon;
-  final String description;
-  final String link;
-  final bool isNetworkImage;
-
-  DApp({
-    required this.name,
-    required this.icon,
-    required this.description,
-    required this.link,
-    required this.isNetworkImage,
-    this.id = 0,
-  });
-
-  factory DApp.fromJson(Map<String, dynamic> json) {
-    return DApp(
-      name: json['name'],
-      icon: json['icon'],
-      description: json['description'],
-      link: json['link'],
-      isNetworkImage: json['isNetworkImage'] as bool,
-      id: json['id'] ?? 0,
-    );
-  }
-
-  Map<String, dynamic> toJson() {
-    return {
-      'name': name,
-      'icon': icon,
-      'description': description,
-      'link': link,
-      'isNetworkImage': isNetworkImage,
-      'id': id,
-    };
-  }
-}
-
 class EthTransaction {
   int id;
   final String from;
@@ -520,7 +480,7 @@ class WidgetInitialData {
   final String? initialBalanceUsd;
   final String initialBalanceCrypto;
   final PublicAccount account;
-  final double cryptoPrice;
+  final String cryptoPrice;
 
   WidgetInitialData({
     required this.account,
@@ -755,7 +715,7 @@ class TransactionToConfirm {
   final BigInt? gasBigint;
   final String? data;
   final String valueEth;
-  final double cryptoPrice;
+  final String cryptoPrice;
   final BigInt gasPrice;
 
   TransactionToConfirm(

@@ -1,9 +1,10 @@
 // ignore_for_file: deprecated_member_use
 
+import 'package:flutter_hooks/flutter_hooks.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:http/http.dart' as http;
-import 'package:moonwallet/screens/dashboard/discover/image_url.dart';
-import 'package:moonwallet/service/db/crypto_storage_manager.dart';
+import 'package:moonwallet/notifiers/providers.dart';
+import 'package:moonwallet/screens/dashboard/discover/image_base64.dart';
 import 'package:moonwallet/service/external_data/price_manager.dart';
 
 import 'dart:convert';
@@ -54,12 +55,11 @@ class Web3BrowserScreenState extends ConsumerState<Web3BrowserScreen> {
   bool isLoading = true;
   bool isPageLoading = false;
 
-  Crypto? currentCrypto;
+  late Crypto currentCrypto;
 
   InAppWebViewController? _webViewController;
   bool isFullScreen = false;
   List<PublicAccount> accounts = [];
-  List<Crypto> networks = [];
   PublicAccount? currentAccount;
   final web3Manager = WalletDatabase();
   final priceManager = PriceManager();
@@ -116,33 +116,6 @@ class Web3BrowserScreenState extends ConsumerState<Web3BrowserScreen> {
     }
   }
 
-  Future<bool> changeNetwork(Crypto network) async {
-    log("Changing the network id");
-    if (currentCrypto == null) {
-      log("Current crypto is null");
-      return false;
-    }
-
-    int requestedChainId = network.chainId ?? 1;
-
-    for (final net in networks) {
-      log("Current network : ${net.chainId} . requested chain $requestedChainId");
-
-      if (net.chainId == requestedChainId) {
-        setState(() {
-          currentCrypto = net;
-          _chainId = requestedChainId;
-          log("Switched to network: ${currentCrypto!.name}");
-        });
-
-        return true;
-      } else {
-        continue;
-      }
-    }
-    return _chainId == requestedChainId;
-  }
-
   Future<void> getBgColor() async {
     try {
       if (_webViewController != null) {
@@ -182,20 +155,6 @@ class Web3BrowserScreenState extends ConsumerState<Web3BrowserScreen> {
     }
   }
 
-  Future<void> getSavedCrypto({required PublicAccount account}) async {
-    try {
-      final savedCryptos =
-          await CryptoStorageManager().getSavedCryptos(wallet: account);
-      if (savedCryptos != null) {
-        setState(() {
-          networks = savedCryptos.where((c) => c.isNative).toList();
-        });
-      }
-    } catch (e) {
-      logError('Error getting saved crypto: $e');
-    }
-  }
-
   @override
   void initState() {
     super.initState();
@@ -207,8 +166,6 @@ class Web3BrowserScreenState extends ConsumerState<Web3BrowserScreen> {
   void init() {
     setState(() {
       currentAccount = widget.account;
-      networks = widget.networks;
-
       currentCrypto = widget.network;
       _chainId = widget.network.chainId!;
 
@@ -243,14 +200,49 @@ class Web3BrowserScreenState extends ConsumerState<Web3BrowserScreen> {
   Widget build(BuildContext context) {
     final width = MediaQuery.of(context).size.width;
     final textTheme = Theme.of(context).textTheme;
-    final providerAsync = ref.watch(ethereumProviderNotifier);
     final ethProviderNotifier = ref.watch(ethereumProviderNotifier.notifier);
+    final savedCryptosAsync = ref.watch(savedCryptosProviderNotifier);
+    final networks = useState<List<Crypto>>([]);
+
+    useEffect(() {
+      savedCryptosAsync.whenData((data) {
+        if (data.isNotEmpty) {
+          networks.value =
+              data.where((data) => data.canDisplay && data.isNative).toList();
+        }
+      });
+
+      return null;
+    }, [savedCryptosAsync]);
+
+    Future<bool> changeNetwork(Crypto network) async {
+      log("Changing the network id");
+
+      int requestedChainId = network.chainId ?? 1;
+
+      for (final net in networks.value) {
+        log("Current network : ${net.chainId} . requested chain $requestedChainId");
+
+        if (net.chainId == requestedChainId) {
+          setState(() {
+            currentCrypto = net;
+            _chainId = requestedChainId;
+            log("Switched to network: ${currentCrypto.name}");
+          });
+
+          return true;
+        } else {
+          continue;
+        }
+      }
+      return _chainId == requestedChainId;
+    }
 
     Future<void> manualChangeNetwork(Crypto network) async {
       try {
         int requestedChainId = network.chainId ?? 1;
 
-        for (final net in networks) {
+        for (final net in networks.value) {
           if (net.chainId == requestedChainId) {
             setState(() {
               currentCrypto = net;
@@ -321,7 +313,7 @@ class Web3BrowserScreenState extends ConsumerState<Web3BrowserScreen> {
                             ? Icon(
                                 Icons.lock,
                                 size: 20,
-                                color: const Color.fromARGB(255, 0, 255, 132),
+                                color: const Color.fromARGB(255, 78, 203, 83),
                               )
                             : Icon(
                                 Icons.lock_open,
@@ -350,15 +342,6 @@ class Web3BrowserScreenState extends ConsumerState<Web3BrowserScreen> {
                 ),
                 backgroundColor: darkNavigatorColor,
                 actions: [
-                  /*  if (isPageLoading) SizedBox(
-                        height: 18,
-                        width: 18,
-                        child: CircularProgressIndicator(
-                          strokeWidth: 2,
-                        value: progress,
-                        color: secondaryColor,
-                      ),
-                      )  */
                   IconButton(
                     icon: Icon(
                       Icons.more_vert,
@@ -382,9 +365,9 @@ class Web3BrowserScreenState extends ConsumerState<Web3BrowserScreen> {
                           darkNavigatorColor: darkNavigatorColor,
                           colors: colors,
                           title: _title,
-                          networks: networks,
+                          networks: networks.value,
                           manualChangeNetwork: manualChangeNetwork,
-                          currentNetwork: currentCrypto!,
+                          currentNetwork: currentCrypto,
                           chainId: _chainId,
                           currentUrl: currentUrl,
                           reload: _reload,
@@ -418,7 +401,7 @@ class Web3BrowserScreenState extends ConsumerState<Web3BrowserScreen> {
                     : Web3WebView(
                         key: webViewKey,
                         onChangeNetwork: (chainId) async {
-                          for (final net in networks) {
+                          for (final net in networks.value) {
                             if (chainId == net.chainId) {
                               await changeNetwork(net);
                             }
@@ -455,19 +438,19 @@ class Web3BrowserScreenState extends ConsumerState<Web3BrowserScreen> {
                             icon: vaultLogo,
                             address: currentAccount?.evmAddress,
                             currentNetwork: NetworkConfig(
-                                nativeCurrency: currentCrypto!,
-                                blockExplorerUrls: currentCrypto?.explorers,
+                                nativeCurrency: currentCrypto,
+                                blockExplorerUrls: currentCrypto.explorers,
                                 chainId:
-                                    "0x${(currentCrypto!.chainId ?? 1).toRadixString(16)}",
-                                chainName: currentCrypto!.name,
-                                rpcUrls: currentCrypto!.rpcUrls ?? []),
+                                    "0x${(currentCrypto.chainId ?? 1).toRadixString(16)}",
+                                chainName: currentCrypto.name,
+                                rpcUrls: currentCrypto.rpcUrls ?? []),
                             supportNetworks:
-                                List.generate(networks.length, (i) {
-                              final network = networks[i];
+                                List.generate(networks.value.length, (i) {
+                              final network = networks.value[i];
                               return NetworkConfig(
                                   nativeCurrency: network,
                                   chainId:
-                                      "0x${networks[i].chainId?.toRadixString(16)}",
+                                      "0x${networks.value[i].chainId?.toRadixString(16)}",
                                   chainName: network.name,
                                   rpcUrls: network.rpcUrls ?? [],
                                   blockExplorerUrls: network.explorers);

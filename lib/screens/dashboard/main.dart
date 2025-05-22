@@ -25,7 +25,6 @@ import 'package:moonwallet/widgets/func/show_home_options_dialog.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 
 import 'package:flutter/material.dart';
-import 'package:google_fonts/google_fonts.dart';
 import 'package:lucide_icons_flutter/lucide_icons.dart';
 import 'package:moonwallet/logger/logger.dart';
 import 'package:moonwallet/service/vibration.dart';
@@ -34,6 +33,7 @@ import 'package:moonwallet/utils/constant.dart';
 import 'package:moonwallet/widgets/actions.dart';
 import 'package:moonwallet/widgets/appBar.dart';
 import 'package:moonwallet/widgets/dialogs/show_custom_snackbar.dart';
+import 'package:moonwallet/widgets/screen_widgets/pined_sliver_app_bar.dart';
 import 'package:page_transition/page_transition.dart';
 import 'package:simple_gesture_detector/simple_gesture_detector.dart';
 import 'package:flutter_hooks/flutter_hooks.dart';
@@ -106,6 +106,7 @@ class _MainDashboardScreenState extends ConsumerState<MainDashboardScreen>
     final secureConfigNotifier = ref.watch(appSecureConfigProvider.notifier);
     final pageIndexNotifierProvider =
         ref.watch(currentPageIndexNotifierProvider.notifier);
+    // final assetsState = ref.watch(assetsLoadStateProvider);
     final profileImageProvider =
         ref.watch(profileImageProviderNotifier.notifier);
 
@@ -718,136 +719,60 @@ class _MainDashboardScreenState extends ConsumerState<MainDashboardScreen>
                                 ),
                               ],
                             )),
-                        SliverAppBar(
-                          backgroundColor: colors.primaryColor,
-                          surfaceTintColor: colors.grayColor.withOpacity(0.1),
-                          pinned: true,
-                          automaticallyImplyLeading: false,
-                          title: Padding(
-                              padding: const EdgeInsets.only(left: 0),
-                              child: Row(
-                                mainAxisAlignment: MainAxisAlignment.start,
-                                crossAxisAlignment: CrossAxisAlignment.start,
-                                children: [
-                                  AnimatedContainer(
-                                    duration: Duration(seconds: 1),
-                                    width: _cryptoSearchTextController
-                                            .text.isNotEmpty
-                                        ? 200
-                                        : 125,
-                                    child: SizedBox(
-                                      height: 30,
-                                      child: TextField(
-                                        onChanged: (v) {
-                                          setState(() {
-                                            searchCryptoQuery = v.toLowerCase();
-                                          });
-                                        },
-                                        controller: _cryptoSearchTextController,
-                                        style: textTheme.bodySmall?.copyWith(
-                                            fontSize: fontSizeOf(13),
-                                            color: colors.textColor),
-                                        decoration: InputDecoration(
-                                            prefixIcon: Icon(
-                                              Icons.search,
-                                              color: colors.textColor
-                                                  .withOpacity(0.3),
-                                            ),
-                                            contentPadding:
-                                                const EdgeInsets.symmetric(
-                                                    horizontal: 15,
-                                                    vertical: 0),
-                                            hintStyle: GoogleFonts.roboto(
-                                                color: colors.textColor
-                                                    .withOpacity(0.4)),
-                                            hintText: "Search",
-                                            filled: true,
-                                            fillColor: colors.secondaryColor,
-                                            border: OutlineInputBorder(
-                                                borderRadius: BorderRadius.circular(
-                                                    roundedOf(40)),
-                                                borderSide: BorderSide(
-                                                    width: 0,
-                                                    color: Colors.transparent)),
-                                            enabledBorder: OutlineInputBorder(
-                                                borderRadius:
-                                                    BorderRadius.circular(
-                                                        roundedOf(40)),
-                                                borderSide: BorderSide(
-                                                    width: 0,
-                                                    color: Colors.transparent)),
-                                            focusedBorder: OutlineInputBorder(
-                                                borderRadius:
-                                                    BorderRadius.circular(roundedOf(40)),
-                                                borderSide: BorderSide(width: 0, color: Colors.transparent))),
-                                      ),
-                                    ),
-                                  )
-                                ],
-                              )),
-                          actions: [
-                            PopupMenuButton(
-                                splashRadius: roundedOf(10),
-                                borderRadius:
-                                    BorderRadius.circular(roundedOf(20)),
-                                requestFocus: true,
-                                menuPadding: const EdgeInsets.all(0),
-                                padding: const EdgeInsets.all(0),
-                                color: colors.secondaryColor,
-                                icon: Icon(
-                                  Icons.more_vert,
-                                  color: colors.textColor.withOpacity(0.4),
-                                ),
-                                itemBuilder: (ctx) => <PopupMenuEntry<dynamic>>[
-                                      PopupMenuItem(
-                                        onTap: () {
-                                          reorderCrypto(0);
-                                        },
-                                        child: Row(children: [
-                                          Icon(fixedAppBarOptions[0]["icon"],
-                                              size: iconSizeOf(25),
-                                              color: colors.textColor
-                                                  .withOpacity(0.4)),
-                                          SizedBox(width: 8),
-                                          Text(fixedAppBarOptions[0]["name"],
-                                              style: textTheme.bodyMedium),
-                                        ]),
-                                      ),
-                                      PopupMenuItem(
-                                        onTap: () {
-                                          reorderCrypto(1);
-                                        },
-                                        child: Row(children: [
-                                          Icon(fixedAppBarOptions[1]["icon"],
-                                              color: colors.textColor
-                                                  .withOpacity(0.4)),
-                                          SizedBox(width: 8),
-                                          Text(fixedAppBarOptions[1]["name"],
-                                              style: textTheme.bodyMedium
-                                                  ?.copyWith(
-                                                      color: colors.textColor)),
-                                        ]),
-                                      ),
-                                      CustomPopMenuDivider(colors: colors),
-                                      PopupMenuItem(
-                                        onTap: () {
-                                          Navigator.pushNamed(
-                                              context, Routes.addCrypto);
-                                        },
-                                        child: Row(children: [
-                                          Icon(fixedAppBarOptions[4]["icon"],
-                                              color: colors.textColor
-                                                  .withOpacity(0.4)),
-                                          SizedBox(width: 8),
-                                          Text(fixedAppBarOptions[4]["name"],
-                                              style: textTheme.bodyMedium
-                                                  ?.copyWith(
-                                                      color: colors.textColor)),
-                                        ]),
-                                      ),
-                                    ])
-                          ],
-                        ),
+                        PinedSliverAppBar(
+                            onSearch: (v) {
+                              setState(() {
+                                searchCryptoQuery = v.toLowerCase();
+                              });
+                            },
+                            colors: colors,
+                            cryptoSearchTextController:
+                                _cryptoSearchTextController,
+                            fontSizeOf: fontSizeOf,
+                            roundedOf: roundedOf,
+                            moreButtonOptions: [
+                              PopupMenuItem(
+                                onTap: () {
+                                  reorderCrypto(0);
+                                },
+                                child: Row(children: [
+                                  Icon(fixedAppBarOptions[0]["icon"],
+                                      size: iconSizeOf(25),
+                                      color: colors.textColor.withOpacity(0.4)),
+                                  SizedBox(width: 8),
+                                  Text(fixedAppBarOptions[0]["name"],
+                                      style: textTheme.bodyMedium),
+                                ]),
+                              ),
+                              PopupMenuItem(
+                                onTap: () {
+                                  reorderCrypto(1);
+                                },
+                                child: Row(children: [
+                                  Icon(fixedAppBarOptions[1]["icon"],
+                                      color: colors.textColor.withOpacity(0.4)),
+                                  SizedBox(width: 8),
+                                  Text(fixedAppBarOptions[1]["name"],
+                                      style: textTheme.bodyMedium
+                                          ?.copyWith(color: colors.textColor)),
+                                ]),
+                              ),
+                              CustomPopMenuDivider(colors: colors),
+                              PopupMenuItem(
+                                onTap: () {
+                                  Navigator.pushNamed(
+                                      context, Routes.addCrypto);
+                                },
+                                child: Row(children: [
+                                  Icon(fixedAppBarOptions[4]["icon"],
+                                      color: colors.textColor.withOpacity(0.4)),
+                                  SizedBox(width: 8),
+                                  Text(fixedAppBarOptions[4]["name"],
+                                      style: textTheme.bodyMedium
+                                          ?.copyWith(color: colors.textColor)),
+                                ]),
+                              ),
+                            ]),
                         !isInitialized.value
                             ? SliverToBoxAdapter(
                                 child: Container(

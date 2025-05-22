@@ -45,7 +45,7 @@ class TransactionTokenDetails extends StatelessWidget {
             maxLines: 1,
             style: textTheme.bodyMedium?.copyWith(
                 color: colors.textColor,
-                fontWeight: FontWeight.w900,
+                fontWeight: FontWeight.w700,
                 overflow: TextOverflow.ellipsis,
                 fontSize: 17),
           ),
@@ -53,7 +53,7 @@ class TransactionTokenDetails extends StatelessWidget {
               "${crypto.isNative ? crypto.name : crypto.network?.name}",
               style: textTheme.bodyMedium?.copyWith(
                   color: colors.textColor.withOpacity(0.5),
-                  fontWeight: FontWeight.w900,
+                  fontWeight: FontWeight.w500,
                   fontSize: fontSize)),
         ),
       ),

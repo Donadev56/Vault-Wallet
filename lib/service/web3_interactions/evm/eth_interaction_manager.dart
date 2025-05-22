@@ -62,13 +62,12 @@ class EthInteractionManager {
   Future<String> getUserBalance(PublicAccount account, Crypto crypto) async {
     try {
       final db = BalanceDatabase(account: account, crypto: crypto);
-      final savedBalanceFunc = db.getBalance();
+      final savedBalanceFunc = await db.getBalance();
 
       final internet = InternetManager();
 
       if (!await internet.isConnected()) {
-        final savedBalance = await savedBalanceFunc;
-        log("Saved balance : $savedBalance");
+        final savedBalance = savedBalanceFunc;
         return savedBalance;
       }
 
@@ -77,13 +76,13 @@ class EthInteractionManager {
       try {
         final currentBalance = await fetchBalanceUsingRpc(account, crypto);
         if (currentBalance == null) {
-          throw "Balance is Null";
+          return savedBalanceFunc;
         }
         balance = currentBalance;
         await db.saveData(balance);
       } catch (e) {
         logError(e.toString());
-        balance = await savedBalanceFunc;
+        balance = savedBalanceFunc;
       }
 
       return balance;
@@ -233,9 +232,7 @@ class EthInteractionManager {
       final valueWei = EthUtils()
           .ethToBigInt(amountDecimal.toString(), data.crypto.decimals);
       final valueHex = EthUtils().bigIntToHex(valueWei);
-      final cryptoPrice =
-          (await priceManager.getTokenMarketData(data.crypto.cgSymbol ?? ""))
-              ?.currentPrice;
+      final cryptoPrice = await priceManager.getTokenPriceUsd(data.crypto);
 
       final estimatedGas = ((await estimateGas(
                   rpcUrl: data.crypto.rpcUrls?.firstOrNull ?? "",
@@ -283,7 +280,7 @@ class EthInteractionManager {
       final transaction = TransactionToConfirm(
           gasPrice: gasPrice,
           valueBigInt: valueBigIntToTransfer,
-          cryptoPrice: cryptoPrice ?? 0,
+          cryptoPrice: cryptoPrice,
           gasHex: EthUtils().bigIntToHex(estimatedGas),
           gasBigint: estimatedGas,
           valueHex: amountToTransferHex,
@@ -344,9 +341,7 @@ class EthInteractionManager {
         throw Exception("Insufficient balance");
       }
 
-      final cryptoPrice = (await priceManager
-              .getTokenMarketData(data.crypto.network?.cgSymbol ?? ""))
-          ?.currentPrice;
+      final cryptoPrice = await priceManager.getTokenPriceUsd(token);
 
       final valueWei = EthUtils().ethToBigInt(amount, data.crypto.decimals);
 
@@ -356,7 +351,7 @@ class EthInteractionManager {
 
       final transaction = TransactionToConfirm(
           gasPrice: gasPrice,
-          cryptoPrice: cryptoPrice ?? 0,
+          cryptoPrice: cryptoPrice,
           gasHex: EthUtils().bigIntToHex(BigInt.from(0)),
           valueHex: valueHex,
           valueEth: amount,
