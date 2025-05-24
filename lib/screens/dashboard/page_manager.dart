@@ -16,6 +16,7 @@ import 'package:moonwallet/utils/themes.dart';
 import 'package:moonwallet/widgets/func/security/show_passkey_prompt.dart';
 import 'package:moonwallet/widgets/navBar.dart';
 import 'package:moonwallet/widgets/func/transactions/history/show_transaction_details.dart';
+import 'package:moonwallet/widgets/theme/theme_overlay.dart';
 
 class PagesManagerView extends StatefulHookConsumerWidget {
   final types.AppColors colors;
@@ -153,23 +154,26 @@ class _PagesManagerViewState extends ConsumerState<PagesManagerView> {
       return size * uiConfig.value.styles.radiusScaleFactor;
     }
 
-    final pageManagerBody = Scaffold(
-      body: IndexedStack(
-        index: currentIndexState.value,
-        children: _pages(),
+    final pageManagerBody = ThemedOverlay(
+      colors: colors,
+      child: Scaffold(
+        body: IndexedStack(
+          index: currentIndexState.value,
+          children: _pages(),
+        ),
+        bottomNavigationBar: BottomNav(
+            roundedOf: roundedOf,
+            fontSizeOf: fontSizeOf,
+            iconSizeOf: iconSizeOf,
+            onTap: (index) async {
+              vibrate();
+              await pageIndexProviderNotifier.savePageIndex(index);
+            },
+            currentIndex: currentIndexState.value,
+            primaryColor: colors.primaryColor,
+            textColor: colors.textColor,
+            secondaryColor: colors.themeColor),
       ),
-      bottomNavigationBar: BottomNav(
-          roundedOf: roundedOf,
-          fontSizeOf: fontSizeOf,
-          iconSizeOf: iconSizeOf,
-          onTap: (index) async {
-            vibrate();
-            await pageIndexProviderNotifier.savePageIndex(index);
-          },
-          currentIndex: currentIndexState.value,
-          primaryColor: colors.primaryColor,
-          textColor: colors.textColor,
-          secondaryColor: colors.themeColor),
     );
     final loadingView = Material(
       color: colors.primaryColor,

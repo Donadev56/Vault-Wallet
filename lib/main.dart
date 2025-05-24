@@ -24,11 +24,9 @@ import 'package:moonwallet/screens/dashboard/settings/change_colors.dart';
 import 'package:moonwallet/screens/dashboard/settings/settings.dart';
 import 'package:moonwallet/screens/dashboard/wallet_actions/add_mnemonic.dart';
 import 'package:moonwallet/screens/dashboard/wallet_actions/create_mnemonic_key.dart';
-import 'package:moonwallet/screens/test.dart';
 import 'package:moonwallet/types/types.dart';
 import 'package:moonwallet/utils/colors.dart';
 import 'package:moonwallet/widgets/dialogs/show_custom_snackbar.dart';
-import 'package:sentry/sentry.dart';
 
 void main() {
   runZonedGuarded(() async {
@@ -42,11 +40,6 @@ void main() {
     if (!kIsWeb && (Platform.isAndroid || Platform.isIOS)) {
       await InAppWebViewController.setWebContentsDebuggingEnabled(true);
     }
-    await Sentry.init(
-      (options) {
-        options.dsn = 'https://example@sentry.io/example';
-      },
-    );
 
     await Web3Webview.initJs();
     await FastCachedImageConfig.init(clearCacheAfter: const Duration(days: 15));

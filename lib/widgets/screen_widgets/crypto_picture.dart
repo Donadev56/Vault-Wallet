@@ -11,6 +11,7 @@ class CryptoPicture extends HookConsumerWidget {
   final AppColors colors;
   final Color? primaryColor;
   final double radius;
+  final double networkRadius;
 
   const CryptoPicture(
       {super.key,
@@ -18,6 +19,7 @@ class CryptoPicture extends HookConsumerWidget {
       required this.crypto,
       required this.size,
       this.radius = 50,
+      this.networkRadius = 5,
       required this.colors});
 
   @override
@@ -74,26 +76,28 @@ class CryptoPicture extends HookConsumerWidget {
               child: Container(
                   padding: const EdgeInsets.all(2),
                   decoration: BoxDecoration(
-                    borderRadius: BorderRadius.circular(radius),
+                    borderRadius: BorderRadius.circular(networkRadius),
                     color: primaryColor ?? colors.primaryColor,
                   ),
                   child: ClipRRect(
-                    borderRadius: BorderRadius.circular(radius),
+                    borderRadius: BorderRadius.circular(networkRadius),
                     child: crypto.network?.icon == null
                         ? buildPlaceHolder(
-                            "", size / 2.75, radius, colors, context)
+                            "", size / 2.75, networkRadius, colors, context)
                         : !isSvg(crypto.network?.icon ?? "")
                             ? Image.network(
                                 crypto.network?.icon ?? "",
                                 width: size / 2.75,
                                 height: size / 2.75,
                                 errorBuilder: errorBuilder(size / 2.75),
+                                fit: BoxFit.cover,
                               )
                             : SvgPicture.network(
                                 crypto.network?.icon ?? "",
                                 width: size / 2.75,
                                 height: size / 2.75,
                                 errorBuilder: errorBuilder(size / 2.75),
+                                fit: BoxFit.cover,
                               ),
                   )))
       ],

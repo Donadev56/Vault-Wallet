@@ -191,4 +191,27 @@ class CryptoManager {
       return [];
     }
   }
+
+  bool isTokenEnabled(Crypto token, List<Crypto> savedCrypto) {
+    return (savedCrypto).any((c) =>
+        c.contractAddress?.trim().toLowerCase() ==
+            token.contractAddress?.trim().toLowerCase() &&
+        c.network?.chainId == token.network?.chainId &&
+        c.canDisplay == true);
+  }
+
+  bool isNativeTokenEnabled(Crypto token, List<Crypto> savedCrypto) {
+    return savedCrypto
+        .any((c) => c.chainId == token.chainId && c.canDisplay == true);
+  }
+
+  bool isEnabled(Crypto token, List<Crypto> savedCrypto) {
+    return token.isNative
+        ? isNativeTokenEnabled(token, savedCrypto)
+        : isTokenEnabled(token, savedCrypto);
+  }
+
+  String cleanName(String name) {
+    return name.trim().replaceAll(RegExp(r'[^a-zA-Z]'), '').toLowerCase();
+  }
 }

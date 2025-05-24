@@ -18,6 +18,7 @@ import 'package:moonwallet/widgets/func/account_related/show_watch_only_warning.
 import 'package:moonwallet/widgets/dialogs/show_custom_snackbar.dart';
 import 'package:moonwallet/widgets/profile_placeholder.dart';
 import 'package:moonwallet/widgets/screen_widgets/positioned_icons.dart';
+import 'package:moonwallet/widgets/theme/theme_overlay.dart';
 import 'package:simple_gesture_detector/simple_gesture_detector.dart';
 
 typedef DoubleFactor = double Function(double size);
@@ -85,402 +86,419 @@ void showCustomDrawer({
       builder: (context) {
         final textTheme = Theme.of(context).textTheme;
 
-        return StatefulBuilder(builder: (context, st) {
-          return SimpleGestureDetector(
-              onHorizontalSwipe: (direction) {
-                if (direction == SwipeDirection.left) {
-                  Navigator.pop(context);
-                }
-              },
-              swipeConfig: SimpleSwipeConfig(
-                verticalThreshold: 40.0,
-                horizontalThreshold: 40.0,
-                swipeDetectionBehavior:
-                    SwipeDetectionBehavior.continuousDistinct,
-              ),
-              child: Material(
-                  color: colors.primaryColor,
-                  child: Padding(
-                    padding: const EdgeInsets.all(15),
-                    child: ListView(
-                      shrinkWrap: true,
-                      physics: BouncingScrollPhysics(),
-                      children: [
-                        canEditWalletName == false
-                            ? Row(
-                                spacing: 8,
-                                children: [
-                                  Text(
-                                    walletName,
-                                    style: textTheme.bodySmall?.copyWith(
-                                        color:
-                                            colors.textColor.withOpacity(0.7),
-                                        fontSize: fontSizeOf(17),
-                                        fontWeight: FontWeight.w600),
-                                  ),
-                                  IconButton(
-                                      onPressed: () {
-                                        st(() {
-                                          textController.text = walletName;
-                                          canEditWalletName = true;
-                                        });
-                                      },
-                                      icon: Icon(
-                                        LucideIcons.pencilLine,
-                                        color:
-                                            colors.textColor.withOpacity(0.7),
-                                      ))
-                                ],
-                              )
-                            : LayoutBuilder(builder: (ctx, c) {
-                                final maxWidth = c.maxWidth;
-                                return Row(
-                                  mainAxisAlignment:
-                                      MainAxisAlignment.spaceBetween,
-                                  children: [
-                                    SizedBox(
-                                      width: maxWidth * 0.6,
-                                      child: TextField(
+        return ThemedOverlay(
+            colors: colors,
+            child: StatefulBuilder(builder: (context, st) {
+              return SimpleGestureDetector(
+                  onHorizontalSwipe: (direction) {
+                    if (direction == SwipeDirection.left) {
+                      Navigator.pop(context);
+                    }
+                  },
+                  swipeConfig: SimpleSwipeConfig(
+                    verticalThreshold: 40.0,
+                    horizontalThreshold: 40.0,
+                    swipeDetectionBehavior:
+                        SwipeDetectionBehavior.continuousDistinct,
+                  ),
+                  child: Material(
+                      color: colors.primaryColor,
+                      child: Padding(
+                        padding: const EdgeInsets.all(15),
+                        child: ListView(
+                          shrinkWrap: true,
+                          physics: BouncingScrollPhysics(),
+                          children: [
+                            canEditWalletName == false
+                                ? Row(
+                                    spacing: 8,
+                                    children: [
+                                      Text(
+                                        walletName,
                                         style: textTheme.bodySmall?.copyWith(
                                             color: colors.textColor
-                                                .withOpacity(0.8)),
-                                        controller: textController,
+                                                .withOpacity(0.7),
+                                            fontSize: fontSizeOf(17),
+                                            fontWeight: FontWeight.w600),
                                       ),
-                                    ),
-                                    Row(
+                                      IconButton(
+                                          onPressed: () {
+                                            st(() {
+                                              textController.text = walletName;
+                                              canEditWalletName = true;
+                                            });
+                                          },
+                                          icon: Icon(
+                                            LucideIcons.pencilLine,
+                                            color: colors.textColor
+                                                .withOpacity(0.7),
+                                          ))
+                                    ],
+                                  )
+                                : LayoutBuilder(builder: (ctx, c) {
+                                    final maxWidth = c.maxWidth;
+                                    return Row(
                                       mainAxisAlignment:
                                           MainAxisAlignment.spaceBetween,
                                       children: [
-                                        IconButton(
-                                          onPressed: () async {
-                                            final res = await editWallet(
-                                                account: account,
-                                                name: textController.text);
-                                            if (res) {
-                                              st(() {
-                                                canEditWalletName = false;
-                                                walletName =
-                                                    textController.text;
-                                              });
-                                            } else {
-                                              notifyError(
-                                                  "Can't edit the wallet",
-                                                  context);
-                                            }
-                                          },
-                                          icon: Icon(
-                                            Icons.check,
-                                            color: colors.textColor,
+                                        SizedBox(
+                                          width: maxWidth * 0.6,
+                                          child: TextField(
+                                            style: textTheme.bodySmall
+                                                ?.copyWith(
+                                                    color: colors.textColor
+                                                        .withOpacity(0.8)),
+                                            controller: textController,
                                           ),
                                         ),
-                                        IconButton(
-                                          icon: Icon(
-                                            LucideIcons.x,
-                                            color: colors.redColor,
-                                          ),
-                                          onPressed: () {
-                                            st(() {
-                                              textController.clear();
-                                              canEditWalletName = false;
-                                            });
-                                          },
+                                        Row(
+                                          mainAxisAlignment:
+                                              MainAxisAlignment.spaceBetween,
+                                          children: [
+                                            IconButton(
+                                              onPressed: () async {
+                                                final res = await editWallet(
+                                                    account: account,
+                                                    name: textController.text);
+                                                if (res) {
+                                                  st(() {
+                                                    canEditWalletName = false;
+                                                    walletName =
+                                                        textController.text;
+                                                  });
+                                                } else {
+                                                  notifyError(
+                                                      "Can't edit the wallet",
+                                                      context);
+                                                }
+                                              },
+                                              icon: Icon(
+                                                Icons.check,
+                                                color: colors.textColor,
+                                              ),
+                                            ),
+                                            IconButton(
+                                              icon: Icon(
+                                                LucideIcons.x,
+                                                color: colors.redColor,
+                                              ),
+                                              onPressed: () {
+                                                st(() {
+                                                  textController.clear();
+                                                  canEditWalletName = false;
+                                                });
+                                              },
+                                            )
+                                          ],
                                         )
                                       ],
-                                    )
+                                    );
+                                  }),
+                            Align(
+                                alignment: Alignment.centerLeft,
+                                child: Column(
+                                  mainAxisAlignment: MainAxisAlignment.start,
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  spacing: 6,
+                                  children: [
+                                    Text(
+                                      !isHidden
+                                          ? "\$${(NumberFormatter().formatValue(str: totalBalanceUsd, maxDecimals: 2))}"
+                                          : "***",
+                                      style: textTheme.bodySmall?.copyWith(
+                                          color: colors.textColor,
+                                          fontSize: fontSizeOf(25),
+                                          fontWeight: FontWeight.w600),
+                                    ),
+                                    Text(
+                                      "Balance",
+                                      style: textTheme.bodySmall?.copyWith(
+                                        color:
+                                            colors.textColor.withOpacity(0.6),
+                                        fontSize: fontSizeOf(14),
+                                      ),
+                                    ),
                                   ],
-                                );
-                              }),
-                        Align(
-                            alignment: Alignment.centerLeft,
-                            child: Column(
-                              mainAxisAlignment: MainAxisAlignment.start,
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              spacing: 6,
+                                )),
+                            SizedBox(
+                              height: 10,
+                            ),
+                            SingleChildScrollView(
+                              physics: BouncingScrollPhysics(),
+                              scrollDirection: Axis.horizontal,
+                              child: SizedBox(
+                                  height: 50,
+                                  width: MediaQuery.of(context).size.width,
+                                  child: PositionedCryptos(
+                                      cryptos: availableCryptos,
+                                      colors: colors,
+                                      imageSizeOf: imageSizeOf)),
+                            ),
+                            SizedBox(
+                              height: 10,
+                            ),
+                            Divider(
+                              color: colors.textColor.withOpacity(0.05),
+                            ),
+                            Row(
+                              mainAxisAlignment: MainAxisAlignment.spaceBetween,
                               children: [
-                                Text(
-                                  !isHidden
-                                      ? "\$${(NumberFormatter().formatValue(str: totalBalanceUsd, maxDecimals: 2))}"
-                                      : "***",
-                                  style: textTheme.bodySmall?.copyWith(
-                                      color: colors.textColor,
-                                      fontSize: fontSizeOf(25),
-                                      fontWeight: FontWeight.w600),
-                                ),
-                                Text(
-                                  "Balance",
-                                  style: textTheme.bodySmall?.copyWith(
-                                    color: colors.textColor.withOpacity(0.6),
-                                    fontSize: fontSizeOf(14),
+                                Align(
+                                  alignment: Alignment.centerLeft,
+                                  child: Text(
+                                    "Preferences",
+                                    style: textTheme.bodySmall?.copyWith(
+                                        color:
+                                            colors.textColor.withOpacity(0.8),
+                                        fontSize: fontSizeOf(20),
+                                        fontWeight: FontWeight.w600),
                                   ),
                                 ),
                               ],
-                            )),
-                        SizedBox(
-                          height: 10,
-                        ),
-                        SingleChildScrollView(
-                          physics: BouncingScrollPhysics(),
-                          scrollDirection: Axis.horizontal,
-                          child: SizedBox(
-                              height: 50,
-                              width: MediaQuery.of(context).size.width,
-                              child: PositionedCryptos(
-                                  cryptos: availableCryptos,
-                                  colors: colors,
-                                  imageSizeOf: imageSizeOf)),
-                        ),
-                        SizedBox(
-                          height: 10,
-                        ),
-                        Divider(
-                          color: colors.textColor.withOpacity(0.05),
-                        ),
-                        Row(
-                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                          children: [
-                            Align(
-                              alignment: Alignment.centerLeft,
-                              child: Text(
-                                "Preferences",
-                                style: textTheme.bodySmall?.copyWith(
-                                    color: colors.textColor.withOpacity(0.8),
-                                    fontSize: fontSizeOf(20),
-                                    fontWeight: FontWeight.w600),
-                              ),
                             ),
+                            SizedBox(
+                              height: 10,
+                            ),
+                            CustomOptionWidget(
+                                colors: colors,
+                                splashColor: colors.themeColor.withOpacity(0.1),
+                                containerRadius:
+                                    BorderRadius.circular(roundedOf(10)),
+                                spaceName: "Appearance",
+                                internalElementSpacing: 10,
+                                shapeBorder: RoundedRectangleBorder(
+                                    borderRadius:
+                                        BorderRadius.circular(roundedOf(10))),
+                                backgroundColor: Colors.transparent,
+                                spaceNameStyle: textTheme.bodySmall?.copyWith(
+                                      color: colors.textColor,
+                                    ) ??
+                                    GoogleFonts.roboto(color: colors.textColor),
+                                options: [
+                                  Option(
+                                      shape: RoundedRectangleBorder(
+                                          borderRadius: borderRadiusTop),
+                                      tileColor: colors.secondaryColor,
+                                      title: "Edit profile picture",
+                                      icon: Icon(
+                                        LucideIcons.user,
+                                        color:
+                                            colors.textColor.withOpacity(0.7),
+                                        size: iconSizeOf(20),
+                                      ),
+                                      trailing: Icon(
+                                        Icons.chevron_right,
+                                        color:
+                                            colors.textColor.withOpacity(0.5),
+                                      ),
+                                      color: colors.secondaryColor,
+                                      titleStyle: textTheme.bodySmall?.copyWith(
+                                          color: colors.textColor,
+                                          fontSize: fontSizeOf(14))),
+                                  Option(
+                                      shape: RoundedRectangleBorder(
+                                          borderRadius: borderRadiusBottom),
+                                      tileColor: colors.secondaryColor,
+                                      title: "More Settings",
+                                      icon: Icon(
+                                        LucideIcons.settings,
+                                        color:
+                                            colors.textColor.withOpacity(0.7),
+                                        size: iconSizeOf(20),
+                                      ),
+                                      trailing: Icon(Icons.chevron_right,
+                                          color: colors.textColor
+                                              .withOpacity(0.5)),
+                                      color: colors.secondaryColor,
+                                      titleStyle: textTheme.bodySmall?.copyWith(
+                                          color: colors.textColor,
+                                          fontSize: fontSizeOf(14))),
+                                ],
+                                onTap: (i) async {
+                                  if (i == 1) {
+                                    Navigator.push(
+                                        context,
+                                        MaterialPageRoute(
+                                          builder: (context) => SettingsPage(
+                                            colors: colors,
+                                          ),
+                                        ));
+                                  } else if (i == 0) {
+                                    final file = await showProfileImagePicker(
+                                        colors: colors,
+                                        context: context,
+                                        currentImage: currentImage);
+                                    if (file != null) {
+                                      st(() {
+                                        currentImage = file;
+                                      });
+                                      changeProfileImage(file);
+                                    }
+                                  }
+                                }),
+                            SizedBox(
+                              height: 10,
+                            ),
+                            CustomOptionWidget(
+                                colors: colors,
+                                splashColor: colors.themeColor.withOpacity(0.1),
+                                containerRadius:
+                                    BorderRadius.circular(roundedOf(10)),
+                                spaceName: "Security",
+                                internalElementSpacing: 10,
+                                shapeBorder: RoundedRectangleBorder(
+                                    borderRadius:
+                                        BorderRadius.circular(roundedOf(10))),
+                                backgroundColor: Colors.transparent,
+                                spaceNameStyle: textTheme.bodySmall?.copyWith(
+                                      color: colors.textColor,
+                                    ) ??
+                                    GoogleFonts.roboto(color: colors.textColor),
+                                options: [
+                                  Option(
+                                      shape: RoundedRectangleBorder(
+                                          borderRadius: borderRadiusTop),
+                                      tileColor: colors.secondaryColor,
+                                      title: "Backup",
+                                      icon: Icon(
+                                        LucideIcons.key,
+                                        color:
+                                            colors.textColor.withOpacity(0.7),
+                                        size: iconSizeOf(20),
+                                      ),
+                                      trailing: Icon(Icons.chevron_right,
+                                          color: colors.textColor
+                                              .withOpacity(0.5)),
+                                      color: colors.secondaryColor,
+                                      titleStyle: textTheme.bodySmall?.copyWith(
+                                          color: colors.textColor,
+                                          fontSize: fontSizeOf(14))),
+                                  Option(
+                                      shape: RoundedRectangleBorder(
+                                          borderRadius: borderRadiusBottom),
+                                      tileColor: colors.secondaryColor,
+                                      title: "Change password",
+                                      icon: Icon(
+                                        LucideIcons.keySquare,
+                                        color:
+                                            colors.textColor.withOpacity(0.7),
+                                        size: iconSizeOf(20),
+                                      ),
+                                      trailing: Icon(
+                                        Icons.chevron_right,
+                                        color:
+                                            colors.textColor.withOpacity(0.5),
+                                      ),
+                                      color: colors.secondaryColor,
+                                      titleStyle: textTheme.bodySmall?.copyWith(
+                                          color: colors.textColor,
+                                          fontSize: fontSizeOf(14)))
+                                ],
+                                onTap: (i) async {
+                                  if (i == 0) {
+                                    if (account.isWatchOnly) {
+                                      showWatchOnlyWaring(
+                                          colors: colors, context: context);
+                                      return;
+                                    }
+                                    final password = await askUserPassword(
+                                        context: context, colors: colors);
+
+                                    if (password != null &&
+                                        password.isNotEmpty) {
+                                      Navigator.push(
+                                          context,
+                                          MaterialPageRoute(
+                                              builder: (context) =>
+                                                  PrivateKeyScreen(
+                                                    password: password,
+                                                    account: account,
+                                                    colors: colors,
+                                                  )));
+                                    }
+                                  } else if (i == 1) {
+                                    showChangePasswordProcedure(
+                                        context: context, colors: colors);
+                                  }
+                                }),
+                            SizedBox(
+                              height: 10,
+                            ),
+                            CustomOptionWidget(
+                                colors: colors,
+                                splashColor: colors.redColor.withOpacity(0.1),
+                                containerRadius:
+                                    BorderRadius.circular(roundedOf(10)),
+                                spaceName: "Others",
+                                internalElementSpacing: 10,
+                                shapeBorder: RoundedRectangleBorder(
+                                    borderRadius:
+                                        BorderRadius.circular(roundedOf(10))),
+                                backgroundColor: Colors.transparent,
+                                spaceNameStyle: textTheme.bodySmall?.copyWith(
+                                      color: colors.textColor,
+                                    ) ??
+                                    GoogleFonts.roboto(color: colors.textColor),
+                                options: [
+                                  Option(
+                                      splashColor:
+                                          colors.themeColor.withOpacity(0.1),
+                                      title: "Enable biometric",
+                                      icon: Icon(
+                                        LucideIcons.fingerprint,
+                                        color:
+                                            colors.textColor.withOpacity(0.7),
+                                        size: iconSizeOf(20),
+                                      ),
+                                      trailing: Switch(
+                                          value: useBio,
+                                          onChanged: (v) async {
+                                            final result =
+                                                await toggleCanUseBio(v);
+
+                                            if (result) {
+                                              notifySuccess(
+                                                  v ? "Enabled" : "Disabled",
+                                                  context);
+                                              st(() {
+                                                useBio = v;
+                                              });
+                                              return;
+                                            }
+
+                                            notifyError("An error has occurred",
+                                                context);
+                                          }),
+                                      color: colors.textColor,
+                                      titleStyle: textTheme.bodySmall?.copyWith(
+                                          color: colors.textColor,
+                                          fontSize: fontSizeOf(14))),
+                                  Option(
+                                      tileColor:
+                                          colors.redColor.withOpacity(0.1),
+                                      title: "Delete wallet",
+                                      icon: Icon(
+                                        LucideIcons.trash,
+                                        color: colors.redColor.withOpacity(0.7),
+                                        size: iconSizeOf(20),
+                                      ),
+                                      trailing: Icon(
+                                        Icons.chevron_right,
+                                        color: colors.redColor,
+                                      ),
+                                      color: colors.redColor,
+                                      titleStyle: textTheme.bodySmall?.copyWith(
+                                          color: colors.redColor,
+                                          fontSize: fontSizeOf(14)))
+                                ],
+                                onTap: (i) {
+                                  if (i == 1) {
+                                    deleteWallet(account);
+                                  }
+                                })
                           ],
                         ),
-                        SizedBox(
-                          height: 10,
-                        ),
-                        CustomOptionWidget(
-                            colors: colors,
-                            splashColor: colors.themeColor.withOpacity(0.1),
-                            containerRadius:
-                                BorderRadius.circular(roundedOf(10)),
-                            spaceName: "Appearance",
-                            internalElementSpacing: 10,
-                            shapeBorder: RoundedRectangleBorder(
-                                borderRadius:
-                                    BorderRadius.circular(roundedOf(10))),
-                            backgroundColor: Colors.transparent,
-                            spaceNameStyle: textTheme.bodySmall?.copyWith(
-                                  color: colors.textColor,
-                                ) ??
-                                GoogleFonts.roboto(color: colors.textColor),
-                            options: [
-                              Option(
-                                  shape: RoundedRectangleBorder(
-                                      borderRadius: borderRadiusTop),
-                                  tileColor: colors.secondaryColor,
-                                  title: "Edit profile picture",
-                                  icon: Icon(
-                                    LucideIcons.user,
-                                    color: colors.textColor.withOpacity(0.7),
-                                    size: iconSizeOf(20),
-                                  ),
-                                  trailing: Icon(
-                                    Icons.chevron_right,
-                                    color: colors.textColor.withOpacity(0.5),
-                                  ),
-                                  color: colors.secondaryColor,
-                                  titleStyle: textTheme.bodySmall?.copyWith(
-                                      color: colors.textColor,
-                                      fontSize: fontSizeOf(14))),
-                              Option(
-                                  shape: RoundedRectangleBorder(
-                                      borderRadius: borderRadiusBottom),
-                                  tileColor: colors.secondaryColor,
-                                  title: "More Settings",
-                                  icon: Icon(
-                                    LucideIcons.settings,
-                                    color: colors.textColor.withOpacity(0.7),
-                                    size: iconSizeOf(20),
-                                  ),
-                                  trailing: Icon(Icons.chevron_right,
-                                      color: colors.textColor.withOpacity(0.5)),
-                                  color: colors.secondaryColor,
-                                  titleStyle: textTheme.bodySmall?.copyWith(
-                                      color: colors.textColor,
-                                      fontSize: fontSizeOf(14))),
-                            ],
-                            onTap: (i) async {
-                              if (i == 1) {
-                                Navigator.push(
-                                    context,
-                                    MaterialPageRoute(
-                                      builder: (context) => SettingsPage(
-                                        colors: colors,
-                                      ),
-                                    ));
-                              } else if (i == 0) {
-                                final file = await showProfileImagePicker(
-                                    colors: colors,
-                                    context: context,
-                                    currentImage: currentImage);
-                                if (file != null) {
-                                  st(() {
-                                    currentImage = file;
-                                  });
-                                  changeProfileImage(file);
-                                }
-                              }
-                            }),
-                        SizedBox(
-                          height: 10,
-                        ),
-                        CustomOptionWidget(
-                            colors: colors,
-                            splashColor: colors.themeColor.withOpacity(0.1),
-                            containerRadius:
-                                BorderRadius.circular(roundedOf(10)),
-                            spaceName: "Security",
-                            internalElementSpacing: 10,
-                            shapeBorder: RoundedRectangleBorder(
-                                borderRadius:
-                                    BorderRadius.circular(roundedOf(10))),
-                            backgroundColor: Colors.transparent,
-                            spaceNameStyle: textTheme.bodySmall?.copyWith(
-                                  color: colors.textColor,
-                                ) ??
-                                GoogleFonts.roboto(color: colors.textColor),
-                            options: [
-                              Option(
-                                  shape: RoundedRectangleBorder(
-                                      borderRadius: borderRadiusTop),
-                                  tileColor: colors.secondaryColor,
-                                  title: "Backup",
-                                  icon: Icon(
-                                    LucideIcons.key,
-                                    color: colors.textColor.withOpacity(0.7),
-                                    size: iconSizeOf(20),
-                                  ),
-                                  trailing: Icon(Icons.chevron_right,
-                                      color: colors.textColor.withOpacity(0.5)),
-                                  color: colors.secondaryColor,
-                                  titleStyle: textTheme.bodySmall?.copyWith(
-                                      color: colors.textColor,
-                                      fontSize: fontSizeOf(14))),
-                              Option(
-                                  shape: RoundedRectangleBorder(
-                                      borderRadius: borderRadiusBottom),
-                                  tileColor: colors.secondaryColor,
-                                  title: "Change password",
-                                  icon: Icon(
-                                    LucideIcons.keySquare,
-                                    color: colors.textColor.withOpacity(0.7),
-                                    size: iconSizeOf(20),
-                                  ),
-                                  trailing: Icon(
-                                    Icons.chevron_right,
-                                    color: colors.textColor.withOpacity(0.5),
-                                  ),
-                                  color: colors.secondaryColor,
-                                  titleStyle: textTheme.bodySmall?.copyWith(
-                                      color: colors.textColor,
-                                      fontSize: fontSizeOf(14)))
-                            ],
-                            onTap: (i) async {
-                              if (i == 0) {
-                                if (account.isWatchOnly) {
-                                  showWatchOnlyWaring(
-                                      colors: colors, context: context);
-                                  return;
-                                }
-                                final password = await askUserPassword(
-                                    context: context, colors: colors);
-
-                                if (password != null && password.isNotEmpty) {
-                                  Navigator.push(
-                                      context,
-                                      MaterialPageRoute(
-                                          builder: (context) =>
-                                              PrivateKeyScreen(
-                                                password: password,
-                                                account: account,
-                                                colors: colors,
-                                              )));
-                                }
-                              } else if (i == 1) {
-                                showChangePasswordProcedure(
-                                    context: context, colors: colors);
-                              }
-                            }),
-                        SizedBox(
-                          height: 10,
-                        ),
-                        CustomOptionWidget(
-                            colors: colors,
-                            splashColor: colors.redColor.withOpacity(0.1),
-                            containerRadius:
-                                BorderRadius.circular(roundedOf(10)),
-                            spaceName: "Others",
-                            internalElementSpacing: 10,
-                            shapeBorder: RoundedRectangleBorder(
-                                borderRadius:
-                                    BorderRadius.circular(roundedOf(10))),
-                            backgroundColor: Colors.transparent,
-                            spaceNameStyle: textTheme.bodySmall?.copyWith(
-                                  color: colors.textColor,
-                                ) ??
-                                GoogleFonts.roboto(color: colors.textColor),
-                            options: [
-                              Option(
-                                  splashColor:
-                                      colors.themeColor.withOpacity(0.1),
-                                  title: "Enable biometric",
-                                  icon: Icon(
-                                    LucideIcons.fingerprint,
-                                    color: colors.textColor.withOpacity(0.7),
-                                    size: iconSizeOf(20),
-                                  ),
-                                  trailing: Switch(
-                                      value: useBio,
-                                      onChanged: (v) async {
-                                        final result = await toggleCanUseBio(v);
-
-                                        if (result) {
-                                          notifySuccess(
-                                              v ? "Enabled" : "Disabled",
-                                              context);
-                                          st(() {
-                                            useBio = v;
-                                          });
-                                          return;
-                                        }
-
-                                        notifyError(
-                                            "An error has occurred", context);
-                                      }),
-                                  color: colors.textColor,
-                                  titleStyle: textTheme.bodySmall?.copyWith(
-                                      color: colors.textColor,
-                                      fontSize: fontSizeOf(14))),
-                              Option(
-                                  tileColor: colors.redColor.withOpacity(0.1),
-                                  title: "Delete wallet",
-                                  icon: Icon(
-                                    LucideIcons.trash,
-                                    color: colors.redColor.withOpacity(0.7),
-                                    size: iconSizeOf(20),
-                                  ),
-                                  trailing: Icon(
-                                    Icons.chevron_right,
-                                    color: colors.redColor,
-                                  ),
-                                  color: colors.redColor,
-                                  titleStyle: textTheme.bodySmall?.copyWith(
-                                      color: colors.redColor,
-                                      fontSize: fontSizeOf(14)))
-                            ],
-                            onTap: (i) {
-                              if (i == 1) {
-                                deleteWallet(account);
-                              }
-                            })
-                      ],
-                    ),
-                  )));
-        });
+                      )));
+            }));
       });
 }

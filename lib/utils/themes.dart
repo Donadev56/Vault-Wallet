@@ -24,7 +24,8 @@ class Themes {
         "noirTheme": noirTheme,
         "industrialTheme": industrialTheme,
         "classicTheme": classicTheme,
-        "redAccentBlack": redAccentBlack
+        "redAccentBlack": redAccentBlack,
+        "binance": binanceColors
       };
   AppColors darkGrayColor = AppColors(
       primaryColor: Color(0XFF1B1B1B),
@@ -247,6 +248,15 @@ AppColors redAccentBlack = AppColors(
     redColor: Colors.deepOrange,
     type: ColorType.other);
 
+AppColors binanceColors = AppColors(
+    primaryColor: Color(0XFF1f242f),
+    themeColor: Color(0XFFfbd23e),
+    greenColor: Color(0XFF31e6a1),
+    secondaryColor: Color(0XFF29313c),
+    grayColor: Color(0XFF676c77),
+    textColor: Colors.white,
+    redColor: Color.fromARGB(255, 207, 31, 89),
+    type: ColorType.dark);
 /* AppColors lightColors = AppColors(
       primaryColor: Colors.white,
       themeColor: Colors.greenAccent,

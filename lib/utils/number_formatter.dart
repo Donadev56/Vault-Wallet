@@ -40,12 +40,23 @@ class NumberFormatter {
     return formatted.trim();
   }
 
-  String formatDecimal(String numberStr, {int maxDecimals = 13}) {
-    final dec = Decimal.parse(numberStr);
+  int getDecimalToUse(Decimal dec, int maxDec) {
     final integerPart = dec.truncate();
     final isLargeValue = integerPart >= Decimal.one;
+    if (isLargeValue) {
+      return 2;
+    }
+    final fixedDecimal = dec.toStringAsFixed(2);
+    if (double.parse(fixedDecimal) > 0.09) {
+      return 2;
+    }
 
-    final decimalsToUse = isLargeValue ? 2 : maxDecimals;
+    return maxDec;
+  }
+
+  String formatDecimal(String numberStr, {int maxDecimals = 13}) {
+    final dec = Decimal.parse(numberStr);
+    final decimalsToUse = getDecimalToUse(dec, maxDecimals);
 
     final fixed = dec.toStringAsFixed(decimalsToUse);
     return fixed

@@ -9,7 +9,7 @@ import 'package:moonwallet/screens/dashboard/wallet_actions/add_w_o.dart';
 import 'package:moonwallet/service/crypto_manager.dart';
 import 'package:moonwallet/types/account_related_types.dart';
 import 'package:moonwallet/types/types.dart';
-import 'package:moonwallet/widgets/appBar/button.dart';
+import 'package:moonwallet/widgets/appBar/custom_list_title_button.dart';
 import 'package:moonwallet/widgets/func/tokens_config/show_select_ecosystem.dart';
 
 class WalletActions extends HookConsumerWidget {
@@ -63,7 +63,7 @@ class WalletActions extends HookConsumerWidget {
             roundedOf: roundedOf,
             fontSizeOf: fontSizeOf,
             iconSizeOf: iconSizeOf,
-            textColor: colors.textColor,
+            colors: colors,
             text: "Create a new wallet",
             icon: Icons.add,
             onTap: () {
@@ -73,7 +73,7 @@ class WalletActions extends HookConsumerWidget {
             roundedOf: roundedOf,
             fontSizeOf: fontSizeOf,
             iconSizeOf: iconSizeOf,
-            textColor: colors.textColor,
+            colors: colors,
             text: "Import Mnemonic phrases",
             icon: LucideIcons.fileText,
             onTap: () {
@@ -83,7 +83,7 @@ class WalletActions extends HookConsumerWidget {
             roundedOf: roundedOf,
             fontSizeOf: fontSizeOf,
             iconSizeOf: iconSizeOf,
-            textColor: colors.textColor,
+            colors: colors,
             text: "Import private key",
             icon: LucideIcons.key,
             onTap: () async {
@@ -101,7 +101,7 @@ class WalletActions extends HookConsumerWidget {
             roundedOf: roundedOf,
             fontSizeOf: fontSizeOf,
             iconSizeOf: iconSizeOf,
-            textColor: colors.textColor,
+            colors: colors,
             text: "Observation wallet",
             icon: LucideIcons.eye,
             onTap: () async {

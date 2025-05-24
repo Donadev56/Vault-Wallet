@@ -44,7 +44,14 @@ class SavedCryptoProvider extends AsyncNotifier<List<Crypto>> {
       }
 
       try {
-        standardCrypto = await CryptoRequestManager().getDefaultTokens() ?? [];
+        final defaultTokens = await CryptoRequestManager().getDefaultTokens();
+
+        if (defaultTokens != null) {
+          standardCrypto = defaultTokens
+              .sublist(0, defaultTokens.length > 5 ? 5 : defaultTokens.length)
+              .map((e) => e.copyWith(canDisplay: true))
+              .toList();
+        }
       } catch (e) {
         logError(e.toString());
       }

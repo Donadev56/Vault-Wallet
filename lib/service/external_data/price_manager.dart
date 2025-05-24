@@ -3,6 +3,7 @@ import 'package:moonwallet/logger/logger.dart';
 import 'package:http/http.dart' as http;
 import 'package:moonwallet/service/db/crypto_storage_manager.dart';
 import 'package:moonwallet/service/db/global_database.dart';
+import 'package:moonwallet/service/db/price_data_db.dart';
 import 'package:moonwallet/service/db/price_db.dart';
 import 'package:moonwallet/service/internet_manager.dart';
 import 'package:moonwallet/types/account_related_types.dart';
@@ -12,12 +13,12 @@ import 'package:moonwallet/utils/prefs.dart';
 class PriceManager {
   final _dataName = "user/crypto/market-data";
   final _db = GlobalDatabase();
-  final baseV2Url = "http://46.202.175.219:4006";
+  //final baseV2Url = "http://46.202.175.219:4006";
+  final baseV2Url = "https://api.moonbnb.app";
+  final internet = InternetManager();
 
   Future<List<CryptoMarketData>> getListTokensMarketData() async {
     try {
-      final internet = InternetManager();
-
       if (!await internet.isConnected()) {
         return await getSavedListMarketData();
       }
@@ -70,48 +71,15 @@ class PriceManager {
     final db = PriceDatabase(crypto: token);
 
     final savedData = await db.getData();
-    if (!(await InternetManager().isConnected())) {
+    if (!(await internet.isConnected())) {
       log("Returning $savedData of token ${token.symbol}");
 
       return savedData;
     }
     try {
-      final network = token.tokenNetwork;
-      if (network == null) {
-        throw Exception("Invalid token, network is missing");
-      }
-
-      String contractAddress = "";
-      int chainId = 1;
-      final tokenRef = token.refToken;
-      final refChain = token.refTokenChainId;
-      final tokenContract = token.contractAddress;
-
-      if (tokenRef != null) {
-        contractAddress = tokenRef;
-      } else if (tokenContract != null) {
-        contractAddress = tokenContract;
-      }
-
-      if (refChain != null) {
-        chainId = refChain;
-      } else if (network.chainId != null) {
-        chainId = network.chainId!;
-      }
-
-      final response = await http.get(Uri.parse(
-          "$baseV2Url/v2/tokens/price?tokenAddress=${contractAddress}&chainId=${chainId}"));
-      if (response.statusCode == 200) {
-        final dataJson = json.decode(response.body);
-        final price = dataJson["priceUsd"];
-        log("Price usd $price");
-        if (price != null) {
-          await db.saveData(price);
-          return price;
-        }
-        throw Exception("Response received but price is null");
-      }
-      throw Exception(response.body);
+      final price = (await getPriceDataV2(token)).$1;
+      await db.saveData(price);
+      return price;
     } catch (e) {
       logError(e.toString());
     }
@@ -122,64 +90,110 @@ class PriceManager {
     final db = PriceDatabase(crypto: token);
 
     final savedData = await db.getPriceChange24hData();
-    if (!(await InternetManager().isConnected())) {
+    if (!(await internet.isConnected())) {
       return savedData;
     }
     try {
-      final network = token.tokenNetwork;
-      if (network == null) {
-        throw Exception("Invalid token, network is missing");
-      }
+      final change = (await getPriceDataV2(token)).$2;
 
-      String contractAddress = "";
-      int chainId = 1;
-      final tokenRef = token.refToken;
-      final refChain = token.refTokenChainId;
-      final tokenContract = token.contractAddress;
-
-      if (tokenRef != null) {
-        contractAddress = tokenRef;
-      } else if (tokenContract != null) {
-        contractAddress = tokenContract;
-      }
-
-      if (refChain != null) {
-        chainId = refChain;
-      } else if (network.chainId != null) {
-        chainId = network.chainId!;
-      }
-
-      final response = await http.get(Uri.parse(
-          "$baseV2Url/v2/tokens/priceChange24h?tokenAddress=${contractAddress}&chainId=${chainId}"));
-      if (response.statusCode == 200) {
-        final dataJson = json.decode(response.body);
-        final change = dataJson["percent"];
-        if (change != null) {
-          await db.savePriceChangeData(change.toString());
-          return change is double ? change.toString() : change;
-        }
-        throw Exception("Response received but Change  is null");
-      }
-      throw Exception(response.body);
+      await db.savePriceChangeData(change.toString());
+      return change.toString();
     } catch (e) {
       logError(e.toString());
     }
-    return await db.getData();
+    return await db.getPriceChange24hData();
+  }
+
+  (String, int) getAddressAndChainID(Crypto token) {
+    final network = token.tokenNetwork;
+    if (network == null) {
+      throw Exception("Invalid token, network is missing");
+    }
+
+    String contractAddress = "";
+    int chainId = 1;
+    final tokenRef = token.refToken;
+    final refChain = token.refTokenChainId;
+    final tokenContract = token.contractAddress;
+
+    if (tokenRef != null) {
+      contractAddress = tokenRef;
+    } else if (tokenContract != null) {
+      contractAddress = tokenContract;
+    }
+
+    if (refChain != null) {
+      chainId = refChain;
+    } else if (network.chainId != null) {
+      chainId = network.chainId!;
+    }
+    return (contractAddress, chainId);
+  }
+
+  Future<(String, double)> getPriceDataV2(Crypto token) async {
+    try {
+      final db = PriceDataDb(crypto: token);
+      final chainData = getAddressAndChainID(token);
+      final chainId = chainData.$2;
+      final contractAddress = chainData.$1;
+
+      if (!(await internet.isConnected())) {
+        final data = await db.getData();
+        if (data == null) {
+          return ("0", 0.0);
+        }
+        final dataJson = jsonDecode(data);
+        log("Data jon $dataJson");
+
+        return (dataJson["price"] as String, dataJson["percent"] as double);
+      }
+
+      final response = await http.get(Uri.parse(
+          // ignore: unnecessary_brace_in_string_interps
+          "$baseV2Url/v2/tokens/tokenPriceData?tokenAddress=${contractAddress}&chainId=${chainId}"));
+      if (response.statusCode == 200) {
+        final dataJson = json.decode(response.body);
+        await db.saveData(jsonEncode(dataJson));
+        final price = dataJson["price"];
+        final percent = dataJson["percent"];
+        if (price != null && percent != null) {
+          return (price as String, percent as double);
+        }
+        throw Exception("Response received but price Data is null");
+      }
+      // ignore: unnecessary_brace_in_string_interps
+      throw Exception(
+          "${response.body} For Token ${token.symbol}\n Chain ID ${chainId} \n Contract address ${contractAddress}");
+    } catch (e) {
+      logError(e.toString());
+      rethrow;
+    }
+  }
+
+  Future<List<dynamic?>> getTokenHistData(
+      Crypto currentCrypto, String interval) async {
+    try {
+      final chainData = getAddressAndChainID(currentCrypto);
+      final chainId = chainData.$2;
+
+      final contractAddress = chainData.$1;
+
+      return [];
+    } catch (e) {
+      logError(e.toString());
+      return [];
+    }
   }
 
   Future<List<dynamic>?> getPriceDataUsingCg(
-      Crypto currentCrypto, String interval) async {
+      Crypto currentCrypto, String interval, String symbol) async {
     try {
-      if (currentCrypto.cgSymbol == null ||
-          currentCrypto.cgSymbol?.isEmpty == true) {
-        throw Exception("No cg identifier provided");
-      }
       log("Crypto ${currentCrypto.toJson()}");
       final manager = CryptoStorageManager();
       final prefs = PublicDataManager();
-      final name = "cryptoDataOf/${currentCrypto.cgSymbol}/$interval";
+      final name = "cryptoDataOf/${symbol}/$interval";
       final url =
-          "https://api.coingecko.com/api/v3/coins/${currentCrypto.cgSymbol}/market_chart?vs_currency=usd&days=$interval";
+          "https://api.coingecko.com/api/v3/coins/${symbol}/market_chart?vs_currency=usd&days=$interval";
       log("The url ${url}");
       final uri = Uri.parse(url);
 
@@ -214,7 +228,7 @@ class PriceManager {
                 crypto: currentCrypto, interval: interval, data: data);
             final jsonToSave = {
               "lastUpdate": DateTime.now().millisecondsSinceEpoch ~/ 1000,
-              "cgSymbol": currentCrypto.cgSymbol
+              "cgSymbol": symbol
             };
             await prefs.saveDataInPrefs(
                 data: json.encode(jsonToSave), key: name);

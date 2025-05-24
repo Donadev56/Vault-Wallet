@@ -8,9 +8,9 @@ import 'package:moonwallet/types/account_related_types.dart';
 class CryptoStorageManager {
   final saver = WalletDatabase();
 
-  Future<List<Crypto>?> getSavedCryptos({required PublicAccount wallet}) async {
+  Future<List<Crypto>> getSavedCryptos({required PublicAccount wallet}) async {
     try {
-      final name = "savedCrypto/test31/${wallet.keyId}";
+      final name = "savedCrypto/test33/${wallet.keyId}";
       log("Getting crypto for address ${wallet.keyId}");
 
       final String? cryptoDataString = await saver.getDynamicData(name: name);
@@ -33,17 +33,17 @@ class CryptoStorageManager {
 
       logError("No crypto found");
 
-      return null;
+      return [];
     } catch (e) {
       logError("Error getting saved cryptos: $e");
-      return null;
+      return [];
     }
   }
 
   Future<bool> saveListCrypto(
       {required List<Crypto> cryptos, required PublicAccount wallet}) async {
     try {
-      final name = "savedCrypto/test31/${wallet.keyId}";
+      final name = "savedCrypto/test33/${wallet.keyId}";
       List<dynamic> cryptoJson = cryptos.map((c) => c.toJson()).toList();
 
       if (cryptoJson.isNotEmpty) {
@@ -139,7 +139,7 @@ class CryptoStorageManager {
       required bool value,
       required PublicAccount wallet}) async {
     try {
-      List<Crypto> savedCryptos = await getSavedCryptos(wallet: wallet) ?? [];
+      List<Crypto> savedCryptos = await getSavedCryptos(wallet: wallet);
       final targetCrypto = savedCryptos
           .where((e) =>
               e.cryptoId.trim().toLowerCase() ==

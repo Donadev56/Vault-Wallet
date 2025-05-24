@@ -79,7 +79,7 @@ class _CryptoTrendViewState extends State<CryptoTrendView> {
 
   Future<void> loadData(String interval) async {
     try {
-      final data = await PriceManager().getPriceDataUsingCg(coin, interval);
+      final data = await PriceManager().getPriceDataUsingCg(coin, interval, "");
 
       if (data == null) {
         logError("Data is Null");

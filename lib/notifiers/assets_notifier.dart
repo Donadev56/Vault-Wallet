@@ -87,18 +87,16 @@ class AssetsNotifier extends AsyncNotifier<List<Asset>> {
   Future<Asset> getAssetData(
       Crypto crypto, PublicAccount account, int waitTime) async {
     try {
+      await Future.delayed(Duration(microseconds: waitTime));
       final priceManager = PriceManager();
       final cryptoBalance = await RpcService().getBalance(
         crypto,
         account,
       );
       final balance = cryptoBalance;
-      final priceDataResult = await Future.wait([
-        priceManager.getPriceChange24h(crypto),
-        priceManager.getTokenPriceUsd(crypto),
-      ]);
-      final trend = priceDataResult[0];
-      final cryptoPrice = priceDataResult[1];
+      final priceDataResult = await priceManager.getPriceDataV2(crypto);
+      final trend = priceDataResult.$2;
+      final cryptoPrice = priceDataResult.$1;
       final balanceUsd =
           Decimal.parse(balance) * Decimal.parse(cryptoPrice.toString());
 
@@ -106,7 +104,7 @@ class AssetsNotifier extends AsyncNotifier<List<Asset>> {
         crypto: crypto,
         balanceUsd: balanceUsd.toString(),
         balanceCrypto: balance,
-        cryptoTrendPercent: trend,
+        cryptoTrendPercent: trend.toString(),
         cryptoPrice: cryptoPrice,
       );
     } catch (e) {

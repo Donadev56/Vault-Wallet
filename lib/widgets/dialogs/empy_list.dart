@@ -5,8 +5,10 @@ import 'package:moonwallet/types/types.dart';
 class EmptyList extends StatelessWidget {
   final AppColors colors;
   final String title;
+  final Widget? icon;
   const EmptyList(
     this.title, {
+    this.icon,
     super.key,
     required this.colors,
   });
@@ -19,11 +21,12 @@ class EmptyList extends StatelessWidget {
         mainAxisAlignment: MainAxisAlignment.center,
         crossAxisAlignment: CrossAxisAlignment.center,
         children: [
-          Icon(
-            LucideIcons.rabbit,
-            color: colors.textColor,
-            size: 50,
-          ),
+          icon ??
+              Icon(
+                LucideIcons.rabbit,
+                color: colors.textColor,
+                size: 50,
+              ),
           const SizedBox(height: 10),
           Text(
             title,

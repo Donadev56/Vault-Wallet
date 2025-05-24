@@ -5,8 +5,10 @@ import 'package:modal_bottom_sheet/modal_bottom_sheet.dart';
 import 'package:moonwallet/logger/logger.dart';
 import 'package:moonwallet/notifiers/providers.dart';
 import 'package:moonwallet/service/crypto_manager.dart';
+import 'package:moonwallet/service/internet_manager.dart';
 import 'package:moonwallet/types/account_related_types.dart';
 import 'package:moonwallet/types/types.dart';
+import 'package:moonwallet/widgets/dialogs/empy_list.dart';
 import 'package:moonwallet/widgets/dialogs/search_modal_header.dart';
 import 'package:moonwallet/widgets/dialogs/show_custom_snackbar.dart';
 import 'package:moonwallet/widgets/dialogs/standard_circular_progress_indicator.dart';
@@ -50,6 +52,8 @@ class ShowAdditionalTokensView extends HookConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final pageController = useMemoized(() => PageController());
+    final internet = useMemoized(() => InternetManager());
+
     final manager = useMemoized(() => CryptoManager());
     final tokens = useState<List<Crypto>>([]);
     final requestedPageCount = useState<int>(0);
@@ -71,7 +75,8 @@ class ShowAdditionalTokensView extends HookConsumerWidget {
     }, []);
 
     List<Crypto> filterTokens(List<Crypto> newTokens, PublicAccount account) {
-      newTokens.sort((a, b) => a.symbol.compareTo(b.symbol));
+      newTokens.sort((a, b) =>
+          manager.cleanName(a.symbol).compareTo(manager.cleanName(b.symbol)));
       newTokens = newTokens
           .where((e) => e.symbol.trim().isNotEmpty && e.icon != null)
           .toList();
@@ -81,6 +86,13 @@ class ShowAdditionalTokensView extends HookConsumerWidget {
     useEffect(() {
       Future<void> getTokens() async {
         try {
+          if (!(await internet.isConnected())) {
+            log("No internet");
+            isLoading.value = false;
+            loadedAll.value = true;
+            return;
+          }
+
           final account = accountAsync.value;
           if (account == null) {
             throw Exception("Account not yet initialized");
@@ -145,6 +157,7 @@ class ShowAdditionalTokensView extends HookConsumerWidget {
     useEffect(() {
       Future<void> searchTokens() async {
         try {
+          final maxResult = 300;
           isSearching.value = true;
           final account = accountAsync.value;
           if (account == null) {
@@ -166,11 +179,18 @@ class ShowAdditionalTokensView extends HookConsumerWidget {
           Future.delayed(Duration(seconds: 1));
 
           List<Crypto> newTokens = await manager.searchTokens(query);
+
           newTokens = newTokens.sublist(
-              0, newTokens.length > 1000 ? 1000 : newTokens.length);
+              0, newTokens.length > maxResult ? maxResult : newTokens.length);
 
           final withoutSaved = manager.removeAlreadySavedTokens(
               savedCryptoProvider.value ?? [], newTokens);
+
+          if (query.trim().toLowerCase() !=
+              queryValue.value.trim().toLowerCase()) {
+            log("The query has changed from $query to ${queryValue.value}");
+            return;
+          }
           searchingTokens.value = filterTokens(withoutSaved, account);
         } catch (e) {
           logError(e.toString());
@@ -192,12 +212,6 @@ class ShowAdditionalTokensView extends HookConsumerWidget {
         return searchingTokens.value;
       }
     } */
-    bool isEnabled(Crypto token) {
-      return (savedCryptoProvider.value ?? []).any((c) =>
-          c.contractAddress?.trim().toLowerCase() ==
-              token.contractAddress?.trim().toLowerCase() &&
-          c.network?.chainId == token.network?.chainId);
-    }
 
     return Material(
         color: colors.primaryColor,
@@ -240,6 +254,16 @@ class ShowAdditionalTokensView extends HookConsumerWidget {
                               itemBuilder: (context, index) {
                                 if (index == listTokens.length) {
                                   if (!isFirstView) {
+                                    if (queryValue.value.isEmpty) {
+                                      return SizedBox(
+                                        height:
+                                            MediaQuery.of(context).size.height *
+                                                0.6,
+                                        child: EmptyList(
+                                            "Start with a search...",
+                                            colors: colors),
+                                      );
+                                    }
                                     return buildStaticLoader(
                                         loading: !isSearching.value,
                                         context: context,
@@ -286,7 +310,8 @@ class ShowAdditionalTokensView extends HookConsumerWidget {
                                         }
                                       });
                                     },
-                                    value: isEnabled(token),
+                                    value: manager.isEnabled(
+                                        token, savedCryptoProvider.value ?? []),
                                     rounded: 10,
                                   ),
                                 );

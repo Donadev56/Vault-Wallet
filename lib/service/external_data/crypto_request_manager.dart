@@ -12,7 +12,8 @@ class CryptoRequestManager {
   final internet = InternetManager();
   final dataKey = "user/global/crypto-available";
   final defaultDataKey = "user/global/crypto-available-default-tokens";
-  final baseV2Url = "http://46.202.175.219:4006";
+  // final baseV2Url = "http://46.202.175.219:4006";
+  final baseV2Url = "https://api.moonbnb.app";
 
   Future<List<Crypto>> getAllCryptos() async {
     try {
@@ -69,7 +70,7 @@ class CryptoRequestManager {
   Future<List<Crypto>?> getDefaultTokens() async {
     try {
       if (!(await internet.isConnected())) {
-        return await getDefaultTokens();
+        return await getSavedDefaultCrypto();
       }
       final url = Uri.parse("$baseV2Url/v2/tokens/defaultTokens");
 
@@ -82,7 +83,7 @@ class CryptoRequestManager {
       return cryptos;
     } catch (e) {
       logError(e.toString());
-      return await getDefaultTokens();
+      return await getSavedDefaultCrypto();
     }
   }
 

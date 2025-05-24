@@ -11,7 +11,7 @@ import 'package:moonwallet/types/ecosystem_config.dart';
 import 'package:moonwallet/utils/colors.dart';
 import 'package:moonwallet/utils/encrypt_service.dart';
 import 'package:moonwallet/utils/themes.dart';
-import 'package:moonwallet/widgets/appBar/button.dart';
+import 'package:moonwallet/widgets/appBar/custom_list_title_button.dart';
 import 'package:moonwallet/widgets/appBar/show_wallet_actions.dart';
 import 'package:moonwallet/widgets/func/tokens_config/show_additional_tokens.dart';
 import 'package:moonwallet/widgets/func/tokens_config/show_token_detials.dart';
@@ -98,6 +98,7 @@ class _AddCryptoViewState extends ConsumerState<AddCryptoView> {
     final savedCryptoAsync = ref.watch(savedCryptosProviderNotifier);
     final accountsProvider = ref.watch(accountsNotifierProvider);
     final appUIConfigAsync = ref.watch(appUIConfigProvider);
+    final cryptoManager = CryptoManager();
 
     final uiConfig = useState<AppUIConfig>(AppUIConfig.defaultConfig);
     final allCryptos = useState<List<Crypto>>([]);
@@ -105,10 +106,9 @@ class _AddCryptoViewState extends ConsumerState<AddCryptoView> {
     useEffect(() {
       Future<void> getListDefaultTokens() async {
         try {
-          final manager = CryptoManager();
-          final defaultTokens = await manager.getDefaultTokens();
-          final savedTokens = await savedCryptoProvider.getSavedCrypto();
-          final uniqueTokens = manager.addOnlyNewTokens(
+          final defaultTokens = await cryptoManager.getDefaultTokens();
+          final savedTokens = savedCryptoAsync.value ?? [];
+          final uniqueTokens = cryptoManager.addOnlyNewTokens(
               localList: savedTokens, externalList: defaultTokens);
           allCryptos.value = uniqueTokens;
         } catch (e) {
@@ -275,7 +275,7 @@ class _AddCryptoViewState extends ConsumerState<AddCryptoView> {
                     roundedOf: roundedOf,
                     fontSizeOf: fontSizeOf,
                     iconSizeOf: iconSizeOf,
-                    textColor: colors.textColor,
+                    colors: colors,
                     text: "Add custom token",
                     icon: Icons.add,
                     onTap: () {
@@ -297,7 +297,7 @@ class _AddCryptoViewState extends ConsumerState<AddCryptoView> {
                     roundedOf: roundedOf,
                     fontSizeOf: fontSizeOf,
                     iconSizeOf: iconSizeOf,
-                    textColor: colors.textColor,
+                    colors: colors,
                     text: "Add EVM network",
                     icon: Icons.construction,
                     onTap: () async {
@@ -320,7 +320,7 @@ class _AddCryptoViewState extends ConsumerState<AddCryptoView> {
                   roundedOf: roundedOf,
                   fontSizeOf: fontSizeOf,
                   iconSizeOf: iconSizeOf,
-                  textColor: colors.textColor,
+                  colors: colors,
                   text: "Edit network",
                   icon: Icons.border_color,
                   onTap: () async {
@@ -435,7 +435,9 @@ class _AddCryptoViewState extends ConsumerState<AddCryptoView> {
                   itemCount: getCryptoList().length,
                   itemBuilder: (ctx, i) {
                     final reorganized = getCryptoList()
-                      ..sort((a, b) => a.symbol.compareTo(b.symbol));
+                      ..sort((a, b) => cryptoManager
+                          .cleanName(a.symbol.trim())
+                          .compareTo(cryptoManager.cleanName(b.symbol.trim())));
 
                     final crypto = reorganized[i];
 
@@ -453,7 +455,8 @@ class _AddCryptoViewState extends ConsumerState<AddCryptoView> {
                             size: imageSizeOf(40),
                             colors: colors),
                         title: crypto.symbol,
-                        value: crypto.canDisplay,
+                        value: cryptoManager.isEnabled(
+                            crypto, savedCryptoAsync.value ?? []),
                         onChanged: (newVal) async {
                           try {
                             final result = await savedCryptoProvider

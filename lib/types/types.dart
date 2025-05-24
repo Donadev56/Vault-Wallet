@@ -1042,3 +1042,25 @@ class LocalSession {
     );
   }
 }
+
+class AssetParams {
+  final int waitTime;
+  final PublicAccount account;
+  final Crypto token;
+
+  AssetParams(
+      {required this.account, required this.token, required this.waitTime});
+  factory AssetParams.fromJson(Map<dynamic, dynamic> json) {
+    return AssetParams(
+        account: PublicAccount.fromJson(json["account"]),
+        token: Crypto.fromJson(json["token"]),
+        waitTime: json["waitTime"]);
+  }
+  Map<dynamic, dynamic> toJson() {
+    return {
+      "waitTime": waitTime,
+      "account": account.toJson(),
+      "token": token.toJson()
+    };
+  }
+}
