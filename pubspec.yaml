@@ -1,5 +1,5 @@
 name: moonwallet
-description: "A new Flutter project."
+description: "An Ethereum and Solana Crypto wallet."
 # The following line prevents the package from being accidentally published to
 # pub.dev using `flutter pub publish`. This is preferred for private packages.
 publish_to: 'none' # Remove this line if you wish to publish to pub.dev
@@ -43,31 +43,23 @@ dependencies:
   flutter_secure_storage: ^9.2.4
   google_fonts: ^6.2.1
   logger: ^2.5.0
-  giffy_dialog: ^2.3.0
   imgx: ^0.1.4
   web3dart: ^2.7.3
   bip39: ^1.0.6
   bip32: ^2.0.0
-  pinput: ^5.0.1
   encrypt: ^5.0.3
   ulid: ^2.0.1
   vibration: ^3.1.2
   url_launcher: ^6.3.1
   fl_chart: ^0.70.2
-  custom_cached_image: ^1.0.5
 
-  k_chart_plus_deeping: ^1.0.2-5.2.2.3
-  qr_flutter: ^4.1.0
-  awesome_snackbar_content: ^0.1.5
   intl: ^0.20.2
-  qr_code_scanner_plus: ^2.0.10+1
   image_picker: ^1.1.2
   path_provider: ^2.1.5
   permission_handler: ^11.0.1
   mobile_scanner: ^6.0.6
   fast_cached_network_image: ^1.3.3+5
   memory_cache: ^1.2.0
-  delightful_toast: ^1.1.0
   currency_formatter: ^2.2.2
   internet_connection_checker_plus: ^2.7.1
   hex: ^0.2.0
@@ -80,27 +72,22 @@ dependencies:
   local_auth: ^2.3.0
   flutter_native_splash: ^2.4.5
   eth_sig_util: ^0.0.9
-  objectbox: ^4.1.0
   hive_ce: ^2.10.1
   hive_ce_flutter: ^2.2.0
   device_info_plus: ^11.3.3
   liquid_pull_to_refresh: ^3.0.1
-  photo_view: ^0.15.0
   timer_builder: ^2.0.0
   skeletonizer: ^1.4.3
   simple_gesture_detector: ^0.2.1
   dio: ^5.8.0+1
   loading_animation_widget: ^1.3.0
   bottom_sheet_scroll_physics: ^1.0.0
-  smart_alert_dialog: ^4.0.4
   pull_to_refresh_flutter3: ^2.0.2
   share_plus: ^10.1.4
   cronet_http: ^1.3.3
   custom_refresh_indicator: ^4.0.1
   cherry_toast: ^1.12.0
-  jazzicon: ^1.1.0
   internet_connection_checker: ^3.0.1
-  smooth_list_view: ^2.0.2
   flutter_riverpod: ^2.6.1
   web_socket_channel: ^3.0.3
   flashy_tab_bar2: ^0.0.10
@@ -125,12 +112,12 @@ dependencies:
   cryptography: ^2.7.0
   solana_utils: ^0.0.1
   fluttertoast: ^8.2.12
-  avatar_stack: ^3.0.0
   flutter_svg: ^2.1.0
-  cached_network_svg_image: ^1.2.0
-  sentry: ^8.14.2
-  infinite_scroll: ^1.1.1
-  lpinyin: ^2.0.3
+  flutter_cache_manager: ^3.4.1
+  infinite_carousel: ^1.1.1
+  html: ^0.15.0
+  flutter_html: ^3.0.0
+
   scrollable_positioned_list: ^0.3.8
   flutter_slidable: ^4.0.0
   
@@ -232,68 +219,15 @@ flutter:
         - asset: assets/fonts/inter/otf/Inter-ThinItalic.otf
           weight: 100
           style: italic 
-    - family: grotesk
-      fonts:
-        - asset: assets/fonts/ClashGrotesk-Variable.ttf    
-
-    - family: clashGrotesk-otf
-      fonts:
-       - asset: assets/fonts/clashGrotesk-otf/ClashGrotesk-Extralight.otf
-         weight: 200
-       - asset: assets/fonts/clashGrotesk-otf/ClashGrotesk-Light.otf
-         weight: 300
-       - asset: assets/fonts/clashGrotesk-otf/ClashGrotesk-Regular.otf
-         weight: 400
-       - asset: assets/fonts/clashGrotesk-otf/ClashGrotesk-Medium.otf
-         weight: 500
-       - asset: assets/fonts/clashGrotesk-otf/ClashGrotesk-Semibold.otf
-         weight: 600
-       - asset: assets/fonts/clashGrotesk-otf/ClashGrotesk-Bold.otf
-         weight: 700
+  
+ 
 
 
-    - family: general
-      fonts:
-        - asset: assets/fonts/GeneralSans-Variable.ttf
-
-    - family: general-otf
-      fonts:
-        - asset: assets/fonts/general-otf/OTF/GeneralSans-Regular.otf
-          weight: 400
-        - asset: assets/fonts/general-otf/OTF/GeneralSans-Italic.otf
-          weight: 400
-          style: italic
-        - asset: assets/fonts/general-otf/OTF/GeneralSans-Bold.otf
-          weight: 700
-        - asset: assets/fonts/general-otf/OTF/GeneralSans-BoldItalic.otf
-          weight: 700
-          style: italic
-        - asset: assets/fonts/general-otf/OTF/GeneralSans-Light.otf
-          weight: 300
-        - asset: assets/fonts/general-otf/OTF/GeneralSans-LightItalic.otf
-          weight: 300
-          style: italic
-        - asset: assets/fonts/general-otf/OTF/GeneralSans-Medium.otf
-          weight: 500
-        - asset: assets/fonts/general-otf/OTF/GeneralSans-MediumItalic.otf
-          weight: 500
-          style: italic
-        - asset: assets/fonts/general-otf/OTF/GeneralSans-Semibold.otf
-          weight: 600
-        - asset: assets/fonts/general-otf/OTF/GeneralSans-SemiboldItalic.otf
-          weight: 600
-          style: italic
-        - asset: assets/fonts/general-otf/OTF/GeneralSans-Extralight.otf
-          weight: 200
-        - asset: assets/fonts/general-otf/OTF/GeneralSans-ExtralightItalic.otf
-          weight: 200
-          style: italic
   assets:
  
   - assets/icon/icon4.png
   - assets/icon/filled/icon1.png
   - assets/icon/filled/icon2.png
-  - assets/data/china.json
 
   - assets/logo/png/vault2.png
   - assets/logo/png/v_png.png

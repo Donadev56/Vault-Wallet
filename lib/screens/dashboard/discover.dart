@@ -24,6 +24,7 @@ import 'package:moonwallet/widgets/func/discover/history_listTitle.dart';
 import 'package:moonwallet/widgets/func/discover/show_dapp_details.dart';
 import 'package:moonwallet/widgets/func/tokens_config/show_select_network_modal.dart';
 import 'package:moonwallet/widgets/screen_widgets/chips.dart';
+import 'package:moonwallet/widgets/screen_widgets/search_text_field.dart';
 
 class DiscoverScreen extends StatefulHookConsumerWidget {
   final AppColors? colors;
@@ -429,8 +430,12 @@ class _DiscoverScreenState extends ConsumerState<DiscoverScreen>
                     alignment: Alignment.center,
                     width: width * 0.9,
                     height: 40,
-                    child: TextField(
-                      onSubmitted: (data) async {
+                    child: SearchTextField(
+                      hintText: "Enter DApp",
+                      roundedOf: roundedOf,
+                      colors: colors,
+                      fontSizeOf: fontSizeOf,
+                      onFormSubmitted: (data) async {
                         try {
                           if (data.isEmpty) return;
                           await updateSavedHistory(formateUrl(data.trim()));
@@ -444,37 +449,6 @@ class _DiscoverScreenState extends ConsumerState<DiscoverScreen>
                       },
                       focusNode: _focusNode,
                       controller: _textEditingController,
-                      cursorColor: colors.themeColor,
-                      style: textTheme.bodyMedium?.copyWith(
-                        color: colors.textColor,
-                      ),
-                      decoration: InputDecoration(
-                        prefixIcon: Icon(
-                          LucideIcons.search,
-                          color: colors.textColor.withOpacity(0.3),
-                        ),
-                        filled: true,
-                        enabledBorder: OutlineInputBorder(
-                          borderSide: BorderSide(
-                              color: colors.textColor.withOpacity(0)),
-                          borderRadius: BorderRadius.circular(roundedOf(40)),
-                        ),
-                        focusedBorder: OutlineInputBorder(
-                          borderSide: BorderSide(
-                              color: colors.grayColor.withOpacity(0)),
-                          borderRadius: BorderRadius.circular(roundedOf(40)),
-                        ),
-                        contentPadding:
-                            const EdgeInsets.only(left: 10, right: 10),
-                        border: OutlineInputBorder(
-                            borderSide: BorderSide(
-                                color: colors.grayColor.withOpacity(0)),
-                            borderRadius: BorderRadius.circular(roundedOf(40))),
-                        labelText: "Search",
-                        labelStyle: TextStyle(
-                            color: colors.textColor, fontSize: fontSizeOf(12)),
-                        fillColor: colors.grayColor.withOpacity(0.2),
-                      ),
                     ),
                   ),
                 ),

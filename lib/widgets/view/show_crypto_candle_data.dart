@@ -75,8 +75,7 @@ void showCryptoCandleModal(
 
           Future<void> loadData(String interval) async {
             try {
-              final data = await priceManager.getPriceDataUsingCg(
-                  currentCrypto, interval, "");
+              final data = await priceManager.getPriceDataUsingCg(interval, "");
 
               if (data == null) {
                 logError("Data is Null");

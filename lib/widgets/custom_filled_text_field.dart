@@ -22,6 +22,8 @@ class CustomFilledTextFormField extends StatelessWidget {
   final int maxLines;
   final TextStyle? textStyle;
   final void Function()? onTap;
+  final void Function(String)? onFieldSubmitted;
+  final FocusNode? focusNode;
 
   const CustomFilledTextFormField(
       {super.key,
@@ -44,12 +46,15 @@ class CustomFilledTextFormField extends StatelessWidget {
       this.minLines = 1,
       this.contentPadding,
       this.textStyle,
+      this.onFieldSubmitted,
+      this.focusNode,
       this.onTap});
 
   @override
   Widget build(BuildContext context) {
     final textTheme = TextTheme.of(context);
     return TextFormField(
+      focusNode: focusNode,
       onTap: onTap,
       readOnly: readOnly,
       validator: validator,
@@ -59,6 +64,7 @@ class CustomFilledTextFormField extends StatelessWidget {
       onChanged: onChanged,
       minLines: minLines,
       maxLines: maxLines,
+      onFieldSubmitted: onFieldSubmitted,
       style: textStyle ??
           textTheme.bodyMedium
               ?.copyWith(color: colors.textColor, fontSize: fontSizeOf(14)),

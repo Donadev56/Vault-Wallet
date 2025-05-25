@@ -1,18 +1,15 @@
 import 'package:flutter/material.dart';
 import 'package:moonwallet/logger/logger.dart';
 import 'package:moonwallet/service/external_data/price_manager.dart';
-import 'package:moonwallet/types/account_related_types.dart';
 import 'package:moonwallet/types/types.dart';
 import 'package:moonwallet/utils/number_formatter.dart';
 import 'package:moonwallet/widgets/charts_/line_chart.dart';
-import 'package:moonwallet/widgets/dialogs/show_custom_snackbar.dart';
-import 'package:moonwallet/widgets/screen_widgets/crypto_picture.dart';
+import 'package:moonwallet/widgets/screen_widgets/cached_picture.dart';
 import 'package:moonwallet/widgets/screen_widgets/standard_app_bar.dart';
 import 'package:numeral/numeral.dart';
 import 'package:url_launcher/url_launcher.dart';
 
 class CryptoTrendView extends StatefulWidget {
-  final Crypto coin;
   final AppColors colors;
   final DoubleFactor roundedOf;
   final DoubleFactor fontSizeOf;
@@ -22,7 +19,6 @@ class CryptoTrendView extends StatefulWidget {
   final CryptoMarketData marketData;
   const CryptoTrendView(
       {super.key,
-      required this.coin,
       required this.marketData,
       required this.colors,
       required this.roundedOf,
@@ -35,7 +31,6 @@ class CryptoTrendView extends StatefulWidget {
 }
 
 class _CryptoTrendViewState extends State<CryptoTrendView> {
-  late Crypto coin;
   late CryptoMarketData data;
   AppColors colors = AppColors.defaultTheme;
   late DoubleFactor roundedOf;
@@ -61,7 +56,6 @@ class _CryptoTrendViewState extends State<CryptoTrendView> {
   void initState() {
     super.initState();
 
-    coin = widget.coin;
     data = widget.marketData;
     colors = widget.colors;
     roundedOf = widget.roundedOf;
@@ -79,14 +73,15 @@ class _CryptoTrendViewState extends State<CryptoTrendView> {
 
   Future<void> loadData(String interval) async {
     try {
-      final data = await PriceManager().getPriceDataUsingCg(coin, interval, "");
+      final response =
+          await PriceManager().getPriceDataUsingCg(interval, data.id);
 
-      if (data == null) {
+      if (response == null) {
         logError("Data is Null");
         return;
       }
       setState(() {
-        cryptoData = data.map((item) {
+        cryptoData = response.map((item) {
           final timestamp = item[0] as int;
           final price = item[1] as double;
           return (DateTime.fromMillisecondsSinceEpoch(timestamp), price);
@@ -100,12 +95,11 @@ class _CryptoTrendViewState extends State<CryptoTrendView> {
   @override
   Widget build(BuildContext context) {
     final textTheme = TextTheme.of(context);
-    final explorers = coin.isNative ? coin.explorers : coin.network?.explorers;
 
     return Scaffold(
       backgroundColor: colors.primaryColor,
       appBar: StandardAppBar(
-          title: coin.symbol, colors: colors, fontSizeOf: fontSizeOf),
+          title: data.symbol, colors: colors, fontSizeOf: fontSizeOf),
       body: Padding(
         padding: const EdgeInsets.symmetric(horizontal: 15),
         child: ListView(
@@ -117,21 +111,25 @@ class _CryptoTrendViewState extends State<CryptoTrendView> {
                   Row(
                     spacing: 10,
                     children: [
-                      CryptoPicture(
-                          crypto: coin, size: iconSizeOf(35), colors: colors),
+                      CachedPicture(
+                          addSecondaryImage: false,
+                          data.image ?? "",
+                          placeHolderString: data.symbol,
+                          size: iconSizeOf(35),
+                          colors: colors),
                       Column(
                         mainAxisAlignment: MainAxisAlignment.center,
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
                           Text(
-                            coin.name.toUpperCase(),
+                            data.name.toUpperCase(),
                             style: textTheme.bodyLarge?.copyWith(
                                 fontSize: fontSizeOf(16),
                                 fontWeight: FontWeight.w800,
                                 color: colors.textColor),
                           ),
                           Text(
-                            "${coin.isNative ? coin.name : coin.network?.name}",
+                            "${data.name}",
                             style: textTheme.bodyLarge?.copyWith(
                                 fontSize: fontSizeOf(14),
                                 color: colors.textColor.withValues(alpha: 0.7)),
@@ -255,7 +253,32 @@ class _CryptoTrendViewState extends State<CryptoTrendView> {
                   SizedBox(
                     height: 10,
                   ),
-                  if (!coin.isNative)
+                  Align(
+                    alignment: Alignment.center,
+                    child: Container(
+                      padding: const EdgeInsets.all(10),
+                      decoration: BoxDecoration(
+                          color: colors.secondaryColor,
+                          borderRadius: BorderRadius.circular(roundedOf(10))),
+                      child: Column(
+                        spacing: 7,
+                        children: [
+                          TrendDataRow(
+                              colors: colors,
+                              title: "Market Cap Rank",
+                              value: (data.marketCapRank ?? 0).numeral()),
+                          TrendDataRow(
+                              colors: colors,
+                              title: "Max Supply",
+                              value: (data.maxSupply ?? 0).numeral()),
+                        ],
+                      ),
+                    ),
+                  ),
+                  SizedBox(
+                    height: 10,
+                  ),
+                  /*  if (!coin.isNative)
                     if (coin.network != null)
                       Align(
                         alignment: Alignment.center,
@@ -295,35 +318,9 @@ class _CryptoTrendViewState extends State<CryptoTrendView> {
                                 color: colors.textColor),
                           ),
                         ),
-                      ),
-                  SizedBox(
-                    height: 15,
-                  ),
-                  Align(
-                    alignment: Alignment.centerLeft,
-                    child: Text(
-                      "Other",
-                      style: textTheme.bodyMedium?.copyWith(
-                          fontSize: fontSizeOf(14),
-                          fontWeight: FontWeight.bold,
-                          color: colors.textColor),
-                    ),
-                  ),
-                  SizedBox(
-                    height: 5,
-                  ),
-                  Align(
-                    alignment: Alignment.centerLeft,
-                    child: Text(
-                      "Explorers",
-                      style: textTheme.bodyMedium?.copyWith(
-                          fontSize: fontSizeOf(14), color: colors.textColor),
-                    ),
-                  ),
-                  SizedBox(
-                    height: 15,
-                  ),
-                  if (explorers != null)
+                      ), */
+
+                  /*   if (explorers != null)
                     SingleChildScrollView(
                       scrollDirection: Axis.horizontal,
                       child: Row(
@@ -357,7 +354,48 @@ class _CryptoTrendViewState extends State<CryptoTrendView> {
                           );
                         }),
                       ),
-                    )
+                    )*/
+                  SizedBox(
+                    height: 10,
+                  ),
+                  Align(
+                    alignment: Alignment.topLeft,
+                    child: Text(
+                      "Resources",
+                      style: textTheme.bodyMedium?.copyWith(
+                        color: colors.textColor,
+                      ),
+                    ),
+                  ),
+                  SizedBox(
+                    height: 10,
+                  ),
+                  Align(
+                      alignment: Alignment.center,
+                      child: ListTile(
+                        visualDensity:
+                            VisualDensity(vertical: -2, horizontal: -4),
+                        shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(roundedOf(50))),
+                        tileColor: colors.secondaryColor,
+                        onTap: () async {
+                          await launchUrl(Uri.parse(
+                              "https://www.coingecko.com/en/coins/${data.id}"));
+                        },
+                        leading: CachedPicture(
+                            addSecondaryImage: false,
+                            "https://brand.coingecko.com/~gitbook/image?url=https%3A%2F%2F1419036772-files.gitbook.io%2F%7E%2Ffiles%2Fv0%2Fb%2Fgitbook-x-prod.appspot.com%2Fo%2Forganizations%252FnJ08f98e3wFUIuIbM8N7%252Fsites%252Fsite_Jusyp%252Ficon%252FsJWmHFbIQeZ7Gq8xFJfK%252FApp%2520Icon%2520Grid.png%3Falt%3Dmedia%26token%3D13bfe52f-7214-4752-a0f8-a0e1fe42d859&width=32&dpr=2&quality=100&sign=639ed3a1&sv=2",
+                            placeHolderString: "CG",
+                            size: imageSizeOf(20),
+                            colors: colors),
+                        title: Text(
+                          "Learn more about ${data.symbol}",
+                          style: textTheme.bodyMedium?.copyWith(
+                            color: colors.textColor,
+                            fontSize: fontSizeOf(14),
+                          ),
+                        ),
+                      ))
                 ],
               ),
             )

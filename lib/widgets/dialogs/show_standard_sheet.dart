@@ -4,9 +4,11 @@ import 'package:modal_bottom_sheet/modal_bottom_sheet.dart';
 Future<T> showStandardModalBottomSheet<T>(
     {required BuildContext context,
     required Widget Function(BuildContext) builder,
+    bool? isDismissible,
     double rounded = 20,
     Color? barrierColor}) async {
   final T result = await showCupertinoModalBottomSheet(
+      isDismissible: isDismissible,
       barrierColor: barrierColor ?? Colors.black.withOpacity(0.9),
       topRadius: Radius.circular(rounded),
       backgroundColor: Colors.transparent,

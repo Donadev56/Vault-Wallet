@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:moonwallet/custom/scale_tape/scale.dart';
-import 'package:moonwallet/notifiers/providers.dart';
 import 'package:moonwallet/types/types.dart';
 
 class CustomListTitleButton extends HookConsumerWidget {

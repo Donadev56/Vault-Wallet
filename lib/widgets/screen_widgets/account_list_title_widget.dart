@@ -1,6 +1,7 @@
 // ignore_for_file: deprecated_member_use
 
 import 'package:flutter/material.dart';
+import 'package:moonwallet/custom/cached_image/cached_image.dart';
 
 import 'package:moonwallet/types/account_related_types.dart';
 import 'package:moonwallet/types/types.dart';
@@ -80,7 +81,7 @@ class AccountListTitleWidget extends StatelessWidget {
           child: Center(
             child: ClipRRect(
               borderRadius: BorderRadius.circular(50),
-              child: Image.network(
+              child: CustomNetworkCachedImage(
                 wallet.getEcosystem()!.iconUrl,
                 fit: BoxFit.cover,
               ),

@@ -1,7 +1,6 @@
 // ignore_for_file: deprecated_member_use
 
 import 'dart:convert';
-import 'dart:io';
 
 import 'package:decimal/decimal.dart';
 import 'package:flutter/material.dart';
@@ -40,7 +39,6 @@ import 'package:moonwallet/widgets/scanner/show_scanner.dart';
 import 'package:moonwallet/widgets/send_widgets/account_chip.dart';
 import 'package:moonwallet/widgets/send_widgets/address_chip.dart';
 import 'package:permission_handler/permission_handler.dart';
-import 'package:qr_code_scanner_plus/qr_code_scanner_plus.dart';
 
 class SendTransactionScreen extends StatefulHookConsumerWidget {
   final WidgetInitialData initData;
@@ -54,7 +52,6 @@ class SendTransactionScreen extends StatefulHookConsumerWidget {
 class _SendTransactionScreenState extends ConsumerState<SendTransactionScreen> {
   final _formKey = GlobalKey<FormState>();
   final GlobalKey qrKey = GlobalKey(debugLabel: 'QR');
-  QRViewController? controller;
   final MobileScannerController _mobileScannerController =
       MobileScannerController();
 
@@ -130,11 +127,6 @@ class _SendTransactionScreenState extends ConsumerState<SendTransactionScreen> {
   @override
   void reassemble() {
     super.reassemble();
-    if (Platform.isAndroid) {
-      controller!.pauseCamera();
-    } else if (Platform.isIOS) {
-      controller!.resumeCamera();
-    }
   }
 
   @override

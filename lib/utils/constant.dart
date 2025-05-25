@@ -4,7 +4,6 @@ import 'package:flutter/material.dart';
 import 'package:flutter_feather_icons/flutter_feather_icons.dart';
 import 'package:lucide_icons_flutter/lucide_icons.dart';
 import 'package:moonwallet/screens/auth/home.dart';
-import 'package:moonwallet/types/types.dart';
 
 final List<Map<String, dynamic>> browserModalOptions = [
   {"name": 'Refresh', "icon": LucideIcons.refreshCcw},
@@ -17,9 +16,9 @@ final List<Map<String, dynamic>> browserModalOptions = [
 final List<Map<String, dynamic>> fixedAppBarOptions = [
   {"name": "Sort by Value", "icon": LucideIcons.coins},
   {"name": "Sort by Name", "icon": LucideIcons.arrowDownAZ},
-  {"name": "Only Native", "icon": LucideIcons.circleDollarSign},
-  {"name": "Only Tokens", "icon": LucideIcons.blend},
-  {"name": "Manage crypto", "icon": LucideIcons.settings2}
+  // {"name": "Only Native", "icon": LucideIcons.circleDollarSign},
+  // {"name": "Only Tokens", "icon": LucideIcons.blend},
+  {"name": "Manage Crypto", "icon": LucideIcons.settings2}
 ];
 
 String formatTimeElapsed(int timestamp) {

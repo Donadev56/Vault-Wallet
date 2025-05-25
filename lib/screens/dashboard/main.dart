@@ -730,49 +730,41 @@ class _MainDashboardScreenState extends ConsumerState<MainDashboardScreen>
                                 _cryptoSearchTextController,
                             fontSizeOf: fontSizeOf,
                             roundedOf: roundedOf,
-                            moreButtonOptions: [
-                              PopupMenuItem(
+                            moreButtonOptions:
+                                List<PopupMenuEntry<dynamic>>.generate(
+                                    fixedAppBarOptions.length + 1, (i) {
+                              if (i == 2) {
+                                return CustomPopMenuDivider(colors: colors);
+                              }
+                              final option =
+                                  fixedAppBarOptions[i == 3 ? i - 1 : i];
+                              return PopupMenuItem(
                                 onTap: () {
-                                  reorderCrypto(0);
+                                  if (i == 0) {
+                                    reorderCrypto(0);
+                                  } else if (i == 1) {
+                                    reorderCrypto(1);
+                                  } else if (i == 3) {
+                                    Navigator.push(
+                                        context,
+                                        MaterialPageRoute(
+                                            builder: (context) =>
+                                                AddCryptoView()));
+                                  }
                                 },
                                 child: Row(children: [
-                                  Icon(fixedAppBarOptions[0]["icon"],
+                                  Icon(option["icon"],
                                       size: iconSizeOf(25),
-                                      color: colors.textColor.withOpacity(0.4)),
+                                      color: colors.textColor),
                                   SizedBox(width: 8),
-                                  Text(fixedAppBarOptions[0]["name"],
-                                      style: textTheme.bodyMedium),
+                                  Text(option["name"],
+                                      style: textTheme.bodyMedium?.copyWith(
+                                          color: colors.textColor,
+                                          fontSize: 14,
+                                          fontWeight: FontWeight.w400)),
                                 ]),
-                              ),
-                              PopupMenuItem(
-                                onTap: () {
-                                  reorderCrypto(1);
-                                },
-                                child: Row(children: [
-                                  Icon(fixedAppBarOptions[1]["icon"],
-                                      color: colors.textColor.withOpacity(0.4)),
-                                  SizedBox(width: 8),
-                                  Text(fixedAppBarOptions[1]["name"],
-                                      style: textTheme.bodyMedium
-                                          ?.copyWith(color: colors.textColor)),
-                                ]),
-                              ),
-                              CustomPopMenuDivider(colors: colors),
-                              PopupMenuItem(
-                                onTap: () {
-                                  Navigator.pushNamed(
-                                      context, Routes.addCrypto);
-                                },
-                                child: Row(children: [
-                                  Icon(fixedAppBarOptions[4]["icon"],
-                                      color: colors.textColor.withOpacity(0.4)),
-                                  SizedBox(width: 8),
-                                  Text(fixedAppBarOptions[4]["name"],
-                                      style: textTheme.bodyMedium
-                                          ?.copyWith(color: colors.textColor)),
-                                ]),
-                              ),
-                            ]),
+                              );
+                            })),
                         !isInitialized.value
                             ? SliverToBoxAdapter(
                                 child: Container(

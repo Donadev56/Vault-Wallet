@@ -65,15 +65,15 @@ class CustomOutlinedTextFormField extends StatelessWidget {
           prefixIcon: prefixIcon,
           suffixIcon: suffixIcon,
           border: OutlineInputBorder(
-            borderRadius: BorderRadius.circular(roundedOf(10)),
+            borderRadius: BorderRadius.circular(roundedOf(rounded)),
             borderSide: BorderSide(color: colors.themeColor, width: 2),
           ),
           focusedBorder: OutlineInputBorder(
-            borderRadius: BorderRadius.circular(roundedOf(10)),
+            borderRadius: BorderRadius.circular(roundedOf(rounded)),
             borderSide: BorderSide(color: colors.themeColor, width: 2),
           ),
           enabledBorder: OutlineInputBorder(
-            borderRadius: BorderRadius.circular(roundedOf(10)),
+            borderRadius: BorderRadius.circular(roundedOf(rounded)),
             borderSide: BorderSide(color: colors.themeColor, width: 2),
           ),
           filled: false,

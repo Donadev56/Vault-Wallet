@@ -2,11 +2,13 @@ import 'dart:convert';
 import 'package:moonwallet/logger/logger.dart';
 import 'package:http/http.dart' as http;
 import 'package:moonwallet/service/db/crypto_storage_manager.dart';
+import 'package:moonwallet/service/db/dynamic_bd.dart';
 import 'package:moonwallet/service/db/global_database.dart';
 import 'package:moonwallet/service/db/price_data_db.dart';
 import 'package:moonwallet/service/db/price_db.dart';
 import 'package:moonwallet/service/internet_manager.dart';
 import 'package:moonwallet/types/account_related_types.dart';
+import 'package:moonwallet/types/news_types.dart';
 import 'package:moonwallet/types/types.dart';
 import 'package:moonwallet/utils/prefs.dart';
 
@@ -16,6 +18,8 @@ class PriceManager {
   //final baseV2Url = "http://46.202.175.219:4006";
   final baseV2Url = "https://api.moonbnb.app";
   final internet = InternetManager();
+  final prefs = PublicDataManager();
+  final maxCacheTime = 300;
 
   Future<List<CryptoMarketData>> getListTokensMarketData() async {
     try {
@@ -44,28 +48,6 @@ class PriceManager {
       return [];
     }
   }
-/*
-  Future<CryptoMarketData?> getTokenMarketData(String cgId) async {
-    try {
-      final data = await getListTokensMarketData();
-      if (data.isNotEmpty) {
-        final marketData = data
-            .where(
-                (d) => d.id.toLowerCase().trim() == cgId.toLowerCase().trim())
-            .firstOrNull;
-        if (marketData != null) {
-          return marketData;
-        }
-        throw "No data found for $cgId";
-      }
-
-      throw "No data found f";
-    } catch (e) {
-      logError(e.toString());
-      return null;
-    }
-  }
-  */
 
   Future<String> getTokenPriceUsd(Crypto token) async {
     final db = PriceDatabase(crypto: token);
@@ -136,9 +118,25 @@ class PriceManager {
       final chainData = getAddressAndChainID(token);
       final chainId = chainData.$2;
       final contractAddress = chainData.$1;
+      final data = await db.getData();
+      final now = (DateTime.now().millisecondsSinceEpoch / 1000).toInt();
+
+      final url =
+          "$baseV2Url/v2/tokens/tokenPriceData?tokenAddress=${contractAddress}&chainId=${chainId}";
+      final lastUpdate = await prefs.getDataFromPrefs(key: url);
+
+      if (lastUpdate != null) {
+        if (now - int.parse(lastUpdate) < maxCacheTime) {
+          if (data != null) {
+            final dataJson = jsonDecode(data);
+            log("---- GETTING LOCAL PRICE DATA ----");
+
+            return (dataJson["price"] as String, dataJson["percent"] as double);
+          }
+        }
+      }
 
       if (!(await internet.isConnected())) {
-        final data = await db.getData();
         if (data == null) {
           return ("0", 0.0);
         }
@@ -150,10 +148,11 @@ class PriceManager {
 
       final response = await http.get(Uri.parse(
           // ignore: unnecessary_brace_in_string_interps
-          "$baseV2Url/v2/tokens/tokenPriceData?tokenAddress=${contractAddress}&chainId=${chainId}"));
+          url));
       if (response.statusCode == 200) {
         final dataJson = json.decode(response.body);
         await db.saveData(jsonEncode(dataJson));
+        await prefs.saveDataInPrefs(data: now.toString(), key: url);
         final price = dataJson["price"];
         final percent = dataJson["percent"];
         if (price != null && percent != null) {
@@ -170,7 +169,7 @@ class PriceManager {
     }
   }
 
-  Future<List<dynamic?>> getTokenHistData(
+/*  Future<List<dynamic?>> getTokenHistData(
       Crypto currentCrypto, String interval) async {
     try {
       final chainData = getAddressAndChainID(currentCrypto);
@@ -183,63 +182,110 @@ class PriceManager {
       logError(e.toString());
       return [];
     }
+  } */
+  Future<List<CryptoMarketData>> fetchTokensMarketData() async {
+    try {
+      final url = '$baseV2Url/v2/tokens/tokensMarketData';
+      final db = DynamicDatabase(path: url);
+      final savedData = await db.getData();
+      if (!(await internet.isConnected())) {
+        if (savedData != null) {
+          final savedJson = jsonDecode(savedData);
+          return (savedJson as List)
+              .map((e) => CryptoMarketData.fromJson(e))
+              .toList();
+        }
+      }
+      final response = await http.get(Uri.parse(url));
+      if (response.statusCode == 200) {
+        final data = jsonDecode(response.body);
+        await db.saveData(response.body);
+        return (data as List).map((e) => CryptoMarketData.fromJson(e)).toList();
+      }
+      if (savedData != null) {
+        final savedJson = jsonDecode(savedData);
+        return (savedJson as List)
+            .map((e) => CryptoMarketData.fromJson(e))
+            .toList();
+      }
+
+      return [];
+    } catch (e) {
+      logError(e.toString());
+      return [];
+    }
+  }
+
+  Future<NewsData?> fetchNewsData() async {
+    try {
+      final url = '$baseV2Url/v2/tokens/news';
+      final db = DynamicDatabase(path: url);
+      final savedData = await db.getData();
+      if (!(await internet.isConnected())) {
+        if (savedData != null) {
+          return NewsData.fromJson(jsonDecode(savedData));
+        }
+      }
+      final response = await http.get(Uri.parse(url));
+      if (response.statusCode == 200) {
+        final data = jsonDecode(response.body);
+        await db.saveData(response.body);
+
+        return NewsData.fromJson(data);
+      }
+      if (savedData != null) {
+        return NewsData.fromJson(jsonDecode(savedData));
+      }
+
+      return null;
+    } catch (e) {
+      logError(e.toString());
+      return null;
+    }
   }
 
   Future<List<dynamic>?> getPriceDataUsingCg(
-      Crypto currentCrypto, String interval, String symbol) async {
+      String interval, String symbol) async {
     try {
-      log("Crypto ${currentCrypto.toJson()}");
-      final manager = CryptoStorageManager();
       final prefs = PublicDataManager();
-      final name = "cryptoDataOf/${symbol}/$interval";
       final url =
           "https://api.coingecko.com/api/v3/coins/${symbol}/market_chart?vs_currency=usd&days=$interval";
-      log("The url ${url}");
+      final db = DynamicDatabase(path: url);
       final uri = Uri.parse(url);
-
-      final savedData = await manager.getSavedCryptoPriceData(
-          crypto: currentCrypto, interval: interval);
+      final now = (DateTime.now().millisecondsSinceEpoch ~/ 1000);
+      final savedData = await db.getData();
 
       if (savedData != null) {
-        final lastUpdate =
-            json.decode((await (prefs.getDataFromPrefs(key: name)) ?? "{}"));
+        final lastUpdate = (await prefs.getDataFromPrefs(key: url));
 
-        if (lastUpdate["lastUpdate"] != null) {
-          final lastTime =
-              int.tryParse(lastUpdate["lastUpdate"].toString()) ?? 0;
-          final currentTime = (DateTime.now().millisecondsSinceEpoch ~/ 1000);
-          final canUseCache = currentTime - lastTime < 3600;
-          // log("Last update Time : $lastTime");
-          // log("Current Time $currentTime");
-          // log("Time remaining ${3600 - (currentTime - lastTime)}");
+        if (lastUpdate != null) {
+          final lastTime = int.tryParse(lastUpdate) ?? 0;
+          final canUseCache = now - lastTime < 3600;
           if (canUseCache) {
-            //  log("Getting data from local storage");
-            return savedData;
+            log("GETTING DATA FROM CACHE");
+            final prices = jsonDecode(savedData)["prices"];
+            return prices;
           }
         }
       }
-
+      log("GETTING FRESH DATA");
       return await http.get(uri).then((response) async {
         if (response.statusCode == 200) {
           final data = jsonDecode(response.body)["prices"];
 
           if (data != null && (data as List<dynamic>).isNotEmpty) {
-            await manager.saveCryptoPriceData(
-                crypto: currentCrypto, interval: interval, data: data);
-            final jsonToSave = {
-              "lastUpdate": DateTime.now().millisecondsSinceEpoch ~/ 1000,
-              "cgSymbol": symbol
-            };
-            await prefs.saveDataInPrefs(
-                data: json.encode(jsonToSave), key: name);
+            await db.saveData(response.body);
+            await prefs.saveDataInPrefs(data: now.toString(), key: url);
+
             return data;
           }
-        } else {
-          logError("Response : ${response.body}");
         }
-        return null;
       }).catchError((e) {
-        logError(e.toString());
+        if (savedData != null) {
+          return ((jsonDecode(savedData)["prices"]) as List)
+              .map((e) => CryptoMarketData.fromJson(e))
+              .toList();
+        }
         return null;
       });
     } catch (e) {

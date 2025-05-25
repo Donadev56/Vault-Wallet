@@ -40,6 +40,7 @@ void main() {
     if (!kIsWeb && (Platform.isAndroid || Platform.isIOS)) {
       await InAppWebViewController.setWebContentsDebuggingEnabled(true);
     }
+    SystemChrome.setEnabledSystemUIMode(SystemUiMode.edgeToEdge);
 
     await Web3Webview.initJs();
     await FastCachedImageConfig.init(clearCacheAfter: const Duration(days: 15));
@@ -88,7 +89,7 @@ class _MyAppState extends ConsumerState<MyApp> with WidgetsBindingObserver {
         colors = savedTheme;
       });
       SystemChrome.setSystemUIOverlayStyle(SystemUiOverlayStyle(
-        systemNavigationBarColor: colors.primaryColor,
+        systemNavigationBarColor: Colors.transparent,
         systemNavigationBarIconBrightness: Brightness.light,
       ));
     } catch (e) {

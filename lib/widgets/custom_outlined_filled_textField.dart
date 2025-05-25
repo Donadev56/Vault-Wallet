@@ -22,6 +22,7 @@ class CustomOutlinedFilledTextFormField extends StatelessWidget {
   final int minLines;
   final int maxLines;
   final TextStyle? textStyle;
+  final double radius;
 
   const CustomOutlinedFilledTextFormField(
       {super.key,
@@ -44,6 +45,7 @@ class CustomOutlinedFilledTextFormField extends StatelessWidget {
       this.minLines = 1,
       this.filledColor,
       this.contentPadding,
+      this.radius = 5,
       this.textStyle});
 
   @override
@@ -66,11 +68,11 @@ class CustomOutlinedFilledTextFormField extends StatelessWidget {
           prefixIcon: prefixIcon,
           suffixIcon: suffixIcon,
           focusedBorder: OutlineInputBorder(
-            borderRadius: BorderRadius.circular(roundedOf(5)),
+            borderRadius: BorderRadius.circular(roundedOf(radius)),
             borderSide: BorderSide(color: colors.themeColor),
           ),
           enabledBorder: OutlineInputBorder(
-            borderRadius: BorderRadius.circular(roundedOf(5)),
+            borderRadius: BorderRadius.circular(roundedOf(radius)),
             borderSide: BorderSide(color: Colors.transparent),
           ),
           fillColor: filledColor ?? colors.secondaryColor,
