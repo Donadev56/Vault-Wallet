@@ -117,6 +117,7 @@ dependencies:
   infinite_carousel: ^1.1.1
   html: ^0.15.0
   flutter_html: ^3.0.0
+  textfield_tags: ^3.0.1
 
   scrollable_positioned_list: ^0.3.8
   flutter_slidable: ^4.0.0

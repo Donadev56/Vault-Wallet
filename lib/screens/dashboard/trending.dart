@@ -14,16 +14,14 @@ import 'package:moonwallet/types/types.dart';
 import 'package:moonwallet/utils/colors.dart';
 import 'package:moonwallet/utils/constant.dart';
 import 'package:moonwallet/utils/number_formatter.dart';
-import 'package:moonwallet/widgets/dialogs/show_standard_sheet.dart';
-import 'package:moonwallet/widgets/dialogs/standard_container.dart';
 import 'package:moonwallet/widgets/screen_widgets/cached_picture.dart';
 import 'package:moonwallet/widgets/screen_widgets/search_text_field.dart';
-import 'package:moonwallet/widgets/screen_widgets/standard_app_bar.dart';
+import 'package:moonwallet/widgets/screen_widgets/trending/news_reader_view_space.dart';
+import 'package:moonwallet/widgets/screen_widgets/trending/widgets.dart';
 import 'package:moonwallet/widgets/screen_widgets/trending_list_title.dart';
 import 'package:numeral/numeral.dart';
 import 'package:page_transition/page_transition.dart';
 import 'package:html/parser.dart' as html_parser;
-import 'package:url_launcher/url_launcher.dart';
 
 class TrendingScreen extends StatefulHookConsumerWidget {
   final AppColors colors;
@@ -292,7 +290,7 @@ class _TrendingScreenState extends ConsumerState<TrendingScreen> {
                         physics: BouncingScrollPhysics(),
                         child: Padding(
                           padding: const EdgeInsets.symmetric(
-                              vertical: 15, horizontal: 10),
+                              vertical: 15, horizontal: 20),
                           child: Column(
                             children: List.generate(article().length, (index) {
                               final art = article()[index];
@@ -341,7 +339,8 @@ class _TrendingScreenState extends ConsumerState<TrendingScreen> {
                                                 colors: colors,
                                                 addSecondaryImage: false,
                                               ),
-                                              title: buildTitle(context,
+                                              title: TrendingWidgets.buildTitle(
+                                                  context,
                                                   colors: colors,
                                                   title: author,
                                                   fontSizeOf: fontSizeOf,
@@ -350,7 +349,7 @@ class _TrendingScreenState extends ConsumerState<TrendingScreen> {
                                           SizedBox(
                                             height: 5,
                                           ),
-                                          buildTitle(context,
+                                          TrendingWidgets.buildTitle(context,
                                               colors: colors,
                                               title: content.title,
                                               fontSizeOf: fontSizeOf,
@@ -368,7 +367,7 @@ class _TrendingScreenState extends ConsumerState<TrendingScreen> {
                                           SizedBox(
                                             height: 15,
                                           ),
-                                          buildListTags(tags,
+                                          TrendingWidgets.buildListTags(tags,
                                               context: context, colors: colors),
                                           SizedBox(
                                             height: 5,
@@ -395,171 +394,6 @@ class _TrendingScreenState extends ConsumerState<TrendingScreen> {
                   ],
                 ),
               ))),
-        ));
-  }
-}
-
-Widget buildTag(BuildContext context, AppColors colors, String tag,
-    {Color? bgColor, bool? selected}) {
-  final textTheme = TextTheme.of(context);
-  return Container(
-    padding: const EdgeInsets.symmetric(vertical: 5, horizontal: 10),
-    decoration: BoxDecoration(
-      borderRadius: BorderRadius.circular(10),
-      color: bgColor ?? colors.primaryColor,
-    ),
-    child: Text(
-      tag,
-      style: textTheme.bodySmall?.copyWith(
-          color: selected == true ? colors.primaryColor : colors.textColor),
-    ),
-  );
-}
-
-Widget buildTitle(BuildContext context,
-    {required AppColors colors,
-    required String title,
-    double fontSize = 18,
-    FontWeight? weight,
-    required DoubleFactor fontSizeOf}) {
-  final textTheme = TextTheme.of(context);
-  return Text(
-    title,
-    style: textTheme.bodyMedium?.copyWith(
-        fontWeight: weight ?? FontWeight.w700, fontSize: fontSizeOf(fontSize)),
-  );
-}
-
-Widget buildListTags(List<String> tags,
-    {required BuildContext context,
-    required AppColors colors,
-    double height = 25,
-    Color? color,
-    int? selectedIndex,
-    void Function(int)? onTap}) {
-  return SizedBox(
-      height: height,
-      child: ListView.separated(
-          scrollDirection: Axis.horizontal,
-          separatorBuilder: (context, targetIndex) {
-            return Padding(padding: const EdgeInsets.symmetric(horizontal: 5));
-          },
-          itemCount: tags.length,
-          itemBuilder: (context, tagsIndex) {
-            final tag = tags[tagsIndex];
-            return ScaleTap(
-                onPressed: () => onTap != null ? onTap(tagsIndex) : null,
-                child: buildTag(context, colors, tag,
-                    bgColor: selectedIndex != null
-                        ? selectedIndex == tagsIndex
-                            ? colors.themeColor
-                            : color
-                        : color,
-                    selected: selectedIndex == tagsIndex));
-          }));
-}
-
-class NewsReaderSpace extends HookConsumerWidget {
-  final Article article;
-  final AppColors colors;
-  final DoubleFactor fontSizeOf;
-  const NewsReaderSpace(
-      {super.key,
-      required this.article,
-      required this.colors,
-      required this.fontSizeOf});
-
-  @override
-  Widget build(BuildContext context, ref) {
-    final currentLangue = useState<String>("en");
-    final selectedIndex = useState<int>(0);
-
-    MultilanguageContent getContent() {
-      return article.multilanguageContent
-          .where((e) => e.language == currentLangue.value)
-          .first;
-    }
-
-    final languages =
-        article.multilanguageContent.map((e) => e.language).toList();
-    final content = getContent();
-    final sourceLink = article.sourceLink;
-    final tags = article.tags;
-
-    final textTheme = TextTheme.of(context);
-
-    return SelectableRegion(
-        selectionControls: materialTextSelectionControls,
-        child: Scaffold(
-          backgroundColor: colors.primaryColor,
-          appBar: StandardAppBar(
-            title: "Back",
-            colors: colors,
-            fontSizeOf: fontSizeOf,
-            centerTitle: false,
-          ),
-          body: StandardContainer(
-            child: SingleChildScrollView(
-              child: Column(
-                children: [
-                  buildListTags(
-                    languages,
-                    context: context,
-                    colors: colors,
-                    color: colors.secondaryColor,
-                    selectedIndex: selectedIndex.value,
-                    onTap: (langIndex) {
-                      currentLangue.value = languages[langIndex];
-                      selectedIndex.value = langIndex;
-                    },
-                  ),
-                  SizedBox(
-                    height: 20,
-                  ),
-                  Align(
-                    alignment: Alignment.centerLeft,
-                    child: buildTitle(context,
-                        colors: colors,
-                        title: content.title,
-                        fontSizeOf: fontSizeOf),
-                  ),
-                  SizedBox(
-                    height: 30,
-                  ),
-                  Html(data: content.content),
-                  SizedBox(
-                    height: 20,
-                  ),
-                  buildListTags(tags,
-                      context: context,
-                      colors: colors,
-                      color: colors.secondaryColor),
-                  SizedBox(
-                    height: 20,
-                  ),
-                  Padding(
-                    padding: const EdgeInsets.symmetric(horizontal: 10),
-                    child: Align(
-                        alignment: Alignment.centerLeft,
-                        child: GestureDetector(
-                          onTap: () {
-                            launchUrl(Uri.parse(sourceLink));
-                          },
-                          child: Text("By ${article.author}",
-                              style: textTheme.bodyMedium?.copyWith(
-                                  color: colors.textColor,
-                                  fontSize: fontSizeOf(15),
-                                  decoration: TextDecoration.underline,
-                                  decorationColor: colors.textColor)),
-                        )),
-                  ),
-                  SizedBox(
-                    height: 40,
-                  )
-                ],
-              ),
-            ),
-          ),
         ));
   }
 }

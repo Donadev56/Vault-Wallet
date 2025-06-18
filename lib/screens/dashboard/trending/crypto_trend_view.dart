@@ -6,6 +6,7 @@ import 'package:moonwallet/utils/number_formatter.dart';
 import 'package:moonwallet/widgets/charts_/line_chart.dart';
 import 'package:moonwallet/widgets/screen_widgets/cached_picture.dart';
 import 'package:moonwallet/widgets/screen_widgets/standard_app_bar.dart';
+import 'package:moonwallet/widgets/screen_widgets/trending/widgets.dart';
 import 'package:numeral/numeral.dart';
 import 'package:url_launcher/url_launcher.dart';
 
@@ -74,7 +75,7 @@ class _CryptoTrendViewState extends State<CryptoTrendView> {
   Future<void> loadData(String interval) async {
     try {
       final response =
-          await PriceManager().getPriceDataUsingCg(interval, data.id);
+          await PriceManager().getPriceDataUsingGeckoId(interval, data.id);
 
       if (response == null) {
         logError("Data is Null");
@@ -117,25 +118,36 @@ class _CryptoTrendViewState extends State<CryptoTrendView> {
                           placeHolderString: data.symbol,
                           size: iconSizeOf(35),
                           colors: colors),
-                      Column(
-                        mainAxisAlignment: MainAxisAlignment.center,
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Text(
-                            data.name.toUpperCase(),
-                            style: textTheme.bodyLarge?.copyWith(
-                                fontSize: fontSizeOf(16),
-                                fontWeight: FontWeight.w800,
-                                color: colors.textColor),
-                          ),
-                          Text(
-                            "${data.name}",
-                            style: textTheme.bodyLarge?.copyWith(
-                                fontSize: fontSizeOf(14),
-                                color: colors.textColor.withValues(alpha: 0.7)),
-                          ),
-                        ],
-                      )
+                      LayoutBuilder(builder: (context, c) {
+                        return Column(
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            ConstrainedBox(
+                              constraints: BoxConstraints(maxWidth: c.maxWidth),
+                              child: Text(
+                                overflow: TextOverflow.ellipsis,
+                                data.symbol.toUpperCase(),
+                                style: textTheme.bodyLarge?.copyWith(
+                                    fontSize: fontSizeOf(16),
+                                    fontWeight: FontWeight.w800,
+                                    color: colors.textColor),
+                              ),
+                            ),
+                            ConstrainedBox(
+                                constraints:
+                                    BoxConstraints(maxWidth: c.maxWidth),
+                                child: Text(
+                                  "${data.name}",
+                                  overflow: TextOverflow.ellipsis,
+                                  style: textTheme.bodyLarge?.copyWith(
+                                      fontSize: fontSizeOf(14),
+                                      color: colors.textColor
+                                          .withValues(alpha: 0.7)),
+                                )),
+                          ],
+                        );
+                      })
                     ],
                   ),
                   SizedBox(
@@ -181,32 +193,17 @@ class _CryptoTrendViewState extends State<CryptoTrendView> {
                   Wrap(
                     children: List.generate(intervals.length, (index) {
                       final interval = intervals[index];
-                      return Container(
-                        decoration: BoxDecoration(
-                            color: currentIndex == index
-                                ? colors.secondaryColor
-                                : Colors.transparent),
-                        child: InkWell(
-                          onTap: () {
-                            setState(() {
-                              currentIndex = index;
-                            });
-                            loadData(intervals[currentIndex]);
-                          },
-                          child: Container(
-                            padding: const EdgeInsets.symmetric(
-                                vertical: 5, horizontal: 10),
-                            decoration: BoxDecoration(),
-                            child: Text(
-                              "$interval D".toUpperCase(),
-                              style: textTheme.bodyMedium?.copyWith(
-                                  color: colors.textColor,
-                                  fontSize: fontSizeOf(14),
-                                  fontWeight: FontWeight.bold),
-                            ),
-                          ),
-                        ),
-                      );
+                      return TrendingWidgets.buildIntervalChip(
+                          "$interval D".toUpperCase(),
+                          colors: colors,
+                          context: context, onTap: () {
+                        setState(() {
+                          currentIndex = index;
+                        });
+                        loadData(intervals[currentIndex]);
+                      },
+                          isSelected: currentIndex == index,
+                          fontSizeOf: fontSizeOf);
                     }),
                   ),
                   SizedBox(

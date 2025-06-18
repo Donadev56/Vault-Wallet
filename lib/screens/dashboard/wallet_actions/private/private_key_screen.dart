@@ -1,20 +1,30 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
+import 'package:modal_bottom_sheet/modal_bottom_sheet.dart';
+import 'package:moonwallet/custom/web3_webview/lib/utils/loading.dart';
 import 'package:moonwallet/logger/logger.dart';
 import 'package:moonwallet/screens/dashboard/wallet_actions/private/backup.dart';
 import 'package:moonwallet/service/db/wallet_db_stateless.dart';
 import 'package:moonwallet/service/external_data/price_manager.dart';
 import 'package:moonwallet/service/db/wallet_db.dart';
+import 'package:moonwallet/service/rpc_service.dart';
 import 'package:moonwallet/types/account_related_types.dart';
 import 'package:moonwallet/types/types.dart';
 import 'package:moonwallet/utils/colors.dart';
 import 'package:moonwallet/utils/encrypt_service.dart';
 import 'package:moonwallet/utils/themes.dart';
 import 'package:moonwallet/widgets/alerts/show_alert.dart';
+import 'package:moonwallet/widgets/appBar/custom_list_title_button.dart';
+import 'package:moonwallet/widgets/appBar/show_wallet_actions.dart';
 import 'package:moonwallet/widgets/backup/warning_static_message.dart';
+import 'package:moonwallet/widgets/buttons/elevated.dart';
 import 'package:moonwallet/widgets/custom_filled_text_field.dart';
 import 'package:moonwallet/widgets/dialogs/show_custom_snackbar.dart';
+import 'package:moonwallet/widgets/dialogs/show_standard_sheet.dart';
+import 'package:moonwallet/widgets/dialogs/standard_container.dart';
+import 'package:moonwallet/widgets/func/tokens_config/show_select_ecosystem.dart';
+import 'package:moonwallet/widgets/screen_widgets/standard_app_bar.dart';
 import 'package:page_transition/page_transition.dart';
 
 class PrivateKeyScreen extends StatefulHookConsumerWidget {
@@ -51,8 +61,7 @@ class _PrivateKeyScreenState extends ConsumerState<PrivateKeyScreen> {
     }
   }
 
-  final TextEditingController _mnemonicController = TextEditingController();
-  final TextEditingController _privateKeyController = TextEditingController();
+  final TextEditingController _secretController = TextEditingController();
   bool _isInitialized = false;
 
   final web3Manager = WalletDatabase();
@@ -133,8 +142,7 @@ class _PrivateKeyScreenState extends ConsumerState<PrivateKeyScreen> {
       final data = await WalletDbStateLess()
           .getPrivateAccountUsingPassword(password: password, account: account);
       if (data != null) {
-        _mnemonicController.text = data.keyOrigin;
-        _privateKeyController.text = data.keyOrigin;
+        _secretController.text = data.keyOrigin;
 
         setState(() {
           privateAccount = data;
@@ -173,23 +181,149 @@ class _PrivateKeyScreenState extends ConsumerState<PrivateKeyScreen> {
   Widget build(BuildContext context) {
     final width = MediaQuery.of(context).size.width;
     final TextTheme textTheme = Theme.of(context).textTheme;
+
     return Scaffold(
       backgroundColor: colors.primaryColor,
-      appBar: AppBar(
-        backgroundColor: colors.primaryColor,
-        leading: IconButton(
-          icon: Icon(Icons.chevron_left, color: colors.textColor),
-          onPressed: () {
-            Navigator.pop(context);
-          },
-        ),
-        title: Text(
-          "Private Data Overview",
-          style: textTheme.headlineMedium?.copyWith(
-              color: colors.textColor,
-              fontSize: 20,
-              fontWeight: FontWeight.bold),
-        ),
+      appBar: StandardAppBar(
+        title: "Wallet Source",
+        fontSizeOf: calcDouble,
+        colors: colors,
+        actions: [
+          privateAccount == null
+              ? Padding(
+                  padding:
+                      const EdgeInsets.symmetric(horizontal: 10, vertical: 0),
+                  child: SizedBox(
+                    width: 30,
+                    height: 30,
+                    child: CircularProgressIndicator(
+                      color: colors.textColor,
+                    ),
+                  ),
+                )
+              : IconButton(
+                  onPressed: () {
+                    showAppBarWalletActions(
+                      context: context,
+                      colors: colors,
+                      children: [
+                        if (privateAccount != null &&
+                            privateAccount?.origin.isMnemonic == true)
+                          CustomListTitleButton(
+                              colors: colors,
+                              text: 'Export Private Key',
+                              icon: Icons.key,
+                              onTap: () async {
+                                final ecosystem = await showSelectEcoSystem(
+                                  context: context,
+                                  description:
+                                      "Select the ecosystem you want to extract the private key from",
+                                  colors: colors,
+                                  roundedOf: calcDouble,
+                                  fontSizeOf: calcDouble,
+                                  iconSizeOf: calcDouble,
+                                );
+                                if (ecosystem == null) {
+                                  return;
+                                }
+                                final key = await RpcService()
+                                    .generatePrivateKe(
+                                        ecosystem.type, _secretController.text)
+                                    .withLoading(context, colors, "Loading...");
+
+                                if (key == null) {
+                                  notifyError("Something went wrong", context);
+                                  return;
+                                }
+
+                                await showMaterialModalBottomSheet(
+                                    context: context,
+                                    builder: (context) {
+                                      return Scaffold(
+                                        backgroundColor: colors.primaryColor,
+                                        appBar: StandardAppBar(
+                                          
+                                            title: "${ecosystem.name} key",
+                                            colors: colors,
+                                            fontSizeOf: calcDouble),
+                                        body: StandardContainer(
+                                          padding: const EdgeInsets.all(20),
+                                          backgroundColor: colors.primaryColor,
+                                          child: ListView(
+                                            children: [
+                                              CustomFilledTextFormField(
+                                                colors: colors,
+                                                fontSizeOf: calcDouble,
+                                                iconSizeOf: calcDouble,
+                                                roundedOf: calcDouble,
+                                                readOnly: true,
+                                                maxLines: 5,
+                                                minLines: 4,
+                                                hintText:
+                                                    "${ecosystem.name} key",
+                                                controller:
+                                                    TextEditingController(
+                                                        text: key),
+                                              ),
+                                              SizedBox(
+                                                height: 30,
+                                              ),
+                                              CustomElevatedButton(
+                                                onPressed: () {
+                                                  Clipboard.setData(
+                                                    ClipboardData(text: key),
+                                                  );
+                                                },
+                                                colors: colors,
+                                                text: "Copy Key",
+                                                rounded: 10,
+                                                padding:
+                                                    const EdgeInsets.symmetric(
+                                                        vertical: 5,
+                                                        horizontal: 5),
+                                              ),
+                                              SizedBox(
+                                                height: 20,
+                                              ),
+                                              Align(
+                                                alignment: Alignment.topLeft,
+                                                child: WarningStaticMessage(
+                                                  colors: colors,
+                                                  title: "Important :",
+                                                  content:
+                                                      "The private key and Mnemonic are secret and is the only way to access your funds. Never share your private key or Mnemonic with anyone.",
+                                                ),
+                                              ),
+                                            ],
+                                          ),
+                                        ),
+                                      );
+                                    });
+                              },
+                              iconSizeOf: calcDouble,
+                              fontSizeOf: calcDouble,
+                              roundedOf: calcDouble),
+                        if (privateAccount != null &&
+                            privateAccount?.origin.isMnemonic == true)
+                          SizedBox(
+                            height: 10,
+                          ),
+                        CustomListTitleButton(
+                            colors: colors,
+                            text: 'Download Secret',
+                            icon: Icons.download,
+                            onTap: () {},
+                            iconSizeOf: calcDouble,
+                            fontSizeOf: calcDouble,
+                            roundedOf: calcDouble)
+                      ],
+                    );
+                  },
+                  icon: Icon(
+                    Icons.more_vert,
+                    color: colors.textColor,
+                  ))
+        ],
       ),
       body: Padding(
         padding: const EdgeInsets.all(20),
@@ -203,86 +337,39 @@ class _PrivateKeyScreenState extends ConsumerState<PrivateKeyScreen> {
               roundedOf: calcDouble,
               maxLines: 5,
               minLines: 4,
-              labelText: "Mnemonic",
-              controller: _mnemonicController,
+              labelText: "Secret",
+              controller: _secretController,
             ),
             SizedBox(
               height: 15,
             ),
-            CustomFilledTextFormField(
-              colors: colors,
-              readOnly: true,
-              fontSizeOf: calcDouble,
-              iconSizeOf: calcDouble,
-              roundedOf: calcDouble,
-              maxLines: 3,
-              minLines: 3,
-              labelText: "Private Key",
-              controller: _privateKeyController,
-            ),
             SizedBox(
               height: 15,
             ),
-            if (privateAccount?.createdLocally == false ||
-                privateAccount?.isBackup == true)
-              Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                crossAxisAlignment: CrossAxisAlignment.center,
-                children: [
-                  ConstrainedBox(
-                    constraints: BoxConstraints(minWidth: width * 0.35),
-                    child: ElevatedButton.icon(
-                      style: ElevatedButton.styleFrom(
-                          backgroundColor: colors.themeColor),
-                      onPressed: () {
-                        if (_mnemonicController.text.isEmpty) {
-                          notifyError("No Mnemonic found", context);
-                          return;
-                        }
-                        Clipboard.setData(
-                            ClipboardData(text: _mnemonicController.text));
-                      },
-                      label: Text(
-                        'Mnemonic',
-                        style: textTheme.bodyMedium
-                            ?.copyWith(color: colors.primaryColor),
-                      ),
-                      icon: Icon(
-                        Icons.copy,
-                        color: colors.primaryColor,
-                      ),
-                    ),
-                  ),
-                  ConstrainedBox(
-                    constraints: BoxConstraints(minWidth: width * 0.35),
-                    child: ElevatedButton.icon(
-                      style: ElevatedButton.styleFrom(
-                          backgroundColor: colors.themeColor),
-                      onPressed: () {
-                        if (_privateKeyController.text.isEmpty) {
-                          notifyError("No Private Key found", context);
-                          return;
-                        }
-                        Clipboard.setData(
-                            ClipboardData(text: _privateKeyController.text));
-                      },
-                      label: Text(
-                        'PrivateKey',
-                        style: textTheme.bodyMedium
-                            ?.copyWith(color: colors.primaryColor),
-                      ),
-                      icon: Icon(
-                        Icons.copy,
-                        color: colors.primaryColor,
-                      ),
-                    ),
-                  )
-                ],
+            if (privateAccount != null && !privateAccount?.notBackup)
+              SizedBox(
+                width: MediaQuery.of(context).size.width,
+                child: CustomElevatedButton(
+                    onPressed: () {
+                      if (_secretController.text.isEmpty) {
+                        notifyError("No Secret found", context);
+                        return;
+                      }
+                      Clipboard.setData(
+                        ClipboardData(text: _secretController.text),
+                      );
+                    },
+                    colors: colors,
+                    text: "Copy Secret",
+                    rounded: 10,
+                    padding:
+                        const EdgeInsets.symmetric(vertical: 5, horizontal: 5)),
               )
             else
               SizedBox(
-                width: width,
-                child: ElevatedButton.icon(
+                width: MediaQuery.of(context).size.width,
+                child: CustomElevatedButton(
+                  backgroundColor: Colors.orange,
                   onPressed: () => Navigator.push(
                       context,
                       PageTransition(
@@ -292,20 +379,11 @@ class _PrivateKeyScreenState extends ConsumerState<PrivateKeyScreen> {
                               password: password,
                               wallet: privateAccount!,
                               colors: colors))),
-                  label: Text(
-                    "Backup phrases",
-                    style: textTheme.bodyMedium
-                        ?.copyWith(color: colors.primaryColor),
-                  ),
-                  icon: Icon(
-                    Icons.info,
-                    color: colors.primaryColor,
-                  ),
-                  style: ElevatedButton.styleFrom(
-                      backgroundColor: Colors.orange,
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(20),
-                      )),
+                  colors: colors,
+                  text: "Backup phrases",
+                  rounded: 10,
+                  padding:
+                      const EdgeInsets.symmetric(vertical: 5, horizontal: 5),
                 ),
               ),
             Align(

@@ -101,6 +101,8 @@ class PublicAccount {
       .where((address) => address.type == NetworkType.svm)
       .firstOrNull
       ?.address;
+  get notBackup => !isBackup && createdLocally;
+  get backup => isBackup || !createdLocally;
 
   factory PublicAccount.fromJson(Map<dynamic, dynamic> json) {
     List<PublicAddress> addresses() {
@@ -215,6 +217,8 @@ class PrivateAccount {
   get isFromPublic => origin == Origin.publicAddress;
   get isFromKey => origin == Origin.privateKey;
   get isWatchOnly => isFromPublic;
+  get notBackup => !isBackup && createdLocally;
+  get backup => isBackup || !createdLocally;
 
   factory PrivateAccount.fromJson(Map<dynamic, dynamic> json) {
     return PrivateAccount(
@@ -499,6 +503,12 @@ class Crypto {
       isNative ? networkType! : network!.networkType!;
   Crypto? get tokenNetwork => isNative ? this : network;
   int get getChainId => (isNative ? chainId : network?.chainId) ?? 0;
+
+  String? get firstExplorer =>
+      isNative ? explorers?.firstOrNull : network?.explorers?.firstOrNull;
+
+  String? get firstRpcUrl =>
+      isNative ? rpcUrls?.firstOrNull : network?.rpcUrls?.firstOrNull;
 
   static Crypto get nullToken => Crypto(
       name: "null",

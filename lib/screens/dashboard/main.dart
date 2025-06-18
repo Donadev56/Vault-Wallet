@@ -6,7 +6,6 @@ import 'package:decimal/decimal.dart';
 import 'package:loading_animation_widget/loading_animation_widget.dart';
 import 'package:moonwallet/custom/refresh/check_mark.dart';
 import 'package:moonwallet/notifiers/providers.dart';
-import 'package:moonwallet/routes.dart';
 import 'package:moonwallet/screens/auth/home.dart';
 import 'package:moonwallet/screens/dashboard/add_crypto.dart';
 import 'package:moonwallet/screens/dashboard/main/wallet_overview/receive.dart';

@@ -142,7 +142,7 @@ class AccountListTitleWidget extends StatelessWidget {
                         fontSize: fontSizeOf(10)),
                   ),
                 ),
-              if (!wallet.isBackup && wallet.createdLocally)
+              if (wallet.notBackup)
                 Container(
                   padding:
                       const EdgeInsets.symmetric(vertical: 3, horizontal: 6),

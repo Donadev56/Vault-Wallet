@@ -11,6 +11,29 @@ class RpcService {
   final EthInteractionManager _ethClient = EthInteractionManager();
   final SolanaInteractionManager _solanaClient = SolanaInteractionManager();
 
+  Future<String?> generatePrivateKe(
+      NetworkType ecosystem, String mnemonic) async {
+    try {
+      switch (ecosystem) {
+        case NetworkType.evm:
+          return _ethClient.ethAddresses
+              .derivateEthereumKeyFromMnemonic(mnemonic);
+
+        case NetworkType.svm:
+          return (await _solanaClient.solAddress.getPrivateKey(mnemonic));
+           
+           
+
+          break;
+        default:
+          return null;
+      }
+    } catch (e) {
+      logError(e.toString());
+      return null;
+    }
+  }
+
   Future<String> getBalance(Crypto crypto, PublicAccount account) async {
     try {
       final networkType = crypto.getNetworkType;

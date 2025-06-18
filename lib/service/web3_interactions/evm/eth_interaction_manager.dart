@@ -28,13 +28,12 @@ class EthInteractionManager {
   final tokenManager = TokenManager();
   final addressManager = AddressManager();
   final EthAddresses ethAddresses = EthAddresses();
+
   Future<String?> fetchBalanceUsingRpc(
       PublicAccount account, Crypto crypto) async {
     try {
       final address = account.evmAddress;
-      final rpc = crypto.isNative
-          ? crypto.rpcUrls?.firstOrNull
-          : crypto.network?.rpcUrls?.firstOrNull;
+      final rpc = crypto.firstRpcUrl;
       if (address == null) {
         throw ArgumentError("Address should not be null");
       }

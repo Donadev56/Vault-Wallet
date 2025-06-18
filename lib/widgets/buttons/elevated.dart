@@ -13,6 +13,7 @@ class CustomElevatedButton extends StatelessWidget {
   final Color? textColor;
   final EdgeInsetsGeometry? padding;
   final double rounded;
+  final Color? backgroundColor;
 
   const CustomElevatedButton(
       {super.key,
@@ -26,6 +27,7 @@ class CustomElevatedButton extends StatelessWidget {
       this.textStyle,
       this.textColor,
       this.rounded = 50,
+      this.backgroundColor,
       this.padding});
 
   @override
@@ -33,9 +35,10 @@ class CustomElevatedButton extends StatelessWidget {
     final textTheme = Theme.of(context).textTheme;
     final style = ElevatedButton.styleFrom(
       elevation: 0,
-      backgroundColor: enabled
-          ? colors.themeColor.withOpacity(opacity)
-          : colors.themeColor.withOpacity(0.4),
+      backgroundColor: backgroundColor ??
+          (enabled
+              ? colors.themeColor.withOpacity(opacity)
+              : colors.themeColor.withOpacity(0.4)),
       foregroundColor: colors.primaryColor,
       padding:
           padding ?? const EdgeInsets.symmetric(vertical: 12, horizontal: 20),

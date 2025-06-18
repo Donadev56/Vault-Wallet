@@ -530,7 +530,7 @@ class _DiscoverScreenState extends ConsumerState<DiscoverScreen>
                               final category = getCategory()[index];
                               final dapps = browserData.value.$1.where((e) =>
                                   e.categories.any((cat) =>
-                                      cat.id.trim().toLowerCase() ==
+                                      cat.name.trim().toLowerCase() ==
                                       category.name.trim().toLowerCase()));
 
                               final primaryDapps =

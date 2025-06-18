@@ -5,9 +5,11 @@ Future<T> showStandardModalBottomSheet<T>(
     {required BuildContext context,
     required Widget Function(BuildContext) builder,
     bool? isDismissible,
+    bool? enableDarg,
     double rounded = 20,
     Color? barrierColor}) async {
   final T result = await showCupertinoModalBottomSheet(
+      enableDrag: enableDarg ?? false,
       isDismissible: isDismissible,
       barrierColor: barrierColor ?? Colors.black.withOpacity(0.9),
       topRadius: Radius.circular(rounded),

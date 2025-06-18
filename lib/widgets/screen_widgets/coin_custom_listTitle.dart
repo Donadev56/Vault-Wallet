@@ -57,7 +57,7 @@ class CoinCustomListTitle extends HookConsumerWidget {
     final width = MediaQuery.of(context).size.width;
     return Slidable(
         endActionPane: ActionPane(
-          motion: ScrollMotion(),
+          motion: BehindMotion(),
           children: [
             SlidableAction(
               backgroundColor: colors.secondaryColor,
@@ -85,6 +85,10 @@ class CoinCustomListTitle extends HookConsumerWidget {
               visualDensity: VisualDensity(vertical: -4, horizontal: 2),
               contentPadding: const EdgeInsets.symmetric(horizontal: 15),
               splashColor: colors.textColor.withOpacity(0.05),
+              shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.only(
+                      topRight: Radius.circular(10),
+                      bottomRight: Radius.circular(10))),
               onTap: () {
                 Navigator.push(
                     context,

@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:moonwallet/types/types.dart';
+import 'package:moonwallet/widgets/screen_widgets/cached_picture.dart';
 
 class CustomNetworkImage extends StatelessWidget {
   final String url;
@@ -19,18 +20,12 @@ class CustomNetworkImage extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Image.network(
+    return CachedPicture(
       url,
-      width: size,
-      height: size,
-      fit: cover ? BoxFit.cover : null,
-      errorBuilder: (ctx, widget, error) {
-        return SizedBox(
-          width: imageSizeOf(placeholderSize),
-          height: imageSizeOf(placeholderSize),
-          child: ColoredBox(color: colors.themeColor),
-        );
-      },
+      placeHolderString: "",
+      size: size,
+      colors: colors,
+      addSecondaryImage: false,
     );
   }
 }

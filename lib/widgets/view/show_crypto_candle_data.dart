@@ -7,8 +7,13 @@ import 'package:flutter_feather_icons/flutter_feather_icons.dart';
 import 'package:moonwallet/service/external_data/price_manager.dart';
 import 'package:moonwallet/types/account_related_types.dart';
 import 'package:moonwallet/types/types.dart';
+import 'package:moonwallet/utils/number_formatter.dart';
 import 'package:moonwallet/widgets/charts_/line_chart.dart';
-import 'package:moonwallet/widgets/flowting_modat.dart';
+import 'package:moonwallet/widgets/dialogs/empy_list.dart';
+import 'package:moonwallet/widgets/dialogs/show_standard_sheet.dart';
+import 'package:moonwallet/widgets/dialogs/standard_container.dart';
+import 'package:moonwallet/widgets/screen_widgets/trending/widgets.dart';
+import 'package:url_launcher/url_launcher.dart';
 
 import '../../logger/logger.dart';
 
@@ -23,6 +28,7 @@ void showCryptoCandleModal(
   final Offset offset = Offset(-500.0, 0.0);
   String price = "0.0";
   bool isPriceLoading = true;
+  bool loadedData = false;
   double trend = 0.0;
   final double scale = 4.0;
   double initialTrend = 0;
@@ -43,10 +49,10 @@ void showCryptoCandleModal(
   ];
   bool isPositive = true;
   bool hasRun = false;
-  showFloatingModalBottomSheet(
-    barrierColor: const Color.fromARGB(185, 0, 0, 0),
-    enableDrag: false,
-    backgroundColor: Colors.transparent,
+  showStandardModalBottomSheet(
+    rounded: 0,
+    enableDarg: false,
+    barrierColor: Colors.transparent,
     context: context,
     builder: (BuildContext chartCtx) {
       return StatefulBuilder(
@@ -67,17 +73,22 @@ void showCryptoCandleModal(
                 trend = double.parse(percent);
                 initialTrend = trend;
                 isPriceLoading = false;
+                loadedData = true;
               });
             } catch (e) {
               logError(e.toString());
+              setModalState(() {
+                loadedData = true;
+              });
             }
           }
 
           Future<void> loadData(String interval) async {
             try {
-              final data = await priceManager.getPriceDataUsingCg(interval, "");
+              final data =
+                  await priceManager.getTokenHistData(currentCrypto, interval);
 
-              if (data == null) {
+              if (data.isEmpty) {
                 logError("Data is Null");
                 return;
               }
@@ -107,133 +118,176 @@ void showCryptoCandleModal(
           }
 
           return BackdropFilter(
-              filter: ImageFilter.blur(sigmaX: 10, sigmaY: 10),
-              child: Container(
-                decoration: BoxDecoration(
-                  color: colors.primaryColor,
-                  borderRadius:
-                      BorderRadius.all(Radius.circular(roundedOf(15))),
-                ),
-                child: ListView(shrinkWrap: true, children: [
-                  Padding(
-                    padding: const EdgeInsets.all(10),
-                    child: Row(
-                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                      crossAxisAlignment: CrossAxisAlignment.center,
-                      children: [
-                        Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
+              filter: ImageFilter.blur(sigmaX: 0, sigmaY: 0),
+              child: StandardContainer(
+                  backgroundColor: colors.primaryColor,
+                  border: Border(
+                      top: BorderSide(width: 1, color: colors.secondaryColor)),
+                  rounded: 0,
+                  child: Material(
+                    color: Colors.transparent,
+                    child: ListView(shrinkWrap: true, children: [
+                      Padding(
+                        padding: const EdgeInsets.all(0),
+                        child: Row(
+                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                          crossAxisAlignment: CrossAxisAlignment.center,
                           children: [
-                            Text(
-                              !isPriceLoading ? "\$$price" : "...",
-                              style: textTheme.bodyMedium?.copyWith(
-                                color: isPositive
-                                    ? colors.themeColor
-                                    : colors.redColor,
-                                fontSize: fontSizeOf(22),
-                                fontWeight: FontWeight.bold,
-                              ),
+                            Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Text(
+                                  !isPriceLoading
+                                      ? "\$${NumberFormatter().formatDecimal(price)}"
+                                      : "...",
+                                  style: textTheme.bodyMedium?.copyWith(
+                                    color: isPositive
+                                        ? colors.themeColor
+                                        : colors.redColor,
+                                    fontSize: fontSizeOf(22),
+                                    fontWeight: FontWeight.bold,
+                                  ),
+                                ),
+                                Text(
+                                  !isPriceLoading
+                                      ? " ${(trend).toStringAsFixed(5)}%"
+                                      : "...",
+                                  style: textTheme.bodyMedium?.copyWith(
+                                    color: isPositive
+                                        ? colors.themeColor
+                                        : colors.redColor,
+                                    fontSize: fontSizeOf(14),
+                                  ),
+                                ),
+                              ],
                             ),
-                            Text(
-                              !isPriceLoading
-                                  ? " ${(trend).toStringAsFixed(5)}%"
-                                  : "...",
-                              style: textTheme.bodyMedium?.copyWith(
-                                color: isPositive
-                                    ? colors.themeColor
-                                    : colors.redColor,
-                                fontSize: fontSizeOf(14),
-                              ),
-                            ),
+                            IconButton(
+                              onPressed: () {
+                                Navigator.pop(context);
+                              },
+                              icon: Icon(FeatherIcons.xCircle,
+                                  color: colors.redColor),
+                            )
                           ],
                         ),
-                        IconButton(
-                          onPressed: () {
-                            Navigator.pop(context);
-                          },
-                          icon: Icon(FeatherIcons.xCircle,
-                              color: colors.redColor),
-                        )
-                      ],
-                    ),
-                  ),
-                  Align(
-                    alignment: Alignment.center,
-                    child: AspectRatio(
-                      aspectRatio: 1.4,
-                      child: Padding(
-                          padding: const EdgeInsets.only(
-                            top: 0.0,
-                            right: 0.0,
-                          ),
-                          child: cryptoData == null
-                              ? Center(
-                                  child: CircularProgressIndicator(
-                                    color: colors.themeColor,
-                                  ),
-                                )
-                              : CustomLineChart(
-                                  colors: colors,
-                                  isPositive: isPositive,
-                                  chartData: cryptoData,
-                                  transformationController:
-                                      transformationController,
-                                  onTouchCallback: (FlTouchEvent event,
-                                      LineTouchResponse? response) {
-                                    if (event is FlTapUpEvent ||
-                                        event is FlPanUpdateEvent) {
-                                      if (response == null) {
-                                        trend = initialTrend;
-                                        log("Response is null");
-                                        return;
-                                      }
+                      ),
+                      SizedBox(
+                        height: 25,
+                      ),
+                      Align(
+                        alignment: Alignment.center,
+                        child: AspectRatio(
+                          aspectRatio: 1.8,
+                          child: Padding(
+                              padding: const EdgeInsets.only(
+                                top: 0.0,
+                                right: 0.0,
+                              ),
+                              child: cryptoData == null
+                                  ? loadedData
+                                      ? Column(
+                                          spacing: 20,
+                                          mainAxisAlignment:
+                                              MainAxisAlignment.center,
+                                          children: [
+                                            EmptyList("Price data not found",
+                                                colors: colors),
+                                            TextButton(
+                                                onPressed: () {
+                                                  final explorer = currentCrypto
+                                                      .firstExplorer;
+                                                  String id;
+                                                  if (currentCrypto.isNative) {
+                                                    id = "";
+                                                  } else {
+                                                    id =
+                                                        "address/${currentCrypto.contractAddress}";
+                                                  }
+                                                  if (explorer == null) {
+                                                    return;
+                                                  }
+                                                  final url = "$explorer/$id";
+                                                  log("Url $url");
+                                                  launchUrl(Uri.parse(url));
+                                                },
+                                                child: Text(
+                                                  "Learn More",
+                                                  style: textTheme.bodyMedium
+                                                      ?.copyWith(
+                                                          color:
+                                                              colors.themeColor,
+                                                          fontWeight:
+                                                              FontWeight.w500),
+                                                ))
+                                          ],
+                                        )
+                                      : Center(
+                                          child: CircularProgressIndicator(
+                                            color: colors.themeColor,
+                                          ),
+                                        )
+                                  : CustomLineChart(
+                                      showGradient: false,
+                                      colors: colors,
+                                      isPositive: isPositive,
+                                      chartData: cryptoData,
+                                      transformationController:
+                                          transformationController,
+                                      onTouchCallback: (FlTouchEvent event,
+                                          LineTouchResponse? response) {
+                                        if (event is FlTapUpEvent ||
+                                            event is FlPanUpdateEvent) {
+                                          if (response == null) {
+                                            trend = initialTrend;
+                                            log("Response is null");
+                                            return;
+                                          }
 
-                                      final touchedSpots =
-                                          response.lineBarSpots;
+                                          final touchedSpots =
+                                              response.lineBarSpots;
 
-                                      if (touchedSpots != null) {
-                                        final touchedSpots =
-                                            response.lineBarSpots!;
+                                          if (touchedSpots != null) {
+                                            final touchedSpots =
+                                                response.lineBarSpots!;
 
-                                        if (touchedSpots.isNotEmpty) {
-                                          final spot = touchedSpots.first;
-                                          final x = spot.x;
-                                          final y = spot.y;
-                                          final currentPrice = price;
-                                          final priceSince = double.parse(
-                                              y.toStringAsFixed(2));
-                                          final newTrend = ((Decimal.parse(
-                                                              priceSince
-                                                                  .toString()) -
-                                                          Decimal.parse(
-                                                              currentPrice))
-                                                      .toDouble() /
-                                                  priceSince) *
-                                              100;
-                                          setModalState(() {
-                                            trend = newTrend;
-                                            isPositive = newTrend > 0;
-                                          });
-                                          debugPrint(
-                                              "User touched at: x=$x, y=$y");
+                                            if (touchedSpots.isNotEmpty) {
+                                              final spot = touchedSpots.first;
+                                              final x = spot.x;
+                                              final y = spot.y;
+                                              final currentPrice = price;
+                                              final priceSince = double.parse(
+                                                  y.toStringAsFixed(2));
+                                              final newTrend = ((Decimal.parse(
+                                                                  priceSince
+                                                                      .toString()) -
+                                                              Decimal.parse(
+                                                                  currentPrice))
+                                                          .toDouble() /
+                                                      priceSince) *
+                                                  100;
+                                              setModalState(() {
+                                                trend = newTrend;
+                                                isPositive = newTrend > 0;
+                                              });
+                                              debugPrint(
+                                                  "User touched at: x=$x, y=$y");
+                                            }
+                                          }
                                         }
-                                      }
-                                    }
-                                  })),
-                    ),
-                  ),
-                  SizedBox(height: 15),
-                  Wrap(
-                    alignment: WrapAlignment.center,
-                    children: List.generate(intervals.length, (index) {
-                      return Padding(
-                        padding: const EdgeInsets.only(
-                            left: 5, right: 5, top: 10, bottom: 15),
-                        child: Material(
-                          color: Colors.transparent,
-                          child: InkWell(
-                            borderRadius: BorderRadius.circular(8),
-                            onTap: () async {
+                                      })),
+                        ),
+                      ),
+                      SizedBox(height: 15),
+                      Wrap(
+                        alignment: WrapAlignment.center,
+                        children: List.generate(intervals.length, (index) {
+                          return Padding(
+                            padding: const EdgeInsets.only(
+                                left: 5, right: 5, top: 10, bottom: 15),
+                            child: TrendingWidgets.buildIntervalChip(
+                                "${intervals[index]} D".toUpperCase(),
+                                colors: colors,
+                                context: context, onTap: () async {
                               setModalState(() {
                                 isPositive = true;
                                 trend = initialTrend;
@@ -243,41 +297,13 @@ void showCryptoCandleModal(
                                 log("currentIndex: $currentIndex ");
                               });
                             },
-                            child: Container(
-                              height: 35,
-                              width: 45,
-                              padding: const EdgeInsets.all(5),
-                              decoration: BoxDecoration(
-                                border: Border.all(
-                                    width: currentIndex == index ? 2 : 0,
-                                    color: currentIndex == index
-                                        ? colors.themeColor
-                                        : Colors.transparent),
-                                color: currentIndex == index
-                                    ? Colors.transparent
-                                    : colors.themeColor,
-                                borderRadius:
-                                    BorderRadius.circular(roundedOf(8)),
-                              ),
-                              child: Center(
-                                child: Text(
-                                  "${intervals[index]} D",
-                                  style: textTheme.bodyMedium?.copyWith(
-                                      fontWeight: FontWeight.bold,
-                                      color: currentIndex == index
-                                          ? colors.themeColor
-                                          : colors.primaryColor,
-                                      fontSize: fontSizeOf(10)),
-                                ),
-                              ),
-                            ),
-                          ),
-                        ),
-                      );
-                    }),
-                  ),
-                ]),
-              ));
+                                fontSizeOf: fontSizeOf,
+                                isSelected: currentIndex == index),
+                          );
+                        }),
+                      ),
+                    ]),
+                  )));
         },
       );
     },

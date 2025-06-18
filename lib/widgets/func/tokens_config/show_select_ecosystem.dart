@@ -1,5 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:modal_bottom_sheet/modal_bottom_sheet.dart';
+import 'package:moonwallet/custom/web3_webview/lib/utils/loading.dart';
+import 'package:moonwallet/logger/logger.dart';
+import 'package:moonwallet/notifiers/saved_crypto.dart';
+import 'package:moonwallet/service/crypto_manager.dart';
 import 'package:moonwallet/types/account_related_types.dart';
 import 'package:moonwallet/types/ecosystem_config.dart';
 import 'package:moonwallet/types/types.dart';
@@ -10,17 +14,33 @@ import 'package:moonwallet/widgets/func/tokens_config/show_token_detials.dart';
 import 'package:moonwallet/widgets/screen_widgets/crypto_picture.dart';
 import 'package:moonwallet/widgets/standard_network_image.dart';
 
-Future<TokenEcosystem?> showSelectEcoSystem(
-    {required BuildContext context,
-    String title = "Select Network",
-    required String keyName,
-    required AppColors colors,
-    required DoubleFactor roundedOf,
-    required DoubleFactor fontSizeOf,
-    required DoubleFactor iconSizeOf,
-    required List<Crypto> networks}) {
+Future<TokenEcosystem?> showSelectEcoSystem({
+  required BuildContext context,
+  String title = "Select Network",
+   String ? keyName,
+   String ? description ,
+  
+  required AppColors colors,
+  required DoubleFactor roundedOf,
+  required DoubleFactor fontSizeOf,
+  required DoubleFactor iconSizeOf,
+}) async {
   final controller = TextEditingController();
   final ecosystemChainsController = TextEditingController();
+  final savedTokens =
+      await SavedCryptoProvider().getSavedCrypto().withLoading(context, colors);
+  final defaultTokens =
+      await CryptoManager().getDefaultTokens().withLoading(context, colors);
+
+  final cryptos = CryptoManager()
+      .addOnlyNewTokens(localList: savedTokens, externalList: defaultTokens);
+
+  if (cryptos.isEmpty) {
+    logError("Crypto list is empty");
+    return null;
+  }
+
+  final networks = cryptos.where((c) => c.isNative).toList();
 
   List<TokenEcosystem> getEcosystems() {
     return ecosystemInfo.values
@@ -46,7 +66,7 @@ Future<TokenEcosystem?> showSelectEcoSystem(
                           vertical: 10, horizontal: 5),
                       child: SearchModalAppBar(
                         description:
-                            "Select the ecosystem to which the $keyName you want to add belongs.",
+                         description ?? ( keyName != null ?  "Select the ecosystem to which the $keyName you want to add belongs." : null),
                         hint: "Search Network",
                         onChanged: (v) => st(() {}),
                         controller: controller,

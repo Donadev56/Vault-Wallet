@@ -30,25 +30,14 @@ class WalletActions extends HookConsumerWidget {
     final cryptoProvider = ref.watch(savedCryptosProviderNotifier.notifier);
 
     Future<TokenEcosystem?> selectEcosystem(String keyName) async {
-      final savedTokens = await cryptoProvider.getSavedCrypto();
-      final defaultTokens = await CryptoManager().getDefaultTokens();
-      final cryptos = CryptoManager().addOnlyNewTokens(
-          localList: savedTokens, externalList: defaultTokens);
-
-      if (cryptos.isEmpty) {
-        logError("Crypto list is empty");
-        return null;
-      }
-      final networks = cryptos.where((c) => c.isNative).toList();
-
       final ecosystem = await showSelectEcoSystem(
-          keyName: keyName,
-          context: context,
-          colors: colors,
-          roundedOf: roundedOf,
-          fontSizeOf: fontSizeOf,
-          iconSizeOf: iconSizeOf,
-          networks: networks);
+        keyName: keyName,
+        context: context,
+        colors: colors,
+        roundedOf: roundedOf,
+        fontSizeOf: fontSizeOf,
+        iconSizeOf: iconSizeOf,
+      );
       if (ecosystem != null) {
         return ecosystem;
       }

@@ -1,7 +1,6 @@
 import 'dart:convert';
 import 'package:moonwallet/logger/logger.dart';
 import 'package:http/http.dart' as http;
-import 'package:moonwallet/service/db/crypto_storage_manager.dart';
 import 'package:moonwallet/service/db/dynamic_bd.dart';
 import 'package:moonwallet/service/db/global_database.dart';
 import 'package:moonwallet/service/db/price_data_db.dart';
@@ -169,20 +168,6 @@ class PriceManager {
     }
   }
 
-/*  Future<List<dynamic?>> getTokenHistData(
-      Crypto currentCrypto, String interval) async {
-    try {
-      final chainData = getAddressAndChainID(currentCrypto);
-      final chainId = chainData.$2;
-
-      final contractAddress = chainData.$1;
-
-      return [];
-    } catch (e) {
-      logError(e.toString());
-      return [];
-    }
-  } */
   Future<List<CryptoMarketData>> fetchTokensMarketData() async {
     try {
       final url = '$baseV2Url/v2/tokens/tokensMarketData';
@@ -244,7 +229,84 @@ class PriceManager {
     }
   }
 
-  Future<List<dynamic>?> getPriceDataUsingCg(
+  Future<String?> getCgIdByContractAddress(
+      String address, int networkCgId) async {
+    try {
+      final url =
+          "https://api.coingecko.com/api/v3/coins/$networkCgId/contract/$address";
+      final fallBackUrl =
+          "https://api.coingecko.com/api/v3/coins/ethereum/contract/$address";
+
+      final firstTry = await http.get(
+        Uri.parse(url),
+      );
+
+      if (firstTry.statusCode == 200) {
+        final json = jsonDecode(firstTry.body);
+        final id = json["id"];
+        if (id != null) {
+          log("Coingecko from first try id Found for $address \n");
+          log("Id :$id");
+
+          return id;
+        }
+      }
+      final secondTry = await http.get(Uri.parse(fallBackUrl));
+      if (secondTry.statusCode == 200) {
+        final json = jsonDecode(secondTry.body);
+        final id = json["id"];
+        if (id != null) {
+          log("Coingecko from second try id Found for $address \n");
+          log("Id :$id");
+
+          return id;
+        }
+      }
+
+      logError("No Id Found");
+      return null;
+    } catch (e) {
+      logError(e.toString());
+      return null;
+    }
+  }
+
+  Future<List<dynamic>> getTokenHistData(
+      Crypto currentCrypto, String interval) async {
+    try {
+      if (currentCrypto.isNative) {
+        return await getPriceDataUsingGeckoId(
+                interval, currentCrypto.cgSymbol ?? '') ??
+            [];
+      }
+      final addressAndChainId = getAddressAndChainID(currentCrypto);
+      final contract = addressAndChainId.$1;
+      final chainId = addressAndChainId.$2;
+      if (contract.isEmpty) {
+        logError("Invalid Contract address");
+        return [];
+      }
+
+      final key = "coinGeckoId/of/$contract/in-chain/${chainId}";
+      final data = await prefs.getDataFromPrefs(key: key);
+      if (data != null) {
+        return await getPriceDataUsingGeckoId(interval, data) ?? [];
+      }
+
+      final coingeckoId = await getCgIdByContractAddress(contract, chainId);
+      if (coingeckoId != null) {
+        await prefs.saveDataInPrefs(data: coingeckoId, key: key);
+        return await getPriceDataUsingGeckoId(interval, coingeckoId) ?? [];
+      }
+
+      return [];
+    } catch (e) {
+      logError(e.toString());
+      return [];
+    }
+  }
+
+  Future<List<dynamic>?> getPriceDataUsingGeckoId(
       String interval, String symbol) async {
     try {
       final prefs = PublicDataManager();
@@ -279,6 +341,7 @@ class PriceManager {
 
             return data;
           }
+          return [];
         }
       }).catchError((e) {
         if (savedData != null) {
@@ -286,11 +349,11 @@ class PriceManager {
               .map((e) => CryptoMarketData.fromJson(e))
               .toList();
         }
-        return null;
+        return [];
       });
     } catch (e) {
       logError(e.toString());
-      return null;
+      return [];
     }
   }
 
