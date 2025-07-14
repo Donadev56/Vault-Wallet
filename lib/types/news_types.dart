@@ -1,4 +1,4 @@
-class NewsData {
+/*class NewsData {
   final int code;
   final String? msg;
   final String? traceId;
@@ -283,4 +283,214 @@ class MultilanguageContent {
       content: content ?? this.content,
     );
   }
+}
+*/
+
+class NewsData {
+  final List<NewsItem> news;
+  final int count;
+
+  NewsData({
+    required this.news,
+    required this.count,
+  });
+
+  factory NewsData.fromJson(Map<String, dynamic> json) => NewsData(
+        news:
+            List<NewsItem>.from(json['news'].map((x) => NewsItem.fromJson(x))),
+        count: json['count'],
+      );
+
+  Map<String, dynamic> toJson() => {
+        'news': news.map((x) => x.toJson()).toList(),
+        'count': count,
+      };
+}
+
+class NewsItem {
+  final int id;
+  final String title;
+  final String description;
+  final DateTime pubDate;
+  final String author;
+  final int categoryId;
+  final String twitterPost;
+  final int subCategoryId;
+  final int upVote;
+  final int downVote;
+  final int favourites;
+  final int viewsCount;
+  final String imageUrl;
+  final int mediaId;
+  final int tokenId;
+  final DateTime createdAt;
+  final DateTime updatedAt;
+  final dynamic updatedBy;
+  final Category? category;
+  final Category? subCategory;
+  final Token? token;
+  final Media? media;
+  final dynamic newsUpdatedByUser;
+
+  NewsItem({
+    required this.id,
+    required this.title,
+    required this.description,
+    required this.pubDate,
+    required this.author,
+    required this.categoryId,
+    required this.twitterPost,
+    required this.subCategoryId,
+    required this.upVote,
+    required this.downVote,
+    required this.favourites,
+    required this.viewsCount,
+    required this.imageUrl,
+    required this.mediaId,
+    required this.tokenId,
+    required this.createdAt,
+    required this.updatedAt,
+    this.updatedBy,
+    required this.category,
+    required this.subCategory,
+    required this.token,
+    required this.media,
+    this.newsUpdatedByUser,
+  });
+
+  factory NewsItem.fromJson(Map<String, dynamic> json) => NewsItem(
+        id: json['id'] ?? 0,
+        title: json['title'],
+        description: json['description'],
+        pubDate: DateTime.parse(json['pubDate']),
+        author: json['author'],
+        categoryId: json['categoryId'],
+        twitterPost: json['twitterPost'],
+        subCategoryId: json['subCategoryId'] ?? 0,
+        upVote: json['upVote'] ?? 0,
+        downVote: json['downVote'] ?? 0,
+        favourites: json['favourites'] ?? 0,
+        viewsCount: json['viewsCount'] ?? 0,
+        imageUrl: json['imageUrl'],
+        mediaId: json['mediaId'] ?? 0,
+        tokenId: json['tokenId'] ?? 0,
+        createdAt: DateTime.parse(json['createdAt']),
+        updatedAt: DateTime.parse(json['updatedAt']),
+        updatedBy: json['updatedBy'],
+        category: json['category'] != null
+            ? Category.fromJson(json['category'])
+            : null,
+        subCategory: json['subCategory'] != null
+            ? Category.fromJson(json['subCategory'])
+            : null,
+        token: json['token'] != null ? Token.fromJson(json['token']) : null,
+        media: json['media'] != null ? Media.fromJson(json['media']) : null,
+        newsUpdatedByUser: json['newsUpdatedByUser'],
+      );
+
+  Map<String, dynamic> toJson() => {
+        'id': id,
+        'title': title,
+        'description': description,
+        'pubDate': pubDate.toIso8601String(),
+        'author': author,
+        'categoryId': categoryId,
+        'twitterPost': twitterPost,
+        'subCategoryId': subCategoryId,
+        'upVote': upVote,
+        'downVote': downVote,
+        'favourites': favourites,
+        'viewsCount': viewsCount,
+        'imageUrl': imageUrl,
+        'mediaId': mediaId,
+        'tokenId': tokenId,
+        'createdAt': createdAt.toIso8601String(),
+        'updatedAt': updatedAt.toIso8601String(),
+        'updatedBy': updatedBy,
+        'category': category?.toJson(),
+        'subCategory': subCategory?.toJson(),
+        'token': token?.toJson(),
+        'media': media?.toJson(),
+        'newsUpdatedByUser': newsUpdatedByUser,
+      };
+}
+
+class Category {
+  final int id;
+  final String name;
+  final bool isBlockchain;
+  final bool isToken;
+
+  Category({
+    required this.id,
+    required this.name,
+    required this.isBlockchain,
+    required this.isToken,
+  });
+
+  factory Category.fromJson(Map<String, dynamic> json) => Category(
+        id: json['id'],
+        name: json['name'],
+        isBlockchain: json['isBlockchain'],
+        isToken: json['isToken'],
+      );
+
+  Map<String, dynamic> toJson() => {
+        'id': id,
+        'name': name,
+        'isBlockchain': isBlockchain,
+        'isToken': isToken,
+      };
+}
+
+class Token {
+  final int id;
+  final String name;
+  final bool isBlockchain;
+  final bool isToken;
+
+  Token({
+    required this.id,
+    required this.name,
+    required this.isBlockchain,
+    required this.isToken,
+  });
+
+  factory Token.fromJson(Map<String, dynamic> json) => Token(
+        id: json['id'],
+        name: json['name'],
+        isBlockchain: json['isBlockchain'],
+        isToken: json['isToken'],
+      );
+
+  Map<String, dynamic> toJson() => {
+        'id': id,
+        'name': name,
+        'isBlockchain': isBlockchain,
+        'isToken': isToken,
+      };
+}
+
+class Media {
+  final int id;
+  final String filename;
+  final String fileDescriptor;
+
+  Media({
+    required this.id,
+    required this.filename,
+    required this.fileDescriptor,
+  });
+
+  factory Media.fromJson(Map<String, dynamic> json) => Media(
+        id: json['id'],
+        filename: json['filename'],
+        fileDescriptor: json['fileDescriptor'],
+      );
+
+  Map<String, dynamic> toJson() => {
+        'id': id,
+        'filename': filename,
+        'fileDescriptor': fileDescriptor,
+      };
 }

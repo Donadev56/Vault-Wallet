@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_hooks/flutter_hooks.dart';
 import 'package:flutter_html/flutter_html.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:moonwallet/types/news_types.dart';
@@ -10,7 +9,7 @@ import 'package:moonwallet/widgets/screen_widgets/trending/widgets.dart';
 import 'package:url_launcher/url_launcher.dart';
 
 class NewsReaderSpace extends HookConsumerWidget {
-  final Article article;
+  final NewsItem article;
   final AppColors colors;
   final DoubleFactor fontSizeOf;
   const NewsReaderSpace(
@@ -21,20 +20,12 @@ class NewsReaderSpace extends HookConsumerWidget {
 
   @override
   Widget build(BuildContext context, ref) {
-    final currentLangue = useState<String>("en");
-    final selectedIndex = useState<int>(0);
-
-    MultilanguageContent getContent() {
-      return article.multilanguageContent
-          .where((e) => e.language == currentLangue.value)
-          .first;
-    }
-
-    final languages =
-        article.multilanguageContent.map((e) => e.language).toList();
-    final content = getContent();
-    final sourceLink = article.sourceLink;
-    final tags = article.tags;
+    final content = article.description;
+    final title = article.title;
+    final image = article.imageUrl;
+    final sourceLink =
+        "https://app.chaingpt.org/news/${article.id}/${article.title.replaceAll(" ", "-")}";
+    final tags = [article.subCategory?.name];
 
     final textTheme = TextTheme.of(context);
 
@@ -52,16 +43,11 @@ class NewsReaderSpace extends HookConsumerWidget {
             child: SingleChildScrollView(
               child: Column(
                 children: [
-                  TrendingWidgets.buildListTags(
-                    languages,
-                    context: context,
-                    colors: colors,
-                    color: colors.secondaryColor,
-                    selectedIndex: selectedIndex.value,
-                    onTap: (langIndex) {
-                      currentLangue.value = languages[langIndex];
-                      selectedIndex.value = langIndex;
-                    },
+                  ClipRRect(
+                    borderRadius: BorderRadiusGeometry.circular(10),
+                    child: Image.network(
+                      image,
+                    ),
                   ),
                   SizedBox(
                     height: 20,
@@ -69,14 +55,12 @@ class NewsReaderSpace extends HookConsumerWidget {
                   Align(
                     alignment: Alignment.centerLeft,
                     child: TrendingWidgets.buildTitle(context,
-                        colors: colors,
-                        title: content.title,
-                        fontSizeOf: fontSizeOf),
+                        colors: colors, title: title, fontSizeOf: fontSizeOf),
                   ),
                   SizedBox(
                     height: 30,
                   ),
-                  Html(data: content.content),
+                  Html(data: content),
                   SizedBox(
                     height: 20,
                   ),

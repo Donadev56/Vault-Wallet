@@ -59,12 +59,9 @@ final getSavedAssetsProvider = FutureProvider<List<types.Asset>?>((ref) async {
   final assetsLoadState = ref.watch(assetsLoadStateProvider.notifier);
 
   if (account != null) {
-    assetsLoadState.updateState(AssetNotificationState.loading);
-
     log("Getting saved assets");
     final savedAssets = await cryptoStorage.getSavedAssets(wallet: account);
     log("Saved Assets len ${savedAssets?.length}");
-    assetsLoadState.updateState(AssetNotificationState.completed);
 
     return savedAssets;
   }

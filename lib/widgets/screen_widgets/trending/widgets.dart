@@ -62,7 +62,7 @@ class TrendingWidgets {
     );
   }
 
-  static Widget buildListTags(List<String> tags,
+  static Widget buildListTags(List<String?> tags,
       {required BuildContext context,
       required AppColors colors,
       double height = 25,
@@ -82,7 +82,7 @@ class TrendingWidgets {
               final tag = tags[tagsIndex];
               return ScaleTap(
                   onPressed: () => onTap != null ? onTap(tagsIndex) : null,
-                  child: buildTag(context, colors, tag,
+                  child: buildTag(context, colors, tag ?? '',
                       bgColor: selectedIndex != null
                           ? selectedIndex == tagsIndex
                               ? colors.themeColor

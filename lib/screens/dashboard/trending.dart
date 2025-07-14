@@ -126,30 +126,22 @@ class _TrendingScreenState extends ConsumerState<TrendingScreen> {
       return searchingCryptos;
     }
 
-    List<Article> article() {
-      final articles = news.value?.data?.list;
-      if (articles == null) {
-        return [];
-      }
+    List<NewsItem> article() {
+      final articles = news.value?.news ?? [];
       return articles
           .where((e) =>
-              e.matchedCurrencies.any((c) =>
-                  c.fullName
-                      .toLowerCase()
-                      .contains(query.value.toLowerCase()) ||
-                  c.name.toLowerCase().contains(query.value.toLowerCase())) ||
-              e.tags.any(
-                  (t) => t.toLowerCase().contains(query.value.toLowerCase())) ||
-              e.multilanguageContent
-                  .firstWhere((e) => e.language == "en")
-                  .title
+              e.title.split(' ').any((wordInTitle) => wordInTitle
                   .toLowerCase()
-                  .contains(query.toString()) ||
-              e.multilanguageContent
-                  .firstWhere((e) => e.language == "en")
-                  .content
+                  .contains(query.value.toLowerCase())) ||
+              e.description.split(' ').any((wordInDesc) => wordInDesc
                   .toLowerCase()
-                  .contains(query.toString()))
+                  .contains(query.value.toLowerCase())) ||
+              (e.category?.name ?? '')
+                  .toLowerCase()
+                  .contains(query.value.toLowerCase()) ||
+              (e.token?.name ?? '')
+                  .toLowerCase()
+                  .contains(query.value.toLowerCase()))
           .toList();
     }
 
@@ -294,13 +286,14 @@ class _TrendingScreenState extends ConsumerState<TrendingScreen> {
                           child: Column(
                             children: List.generate(article().length, (index) {
                               final art = article()[index];
-                              final content = art.multilanguageContent
-                                  .where((e) => e.language == "en")
-                                  .first;
-                              final timestamp = art.releaseTime;
-                              final tags = art.tags;
+                              final content = art.description;
+                              final title = art.title;
+                              final timestamp =
+                                  art.createdAt.millisecondsSinceEpoch;
+                              final tags = [art.category?.name ?? ''];
                               final author = art.author;
-                              final authorAvatar = art.authorAvatarUrl;
+                              final authorAvatar =
+                                  'https://cdn.prod.website-files.com/64354b8ce4872ad8cd1c7b04/653ba24987df35fe63c92a17_chaingpt-logo-head.svg';
 
                               return ScaleTap(
                                   onPressed: () => showMaterialModalBottomSheet(
@@ -324,34 +317,38 @@ class _TrendingScreenState extends ConsumerState<TrendingScreen> {
                                               BorderRadius.circular(10)),
                                       child: Column(
                                         children: [
-                                          if (authorAvatar != null)
-                                            ListTile(
-                                              contentPadding:
-                                                  const EdgeInsets.symmetric(
-                                                      vertical: 5,
-                                                      horizontal: 2),
-                                              visualDensity: VisualDensity(
-                                                  vertical: -2, horizontal: -3),
-                                              leading: CachedPicture(
-                                                authorAvatar,
-                                                placeHolderString: author,
-                                                size: 40,
-                                                colors: colors,
-                                                addSecondaryImage: false,
-                                              ),
-                                              title: TrendingWidgets.buildTitle(
-                                                  context,
-                                                  colors: colors,
-                                                  title: author,
-                                                  fontSizeOf: fontSizeOf,
-                                                  fontSize: 12),
+                                          ClipRRect(
+                                            borderRadius:
+                                                BorderRadiusGeometry.circular(
+                                                    10),
+                                            child: Image.network(art.imageUrl),
+                                          ),
+                                          ListTile(
+                                            contentPadding:
+                                                const EdgeInsets.symmetric(
+                                                    vertical: 5, horizontal: 2),
+                                            visualDensity: VisualDensity(
+                                                vertical: -2, horizontal: -3),
+                                            leading: CachedPicture(
+                                              authorAvatar,
+                                              placeHolderString: author,
+                                              size: 25,
+                                              colors: colors,
+                                              addSecondaryImage: false,
                                             ),
+                                            title: TrendingWidgets.buildTitle(
+                                                context,
+                                                colors: colors,
+                                                title: author,
+                                                fontSizeOf: fontSizeOf,
+                                                fontSize: 12),
+                                          ),
                                           SizedBox(
                                             height: 5,
                                           ),
                                           TrendingWidgets.buildTitle(context,
                                               colors: colors,
-                                              title: content.title,
+                                              title: title,
                                               fontSizeOf: fontSizeOf,
                                               fontSize: 15),
                                           SizedBox(
@@ -361,7 +358,7 @@ class _TrendingScreenState extends ConsumerState<TrendingScreen> {
                                               constraints: BoxConstraints(
                                                   maxHeight: 130),
                                               child: Text(
-                                                '${html_parser.parse(content.content).body?.text}',
+                                                '${html_parser.parse(content).body?.text}',
                                                 overflow: TextOverflow.ellipsis,
                                               )),
                                           SizedBox(
