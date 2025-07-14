@@ -1,4 +1,4 @@
-package com.opennode.vault_wallet
+package com.opennode.vault
 
 import io.flutter.embedding.android.FlutterFragmentActivity
 

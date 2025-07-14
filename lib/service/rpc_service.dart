@@ -21,8 +21,6 @@ class RpcService {
 
         case NetworkType.svm:
           return (await _solanaClient.solAddress.getPrivateKey(mnemonic));
-           
-           
 
           break;
         default:

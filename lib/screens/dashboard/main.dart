@@ -105,7 +105,7 @@ class _MainDashboardScreenState extends ConsumerState<MainDashboardScreen>
     final secureConfigNotifier = ref.watch(appSecureConfigProvider.notifier);
     final pageIndexNotifierProvider =
         ref.watch(currentPageIndexNotifierProvider.notifier);
-    // final assetsState = ref.watch(assetsLoadStateProvider);
+    final assetsState = ref.watch(assetsLoadStateProvider);
     final profileImageProvider =
         ref.watch(profileImageProviderNotifier.notifier);
 
@@ -636,14 +636,24 @@ class _MainDashboardScreenState extends ConsumerState<MainDashboardScreen>
                                           ),
                                           IconButton(
                                               onPressed: toggleHidden,
-                                              icon: Icon(
-                                                uiConfig.value.isCryptoHidden
-                                                    ? LucideIcons.eyeClosed
-                                                    : Icons
-                                                        .remove_red_eye_outlined,
-                                                color: colors.textColor,
-                                                size: iconSizeOf(20),
-                                              ))
+                                              icon: assetsState.isLoading
+                                                  ? SizedBox(
+                                                      width: 15,
+                                                      height: 15,
+                                                      child:
+                                                          CircularProgressIndicator(
+                                                        color: colors.textColor,
+                                                      ))
+                                                  : (Icon(
+                                                      uiConfig.value
+                                                              .isCryptoHidden
+                                                          ? LucideIcons
+                                                              .eyeClosed
+                                                          : Icons
+                                                              .remove_red_eye_outlined,
+                                                      color: colors.textColor,
+                                                      size: iconSizeOf(20),
+                                                    )))
                                         ],
                                       ),
                                       Row(

@@ -109,7 +109,12 @@ class AssetsNotifier extends AsyncNotifier<List<Asset>> {
       );
     } catch (e) {
       logError(e.toString());
-      rethrow;
+      return Asset(
+          crypto: crypto,
+          balanceUsd: 0.toString(),
+          balanceCrypto: 0.toString(),
+          cryptoTrendPercent: 0.toString(),
+          cryptoPrice: 0.toString());
     }
   }
 

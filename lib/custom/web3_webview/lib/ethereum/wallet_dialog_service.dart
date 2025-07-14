@@ -142,13 +142,10 @@ class WalletDialogService {
         ClipRRect(
             key: ValueKey(dappUrl),
             borderRadius: BorderRadius.circular(50),
-            child: CustomNetworkImage(
+            child: UnCachedNetworkImage(
               url: "https://www.google.com/s2/favicons?sz=64&domain=$dappUrl",
               size: 70,
               colors: colors,
-              imageSizeOf: (v) => v,
-              cover: true,
-              placeholderSize: 70,
             )),
       ];
       return Container(

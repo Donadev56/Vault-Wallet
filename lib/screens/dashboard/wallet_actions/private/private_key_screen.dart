@@ -242,7 +242,6 @@ class _PrivateKeyScreenState extends ConsumerState<PrivateKeyScreen> {
                                       return Scaffold(
                                         backgroundColor: colors.primaryColor,
                                         appBar: StandardAppBar(
-                                          
                                             title: "${ecosystem.name} key",
                                             colors: colors,
                                             fontSizeOf: calcDouble),

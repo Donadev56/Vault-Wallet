@@ -141,7 +141,7 @@ class _MyAppState extends ConsumerState<MyApp> with WidgetsBindingObserver {
                 debugShowCheckedModeBanner: false,
                 title: 'Vault Wallet',
                 theme: ThemeData(
-                  dialogTheme: DialogTheme(
+                  dialogTheme: DialogThemeData(
                     shape: RoundedRectangleBorder(
                         borderRadius: BorderRadius.circular(8)),
                     backgroundColor: colors.primaryColor,

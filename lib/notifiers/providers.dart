@@ -9,7 +9,7 @@ import 'package:moonwallet/notifiers/app_ui_config_notifier.dart';
 import 'package:moonwallet/notifiers/assets_notifier.dart';
 import 'package:moonwallet/notifiers/current_page_index_notifier.dart';
 import 'package:moonwallet/notifiers/last_account_notifier.dart';
-import 'package:moonwallet/notifiers/notification_states/assets_load_state.dart';
+import 'package:moonwallet/notifiers/app_components_states/assets_load_state.dart';
 import 'package:moonwallet/notifiers/profile_image_notifier.dart';
 import 'package:moonwallet/notifiers/saved_crypto.dart';
 import 'package:moonwallet/notifiers/session_provider.dart';
@@ -56,10 +56,15 @@ final savedCryptosProviderNotifier =
 final getSavedAssetsProvider = FutureProvider<List<types.Asset>?>((ref) async {
   final cryptoStorage = ref.watch(cryptoStorageProvider);
   final account = await ref.watch(currentAccountProvider.future);
+  final assetsLoadState = ref.watch(assetsLoadStateProvider.notifier);
+
   if (account != null) {
+    assetsLoadState.updateState(AssetNotificationState.loading);
+
     log("Getting saved assets");
     final savedAssets = await cryptoStorage.getSavedAssets(wallet: account);
     log("Saved Assets len ${savedAssets?.length}");
+    assetsLoadState.updateState(AssetNotificationState.completed);
 
     return savedAssets;
   }

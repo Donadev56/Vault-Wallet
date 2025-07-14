@@ -29,3 +29,50 @@ class CustomNetworkImage extends StatelessWidget {
     );
   }
 }
+
+class UnCachedNetworkImage extends StatelessWidget {
+  final AppColors colors;
+  final double size;
+  final String url;
+  final Widget Function(BuildContext, Widget, ImageChunkEvent?)? loadingBuilder;
+  final Widget Function(BuildContext, Object, StackTrace?)? errorBuilder;
+  final BoxFit? fit;
+
+  const UnCachedNetworkImage(
+      {super.key,
+      required this.size,
+      required this.url,
+      this.fit,
+      this.loadingBuilder,
+      this.errorBuilder,
+      required this.colors});
+  /*Widget buildLoaderBuilder (context, widget, chunk) {
+    return  SizedBox(width: size, height: size, child: CircularProgressIndicator(color: colors.textColor,),) ;
+
+  }*/
+  Widget buildErrorBuilder(context, obj, trace) {
+    return Container(
+      width: size,
+      height: size,
+      decoration: BoxDecoration(
+        color: colors.grayColor,
+        borderRadius: BorderRadius.circular(50),
+      ),
+      child: Icon(
+        Icons.language,
+        size: size,
+        color: colors.primaryColor,
+      ),
+    );
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Image.network(url,
+        width: size,
+        height: size,
+        fit: fit,
+        loadingBuilder: loadingBuilder,
+        errorBuilder: errorBuilder ?? buildErrorBuilder);
+  }
+}

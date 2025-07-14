@@ -34,13 +34,8 @@ class HistoryListTitle extends StatelessWidget {
             child: Container(
                 decoration: BoxDecoration(
                     color: colors.grayColor.withValues(alpha: 0.5)),
-                child: CustomNetworkImage(
-                  url: "https://www.google.com/s2/favicons?sz=64&domain=$link",
-                  size: 25,
-                  imageSizeOf: imageSizeOf,
-                  colors: colors,
-                  cover: true,
-                ))),
+                child: UnCachedNetworkImage(
+                    size: 20, url: "$link/favicon.ico", colors: colors))),
         title: Text(
           title,
           style: textTheme.bodyMedium?.copyWith(

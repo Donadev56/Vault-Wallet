@@ -17,9 +17,8 @@ import 'package:moonwallet/widgets/standard_network_image.dart';
 Future<TokenEcosystem?> showSelectEcoSystem({
   required BuildContext context,
   String title = "Select Network",
-   String ? keyName,
-   String ? description ,
-  
+  String? keyName,
+  String? description,
   required AppColors colors,
   required DoubleFactor roundedOf,
   required DoubleFactor fontSizeOf,
@@ -65,8 +64,10 @@ Future<TokenEcosystem?> showSelectEcoSystem({
                       padding: const EdgeInsets.symmetric(
                           vertical: 10, horizontal: 5),
                       child: SearchModalAppBar(
-                        description:
-                         description ?? ( keyName != null ?  "Select the ecosystem to which the $keyName you want to add belongs." : null),
+                        description: description ??
+                            (keyName != null
+                                ? "Select the ecosystem to which the $keyName you want to add belongs."
+                                : null),
                         hint: "Search Network",
                         onChanged: (v) => st(() {}),
                         controller: controller,
