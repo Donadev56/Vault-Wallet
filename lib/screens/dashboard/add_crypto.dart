@@ -29,7 +29,6 @@ import 'package:flutter/material.dart';
 import 'package:lucide_icons_flutter/lucide_icons.dart';
 import 'package:moonwallet/logger/logger.dart';
 import 'package:moonwallet/service/db/crypto_storage_manager.dart';
-import 'package:moonwallet/service/web3_interactions/evm/token_manager.dart';
 import 'package:moonwallet/types/types.dart';
 
 class AddCryptoView extends StatefulHookConsumerWidget {
@@ -43,7 +42,6 @@ class AddCryptoView extends StatefulHookConsumerWidget {
 class _AddCryptoViewState extends ConsumerState<AddCryptoView> {
   bool isDarkMode = true;
   final cryptoStorageManager = CryptoStorageManager();
-  final tokenManager = TokenManager();
   List<PublicAccount> accounts = [];
   final web3Manager = WalletDatabase();
   final encryptService = EncryptService();
@@ -99,9 +97,17 @@ class _AddCryptoViewState extends ConsumerState<AddCryptoView> {
     final accountsProvider = ref.watch(accountsNotifierProvider);
     final appUIConfigAsync = ref.watch(appUIConfigProvider);
     final cryptoManager = CryptoManager();
-
+    final nodeNotifier = ref.watch(nodesProvider);
+    final nodes = useState<Nodes>(Nodes(nodes: []));
     final uiConfig = useState<AppUIConfig>(AppUIConfig.defaultConfig);
     final allCryptos = useState<List<Crypto>>([]);
+
+    useEffect(() {
+      nodeNotifier.whenData((data) {
+        nodes.value = data;
+      });
+      return null;
+    }, [nodeNotifier]);
 
     useEffect(() {
       Future<void> getListDefaultTokens() async {
@@ -280,6 +286,7 @@ class _AddCryptoViewState extends ConsumerState<AddCryptoView> {
                     icon: Icons.add,
                     onTap: () {
                       showAddToken(
+                          nodes: nodes.value,
                           roundedOf: roundedOf,
                           fontSizeOf: fontSizeOf,
                           iconSizeOf: iconSizeOf,

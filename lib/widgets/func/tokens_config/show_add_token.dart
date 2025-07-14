@@ -25,11 +25,11 @@ void showAddToken(
     required DoubleFactor iconSizeOf,
     required void Function(SearchingContractInfo?, String, Crypto?) addCrypto,
     required List<Crypto> reorganizedCrypto,
-    required bool hasSaved}) {
+    required bool hasSaved,
+    required Nodes nodes}) {
   Crypto? selectedNetwork;
   TextEditingController contractAddressController = TextEditingController();
 
-  final tokenManager = TokenManager();
   SearchingContractInfo? searchingContractInfo;
 
   showCupertinoModalBottomSheet(
@@ -53,7 +53,8 @@ void showAddToken(
                         notifyError(
                             'Please enter a contract address.', context);
                       }
-                      final tokenFoundedData = await tokenManager
+                      final tokenFoundedData = await TokenManager(nodes
+                              .availableNode(selectedNetwork?.getChainId ?? 1))
                           .getCryptoInfo(
                               address: contractAddressController.text.trim(),
                               network: selectedNetwork!)

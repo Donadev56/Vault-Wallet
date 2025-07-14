@@ -35,8 +35,12 @@ Future<bool> isRpcAvailable(String rpcUrl) async {
     final response = await http.post(
       Uri.parse(rpcUrl),
       headers: {'Content-Type': 'application/json'},
-      body: jsonEncode(
-          {"jsonrpc": "2.0", "method": "eth_chainId", "params": [], "id": 1}),
+      body: jsonEncode({
+        "jsonrpc": "2.0",
+        "method": "eth_blockNumber",
+        "params": [],
+        "id": 1,
+      }),
     );
 
     if (response.statusCode == 200) {

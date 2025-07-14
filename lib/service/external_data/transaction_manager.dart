@@ -6,13 +6,11 @@ import 'package:moonwallet/service/web3_interactions/evm/web3_client.dart';
 import 'package:moonwallet/types/account_related_types.dart';
 import 'package:moonwallet/types/transaction.dart';
 import 'package:moonwallet/utils/prefs.dart';
-import '../rpc_service.dart';
 
 class TransactionManager {
   final Crypto token;
   final PublicAccount account;
   final PublicDataManager prefs = PublicDataManager();
-  final rpcService = RpcService();
 
   String get address => account.addressByToken(token);
   String get identifier =>

@@ -8,6 +8,7 @@ import 'package:lucide_icons_flutter/lucide_icons.dart';
 import 'package:mobile_scanner/mobile_scanner.dart';
 import 'package:moonwallet/custom/web3_webview/lib/utils/loading.dart';
 import 'package:moonwallet/logger/logger.dart';
+import 'package:moonwallet/notifiers/nodes_notifier.dart';
 import 'package:moonwallet/notifiers/providers.dart';
 import 'package:moonwallet/screens/dashboard/page_manager.dart';
 import 'package:moonwallet/service/db/wallet_db.dart';
@@ -43,7 +44,6 @@ class _AddPrivateKeyState extends ConsumerState<AddPrivateKeyMain> {
   final publicDataManager = PublicDataManager();
   bool isDarkMode = false;
   late TokenEcosystem ecosystem;
-  final _rpcService = RpcService();
 
   final manager = WalletDatabase();
   AppColors colors = AppColors.defaultTheme;
@@ -75,18 +75,6 @@ class _AddPrivateKeyState extends ConsumerState<AddPrivateKeyMain> {
     super.initState();
   }
 
-  Future<bool> keyTester(String data) async {
-    try {
-      final privateKey = data.trim();
-      return await _rpcService.validatePrivateKey(privateKey, ecosystem.type) ??
-          false;
-    } catch (e) {
-      notifyError(e.toString(), context);
-
-      return false;
-    }
-  }
-
   final MobileScannerController _mobileScannerController =
       MobileScannerController();
 
@@ -97,8 +85,9 @@ class _AddPrivateKeyState extends ConsumerState<AddPrivateKeyMain> {
     final appUIConfigAsync = ref.watch(appUIConfigProvider);
     final lastAccountNotifier =
         ref.watch(lastConnectedKeyIdNotifierProvider.notifier);
-
+    final nodeNotifier = ref.watch(nodesProvider);
     final uiConfig = useState<AppUIConfig>(AppUIConfig.defaultConfig);
+    final nodes = useState<Nodes>(Nodes(nodes: []));
 
     useEffect(() {
       appUIConfigAsync.whenData((data) {
@@ -107,8 +96,32 @@ class _AddPrivateKeyState extends ConsumerState<AddPrivateKeyMain> {
       return null;
     }, [appUIConfigAsync]);
 
+    useEffect(() {
+      nodeNotifier.whenData((data) {
+        nodes.value = data;
+      });
+      return null;
+    }, [nodeNotifier]);
+
     double roundedOf(double size) {
       return size * uiConfig.value.styles.radiusScaleFactor;
+    }
+
+    Future<bool> keyTester(String data) async {
+      try {
+        final privateKey = data.trim();
+        if (nodes.value.nodes.isEmpty) {
+          throw "No available nodes found";
+        }
+        return await RpcService(
+                    nodes.value.availableNode(ecosystem.baseChainId))
+                .validatePrivateKey(privateKey, ecosystem.type) ??
+            false;
+      } catch (e) {
+        notifyError(e.toString(), context);
+
+        return false;
+      }
     }
 
     Future<void> saveData() async {

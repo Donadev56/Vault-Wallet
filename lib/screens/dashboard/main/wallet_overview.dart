@@ -53,15 +53,11 @@ class _WalletViewScreenState extends ConsumerState<WalletViewScreen>
   bool isScrollingToTheBottom = false;
   final encryptService = EncryptService();
   final priceManager = PriceManager();
-  final rpcService = RpcService();
 
   final cryptoStorageManager = CryptoStorageManager();
   final ScrollController _scrollController = ScrollController();
 
   late Crypto currentCrypto;
-
-  String tokenBalance = "0";
-  String totalBalanceUsd = "0";
 
   bool isBalanceLoading = true;
   String cryptoPrice = "0";
@@ -112,19 +108,9 @@ class _WalletViewScreenState extends ConsumerState<WalletViewScreen>
       currentCrypto = widget.initData.crypto;
       colors = widget.initData.colors;
       if (widget.initData.initialBalanceUsd != null) {
-        totalBalanceUsd = widget.initData.initialBalanceUsd ?? "0";
         isBalanceLoading = false;
       }
       cryptoPrice = widget.initData.cryptoPrice;
-      tokenBalance = widget.initData.initialBalanceCrypto;
-    });
-    final balance = await rpcService.getBalance(currentCrypto, currentAccount);
-
-    setState(() {
-      tokenBalance = balance;
-      totalBalanceUsd =
-          (Decimal.parse(balance) * Decimal.parse(cryptoPrice.toString()))
-              .toString();
     });
   }
 
@@ -150,16 +136,50 @@ class _WalletViewScreenState extends ConsumerState<WalletViewScreen>
   Widget build(BuildContext context) {
     final textTheme = Theme.of(context).textTheme;
     final appUIConfigAsync = ref.watch(appUIConfigProvider);
+    final nodeNotifier = ref.watch(nodesProvider);
 
     final uiConfig = useState<AppUIConfig>(AppUIConfig.defaultConfig);
     final transactionList = useState<List<Transaction>>([]);
     final isInitialized = useState<bool>(false);
+
+    final nodes = useState<Nodes>(Nodes(nodes: []));
+    final tokenBalance = useState<String>(widget.initData.initialBalanceCrypto);
+    final totalBalanceUsd =
+        useState<String>(widget.initData.initialBalanceUsd ?? '0');
+
+    useEffect(() {
+      nodeNotifier.whenData((data) {
+        nodes.value = data;
+      });
+      return null;
+    }, [nodeNotifier]);
+
+    Future<void> updateBalances() async {
+      try {
+        final balance = await RpcService(
+                nodes.value.availableNode(currentCrypto.getChainId))
+            .getBalance(currentCrypto, currentAccount);
+
+        tokenBalance.value = balance;
+        totalBalanceUsd.value =
+            (Decimal.parse(balance) * Decimal.parse(cryptoPrice.toString()))
+                .toString();
+      } catch (e) {
+        logError(e.toString());
+      }
+    }
+
+    useEffect(() {
+      updateBalances();
+      return null;
+    }, []);
     List<Transaction> getFilteredTransactions(List<Transaction> transactions) {
       return transactions..sort((a, b) => b.timeStamp.compareTo(a.timeStamp));
     }
 
     Future<void> fetchRecentTransactions() async {
       try {
+        updateBalances();
         final manager =
             TransactionManager(account: currentAccount, token: currentCrypto);
         final transactions = await manager.getTransactions();
@@ -326,7 +346,7 @@ class _WalletViewScreenState extends ConsumerState<WalletViewScreen>
                                         child: Center(
                                             child: Text(
                                       (formatter.formatValue(
-                                          str: tokenBalance)),
+                                          str: tokenBalance.value)),
                                       overflow: TextOverflow.clip,
                                       maxLines: 1,
                                       style: textTheme.bodyMedium?.copyWith(
@@ -341,7 +361,7 @@ class _WalletViewScreenState extends ConsumerState<WalletViewScreen>
                                     enabled: isBalanceLoading,
                                     child: Text(
                                       "= \$ ${formatter.formatDecimal(
-                                        (totalBalanceUsd),
+                                        (totalBalanceUsd.value),
                                         maxDecimals: 2,
                                       )}",
                                       style: textTheme.bodySmall?.copyWith(
@@ -379,9 +399,11 @@ class _WalletViewScreenState extends ConsumerState<WalletViewScreen>
                                                           crypto: currentCrypto,
                                                           colors: colors,
                                                           initialBalanceCrypto:
-                                                              tokenBalance,
+                                                              tokenBalance
+                                                                  .value,
                                                           initialBalanceUsd:
-                                                              totalBalanceUsd),
+                                                              totalBalanceUsd
+                                                                  .value),
                                                     )))),
                                     ActionsWidgets(
                                         radius: roundedOf(10),
@@ -403,9 +425,11 @@ class _WalletViewScreenState extends ConsumerState<WalletViewScreen>
                                                           crypto: currentCrypto,
                                                           colors: colors,
                                                           initialBalanceCrypto:
-                                                              tokenBalance,
+                                                              tokenBalance
+                                                                  .value,
                                                           initialBalanceUsd:
-                                                              totalBalanceUsd),
+                                                              totalBalanceUsd
+                                                                  .value),
                                                     )))),
                                   ],
                                 ),

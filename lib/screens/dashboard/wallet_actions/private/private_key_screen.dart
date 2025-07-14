@@ -1,9 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:flutter_hooks/flutter_hooks.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:modal_bottom_sheet/modal_bottom_sheet.dart';
 import 'package:moonwallet/custom/web3_webview/lib/utils/loading.dart';
 import 'package:moonwallet/logger/logger.dart';
+import 'package:moonwallet/notifiers/providers.dart';
 import 'package:moonwallet/screens/dashboard/wallet_actions/private/backup.dart';
 import 'package:moonwallet/service/db/wallet_db_stateless.dart';
 import 'package:moonwallet/service/external_data/price_manager.dart';
@@ -181,6 +183,15 @@ class _PrivateKeyScreenState extends ConsumerState<PrivateKeyScreen> {
   Widget build(BuildContext context) {
     final width = MediaQuery.of(context).size.width;
     final TextTheme textTheme = Theme.of(context).textTheme;
+    final nodeNotifier = ref.watch(nodesProvider);
+    final nodes = useState<Nodes>(Nodes(nodes: []));
+
+    useEffect(() {
+      nodeNotifier.whenData((data) {
+        nodes.value = data;
+      });
+      return null;
+    }, [nodeNotifier]);
 
     return Scaffold(
       backgroundColor: colors.primaryColor,
@@ -226,7 +237,8 @@ class _PrivateKeyScreenState extends ConsumerState<PrivateKeyScreen> {
                                 if (ecosystem == null) {
                                   return;
                                 }
-                                final key = await RpcService()
+                                final key = await RpcService(nodes.value
+                                        .availableNode(ecosystem.baseChainId))
                                     .generatePrivateKe(
                                         ecosystem.type, _secretController.text)
                                     .withLoading(context, colors, "Loading...");

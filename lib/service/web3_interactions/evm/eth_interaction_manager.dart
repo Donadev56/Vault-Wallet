@@ -21,29 +21,32 @@ import 'package:http/http.dart';
 import 'utils.dart';
 
 class EthInteractionManager {
+  final Node node;
   var httpClient = Client();
   final walletStorage = WalletDbStateLess();
 
   final priceManager = PriceManager();
-  final tokenManager = TokenManager();
   final addressManager = AddressManager();
   final EthAddresses ethAddresses = EthAddresses();
+
+  EthInteractionManager(this.node);
 
   Future<String?> fetchBalanceUsingRpc(
       PublicAccount account, Crypto crypto) async {
     try {
       final address = account.evmAddress;
-      final rpc = crypto.firstRpcUrl;
+      final rpc = node.rpcUrl;
       if (address == null) {
         throw ArgumentError("Address should not be null");
       }
 
       if (!crypto.isNative) {
-        final balance = await tokenManager.getTokenBalance(crypto, address);
+        final balance =
+            await TokenManager(node).getTokenBalance(crypto, address);
         return balance;
       }
 
-      if (address.isEmpty == true || rpc == null || rpc.isEmpty) {
+      if (address.isEmpty == true || rpc.isEmpty) {
         log("address or rpc is empty");
         return "0";
       }
@@ -127,11 +130,12 @@ class EthInteractionManager {
   Future<String> sendTransaction(
       {required Transaction transaction,
       required int chainId,
-      required String rpcUrl,
       required PublicAccount account,
       required AppColors colors,
       required BuildContext context}) async {
     try {
+      final rpcUrl = node.rpcUrl;
+
       if (rpcUrl.isEmpty) {
         log("rpc url is empty");
         throw Exception("Internal error : rpcUrl is empty");
@@ -171,8 +175,9 @@ class EthInteractionManager {
     }
   }
 
-  Future<BigInt> getGasPrice(String rpcUrl) async {
+  Future<BigInt> getGasPrice() async {
     try {
+      final rpcUrl = node.rpcUrl;
       if (rpcUrl.isEmpty) {
         log("rpc url is empty");
         return BigInt.zero;
@@ -188,12 +193,12 @@ class EthInteractionManager {
   }
 
   Future<BigInt?> estimateGas(
-      {required String rpcUrl,
-      required String sender,
+      {required String sender,
       required String to,
       required String value,
       required String data}) async {
     try {
+      final rpcUrl = node.rpcUrl;
       // log every data received
       log("rpc url: $rpcUrl, sender: $sender, to: $to, value: $value, data: $data");
 
@@ -234,7 +239,6 @@ class EthInteractionManager {
       final cryptoPrice = await priceManager.getTokenPriceUsd(data.crypto);
 
       final estimatedGas = ((await estimateGas(
-                  rpcUrl: data.crypto.rpcUrls?.firstOrNull ?? "",
                   sender: data.account.evmAddress!,
                   to: to,
                   value: valueHex,
@@ -242,8 +246,7 @@ class EthInteractionManager {
               BigInt.from(21000)) +
           BigInt.from(10000));
 
-      final gasPrice =
-          await getGasPrice(data.crypto.rpcUrls?.firstOrNull ?? "");
+      final gasPrice = await getGasPrice();
       final baseFees = Decimal.fromBigInt((estimatedGas * gasPrice));
       final feesCostWei = baseFees * Decimal.parse('1.5');
       final feesCostEth = feesCostWei /
@@ -305,9 +308,6 @@ class EthInteractionManager {
   Future<BigInt?> simulateTransaction(
       Crypto crypto, PublicAccount account) async {
     return estimateGas(
-        rpcUrl: !crypto.isNative
-            ? crypto.network?.rpcUrls?.firstOrNull ?? ""
-            : crypto.rpcUrls?.firstOrNull ?? "",
         sender: account.evmAddress!,
         to: account.evmAddress!,
         value: "0x0",
@@ -328,7 +328,7 @@ class EthInteractionManager {
 
       final requests = await Future.wait([
         getUserBalance(data.account, data.crypto),
-        getGasPrice(token.network?.rpcUrls?.first ?? ""),
+        getGasPrice(),
       ]).withLoading(context, colors);
 
       final tokenBalance = requests[0] as String;
@@ -360,7 +360,7 @@ class EthInteractionManager {
           gasBigint: BigInt.from(0),
           crypto: data.crypto);
 
-      return await tokenManager.approveTokenTransfer(
+      return await TokenManager(node).approveTokenTransfer(
           colors: colors,
           data: transaction,
           context: context,
@@ -421,7 +421,6 @@ class EthInteractionManager {
           context: context,
           transaction: transaction,
           chainId: crypto.chainId ?? 1,
-          rpcUrl: crypto.rpcUrls?.firstOrNull ?? "",
           account: data.account);
 
       return result;

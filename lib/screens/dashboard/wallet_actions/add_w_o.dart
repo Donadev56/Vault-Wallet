@@ -43,7 +43,6 @@ class _AddPrivateKeyState extends ConsumerState<AddObservationWallet> {
   int attempt = 0;
   int secAttempt = 0;
   late TokenEcosystem ecosystem;
-  final _rpcService = RpcService();
 
   final web3Manager = WalletDatabase();
   final publicDataManager = PublicDataManager();
@@ -80,27 +79,25 @@ class _AddPrivateKeyState extends ConsumerState<AddObservationWallet> {
   final MobileScannerController _mobileScannerController =
       MobileScannerController();
 
-  bool keyTester(String data) {
-    try {
-      final address = data.trim();
-      return _rpcService.validateAddressUsingType(address, ecosystem.type) ??
-          false;
-    } catch (e) {
-      notifyError(e.toString(), context);
-
-      return false;
-    }
-  }
-
   @override
   Widget build(BuildContext context) {
     final textTheme = Theme.of(context).textTheme;
     final web3Provider = ref.read(web3ProviderNotifier);
     final appUIConfigAsync = ref.watch(appUIConfigProvider);
+    final nodeNotifier = ref.watch(nodesProvider);
+
     final lastAccountNotifier =
         ref.watch(lastConnectedKeyIdNotifierProvider.notifier);
 
     final uiConfig = useState<AppUIConfig>(AppUIConfig.defaultConfig);
+    final nodes = useState<Nodes>(Nodes(nodes: []));
+
+    useEffect(() {
+      nodeNotifier.whenData((data) {
+        nodes.value = data;
+      });
+      return null;
+    }, [nodeNotifier]);
 
     useEffect(() {
       appUIConfigAsync.whenData((data) {
@@ -108,6 +105,18 @@ class _AddPrivateKeyState extends ConsumerState<AddObservationWallet> {
       });
       return null;
     }, [appUIConfigAsync]);
+    bool keyTester(String data) {
+      try {
+        final address = data.trim();
+        return RpcService(nodes.value.availableNode(ecosystem.baseChainId))
+                .validateAddressUsingType(address, ecosystem.type) ??
+            false;
+      } catch (e) {
+        notifyError(e.toString(), context);
+
+        return false;
+      }
+    }
 
     Future<void> saveData() async {
       try {

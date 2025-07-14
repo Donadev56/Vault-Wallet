@@ -10,6 +10,7 @@ import 'package:moonwallet/notifiers/assets_notifier.dart';
 import 'package:moonwallet/notifiers/current_page_index_notifier.dart';
 import 'package:moonwallet/notifiers/last_account_notifier.dart';
 import 'package:moonwallet/notifiers/app_components_states/assets_load_state.dart';
+import 'package:moonwallet/notifiers/nodes_notifier.dart';
 import 'package:moonwallet/notifiers/profile_image_notifier.dart';
 import 'package:moonwallet/notifiers/saved_crypto.dart';
 import 'package:moonwallet/notifiers/session_provider.dart';
@@ -136,3 +137,7 @@ final assetsLoadStateProvider =
     StateNotifierProvider<AssetsLoadState, AssetNotification>(
   (ref) => AssetsLoadState(),
 );
+
+final nodesProvider = AsyncNotifierProvider<NodesNotifier, types.Nodes>(() {
+  return NodesNotifier();
+});

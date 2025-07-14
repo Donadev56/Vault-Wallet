@@ -82,7 +82,6 @@ class _SendTransactionScreenState extends ConsumerState<SendTransactionScreen> {
 
   Crypto? crypto;
 
-  final rpcService = RpcService();
   final TextEditingController _addressController = TextEditingController();
   final TextEditingController _amountController = TextEditingController();
   final TextEditingController _amountUsdController = TextEditingController();
@@ -107,7 +106,6 @@ class _SendTransactionScreenState extends ConsumerState<SendTransactionScreen> {
       crypto = widget.initData.crypto;
       colors = widget.initData.colors;
       cryptoPrice = widget.initData.cryptoPrice;
-
       tokenBalance = widget.initData.initialBalanceCrypto;
     });
 
@@ -153,61 +151,6 @@ class _SendTransactionScreenState extends ConsumerState<SendTransactionScreen> {
       }
     } catch (e) {
       logError(e.toString());
-    }
-  }
-
-  Future<void> sendTransaction() async {
-    try {
-      if (crypto == null) {
-        throw "The current crypto cannot be null";
-      }
-      final to = _addressController.text;
-      final from = currentAccount.addressByToken(crypto!);
-      final amount = _amountController.text;
-      final tx = await rpcService.sentTransaction(
-          BasicTransactionData(
-              addressTo: to,
-              amount: amount,
-              account: currentAccount,
-              crypto: crypto!),
-          colors,
-          context);
-
-      if (tx?.isNotEmpty == true) {
-        log("Transaction tx : $tx");
-        if (mounted) {
-          saveLastUsedAddresses(to);
-          final targetTransaction =
-              await TransactionManager(account: currentAccount, token: crypto!)
-                  .addTransactionAfterTransfer(tx ?? "Not Found", amount, to)
-                  .withLoading(context, colors, "Updating...");
-
-          Navigator.push(
-              context,
-              MaterialPageRoute(
-                  builder: (context) => PagesManagerView(
-                        colors: colors,
-                        currentAccount: currentAccount,
-                        crypto: crypto,
-                        transaction: StandardTransaction(
-                          token: crypto!,
-                          status: targetTransaction?.status,
-                          from: from,
-                          to: to,
-                          uiAmount: amount,
-                          timeStamp:
-                              (DateTime.now().millisecondsSinceEpoch / 1000)
-                                  .toInt(),
-                          transactionId: tx ?? "",
-                        ),
-                      )));
-        }
-      } else {
-        throw Exception("Transaction Failed");
-      }
-    } catch (e) {
-      logError(e.toString());
-      notifyError(e.toString(), context);
     }
   }
 
@@ -267,8 +210,17 @@ class _SendTransactionScreenState extends ConsumerState<SendTransactionScreen> {
     final textTheme = Theme.of(context).textTheme;
     final asyncAccounts = ref.watch(accountsNotifierProvider);
     final appUIConfigAsync = ref.watch(appUIConfigProvider);
+    final nodeNotifier = ref.watch(nodesProvider);
 
     final uiConfig = useState<AppUIConfig>(AppUIConfig.defaultConfig);
+    final nodes = useState<Nodes>(Nodes(nodes: []));
+
+    useEffect(() {
+      nodeNotifier.whenData((data) {
+        nodes.value = data;
+      });
+      return null;
+    }, [nodeNotifier]);
 
     useEffect(() {
       appUIConfigAsync.whenData((data) {
@@ -276,6 +228,63 @@ class _SendTransactionScreenState extends ConsumerState<SendTransactionScreen> {
       });
       return null;
     }, [appUIConfigAsync]);
+
+    Future<void> sendTransaction() async {
+      try {
+        if (crypto == null) {
+          throw "The current crypto cannot be null";
+        }
+        final to = _addressController.text;
+        final from = currentAccount.addressByToken(crypto!);
+        final amount = _amountController.text;
+        final tx =
+            await RpcService(nodes.value.availableNode(crypto?.chainId ?? 1))
+                .sentTransaction(
+                    BasicTransactionData(
+                        addressTo: to,
+                        amount: amount,
+                        account: currentAccount,
+                        crypto: crypto!),
+                    colors,
+                    context);
+
+        if (tx?.isNotEmpty == true) {
+          log("Transaction tx : $tx");
+          if (mounted) {
+            saveLastUsedAddresses(to);
+            final targetTransaction = await TransactionManager(
+                    account: currentAccount, token: crypto!)
+                .addTransactionAfterTransfer(tx ?? "Not Found", amount, to)
+                .withLoading(context, colors, "Updating...");
+
+            Navigator.push(
+                context,
+                MaterialPageRoute(
+                    builder: (context) => PagesManagerView(
+                          colors: colors,
+                          currentAccount: currentAccount,
+                          crypto: crypto,
+                          transaction: StandardTransaction(
+                            token: crypto!,
+                            status: targetTransaction?.status,
+                            from: from,
+                            to: to,
+                            uiAmount: amount,
+                            timeStamp:
+                                (DateTime.now().millisecondsSinceEpoch / 1000)
+                                    .toInt(),
+                            transactionId: tx ?? "",
+                          ),
+                        )));
+          }
+        } else {
+          throw Exception("Transaction Failed");
+        }
+      } catch (e) {
+        logError(e.toString());
+        notifyError(e.toString(), context);
+      }
+    }
 
     double fontSizeOf(double size) {
       return size * uiConfig.value.styles.fontSizeScaleFactor;
@@ -444,8 +453,9 @@ class _SendTransactionScreenState extends ConsumerState<SendTransactionScreen> {
                       iconSizeOf: iconSizeOf,
                       roundedOf: roundedOf,
                       colors: colors,
-                      validator: (v) =>
-                          rpcService.validateAddress(v ?? "", crypto!),
+                      validator: (v) => RpcService(nodes.value
+                              .availableNode(crypto?.getChainId ?? 1))
+                          .validateAddress(v ?? "", crypto!),
                       onChanged: (value) {
                         setState(() {
                           filteredAccounts = accounts

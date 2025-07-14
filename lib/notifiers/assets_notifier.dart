@@ -89,7 +89,10 @@ class AssetsNotifier extends AsyncNotifier<List<Asset>> {
     try {
       await Future.delayed(Duration(microseconds: waitTime));
       final priceManager = PriceManager();
-      final cryptoBalance = await RpcService().getBalance(
+      final nodesAsync = await ref.watch(nodesProvider.future);
+      final cryptoBalance =
+          await RpcService(nodesAsync.availableNode(crypto.getChainId))
+              .getBalance(
         crypto,
         account,
       );

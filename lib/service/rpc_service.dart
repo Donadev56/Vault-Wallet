@@ -8,8 +8,11 @@ import 'package:moonwallet/types/types.dart';
 import 'package:web3dart/web3dart.dart';
 
 class RpcService {
-  final EthInteractionManager _ethClient = EthInteractionManager();
+  final Node node;
+  EthInteractionManager get _ethClient => EthInteractionManager(node);
   final SolanaInteractionManager _solanaClient = SolanaInteractionManager();
+
+  RpcService(this.node);
 
   Future<String?> generatePrivateKe(
       NetworkType ecosystem, String mnemonic) async {
@@ -53,7 +56,7 @@ class RpcService {
 
   Future<BigInt> getGasPrice(Crypto crypto) async {
     try {
-      final gasPrice = await _ethClient.getGasPrice(crypto.getRpcUrl);
+      final gasPrice = await _ethClient.getGasPrice();
       return gasPrice;
     } catch (e) {
       logError(e.toString());

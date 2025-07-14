@@ -14,7 +14,6 @@ import 'package:moonwallet/widgets/func/security/ask_derivate_key.dart';
 class SavedCryptoProvider extends AsyncNotifier<List<Crypto>> {
   late final cryptoStorage = ref.read(cryptoStorageProvider);
   final walletStorage = WalletDbStateLess();
-  final rpcService = RpcService();
   final manager = CryptoManager();
 
   @override
@@ -175,7 +174,7 @@ class SavedCryptoProvider extends AsyncNotifier<List<Crypto>> {
       return false;
     }
   }
-
+/*
   Future<bool> toggleAndEnableSolana(
       Crypto crypto, bool value, BuildContext context, AppColors colors) async {
     try {
@@ -222,4 +221,5 @@ class SavedCryptoProvider extends AsyncNotifier<List<Crypto>> {
       return false;
     }
   }
+*/
 }

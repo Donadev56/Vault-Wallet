@@ -507,8 +507,8 @@ class Crypto {
   String? get firstExplorer =>
       isNative ? explorers?.firstOrNull : network?.explorers?.firstOrNull;
 
-  String? get firstRpcUrl =>
-      isNative ? rpcUrls?.firstOrNull : network?.rpcUrls?.firstOrNull;
+  //String? get firstRpcUrl =>
+  //  isNative ? rpcUrls?.firstOrNull : network?.rpcUrls?.firstOrNull;
 
   static Crypto get nullToken => Crypto(
       name: "null",
@@ -607,12 +607,14 @@ class TokenEcosystem {
   final NetworkType type;
   final String iconUrl;
   final bool supportSmartContracts;
+  final int baseChainId;
 
   TokenEcosystem(
       {required this.name,
       required this.type,
       required this.iconUrl,
-      required this.supportSmartContracts});
+      required this.supportSmartContracts,
+      required this.baseChainId});
 }
 
 class EncryptionInfo {
@@ -631,5 +633,47 @@ class EncryptionInfo {
       mac: base64Decode(json['mac'] as String),
       nonce: base64Decode(json['nonce'] as String),
     );
+  }
+}
+
+class Nodes {
+  final List<Node> nodes;
+
+  Nodes({required this.nodes});
+
+  Map<String, dynamic> toJson() {
+    return {
+      'nodes': nodes.map((node) => node.toJson()).toList(),
+    };
+  }
+
+  Node availableNode(int chainId) {
+    return nodes.where((e) => e.chainId == chainId).firstOrNull ?? nodes[0];
+  }
+
+  factory Nodes.fromJson(Map<String, dynamic> json) {
+    var nodeList = json['nodes'] as List<dynamic>;
+    return Nodes(
+      nodes: nodeList.map((nodeJson) => Node.fromJson(nodeJson)).toList(),
+    );
+  }
+}
+
+class Node {
+  final String rpcUrl;
+  final int chainId;
+  final NetworkType chainType;
+
+  Node({required this.rpcUrl, required this.chainId, required this.chainType});
+  bool get isEvmNode => chainType == NetworkType.evm;
+  Map<String, dynamic> toJson() {
+    return {'rpcUrl': rpcUrl, 'chainId': chainId, 'chainType': chainType.index};
+  }
+
+  factory Node.fromJson(Map<String, dynamic> json) {
+    return Node(
+        rpcUrl: json['rpcUrl'] as String,
+        chainId: json['chainId'] as int,
+        chainType: NetworkType.values[json['chainType']]);
   }
 }

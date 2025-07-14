@@ -13,6 +13,8 @@ import 'package:http/http.dart';
 class TokenManager {
   final httpClient = Client();
   final priceManager = PriceManager();
+  final Node node;
+  TokenManager(this.node);
 
   Future<BigInt?> getBalance({
     required Web3Client client,
@@ -51,17 +53,12 @@ class TokenManager {
 
   Future<String> getTokenBalance(Crypto token, String address) async {
     try {
-      if (token.network?.rpcUrls == null || token.rpcUrls?.isEmpty == true) {
-        throw Exception('RPC URL  is not provided');
-      }
-
       if (token.contractAddress == null ||
           (token.contractAddress as String).isEmpty) {
         logError('Contract address is not provided');
         return "0";
       }
-      final client =
-          Web3Client(token.network?.rpcUrls?.first ?? "", httpClient);
+      final client = Web3Client(node.rpcUrl, httpClient);
       final result =
           await getBalance(client: client, token: token, address: address);
       if (result == null) {
@@ -80,11 +77,7 @@ class TokenManager {
   Future<String?> getTokenName(
       {required Crypto network, required String contractAddress}) async {
     try {
-      if (network.rpcUrls == null) {
-        throw Exception('RPC URL  is not provided');
-      }
-
-      final client = Web3Client(network.rpcUrls?.first ?? "", httpClient);
+      final client = Web3Client(node.rpcUrl, httpClient);
       final EthereumAddress contractAddr =
           EthereumAddress.fromHex(contractAddress);
       final contract = DeployedContract(
@@ -102,11 +95,7 @@ class TokenManager {
   Future<BigInt?> getTokenDecimals(
       {required Crypto network, required String contractAddress}) async {
     try {
-      if (network.rpcUrls == null) {
-        throw Exception('RPC URL  is not provided');
-      }
-
-      final client = Web3Client(network.rpcUrls?.first ?? "", httpClient);
+      final client = Web3Client(node.rpcUrl, httpClient);
       final EthereumAddress contractAddr =
           EthereumAddress.fromHex(contractAddress);
       final contract = DeployedContract(
@@ -124,11 +113,7 @@ class TokenManager {
   Future<String?> getTokenSymbol(
       {required Crypto network, required String contractAddress}) async {
     try {
-      if (network.rpcUrls == null) {
-        throw Exception('RPC URL  is not provided');
-      }
-
-      final client = Web3Client(network.rpcUrls?.first ?? "", httpClient);
+      final client = Web3Client(node.rpcUrl, httpClient);
       final EthereumAddress contractAddr =
           EthereumAddress.fromHex(contractAddress);
       final contract = DeployedContract(
@@ -175,14 +160,8 @@ class TokenManager {
     }
   }
 
-  _validRpcUrl(Crypto network) {
-    if (network.rpcUrls == null) {
-      throw Exception('RPC URL is not provided');
-    }
-  }
-
   _validateNativeBalance(BigInt estimatedGas, TransactionToConfirm data) async {
-    final nativeTokenBalance = await EthInteractionManager()
+    final nativeTokenBalance = await EthInteractionManager(node)
         .getUserBalance(data.account, data.crypto.network!);
     final nativeBalanceDecimal = nativeTokenBalance.toDecimal();
 
@@ -203,7 +182,7 @@ class TokenManager {
       required AppColors colors,
       required int operationType}) async {
     try {
-      final web3InteractionManager = EthInteractionManager();
+      final web3InteractionManager = EthInteractionManager(node);
       final from = data.account.evmAddress;
       final to = data.addressTo;
       final token = data.crypto;
@@ -230,16 +209,14 @@ class TokenManager {
       final transferFunction = contract.function("transfer");
 
       _validateAccount(account, context, colors);
-      _validRpcUrl(network);
 
-      final estimatedGas = await Web3Client(
-                  data.crypto.network?.rpcUrls?.firstOrNull ?? "", httpClient)
-              .estimateGas(
-            sender: sender,
-            to: tokenContract,
-            data: transferFunction.encodeCall([receiver, data.valueBigInt]),
-          ) +
-          BigInt.from(10000);
+      final estimatedGas =
+          await Web3Client(node.rpcUrl, httpClient).estimateGas(
+                sender: sender,
+                to: tokenContract,
+                data: transferFunction.encodeCall([receiver, data.valueBigInt]),
+              ) +
+              BigInt.from(10000);
 
       _validateNativeBalance(estimatedGas, data);
 
@@ -274,7 +251,6 @@ class TokenManager {
           context: context,
           transaction: transaction,
           chainId: network.chainId ?? 1,
-          rpcUrl: network.rpcUrls?.firstOrNull ?? "",
           account: data.account);
 
       return result;
