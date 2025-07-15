@@ -441,7 +441,7 @@ class Web3BrowserScreenState extends ConsumerState<Web3BrowserScreen> {
                                 nativeCurrency: currentCrypto,
                                 blockExplorerUrls: currentCrypto.explorers,
                                 chainId:
-                                    "0x${(currentCrypto.chainId ?? 1).toRadixString(16)}",
+                                    "0x${(currentCrypto.getChainId).toRadixString(16)}",
                                 chainName: currentCrypto.name,
                                 rpcUrls: currentCrypto.rpcUrls ?? []),
                             supportNetworks:
@@ -450,7 +450,7 @@ class Web3BrowserScreenState extends ConsumerState<Web3BrowserScreen> {
                               return NetworkConfig(
                                   nativeCurrency: network,
                                   chainId:
-                                      "0x${networks.value[i].chainId?.toRadixString(16)}",
+                                      "0x${networks.value[i].getChainId.toRadixString(16)}",
                                   chainName: network.name,
                                   rpcUrls: network.rpcUrls ?? [],
                                   blockExplorerUrls: network.explorers);

@@ -647,9 +647,11 @@ class EthereumProvider extends StateNotifier<WalletState> {
         throw WalletException("Invalid Password");
       }
       final nodesAsync = await ref.read(nodesProvider.future);
-      final cred = await EthInteractionManager(
-              nodesAsync.availableNode(int.parse(state.chainId, radix: 16)))
-          .getAccessUsingKey(deriveKey: deriveKey, account: state.account);
+      final chainId =
+          int.parse(state.chainId.replaceFirst('0x', ''), radix: 16);
+      final cred =
+          await EthInteractionManager(nodesAsync.availableNode(chainId))
+              .getAccessUsingKey(deriveKey: deriveKey, account: state.account);
       if (cred == null) {
         throw WalletException("Invalid Password");
       }
