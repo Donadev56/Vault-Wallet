@@ -1,5 +1,3 @@
-library cached_network_svg_image;
-
 import 'dart:developer';
 import 'dart:io';
 
@@ -182,10 +180,10 @@ class _CustomNetworkCachedImageState extends State<CustomNetworkCachedImage>
 
     if (_isError) return _buildErrorWidget();
 
-    return FadeTransition(
+    return _buildNetworkImage(); /* FadeTransition(
       opacity: _animation,
       child: _buildNetworkImage(),
-    );
+    ); */
   }
 
   Widget _buildPlaceholderWidget() =>

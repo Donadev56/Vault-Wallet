@@ -62,7 +62,6 @@ class _SendTransactionScreenState extends ConsumerState<SendTransactionScreen> {
   bool isAndroid = false;
   double networkBalance = 0;
   bool isDarkMode = false;
-  Color darkNavigatorColor = Color(0XFF0D0D0D);
   List<PublicAccount> accounts = [];
   List<PublicAccount> filteredAccounts = [];
   List<dynamic> lastEthUsedAddresses = [];
@@ -238,7 +237,7 @@ class _SendTransactionScreenState extends ConsumerState<SendTransactionScreen> {
         final from = currentAccount.addressByToken(crypto!);
         final amount = _amountController.text;
         final tx =
-            await RpcService(nodes.value.availableNode(crypto?.chainId ?? 1))
+            await RpcService(nodes.value.availableNode(crypto?.getChainId ?? 1))
                 .sentTransaction(
                     BasicTransactionData(
                         addressTo: to,

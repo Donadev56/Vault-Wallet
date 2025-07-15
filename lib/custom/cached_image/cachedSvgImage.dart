@@ -189,10 +189,11 @@ class _CachedNetworkSVGImageState extends State<CachedNetworkSVGImage>
 
     if (_isError) return _buildErrorWidget();
 
-    return FadeTransition(
+    return _buildSVGImage() /* FadeTransition(
       opacity: _animation,
       child: _buildSVGImage(),
-    );
+    ) */
+        ;
   }
 
   Widget _buildPlaceholderWidget() =>
