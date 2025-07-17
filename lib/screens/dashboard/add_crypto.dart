@@ -47,7 +47,6 @@ class _AddCryptoViewState extends ConsumerState<AddCryptoView> {
   final encryptService = EncryptService();
 
   bool hasSaved = false;
-  PublicAccount? currentAccount;
   final TextEditingController _searchController = TextEditingController();
 
   AppColors colors = AppColors.defaultTheme;
@@ -101,6 +100,7 @@ class _AddCryptoViewState extends ConsumerState<AddCryptoView> {
     final nodes = useState<Nodes>(Nodes(nodes: []));
     final uiConfig = useState<AppUIConfig>(AppUIConfig.defaultConfig);
     final allCryptos = useState<List<Crypto>>([]);
+    final currentAccount = useState<PublicAccount?>(null);
 
     useEffect(() {
       nodeNotifier.whenData((data) {
@@ -155,9 +155,7 @@ class _AddCryptoViewState extends ConsumerState<AddCryptoView> {
           })
         });
 
-    currentAccountAsync.whenData((value) => setState(() {
-          currentAccount = value;
-        }));
+    currentAccountAsync.whenData((value) => currentAccount.value = value);
 
     Future<void> addCrypto(SearchingContractInfo? contractInfo,
         String contractAddress, Crypto? network) async {
@@ -228,7 +226,7 @@ class _AddCryptoViewState extends ConsumerState<AddCryptoView> {
             name: name,
             rpcUrls: rpcUrls,
             explorers: explorers,
-            currentAccount: currentAccount!);
+            currentAccount: currentAccount.value!);
         if (result) {
           notifySuccess("Network Edited", context);
         }
@@ -252,7 +250,7 @@ class _AddCryptoViewState extends ConsumerState<AddCryptoView> {
                   .contains(_searchController.text.toLowerCase()))
           .toList();
 
-      final account = currentAccount;
+      final account = currentAccount.value;
       if (account == null) {
         throw Exception("No account found");
       }
@@ -274,7 +272,7 @@ class _AddCryptoViewState extends ConsumerState<AddCryptoView> {
           Column(
             spacing: 10,
             children: [
-              if (currentAccount?.supportedNetworks.any(
+              if (currentAccount.value?.supportedNetworks.any(
                       (e) => ecosystemInfo[e]?.supportSmartContracts == true) ==
                   true)
                 CustomListTitleButton(
@@ -297,8 +295,8 @@ class _AddCryptoViewState extends ConsumerState<AddCryptoView> {
                           width: width,
                           hasSaved: hasSaved);
                     }),
-              if (currentAccount?.origin.isMnemonic == true ||
-                  currentAccount?.supportedNetworks.firstOrNull ==
+              if (currentAccount.value?.origin.isMnemonic == true ||
+                  currentAccount.value?.supportedNetworks.firstOrNull ==
                       NetworkType.evm)
                 CustomListTitleButton(
                     roundedOf: roundedOf,
@@ -454,8 +452,17 @@ class _AddCryptoViewState extends ConsumerState<AddCryptoView> {
                         fontSizeOf: fontSizeOf,
                         colors: colors,
                         onTap: () {
+                          final account = currentAccount.value;
+                          if (account == null) {
+                            logError("Account cannot be nuu");
+                            return;
+                          }
                           showTokenDetails(
-                              context: context, colors: colors, crypto: crypto);
+                              nodes: nodes.value,
+                              currentAccount: account,
+                              context: context,
+                              colors: colors,
+                              crypto: crypto);
                         },
                         leading: CryptoPicture(
                             crypto: crypto,

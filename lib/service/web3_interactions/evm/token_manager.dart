@@ -16,7 +16,7 @@ class TokenManager {
   final Node node;
   TokenManager(this.node);
 
-  Future<BigInt?> getBalance({
+  Future<BigInt?> _getBalance({
     required Web3Client client,
     required Crypto token,
     required String address,
@@ -60,7 +60,7 @@ class TokenManager {
       }
       final client = Web3Client(node.rpcUrl, httpClient);
       final result =
-          await getBalance(client: client, token: token, address: address);
+          await _getBalance(client: client, token: token, address: address);
       if (result == null) {
         throw "No result found";
       }

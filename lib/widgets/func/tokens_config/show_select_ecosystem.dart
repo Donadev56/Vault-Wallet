@@ -14,16 +14,17 @@ import 'package:moonwallet/widgets/func/tokens_config/show_token_detials.dart';
 import 'package:moonwallet/widgets/screen_widgets/crypto_picture.dart';
 import 'package:moonwallet/widgets/standard_network_image.dart';
 
-Future<TokenEcosystem?> showSelectEcoSystem({
-  required BuildContext context,
-  String title = "Select Network",
-  String? keyName,
-  String? description,
-  required AppColors colors,
-  required DoubleFactor roundedOf,
-  required DoubleFactor fontSizeOf,
-  required DoubleFactor iconSizeOf,
-}) async {
+Future<TokenEcosystem?> showSelectEcoSystem(
+    {required BuildContext context,
+    String title = "Select Network",
+    String? keyName,
+    String? description,
+    required AppColors colors,
+    required DoubleFactor roundedOf,
+    required DoubleFactor fontSizeOf,
+    required DoubleFactor iconSizeOf,
+    required Nodes nodes,
+    required PublicAccount account}) async {
   final controller = TextEditingController();
   final ecosystemChainsController = TextEditingController();
   final savedTokens =
@@ -194,6 +195,10 @@ Future<TokenEcosystem?> showSelectEcoSystem({
                                                                       .compact,
                                                               onTap: () {
                                                                 showTokenDetails(
+                                                                    currentAccount:
+                                                                        account,
+                                                                    nodes:
+                                                                        nodes,
                                                                     context:
                                                                         context,
                                                                     colors:

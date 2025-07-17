@@ -5,6 +5,6 @@ dart format .
 echo "Publishing code on Github...\n"
 git status && git add . && git commit -m "update" && git push
 echo "Code published!\n"
-echo "Building Vault-swap...\n"
+echo "Building Vault-Wallet...\n"
 flutter build apk --no-tree-shake-icons
 echo "Build Done!\n"

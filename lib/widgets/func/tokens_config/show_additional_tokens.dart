@@ -63,12 +63,21 @@ class ShowAdditionalTokensView extends HookConsumerWidget {
 
     final isLoading = useState<bool>(false);
     final loadedAll = useState<bool>(false);
-    final accountAsync = ref.watch(currentAccountProvider);
+    final account = ref.watch(currentAccountProvider).value;
     final canIncreaseValue = useState<bool>(false);
     final searchingTokens = useState<List<Crypto>>([]);
     final queryValue = useState<String>("");
     final isSearching = useState<bool>(false);
     final pageIndex = useState<int>(0);
+    final nodeNotifier = ref.watch(nodesProvider);
+    final nodes = useState<Nodes>(Nodes(nodes: []));
+
+    useEffect(() {
+      nodeNotifier.whenData((data) {
+        nodes.value = data;
+      });
+      return null;
+    }, [nodeNotifier]);
 
     final positionListener = useMemoized(() {
       return ItemPositionsListener.create();
@@ -92,9 +101,8 @@ class ShowAdditionalTokensView extends HookConsumerWidget {
             loadedAll.value = true;
             return;
           }
-
-          final account = accountAsync.value;
-          if (account == null) {
+          final currentAccount = account;
+          if (currentAccount == null) {
             throw Exception("Account not yet initialized");
           }
           int initialTokensCount = tokens.value.length;
@@ -106,7 +114,7 @@ class ShowAdditionalTokensView extends HookConsumerWidget {
           List<Crypto> withoutSaved = manager.removeAlreadySavedTokens(
               savedTokens ?? [], [...tokens.value, ...newTokens]);
 
-          tokens.value = filterTokens(withoutSaved, account);
+          tokens.value = filterTokens(withoutSaved, currentAccount);
           if (tokens.value.length == initialTokensCount) {
             loadedAll.value = true;
           } else {
@@ -159,7 +167,6 @@ class ShowAdditionalTokensView extends HookConsumerWidget {
         try {
           final maxResult = 300;
           isSearching.value = true;
-          final account = accountAsync.value;
           if (account == null) {
             throw Exception("Account not yet initialized");
           }
@@ -289,10 +296,19 @@ class ShowAdditionalTokensView extends HookConsumerWidget {
                                         crypto: token,
                                         size: 35,
                                         colors: colors),
-                                    onTap: () => showTokenDetails(
-                                        context: context,
-                                        colors: colors,
-                                        crypto: token),
+                                    onTap: () {
+                                      final currentAccount = account;
+                                      if (currentAccount == null) {
+                                        logError("Account cannot be null");
+                                        return;
+                                      }
+                                      showTokenDetails(
+                                          nodes: nodes.value,
+                                          currentAccount: currentAccount,
+                                          context: context,
+                                          colors: colors,
+                                          crypto: token);
+                                    },
                                     colors: colors,
                                     title: token.symbol,
                                     fontSizeOf: fontSizeOf,

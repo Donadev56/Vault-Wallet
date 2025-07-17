@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_hooks/flutter_hooks.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:lucide_icons_flutter/lucide_icons.dart';
 import 'package:moonwallet/logger/logger.dart';
@@ -6,7 +7,6 @@ import 'package:moonwallet/notifiers/providers.dart';
 import 'package:moonwallet/routes.dart';
 import 'package:moonwallet/screens/dashboard/wallet_actions/add_private_key.dart';
 import 'package:moonwallet/screens/dashboard/wallet_actions/add_w_o.dart';
-import 'package:moonwallet/service/crypto_manager.dart';
 import 'package:moonwallet/types/account_related_types.dart';
 import 'package:moonwallet/types/types.dart';
 import 'package:moonwallet/widgets/appBar/custom_list_title_button.dart';
@@ -27,10 +27,31 @@ class WalletActions extends HookConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final cryptoProvider = ref.watch(savedCryptosProviderNotifier.notifier);
+    final nodeNotifier = ref.watch(nodesProvider);
+    final accountAsync = ref.watch(currentAccountProvider);
+    final nodes = useState<Nodes>(Nodes(nodes: []));
+    final account = useState<PublicAccount?>(null);
+
+    useEffect(() {
+      accountAsync.whenData((value) => account.value = value);
+      return null;
+    }, [accountAsync]);
+
+    useEffect(() {
+      nodeNotifier.whenData((data) {
+        nodes.value = data;
+      });
+      return null;
+    }, [nodeNotifier]);
 
     Future<TokenEcosystem?> selectEcosystem(String keyName) async {
+      final currentAccount = account.value;
+      if (currentAccount == null) {
+        throw ("Account cannot be null");
+      }
       final ecosystem = await showSelectEcoSystem(
+        account: currentAccount,
+        nodes: nodes.value,
         keyName: keyName,
         context: context,
         colors: colors,

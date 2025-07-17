@@ -226,6 +226,9 @@ class _PrivateKeyScreenState extends ConsumerState<PrivateKeyScreen> {
                               icon: Icons.key,
                               onTap: () async {
                                 final ecosystem = await showSelectEcoSystem(
+                                  account: account,
+                                  nodes: nodes.value,
+                                  title: "Select Ecosystem",
                                   context: context,
                                   description:
                                       "Select the ecosystem you want to extract the private key from",

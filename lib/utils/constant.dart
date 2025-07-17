@@ -225,12 +225,10 @@ final List<Map<String, dynamic>> appBarButtonOptions = [
   }
 */
 
-String truncatedValue(
-  String value,
-) {
+String truncatedValue(String value, {int max = 7}) {
   if (value.length < 42) {
     return value;
   }
 
-  return "${value.substring(0, 7)}...${value.substring(value.length - 7, value.length)}";
+  return "${value.substring(0, max)}...${value.substring(value.length - max, value.length)}";
 }
