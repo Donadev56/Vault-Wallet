@@ -12,7 +12,7 @@ class ProfileImageNotifier extends AsyncNotifier<File?> {
       final ImageStorageManager storageManager = ImageStorageManager();
 
       final profileImageFile =
-          await storageManager.getProfileImage(fileName: profileName);
+          await storageManager.getSavedImage(fileName: profileName);
       if ((await profileImageFile?.exists()) == true) {
         return profileImageFile;
       }

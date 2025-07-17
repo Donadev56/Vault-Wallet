@@ -1,9 +1,6 @@
 import 'package:flutter/material.dart';
-import 'package:moonwallet/custom/cached_image/cachedSvgImage.dart';
 import 'package:moonwallet/custom/cached_image/cached_image.dart';
 import 'package:moonwallet/types/types.dart';
-import 'package:http/http.dart' as http;
-import 'package:skeletonizer/skeletonizer.dart';
 
 class CachedPicture extends StatelessWidget {
   final double size;
@@ -42,7 +39,7 @@ class CachedPicture extends StatelessWidget {
       });
     }
 
-    Widget buildSkeleton(size) {
+    /* Widget buildSkeleton(size) {
       return Skeletonizer(
         enabled: true,
         containersColor: colors.grayColor,
@@ -52,22 +49,10 @@ class CachedPicture extends StatelessWidget {
           decoration: BoxDecoration(),
         ),
       );
-    }
+    }*/
 
     bool isSvg(String path) {
       return path.toLowerCase().endsWith('.svg');
-    }
-
-    Future<bool> isMainImageAvailable() async {
-      try {
-        final response = await http.get(Uri.parse(mainImageUrl));
-        if (response.statusCode == 200) {
-          return true;
-        }
-        return false;
-      } catch (e) {
-        return false;
-      }
     }
 
     return Stack(
@@ -79,48 +64,21 @@ class CachedPicture extends StatelessWidget {
                 child: SizedBox(
                     width: size,
                     height: size,
-                    child: FutureBuilder(
-                        future: isMainImageAvailable(),
-                        builder: (ctx, result) {
-                          if (!result.hasData) {
-                            return buildSkeleton(size);
-                          }
-                          if (result.hasError ||
-                              (result.hasData && result.data == false)) {
-                            return buildPlaceHolder(
-                                placeHolderString.length > 2
-                                    ? placeHolderString.substring(0, 2)
-                                    : placeHolderString,
-                                size,
-                                radius,
-                                colors,
-                                context);
-                          }
-                          if (result.hasData && result.data == true) {
-                            return !isSvg(mainImageUrl)
-                                ? CustomNetworkCachedImage(
-                                    errorBuilder: errorBuilder(size),
-                                    mainImageUrl,
-                                    width: size,
-                                    height: size,
-                                    fit: BoxFit.cover,
-                                  )
-                                : CachedNetworkSVGImage(
-                                    mainImageUrl,
-                                    errorWidget: buildPlaceHolder(
-                                        placeHolderString,
-                                        size,
-                                        radius,
-                                        colors,
-                                        context),
-                                    width: size,
-                                    height: size,
-                                    fit: BoxFit.cover,
-                                  );
-                          }
-
-                          return buildSkeleton(size);
-                        })))),
+                    child: CustomNetworkCachedImage(
+                      isSvgImage: isSvg(mainImageUrl),
+                      errorWidget: buildPlaceHolder(
+                          placeHolderString.length > 2
+                              ? placeHolderString.substring(0, 2)
+                              : placeHolderString,
+                          size,
+                          radius,
+                          colors,
+                          context),
+                      mainImageUrl,
+                      width: size,
+                      height: size,
+                      fit: BoxFit.cover,
+                    )))),
         if (addSecondaryImage)
           Positioned(
               top: size / 1.8,
@@ -132,25 +90,17 @@ class CachedPicture extends StatelessWidget {
                     color: primaryColor ?? colors.primaryColor,
                   ),
                   child: ClipRRect(
-                    borderRadius: BorderRadius.circular(networkRadius),
-                    child: !isSvg(secondaryImageUrl ?? "")
-                        ? CustomNetworkCachedImage(
-                            secondaryImageUrl ?? "",
-                            width: size / 2.75,
-                            height: size / 2.75,
-                            errorBuilder: errorBuilder(size / 2.75),
-                            fit: BoxFit.cover,
-                          )
-                        : CachedNetworkSVGImage(
-                            secondaryImageUrl ?? "",
-                            width: size / 2.75,
-                            height: size / 2.75,
-                            errorWidget: buildPlaceHolder(
-                                "", size / 2.75, radius, colors, context),
-                            errorBuilder: errorBuilder(size / 2.75),
-                            fit: BoxFit.cover,
-                          ),
-                  )))
+                      borderRadius: BorderRadius.circular(networkRadius),
+                      child: CustomNetworkCachedImage(
+                        errorWidget: buildPlaceHolder(
+                            '', size / 2.75, radius, colors, context),
+                        isSvgImage: isSvg(secondaryImageUrl ?? ""),
+                        secondaryImageUrl ?? "",
+                        width: size / 2.75,
+                        height: size / 2.75,
+                        errorBuilder: errorBuilder(size / 2.75),
+                        fit: BoxFit.cover,
+                      ))))
       ],
     );
   }

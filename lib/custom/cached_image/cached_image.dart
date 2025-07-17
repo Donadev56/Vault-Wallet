@@ -3,31 +3,32 @@ import 'dart:io';
 
 import 'package:flutter/material.dart';
 import 'package:flutter_cache_manager/flutter_cache_manager.dart';
+import 'package:flutter_svg/svg.dart';
 
 class CustomNetworkCachedImage extends StatefulWidget {
-  CustomNetworkCachedImage(
-    String url, {
-    Key? key,
-    String? cacheKey,
-    Widget? placeholder,
-    Widget? errorWidget,
-    double? width,
-    double? height,
-    Map<String, String>? headers,
-    BoxFit fit = BoxFit.contain,
-    AlignmentGeometry alignment = Alignment.center,
-    bool matchTextDirection = false,
-    bool allowDrawingOutsideViewBox = false,
-    @deprecated Color? color,
-    @deprecated BlendMode colorBlendMode = BlendMode.srcIn,
-    String? semanticsLabel,
-    bool excludeFromSemantics = false,
-    Duration fadeDuration = const Duration(milliseconds: 300),
-    ColorFilter? colorFilter,
-    WidgetBuilder? placeholderBuilder,
-    BaseCacheManager? cacheManager,
-    Widget Function(BuildContext, Object, StackTrace?)? errorBuilder,
-  })  : _url = url,
+  CustomNetworkCachedImage(String url,
+      {Key? key,
+      String? cacheKey,
+      Widget? placeholder,
+      Widget? errorWidget,
+      double? width,
+      double? height,
+      Map<String, String>? headers,
+      BoxFit fit = BoxFit.contain,
+      AlignmentGeometry alignment = Alignment.center,
+      bool matchTextDirection = false,
+      bool allowDrawingOutsideViewBox = false,
+      @deprecated Color? color,
+      @deprecated BlendMode colorBlendMode = BlendMode.srcIn,
+      String? semanticsLabel,
+      bool excludeFromSemantics = false,
+      Duration fadeDuration = const Duration(milliseconds: 300),
+      ColorFilter? colorFilter,
+      WidgetBuilder? placeholderBuilder,
+      BaseCacheManager? cacheManager,
+      Widget Function(BuildContext, Object, StackTrace?)? errorBuilder,
+      bool? isSvgImage})
+      : _url = url,
         _cacheKey = cacheKey,
         _placeholder = placeholder,
         _errorWidget = errorWidget,
@@ -44,6 +45,7 @@ class CustomNetworkCachedImage extends StatefulWidget {
         _fadeDuration = fadeDuration,
         _errorBuilder = errorBuilder,
         _cacheManager = cacheManager ?? DefaultCacheManager(),
+        _isSvgImage = isSvgImage,
         super(key: key ?? ValueKey(url));
 
   final String _url;
@@ -62,6 +64,7 @@ class CustomNetworkCachedImage extends StatefulWidget {
   final bool _excludeFromSemantics;
   final Duration _fadeDuration;
   final BaseCacheManager _cacheManager;
+  final bool? _isSvgImage;
   final Widget Function(BuildContext, Object, StackTrace?)? _errorBuilder;
 
   @override
@@ -104,7 +107,6 @@ class _CustomNetworkCachedImageState extends State<CustomNetworkCachedImage>
   late String _cacheKey;
 
   late final AnimationController _controller;
-  late final Animation<double> _animation;
 
   @override
   void initState() {
@@ -115,7 +117,6 @@ class _CustomNetworkCachedImageState extends State<CustomNetworkCachedImage>
       vsync: this,
       duration: widget._fadeDuration,
     );
-    _animation = Tween(begin: 0.0, end: 1.0).animate(_controller);
     _loadImage();
   }
 
@@ -195,16 +196,30 @@ class _CustomNetworkCachedImageState extends State<CustomNetworkCachedImage>
   Widget _buildNetworkImage() {
     if (_imageFile == null) return const SizedBox();
 
-    return Image.file(_imageFile!,
-        fit: widget._fit,
-        width: widget._width,
-        height: widget._height,
-        alignment: widget._alignment,
-        matchTextDirection: widget._matchTextDirection,
-        color: widget._color,
-        colorBlendMode: widget._colorBlendMode,
-        semanticLabel: widget._semanticsLabel,
-        excludeFromSemantics: widget._excludeFromSemantics,
-        errorBuilder: widget._errorBuilder);
+    return widget._isSvgImage == true
+        ? SvgPicture.file(
+            _imageFile!,
+            fit: widget._fit,
+            width: widget._width,
+            height: widget._height,
+            alignment: widget._alignment,
+            matchTextDirection: widget._matchTextDirection,
+            color: widget._color,
+            colorBlendMode: widget._colorBlendMode,
+            semanticsLabel: widget._semanticsLabel,
+            excludeFromSemantics: widget._excludeFromSemantics,
+            errorBuilder: widget._errorBuilder,
+          )
+        : Image.file(_imageFile!,
+            fit: widget._fit,
+            width: widget._width,
+            height: widget._height,
+            alignment: widget._alignment,
+            matchTextDirection: widget._matchTextDirection,
+            color: widget._color,
+            colorBlendMode: widget._colorBlendMode,
+            semanticLabel: widget._semanticsLabel,
+            excludeFromSemantics: widget._excludeFromSemantics,
+            errorBuilder: widget._errorBuilder);
   }
 }
