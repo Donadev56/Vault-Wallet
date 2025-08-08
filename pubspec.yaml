@@ -118,9 +118,11 @@ dependencies:
   html: ^0.15.0
   flutter_html: ^3.0.0
   textfield_tags: ^3.0.1
-
+  cryptofont: ^1.0.2+1
   scrollable_positioned_list: ^0.3.8
   flutter_slidable: ^4.0.0
+  persistent_bottom_nav_bar_v2: ^6.1.0
+  flutter_scrolling_fab_animated: ^0.1.5
   
   
 dependency_overrides:
@@ -221,7 +223,230 @@ flutter:
           weight: 100
           style: italic 
   
- 
+    - family: ibm_plex_sans
+      fonts:
+        # Latin
+        - asset: assets/fonts/ibm-plex-sans/ttf/ibm-plex-sans-latin-100-normal.ttf
+          weight: 100
+        - asset: assets/fonts/ibm-plex-sans/ttf/ibm-plex-sans-latin-100-italic.ttf
+          weight: 100
+          style: italic
+        - asset: assets/fonts/ibm-plex-sans/ttf/ibm-plex-sans-latin-200-normal.ttf
+          weight: 200
+        - asset: assets/fonts/ibm-plex-sans/ttf/ibm-plex-sans-latin-200-italic.ttf
+          weight: 200
+          style: italic
+        - asset: assets/fonts/ibm-plex-sans/ttf/ibm-plex-sans-latin-300-normal.ttf
+          weight: 300
+        - asset: assets/fonts/ibm-plex-sans/ttf/ibm-plex-sans-latin-300-italic.ttf
+          weight: 300
+          style: italic
+        - asset: assets/fonts/ibm-plex-sans/ttf/ibm-plex-sans-latin-400-normal.ttf
+          weight: 400
+        - asset: assets/fonts/ibm-plex-sans/ttf/ibm-plex-sans-latin-400-italic.ttf
+          weight: 400
+          style: italic
+        - asset: assets/fonts/ibm-plex-sans/ttf/ibm-plex-sans-latin-500-normal.ttf
+          weight: 500
+        - asset: assets/fonts/ibm-plex-sans/ttf/ibm-plex-sans-latin-500-italic.ttf
+          weight: 500
+          style: italic
+        - asset: assets/fonts/ibm-plex-sans/ttf/ibm-plex-sans-latin-600-normal.ttf
+          weight: 600
+        - asset: assets/fonts/ibm-plex-sans/ttf/ibm-plex-sans-latin-600-italic.ttf
+          weight: 600
+          style: italic
+        - asset: assets/fonts/ibm-plex-sans/ttf/ibm-plex-sans-latin-700-normal.ttf
+          weight: 700
+        - asset: assets/fonts/ibm-plex-sans/ttf/ibm-plex-sans-latin-700-italic.ttf
+          weight: 700
+          style: italic
+
+        # Latin Extended
+        - asset: assets/fonts/ibm-plex-sans/ttf/ibm-plex-sans-latin-ext-100-normal.ttf
+          weight: 100
+        - asset: assets/fonts/ibm-plex-sans/ttf/ibm-plex-sans-latin-ext-100-italic.ttf
+          weight: 100
+          style: italic
+        - asset: assets/fonts/ibm-plex-sans/ttf/ibm-plex-sans-latin-ext-200-normal.ttf
+          weight: 200
+        - asset: assets/fonts/ibm-plex-sans/ttf/ibm-plex-sans-latin-ext-200-italic.ttf
+          weight: 200
+          style: italic
+        - asset: assets/fonts/ibm-plex-sans/ttf/ibm-plex-sans-latin-ext-300-normal.ttf
+          weight: 300
+        - asset: assets/fonts/ibm-plex-sans/ttf/ibm-plex-sans-latin-ext-300-italic.ttf
+          weight: 300
+          style: italic
+        - asset: assets/fonts/ibm-plex-sans/ttf/ibm-plex-sans-latin-ext-400-normal.ttf
+          weight: 400
+        - asset: assets/fonts/ibm-plex-sans/ttf/ibm-plex-sans-latin-ext-400-italic.ttf
+          weight: 400
+          style: italic
+        - asset: assets/fonts/ibm-plex-sans/ttf/ibm-plex-sans-latin-ext-500-normal.ttf
+          weight: 500
+        - asset: assets/fonts/ibm-plex-sans/ttf/ibm-plex-sans-latin-ext-500-italic.ttf
+          weight: 500
+          style: italic
+        - asset: assets/fonts/ibm-plex-sans/ttf/ibm-plex-sans-latin-ext-600-normal.ttf
+          weight: 600
+        - asset: assets/fonts/ibm-plex-sans/ttf/ibm-plex-sans-latin-ext-600-italic.ttf
+          weight: 600
+          style: italic
+        - asset: assets/fonts/ibm-plex-sans/ttf/ibm-plex-sans-latin-ext-700-normal.ttf
+          weight: 700
+        - asset: assets/fonts/ibm-plex-sans/ttf/ibm-plex-sans-latin-ext-700-italic.ttf
+          weight: 700
+          style: italic
+
+        # Cyrillic
+        - asset: assets/fonts/ibm-plex-sans/ttf/ibm-plex-sans-cyrillic-100-normal.ttf
+          weight: 100
+        - asset: assets/fonts/ibm-plex-sans/ttf/ibm-plex-sans-cyrillic-100-italic.ttf
+          weight: 100
+          style: italic
+        - asset: assets/fonts/ibm-plex-sans/ttf/ibm-plex-sans-cyrillic-200-normal.ttf
+          weight: 200
+        - asset: assets/fonts/ibm-plex-sans/ttf/ibm-plex-sans-cyrillic-200-italic.ttf
+          weight: 200
+          style: italic
+        - asset: assets/fonts/ibm-plex-sans/ttf/ibm-plex-sans-cyrillic-300-normal.ttf
+          weight: 300
+        - asset: assets/fonts/ibm-plex-sans/ttf/ibm-plex-sans-cyrillic-300-italic.ttf
+          weight: 300
+          style: italic
+        - asset: assets/fonts/ibm-plex-sans/ttf/ibm-plex-sans-cyrillic-400-normal.ttf
+          weight: 400
+        - asset: assets/fonts/ibm-plex-sans/ttf/ibm-plex-sans-cyrillic-400-italic.ttf
+          weight: 400
+          style: italic
+        - asset: assets/fonts/ibm-plex-sans/ttf/ibm-plex-sans-cyrillic-500-normal.ttf
+          weight: 500
+        - asset: assets/fonts/ibm-plex-sans/ttf/ibm-plex-sans-cyrillic-500-italic.ttf
+          weight: 500
+          style: italic
+        - asset: assets/fonts/ibm-plex-sans/ttf/ibm-plex-sans-cyrillic-600-normal.ttf
+          weight: 600
+        - asset: assets/fonts/ibm-plex-sans/ttf/ibm-plex-sans-cyrillic-600-italic.ttf
+          weight: 600
+          style: italic
+        - asset: assets/fonts/ibm-plex-sans/ttf/ibm-plex-sans-cyrillic-700-normal.ttf
+          weight: 700
+        - asset: assets/fonts/ibm-plex-sans/ttf/ibm-plex-sans-cyrillic-700-italic.ttf
+          weight: 700
+          style: italic
+
+        # Cyrillic Extended
+        - asset: assets/fonts/ibm-plex-sans/ttf/ibm-plex-sans-cyrillic-ext-100-normal.ttf
+          weight: 100
+        - asset: assets/fonts/ibm-plex-sans/ttf/ibm-plex-sans-cyrillic-ext-100-italic.ttf
+          weight: 100
+          style: italic
+        - asset: assets/fonts/ibm-plex-sans/ttf/ibm-plex-sans-cyrillic-ext-200-normal.ttf
+          weight: 200
+        - asset: assets/fonts/ibm-plex-sans/ttf/ibm-plex-sans-cyrillic-ext-200-italic.ttf
+          weight: 200
+          style: italic
+        - asset: assets/fonts/ibm-plex-sans/ttf/ibm-plex-sans-cyrillic-ext-300-normal.ttf
+          weight: 300
+        - asset: assets/fonts/ibm-plex-sans/ttf/ibm-plex-sans-cyrillic-ext-300-italic.ttf
+          weight: 300
+          style: italic
+        - asset: assets/fonts/ibm-plex-sans/ttf/ibm-plex-sans-cyrillic-ext-400-normal.ttf
+          weight: 400
+        - asset: assets/fonts/ibm-plex-sans/ttf/ibm-plex-sans-cyrillic-ext-400-italic.ttf
+          weight: 400
+          style: italic
+        - asset: assets/fonts/ibm-plex-sans/ttf/ibm-plex-sans-cyrillic-ext-500-normal.ttf
+          weight: 500
+        - asset: assets/fonts/ibm-plex-sans/ttf/ibm-plex-sans-cyrillic-ext-500-italic.ttf
+          weight: 500
+          style: italic
+        - asset: assets/fonts/ibm-plex-sans/ttf/ibm-plex-sans-cyrillic-ext-600-normal.ttf
+          weight: 600
+        - asset: assets/fonts/ibm-plex-sans/ttf/ibm-plex-sans-cyrillic-ext-600-italic.ttf
+          weight: 600
+          style: italic
+        - asset: assets/fonts/ibm-plex-sans/ttf/ibm-plex-sans-cyrillic-ext-700-normal.ttf
+          weight: 700
+        - asset: assets/fonts/ibm-plex-sans/ttf/ibm-plex-sans-cyrillic-ext-700-italic.ttf
+          weight: 700
+          style: italic
+
+        # Greek
+        - asset: assets/fonts/ibm-plex-sans/ttf/ibm-plex-sans-greek-100-normal.ttf
+          weight: 100
+        - asset: assets/fonts/ibm-plex-sans/ttf/ibm-plex-sans-greek-100-italic.ttf
+          weight: 100
+          style: italic
+        - asset: assets/fonts/ibm-plex-sans/ttf/ibm-plex-sans-greek-200-normal.ttf
+          weight: 200
+        - asset: assets/fonts/ibm-plex-sans/ttf/ibm-plex-sans-greek-200-italic.ttf
+          weight: 200
+          style: italic
+        - asset: assets/fonts/ibm-plex-sans/ttf/ibm-plex-sans-greek-300-normal.ttf
+          weight: 300
+        - asset: assets/fonts/ibm-plex-sans/ttf/ibm-plex-sans-greek-300-italic.ttf
+          weight: 300
+          style: italic
+        - asset: assets/fonts/ibm-plex-sans/ttf/ibm-plex-sans-greek-400-normal.ttf
+          weight: 400
+        - asset: assets/fonts/ibm-plex-sans/ttf/ibm-plex-sans-greek-400-italic.ttf
+          weight: 400
+          style: italic
+        - asset: assets/fonts/ibm-plex-sans/ttf/ibm-plex-sans-greek-500-normal.ttf
+          weight: 500
+        - asset: assets/fonts/ibm-plex-sans/ttf/ibm-plex-sans-greek-500-italic.ttf
+          weight: 500
+          style: italic
+        - asset: assets/fonts/ibm-plex-sans/ttf/ibm-plex-sans-greek-600-normal.ttf
+          weight: 600
+        - asset: assets/fonts/ibm-plex-sans/ttf/ibm-plex-sans-greek-600-italic.ttf
+          weight: 600
+          style: italic
+        - asset: assets/fonts/ibm-plex-sans/ttf/ibm-plex-sans-greek-700-normal.ttf
+          weight: 700
+        - asset: assets/fonts/ibm-plex-sans/ttf/ibm-plex-sans-greek-700-italic.ttf
+          weight: 700
+          style: italic
+
+        # Vietnamese
+        - asset: assets/fonts/ibm-plex-sans/ttf/ibm-plex-sans-vietnamese-100-normal.ttf
+          weight: 100
+        - asset: assets/fonts/ibm-plex-sans/ttf/ibm-plex-sans-vietnamese-100-italic.ttf
+          weight: 100
+          style: italic
+        - asset: assets/fonts/ibm-plex-sans/ttf/ibm-plex-sans-vietnamese-200-normal.ttf
+          weight: 200
+        - asset: assets/fonts/ibm-plex-sans/ttf/ibm-plex-sans-vietnamese-200-italic.ttf
+          weight: 200
+          style: italic
+        - asset: assets/fonts/ibm-plex-sans/ttf/ibm-plex-sans-vietnamese-300-normal.ttf
+          weight: 300
+        - asset: assets/fonts/ibm-plex-sans/ttf/ibm-plex-sans-vietnamese-300-italic.ttf
+          weight: 300
+          style: italic
+        - asset: assets/fonts/ibm-plex-sans/ttf/ibm-plex-sans-vietnamese-400-normal.ttf
+          weight: 400
+        - asset: assets/fonts/ibm-plex-sans/ttf/ibm-plex-sans-vietnamese-400-italic.ttf
+          weight: 400
+          style: italic
+        - asset: assets/fonts/ibm-plex-sans/ttf/ibm-plex-sans-vietnamese-500-normal.ttf
+          weight: 500
+        - asset: assets/fonts/ibm-plex-sans/ttf/ibm-plex-sans-vietnamese-500-italic.ttf
+          weight: 500
+          style: italic
+        - asset: assets/fonts/ibm-plex-sans/ttf/ibm-plex-sans-vietnamese-600-normal.ttf
+          weight: 600
+        - asset: assets/fonts/ibm-plex-sans/ttf/ibm-plex-sans-vietnamese-600-italic.ttf
+          weight: 600
+          style: italic
+        - asset: assets/fonts/ibm-plex-sans/ttf/ibm-plex-sans-vietnamese-700-normal.ttf
+          weight: 700
+        - asset: assets/fonts/ibm-plex-sans/ttf/ibm-plex-sans-vietnamese-700-italic.ttf
+          weight: 700
+          style: italic
+
 
 
   assets:

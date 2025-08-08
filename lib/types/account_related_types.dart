@@ -608,12 +608,14 @@ class TokenEcosystem {
   final String iconUrl;
   final bool supportSmartContracts;
   final int baseChainId;
+  final IconData icon;
 
   TokenEcosystem(
       {required this.name,
       required this.type,
       required this.iconUrl,
       required this.supportSmartContracts,
+      required this.icon,
       required this.baseChainId});
 }
 

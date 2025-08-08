@@ -15,7 +15,6 @@ import 'package:moonwallet/types/account_related_types.dart';
 import 'package:moonwallet/utils/number_formatter.dart';
 import 'package:moonwallet/utils/colors.dart';
 import 'package:moonwallet/widgets/appBar/show_custom_drawer.dart';
-import 'package:moonwallet/widgets/backup/backup_warning_widget.dart';
 import 'package:moonwallet/widgets/screen_widgets/coin_custom_listTitle.dart';
 import 'package:moonwallet/widgets/pop_menu_divider.dart';
 import 'package:moonwallet/widgets/func/security/ask_password.dart';
@@ -566,6 +565,28 @@ class _MainDashboardScreenState extends ConsumerState<MainDashboardScreen>
             primaryColor: colors.primaryColor,
             textColor: colors.textColor,
             surfaceTintColor: colors.secondaryColor),
+        floatingActionButton: !(!currentAccount.isBackup &&
+                currentAccount.createdLocally)
+            ? null
+            : ElevatedButton.icon(
+                style: ElevatedButton.styleFrom(
+                    backgroundColor: colors.primaryColor,
+                    elevation: 5,
+                    shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadiusGeometry.circular(5))),
+                onPressed: () => showPrivateData(accounts.value.indexWhere(
+                    (e) =>
+                        e.keyId.trim().toLowerCase() ==
+                        currentAccount.keyId.trim().toLowerCase())),
+                label: Text(
+                  'Backup',
+                  style: textTheme.bodyMedium?.copyWith(color: Colors.orange),
+                ),
+                icon: Icon(
+                  Icons.chevron_right,
+                  color: Colors.orange,
+                ),
+              ),
         body: CheckMarkIndicator(
             style: CheckMarkStyle(
                 loading: CheckMarkColors(
@@ -601,15 +622,6 @@ class _MainDashboardScreenState extends ConsumerState<MainDashboardScreen>
                     color: colors.themeColor,
                     child: CustomScrollView(
                       slivers: <Widget>[
-                        if (!currentAccount.isBackup &&
-                            currentAccount.createdLocally)
-                          BackupWarningWidget(
-                            colors: colors,
-                            onTap: () => showPrivateData(accounts.value
-                                .indexWhere((e) =>
-                                    e.keyId.trim().toLowerCase() ==
-                                    currentAccount.keyId.trim().toLowerCase())),
-                          ),
                         SliverToBoxAdapter(
                             key: ValueKey(colors.textColor.value),
                             child: Column(

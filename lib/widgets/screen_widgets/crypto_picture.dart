@@ -20,7 +20,7 @@ class CryptoPicture extends HookConsumerWidget {
       required this.crypto,
       required this.size,
       this.radius = 50,
-      this.networkRadius = 5,
+      this.networkRadius = 50,
       required this.colors});
 
   @override
@@ -37,6 +37,8 @@ class CryptoPicture extends HookConsumerWidget {
       colors: colors,
       secondaryImageUrl: crypto.network?.icon,
       addSecondaryImage: !crypto.isNative,
+      networkRadius: networkRadius,
+      radius: radius,
     );
   }
 }

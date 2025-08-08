@@ -1,7 +1,7 @@
 // ignore_for_file: deprecated_member_use
 
 import 'package:flutter/material.dart';
-import 'package:moonwallet/custom/cached_image/cached_image.dart';
+import 'package:lucide_icons_flutter/lucide_icons.dart';
 
 import 'package:moonwallet/types/account_related_types.dart';
 import 'package:moonwallet/types/types.dart';
@@ -51,14 +51,13 @@ class AccountListTitleWidget extends StatelessWidget {
       icon = Container(
         width: 40,
         height: 40,
-        padding: const EdgeInsets.all(10),
         decoration: BoxDecoration(
-            color: Colors.white, borderRadius: BorderRadius.circular(50)),
+            color: colors.secondaryColor,
+            borderRadius: BorderRadius.circular(10)),
         child: Center(
-          child: Image.asset(
-            "assets/logo/png/icon.png",
-            width: 25,
-            height: 25,
+          child: Icon(
+            LucideIcons.walletMinimal,
+            color: colors.textColor,
           ),
         ),
       );
@@ -74,17 +73,15 @@ class AccountListTitleWidget extends StatelessWidget {
           overflow: TextOverflow.ellipsis,
         );
         icon = Container(
-          width: 35,
-          height: 35,
+          width: 40,
+          height: 40,
           decoration: BoxDecoration(
-              color: Colors.white, borderRadius: BorderRadius.circular(50)),
+              color: colors.secondaryColor,
+              borderRadius: BorderRadius.circular(10)),
           child: Center(
-            child: ClipRRect(
-              borderRadius: BorderRadius.circular(50),
-              child: CustomNetworkCachedImage(
-                wallet.getEcosystem()!.iconUrl,
-                fit: BoxFit.cover,
-              ),
+            child: Icon(
+              wallet.getEcosystem()?.icon,
+              color: colors.textColor,
             ),
           ),
         );
@@ -107,7 +104,6 @@ class AccountListTitleWidget extends StatelessWidget {
           shape: RoundedRectangleBorder(
               borderRadius: BorderRadius.circular(roundedOf(5))),
           leading: icon,
-          tileColor: colors.secondaryColor,
           title: Row(
             spacing: 5,
             children: [
@@ -133,8 +129,7 @@ class AccountListTitleWidget extends StatelessWidget {
                       const EdgeInsets.symmetric(vertical: 3, horizontal: 6),
                   decoration: BoxDecoration(
                       borderRadius: BorderRadius.circular(roundedOf(20)),
-                      border:
-                          Border.all(color: colors.textColor.withOpacity(0.4))),
+                      color: colors.secondaryColor),
                   child: Text(
                     "Watch Only",
                     style: textTheme.bodySmall?.copyWith(
@@ -148,8 +143,7 @@ class AccountListTitleWidget extends StatelessWidget {
                       const EdgeInsets.symmetric(vertical: 3, horizontal: 6),
                   decoration: BoxDecoration(
                       borderRadius: BorderRadius.circular(roundedOf(20)),
-                      color: colors.secondaryColor.withOpacity(0.2),
-                      border: Border.all(color: Colors.orange)),
+                      color: Colors.orange.withValues(alpha: 0.1)),
                   child: Text(
                     "Unbacked",
                     style: textTheme.bodySmall?.copyWith(

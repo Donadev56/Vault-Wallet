@@ -41,7 +41,7 @@ class CustomSwitchListTitle extends StatelessWidget {
         style: textTheme.bodyMedium?.copyWith(
             color: colors.textColor,
             fontSize: fontSizeOf(16),
-            fontWeight: FontWeight.w500),
+            fontWeight: FontWeight.w600),
       ),
       trailing: Switch(value: value, onChanged: onChanged),
     );

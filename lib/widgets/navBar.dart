@@ -79,7 +79,7 @@ class BottomNav extends StatelessWidget {
               backgroundColor: primaryColor,
               activeIcon: Icon(
                 item['filled'] as IconData,
-                size: iconSizeOf(25),
+                size: iconSizeOf(26),
               ),
               icon: AnimatedContainer(
                 duration: const Duration(milliseconds: 300),
@@ -90,7 +90,7 @@ class BottomNav extends StatelessWidget {
                   curve: Curves.easeInOut,
                   child: Icon(
                     item['icon'] as IconData,
-                    size: iconSizeOf(25),
+                    size: iconSizeOf(26),
                   ),
                 ),
               ),

@@ -78,12 +78,12 @@ class CoinCustomListTitle extends HookConsumerWidget {
           color: Colors.transparent,
           child: Padding(
             padding: const EdgeInsets.symmetric(
-              vertical: 4,
+              vertical: 6,
             ),
             child: ListTile(
               textColor: colors.secondaryColor,
-              visualDensity: VisualDensity(vertical: -4, horizontal: 2),
-              contentPadding: const EdgeInsets.symmetric(horizontal: 15),
+              visualDensity: VisualDensity(vertical: -4, horizontal: -2),
+              contentPadding: const EdgeInsets.symmetric(horizontal: 20),
               splashColor: colors.textColor.withOpacity(0.05),
               shape: RoundedRectangleBorder(
                   borderRadius: BorderRadius.only(

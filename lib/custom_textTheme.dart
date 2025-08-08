@@ -1,93 +1,80 @@
 import 'package:flutter/material.dart';
+import 'package:google_fonts/google_fonts.dart';
+import 'package:moonwallet/types/types.dart';
 
-TextTheme customTextTheme(colors) => TextTheme(
-      displayLarge: TextStyle(
-        fontFamily: "custom_inter",
+TextTheme customTextTheme(AppColors colors) => TextTheme(
+      displayLarge: GoogleFonts.ibmPlexSans(
         fontSize: 57,
         fontWeight: FontWeight.bold,
         color: colors.textColor,
         letterSpacing: -0.25,
       ),
-      displayMedium: TextStyle(
-        fontFamily: "custom_inter",
+      displayMedium: GoogleFonts.ibmPlexSans(
         fontSize: 45,
         fontWeight: FontWeight.bold,
         color: colors.textColor,
       ),
-      displaySmall: TextStyle(
-        fontFamily: "custom_inter",
+      displaySmall: GoogleFonts.ibmPlexSans(
         fontSize: 36,
         fontWeight: FontWeight.w600,
         color: colors.textColor,
       ),
-      headlineLarge: TextStyle(
-        fontFamily: "custom_inter",
+      headlineLarge: GoogleFonts.ibmPlexSans(
         fontSize: 32,
         fontWeight: FontWeight.w600,
         color: colors.textColor,
       ),
-      headlineMedium: TextStyle(
-        fontFamily: "custom_inter",
+      headlineMedium: GoogleFonts.ibmPlexSans(
         fontSize: 28,
         fontWeight: FontWeight.w500,
         color: colors.textColor,
       ),
-      headlineSmall: TextStyle(
-        fontFamily: "custom_inter",
+      headlineSmall: GoogleFonts.ibmPlexSans(
         fontSize: 24,
         fontWeight: FontWeight.w500,
         color: colors.textColor,
       ),
-      titleLarge: TextStyle(
-        fontFamily: "custom_inter",
+      titleLarge: GoogleFonts.ibmPlexSans(
         fontSize: 22,
         fontWeight: FontWeight.bold,
         color: colors.textColor,
       ),
-      titleMedium: TextStyle(
-        fontFamily: "custom_inter",
+      titleMedium: GoogleFonts.ibmPlexSans(
         fontSize: 16,
         fontWeight: FontWeight.w500,
         color: colors.textColor.withOpacity(0.9),
       ),
-      titleSmall: TextStyle(
-        fontFamily: "custom_inter",
+      titleSmall: GoogleFonts.ibmPlexSans(
         fontSize: 14,
         fontWeight: FontWeight.w500,
         color: colors.textColor.withOpacity(0.85),
       ),
-      bodyLarge: TextStyle(
-        fontFamily: "custom_inter",
+      bodyLarge: GoogleFonts.ibmPlexSans(
         fontSize: 16,
         fontWeight: FontWeight.normal,
         color: colors.textColor,
       ),
-      bodyMedium: TextStyle(
-        fontFamily: "custom_inter",
+      bodyMedium: GoogleFonts.ibmPlexSans(
         fontSize: 14,
         fontWeight: FontWeight.normal,
         color: colors.textColor.withOpacity(0.9),
       ),
-      bodySmall: TextStyle(
-        fontFamily: "custom_inter",
+      bodySmall: GoogleFonts.ibmPlexSans(
         fontSize: 12,
         fontWeight: FontWeight.normal,
         color: colors.textColor.withOpacity(0.7),
       ),
-      labelLarge: TextStyle(
-        fontFamily: "custom_inter",
+      labelLarge: GoogleFonts.ibmPlexSans(
         fontSize: 14,
         fontWeight: FontWeight.w600,
         color: colors.textColor,
       ),
-      labelMedium: TextStyle(
+      labelMedium: GoogleFonts.ibmPlexSans(
         fontSize: 12,
-        fontFamily: "custom_inter",
         fontWeight: FontWeight.w500,
         color: colors.textColor.withOpacity(0.8),
       ),
-      labelSmall: TextStyle(
-        fontFamily: "custom_inter",
+      labelSmall: GoogleFonts.ibmPlexSans(
         fontSize: 11,
         fontWeight: FontWeight.w400,
         color: colors.textColor.withOpacity(0.6),
